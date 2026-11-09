@@ -10,7 +10,7 @@ MIDI clock and active sensing are skipped to keep the log readable.
   .venv/bin/python tools/fm1_midi_listen.py --seconds 30 --out /tmp/session.log
   .venv/bin/python tools/fm1_midi_listen.py --list              # list input ports
 
-Exit codes: 0 ok, 2 no FM-1 MIDI port found (or it is ambiguous/unreadable).
+Exit codes: 0 ok, 2 no FM-1 MIDI port found (or the port cannot be opened).
 Needs: pip install mido python-rtmidi (both in .venv/).
 """
 import argparse
@@ -74,21 +74,25 @@ def main(argv=None):
         with mido.open_input(port) as inp, open(a.out, "w") as log:
             log.write(f"# port={port!r} seconds={a.seconds} started={time.strftime('%Y-%m-%d %H:%M:%S')}\n")
             print(f"listening on {port!r} for {a.seconds:g} s -> {a.out}  (Ctrl-C to stop early)", flush=True)
-            while time.monotonic() - t0 < a.seconds:
-                for m in inp.iter_pending():
-                    t = time.monotonic() - t0
-                    if m.type in ("clock", "active_sensing"):
-                        continue
-                    log.write(f"{t:8.3f} {m}\n")
-                    log.flush()
-                    if m.type == "note_on" and m.velocity > 0:
-                        first_at = first_at if first_at is not None else round(t, 3)
-                        ons[m.note] += 1
-                        vels[m.velocity] += 1
-                        chans[m.channel + 1] += 1
-                    elif m.type == "control_change" and m.control == 123:
-                        cc123 += 1
-                time.sleep(0.002)
+            # Ctrl-C ends the loop early but must still write the SUMMARY to the log (the session result).
+            try:
+                while time.monotonic() - t0 < a.seconds:
+                    for m in inp.iter_pending():
+                        t = time.monotonic() - t0
+                        if m.type in ("clock", "active_sensing"):
+                            continue
+                        log.write(f"{t:8.3f} {m}\n")
+                        log.flush()
+                        if m.type == "note_on" and m.velocity > 0:
+                            first_at = first_at if first_at is not None else round(t, 3)
+                            ons[m.note] += 1
+                            vels[m.velocity] += 1
+                            chans[m.channel + 1] += 1
+                        elif m.type == "control_change" and m.control == 123:
+                            cc123 += 1
+                    time.sleep(0.002)
+            except KeyboardInterrupt:
+                log.write("# stopped early (Ctrl-C)\n")
             log.write(summarise(ons, vels, chans, cc123, first_at) + "\n")
     except KeyboardInterrupt:
         pass
