@@ -192,3 +192,5 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 53,54 | Keybed force sensing (Velo / CTL-1) IS wanted in v1 ('this is it'): the next design pass must make excellent use of velocity and polyphonic aftertouch. |
 | Process | Framework for the next pass: every state is a page; each button has a mode (press, hold ...); each state has a screen; each screen shows what the knobs control; input, processing and output all aligned and mapped; held to a high bar of usability, understanding, UX, performance, fun and musical output. An Opus UX-designer / technical-architect pass (P1-017) reviews this feedback and LOCKS the sequencer functionality and UX. P1-016 is superseded by P1-017. |
 | Push | Approved. |
+
+| 74 | Does v1 send MIDI clock out (FM-1 as master)? | YES (owner, 2026-11-10); see FB-001 | decided |
