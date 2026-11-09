@@ -44,6 +44,8 @@ hold (so hold-and-turn can be momentary).
 | `B_PLAY`, `B_FX`, `B_SCL`, `B_ENV`, `B_LFO`, `B_ARP`, `B_SEQ` | dice, layers, transport | Rejected: performance gestures (each scores 9). |
 | **`B_OCTDN` + `B_OCTUP`** | press = keyboard octave -1 / +1 (F26, setup, 8); in STEP_HELD = pin octave; both held 5 s = UPDATE MODE; both at power-on = CALIBRATION | **Chosen.** The tap and the hold are free once the keyboard octave moves. Two buttons give an explicit pair (OCT- = ROW 1, OCT+ = ROW 2): no toggle state to guess. |
 
+(Superseded by P1-014 B2: SCL has no hold, F35 is retired; the global OCTAVE is SET row 2 K2 and the REC octave is REC K4. Text below kept as history.)
+
 Why the keyboard octave can move: it only transposes live-played notes (F26 audition, setup class). It becomes
 **hold SCL, then OCT- / OCT+** (see 1.4, F35 = 7, setup needs >= 6, no 0). The global OCTAVE (hold SCL, K3) is
 untouched.

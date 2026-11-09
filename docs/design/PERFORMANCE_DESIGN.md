@@ -138,7 +138,7 @@ dimming) does; the layer order of the screen's button picture is the panel's own
 ### 3.1 White keys: the steps of the viewed page (outside REC)
 
 - **Key n = step n of the viewed page** (R2): step number `(page - 1) x 16 + n`. With a pattern of 16 steps or fewer there is one page and nothing to swap. Keys past the pattern length are drawn dim and are inert (toast `PAST THE END: hold PAGE + key`).
-- **Press** key n: if the step is not pinned, it is pinned now and **sounds** (the note the algorithm generated there, or the root if it was silent). A touch **under 30 ms is ignored** (brush guard, table value). If it is pinned, release within 0.4 s without turning anything clears it (tap = toggle).
+- **Press** key n: if the step is not pinned, it is pinned now and **sounds** (the note the algorithm generated there, or the root if it was silent). A touch **under 30 ms is ignored** (brush guard, table value). If it is pinned, release within 0.4 s without turning a knob, pressing OCT or pressing a second white key clears it (tap = toggle).
 - **Hold** key n = **select the step** (R3). The step band replaces the knob band and has two rows of four, the same model as the morph rows, with `OCT-` = row 1 and `OCT+` = row 2:
 
 | Step band | K1 | K2 | K3 | K4 |
