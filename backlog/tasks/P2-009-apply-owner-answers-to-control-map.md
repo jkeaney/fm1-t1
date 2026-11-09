@@ -3,7 +3,7 @@ id: P2-009
 title: Apply owner decisions 32b and 39 to the control map documents
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: haiku
 depends_on: [P2-001, P2-002]
@@ -61,3 +61,16 @@ python3 tools/backlog.py check
 The first grep pass matched the change note itself, so the note was reworded to "the chord row of the CONTROL tab" before the final run above.
 
 Acceptance criteria: all four ticked and verified above. Only docs were changed: no build, no firmware, no flash, no push.
+
+### 2026-11-10 review (sonnet)
+Verdict: PASS (gate none, set done).
+
+Re-run: `grep -rni 'chord entry'` on the three files: no output (rc 1). `python3 tools/check_control_map.py`: rows tsv=343 md=343, OK. `python3 tools/backlog.py check`: 33 items, 0 errors. `git show b43fb6e --stat`: 3 files (task file, CONTROL_MAP.md 4 +/-, UX_REVIEW.md 4 +/-); control_map.tsv not touched, correctly, as it has no chord row. Untracked files: none (`git status --short --untracked-files=all` empty).
+
+Diff check: only the CONTROL tab chord row (CONTROL_MAP.md:134, UX_REVIEW.md:174-175) is removed, plus one change note under each H1 (CONTROL_MAP.md:3, UX_REVIEW.md:3). Both notes give CONTROL 4 rows and 28 total, which matches SYSTEM_MAP section 7. No other behaviour changed.
+
+Remaining chord mentions: CONTROL_MAP.md:157 "chord voices etc." describes the deferred T-1 HARMONY page, not chord entry. Left as is. Not a finding.
+
+Decision 32b follow-ups in these three files: `grep -ni 'mode groove\|mode seq\|legacy'` returns nothing; no MODE row remains. The title's 32b mention is covered by the existing text (CONTROL_MAP.md:32, UX_REVIEW.md:67-68). P2-003 and P2-004 follow-ups from 32b are out of scope here.
+
+Non-blocking: the task title still says "decisions 32b and 39", but the deliverable is 39 only. The title is fine as a history note; no change needed.
