@@ -459,7 +459,7 @@ preview synth plays CH1 (ADR-0003). API names are ADR-0003 section 6 plus the ad
 | U54 | REC tap, keys | `sq_rec_write(ch,key,vel)`: stopped at the cursor (advances), playing at the nearest step; writes PITCH, ON, VELO (force), SLIDE / ACC from K2 / K3 | the key sounds at once (note-on at landing + ~5 ms, off on release) | written cell, cursor, last velocity |
 | U55 | REC or HOME tap in REC | disarm | none | banner gone |
 | U56 | SAVE tap | `sq_preset_save` into slot Pnn (E7 store) | none | toast `SAVED P03` |
-| U57 | PRESETS turn | stopped: load now; playing: stage + queue to the 768-tick bar (only the last slot turned lands) | stopped: next step; playing: at the bar | header `P03>` then `P03`; bar countdown dots |
+| U57, U68 | PRESETS turn | stopped: load now; playing: stage + queue to the 768-tick bar (only the last slot turned lands) | stopped: next step; playing: at the bar | header `P03>` then `P03`; bar countdown dots |
 | U58 | SAVE hold 0.7 s | restore the pre-load copy at the next step (again = redo) | next step | toast `LOAD UNDONE` |
 | U59 | EDIT hold, knob (PERF) | `sq_reset_morph` | next step | `RST` then the default value |
 | U60 | EDIT hold, OCT- / OCT+ | `sq_reset_row` | next step | row values |
@@ -493,12 +493,13 @@ chosen value repeatably; the NOTE_EDIT knobs are exact); polyphonic aftertouch s
 rule 2; a later table flag could add it); release velocity (not sent by the reference either).
 
 Every force gesture is **visible before it counts**: FS1 shows `ACC` in the pressed cell while the key is down (the
-tap acts on release, so the user can lighten or lift); FS2 / FS3 read out `ROLL 3x` / `FILL 80%` live; FS4 shows the
+bin is fixed at landing, so lightening does not remove it; the tap acts on release, so keeping the key down past 0.4 s
+opens NOTE EDIT instead of toggling, and EDIT tap takes a toggle back); FS2 / FS3 read out `ROLL 3x` / `FILL 80%` live; FS4 shows the
 written velocity.
 
 ### 6.2 Thresholds and calibration
 
-- Per key `floor` (seated reading, soft press) is learned automatically: a running minimum of the seated reading,
+- Per key `floor` (the fully seated reading: the lowest count, i.e. the hardest press; lower counts = harder) is learned automatically: a running minimum of the seated reading,
   decayed 1 count per second toward 1023, stored with the settings (20 x 2 B). A key never pressed uses the
   reference default (hard ~185, gentle 270..360 counts; Velo notes).
 - `HARD` bin edge per key = floor + 25 % of (gentle default - floor). `FORCE` menu row (set-and-forget, SYSTEM tab):
@@ -807,10 +808,10 @@ per-step dice (`FX` / `SCL` in NOTE EDIT), whose results are stored as edits.
 | P1-014 reserve for step records (768 + 768) and scenes | 0 | dropped: replaced by the rows above |
 | **Total new .bss** | **6776** | (P1-014 had 6962) |
 
-| Check | Allowed | Used | Left |
-| --- | ---: | ---: | --- |
-| After the E3 removals: 46496 - 4096 | 42400 | 6776 | **39720 B headroom** |
-| Built before the removals: 17984 - 4096 | 13888 | 6776 | **11208 B headroom** (above the 8192 B E9 trigger; 7112 B above the 4096 B floor) |
+| Check | Headroom before | New .bss | Headroom after | Above the 4096 B floor |
+| --- | ---: | ---: | ---: | ---: |
+| After the E3 removals | 46496 | 6776 | **39720 B** | 35624 B |
+| Built before the removals | 17984 | 6776 | **11208 B** (above the 8192 B E9 trigger by 3016 B) | 7112 B |
 
 ### 9.5 Pool and flash
 

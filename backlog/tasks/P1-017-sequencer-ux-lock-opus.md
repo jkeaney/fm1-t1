@@ -124,3 +124,95 @@ Owner questions (also in OWNER_QUESTIONS.md):
 
 Reviewer: please check the RAM arithmetic in SEQUENCER_UX 9.4 / ADR-0003 11.2 (6776 B new .bss; 11208 B headroom
 before removals) and the pool prerequisite (R6 before E7; 780 B spare otherwise).
+
+### 2026-11-10 review (sonnet)
+
+Verdict: **not lockable as written; close.** The framework (pages, tap/hold modes, knob, key and button tables, traces),
+the two-layer model, the page/length rules, the force design and the budget are strong and mostly complete. Leave at
+`review` (human-review gate). The owner should approve only after the must-fix items below. Do not set this to done.
+
+Re-run: `check_sequencer_ux.py` OK (9 pages, 254/95/307/441 rows, 68 scored, 1 exception); `check_control_map.py` OK
+(441 = 441); TBD/choose/decide grep clean; `backlog.py check` 38 items 0 errors; no untracked files. I also wrote an
+independent script over the TSVs (/tmp/p1017/rev.py) and built a page graph from it. Result: 14 buttons x {tap, hold} x 9
+pages are complete, with no duplicate button, knob or key rows. K1-K4 and the three encoders are labelled on every page,
+and all 27 keys are mapped on every page. All 9 pages are reachable from PERF, and one HOME tap returns to PERF from
+every page (from PERF it opens HELP; from MENU it closes the menu). There are no dead ends. No gesture needs two held
+controls. The only hold-while-turn left is the optional OCT peek on PERF (R-3 lists it; it is not scored). I compiled the
+9.1 structs with their `_Static_assert`s in /tmp/p1017/s.c: StepEdit 4, ChanSave 344, UndoRec 92, SeqPreset 1388,
+`ch[]` 1376 and ChanRT 24 (with `grid, pass, p, tie` first) all pass. RAM re-adds to exactly 6776. Headroom is 11208
+before the removals (3016 above the 8 KB trigger, 7112 above the 4 KB floor) and 39720 after them. Pool: 22208 + 2776 =
+24984, leaving 780 of the 25764 free today. The R6-before-E7 prerequisite (or 8 slots = 13880) is right. Scores: 68 rows,
+21 P / 47 S, sum 729/816, as claimed.
+
+Fixed here (trivial):
+- SEQUENCER_UX 9.4: the check table subtracted 6776 from the raw headroom but labelled it as floor-adjusted. It now shows
+  the headroom after and the margin above the floor (35624 / 7112).
+- SEQUENCER_UX 6.2: "floor (seated reading, soft press)" was inverted. The floor is the lowest count, which is the
+  hardest press (Velo: hard ~185, gentle 270..360).
+- SEQUENCER_UX 6.1: "the user can lighten or lift" was not a real rescue, because FS1's bin is fixed at landing. The
+  real rescues are now named: hold past 0.4 s, or EDIT.
+- SEQUENCER_UX 5: the trace row for U57 now also covers U68.
+- page_states.tsv CHAN `enter` listed SCALE, but on SCALE D#4 sets the KEY. Corrected.
+- CONTROL_MAP.md: the stale body sections 0, 1, 3 and 4 still described scenes, STEP_HELD, D#4 PAGE and "MIDI channel on
+  SET row 2". Their headings are now marked as P1-014 history.
+
+Must fix before lock (next pass, opus):
+- [ ] **FLOW pages break "add a page = exact copy".** SEQUENCER_UX 1.3 and 1.6 give a new page `COPY` (g = p % 16), so
+  a page added after a FLOW page plays page 1's generated layer under the copied edits. It is not a copy, and the
+  music changes. W3 steps 4-5 hit this directly: page 4 is "a copy of page 3", but page 3 is FLOW. Fix: replace `pg_flow`
+  with a per-page source `src(k)` in 0..k, using 2 bits x 4 pages in the same byte. Then g(p) = 16*src(k) + p % 16, a
+  new page takes `src` from the page before, and FLOW = src(k) = k. That makes a copy exact in every case. Update 1.4,
+  9.1, 9.2, ADR-0003 and CHAN K3, where SOURCE shows `P1`..`P4` or `OWN`.
+- [ ] **The L rule was silently relaxed.** PERFORMANCE_DESIGN 7.1 (line 406) says "a role found only by a hold or a combo
+  is L1". SEQUENCER_UX 8.1 restates this as "a role found by a hold is L2". The "67 of 68 pass" depends on that change:
+  22 setup rows would fail at 9 under the old rule (U16, U17, U19-U27, U29-U32, U45-U47, U59-U61, U66). Either state the
+  rule change openly and argue it, or rescore. The argument: every hold now opens a labelled page, and the hold is
+  named permanently on PERF. The PERF button picture (2.1) does not name the holds today, so add hold sub-labels to it:
+  `UNDO/RST`, `SET/SCL`, `HELP/MENU`, `SAVE/UNDO L`. The owner must accept the restated rule explicitly.
+- [ ] **U15 (hard-tap accent) is inflated at 11 as a performance function.** Nothing on PERF shows the role until the
+  user does it by accident (V2 at best). It cannot be learned without a manual (L1). It works on only 12 of the 16 step
+  keys, and `FORCE` defaults to OFF until HT-FORCE passes. Honest score 2/3/3/1 = 9. Reclass it as an optional extra
+  outside the bar, or give it a visible cue.
+- [ ] **No save-to-another-slot.** Turning PRESETS loads the slot (at once when stopped), and SAVE writes to the header
+  slot. To keep the current work in P05 the user must load P05 (which wipes the work), SAVE-hold to undo, then SAVE.
+  The spec never says whether the header slot stays at P05 after the undo. That is 3+ gestures and a data-loss trap,
+  and W7 skips it. Fix: a PRESETS turn shows `P05?` as a pending slot (stopped: it loads after a short settle; playing:
+  at the bar). SAVE tap while a slot is pending saves to that slot and cancels the load. Two gestures. Score it, and
+  trace it.
+- [ ] **Slide across the loop point is newly forbidden** (9.2 `never across p = len-1 -> 0`, 10). ADR-0003's
+  free-running `t` allowed it, and ACID generates slides into position 0. So with LENGTH 16 every slide into the
+  downbeat is now dropped every bar, which is a regression for the flagship acid line. The next step at the wrap
+  (p = 0) is known, so allow the slide and cut it only on STOP and LENGTH change. Also make the meaning of SLIDE
+  consistent. 1.1 and ADR say "into the next **sounding** step", but U22, 9.2 and sting 6.5 say "the next step,
+  effective only if both sound". Pick the 303 rule (the next step) everywhere.
+- [ ] **The HOME-help change reopens owner decision 57/61 ("hold-HOME help")**, but the executor's log says it was "not
+  owner-locked". It is in requirement 8's decided list. Present it to the owner as a change of a decided item, with the
+  evidence (I1 for a modifier + touch). Note the risk: a reflexive double HOME lands in HELP, where knobs and keys do
+  nothing.
+
+Should fix (smaller; can go in the same pass):
+- [ ] ADD_PAGE on a partial last page (LENGTH 20, PG+ twice) sets LENGTH to 16 x pages = 48, which silently brings back
+  steps 21-32. Specify LENGTH + 16 or "complete the page first". The prompt text `COPY OF n` is also wrong when PG+
+  restores a hidden page (U35): use `SHOW PAGE n (HIDDEN)?`.
+- [ ] STAGE `TOTAL` (ROW 1 K2, 8..64) above LENGTH, or on a COPY page, is mostly inaudible: page 2 replays pulses 0-15.
+  There is no confusion-audit row for it. Show a cue (`TOTAL 32 > L16: D#4`), or make ADD_PAGE default to the
+  continuation source when the algorithm's loop is longer than 16.
+- [ ] One UndoRec per channel: a NOTE_EDIT visit takes a step snapshot, but tapping another key's ON/OFF inside
+  NOTE_EDIT would overwrite it. Say which change wins.
+- [ ] Confusion #1, "TB-3 on another channel": the device cannot detect this, so the rescue is not real. CH1 defaults to
+  MIDI 1 and the TB-3 to 2. Add a first-run step `D#4 K2: MIDI CHANNEL`, or default CH1 to MIDI 2.
+- [ ] Force: FS2/FS3 "lean harder" needs Velo's DRIVE mode. In pull-up mode aftertouch only reads easing off, with a
+  small range (KEYBED_EXPRESSION_REFERENCE line 34). Name the sensing mode and its cost (+~2.2 ms note latency, every
+  other sample) in 6.4, and add it to gate G5/G6. The H3 offsets (+40 B) are not in the RAM row.
+- [ ] U28 ("perform a step live", P 11, G1) assumes NOTE_EDIT is already open, so it counts the same act as U17-U21
+  (setup, 10) a second time. Disclose this in 8.1.
+- [ ] CLAUDE.md product rule 3 still says "its only setting is its MIDI channel". The owner should update it to match
+  VISION rule 3 (reviewers do not edit CLAUDE.md).
+
+E1 / question 71 recommendation: **keep the load on the bar** (decisions 34/45). A quantised launch with an immediate
+`P04>` countdown is the musical norm, and loading at the next step would land mid-phrase. Optionally amend the rubric
+so a deliberate, visibly counted-down launch scores O2; then nothing is left as an exception.
+
+Awaiting owner: decide on the must-fix list (the FLOW source model, the L-rule restatement plus hold sub-labels,
+save-to-slot, slide across the loop, the HOME-help change) and questions 65-71. Then send the task back for one opus
+revision pass before writing "Approved" / "Design locked".

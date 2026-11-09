@@ -22,7 +22,7 @@ Inputs: [VISION.md](../project/VISION.md), [ADR-0004](../project/decisions/ADR-0
 [CONTROL_INVENTORY.md](CONTROL_INVENTORY.md) (what the firmware does today), [ALGORITHM_SET.md](ALGORITHM_SET.md)
 (layers, morphs, dice). Panel photo: `docs/controls.jpg`. Screen pixel layout is P2-003, not here.
 
-## 0. Fixed facts used below
+## 0. Fixed facts used below (P1-014 history: superseded by SEQUENCER_UX.md where they differ)
 
 - **4 channels** (owner decision 31). Power-on defaults: CH1 `ACID` MIDI 1 unmuted; CH2 `EUCLID` MIDI 2, CH3 `SNAKE`
   MIDI 3, CH4 `STAGE` MIDI 4, all three muted. Global KEY C, SCALE `MINPEN`, OCTAVE 0, GATE 50 %, DIV 1/16, SWING 50 %,
@@ -35,7 +35,7 @@ Inputs: [VISION.md](../project/VISION.md), [ADR-0004](../project/decisions/ADR-0
 - **Next-step commit.** Morphs, dice, algorithm and scale changes are heard from the next step. A preset load or a scene recall is heard at the next bar (768 ticks).
 - **Momentary state.** SOLO, FILL and ROLL are held controls: they act on press and the state returns on release. They are never latched. (MUTATE was removed by the P1-014 revision.)
 
-## 1. Modes, and how you always know which one you are in
+## 1. Modes, and how you always know which one you are in (P1-014 history: superseded by SEQUENCER_UX.md where they differ)
 
 There is no mode you can be lost in: the sequencer boots straight into the main screen, and every other state is
 either **momentary** (a held button or key) or **latched with a banner** (SET and REC; both have a banner and an LED or `BACK` cell). Six panel states. Precedence when two could apply: **MENU > SET > RESET > REC >
@@ -92,7 +92,7 @@ Summary in panel order (P1-017). Per-page detail is Appendix A; where the summar
 | Black key D#5 (`KEY_B10`) | PG+: next page; last page: ADD PAGE prompt, PG+ again adds | | | `PG+` |
 | Black key F#5 (`KEY_B11`) | RESTRT: all channels to step 1 | | | `RESTRT` |
 
-## 3. Keys: steps versus moves
+## 3. Keys: steps versus moves (P1-014 history: superseded by SEQUENCER_UX.md where they differ)
 
 - **16 white keys (F3..G5, place 0..15) = the 16 steps, always (outside REC).** Press key n: step n is pinned (sounds at
   once; key n is step n of the **viewed page**: with a pattern longer than 16, `PAGE` (D#4) swaps pages; hold PAGE and press a key to end the pattern there; a new pin is the note generated there, or the root when silent). A touch under 30 ms is ignored (brush guard). Tap a pinned key to clear it. **Hold a key** = select that step: K1 `NOTE`, K2 `ACC`, K3 `SLIDE`, K4 `RATCH` (row 1) and, after tapping OCT+, `TIE MUTE PROB OCT` (row 2); **press another white key while holding = that scale degree** (key 1 = the root, key n = degree n-1; sounds at once; replaces the pitch; UNDO restores). K1 at 0 (`KEYS ONLY`) plays only pins.
@@ -102,7 +102,7 @@ Summary in panel order (P1-017). Per-page detail is Appendix A; where the summar
 - **Dice are never on keys.** They are buttons. The keys stay free of dice so a performer's hands stay split: left on the buttons, right on the keys.
 - **Channel select is not on keys** (the SELECT encoder alone; four detents reach any channel). The four select keys and `ALL ON` of the approved map were given up for SOLO, FILL, ROLL and the scenes.
 
-## 4. Reference workflow, gesture by gesture (TB-3 on MIDI channel 2)
+## 4. Reference workflow, gesture by gesture (TB-3 on MIDI channel 2) (P1-014 history: superseded by SEQUENCER_UX.md where they differ)
 
 Starting from power-on. No step opens the MENU. Result: **performing within 5 gestures**, every one on the main screen except the SET page.
 
