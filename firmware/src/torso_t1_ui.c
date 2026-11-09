@@ -4,13 +4,11 @@
 
 #include "torso_t1_ui.h"
 
-#if !defined(FELUCCA_ID) && !defined(FM1_SYS_H)
+#ifndef T1_DEVICE
 #include <stdio.h>
 #include <string.h>
 #else
-int snprintf(char *str, unsigned size, const char *format, ...);
-void *memset(void *d, int c, unsigned n);
-void *memcpy(void *d, const void *s, unsigned n);
+int snprintf(char *str, unsigned size, const char *format, ...);   /* torso_t1_port.c */
 #endif
 
 static inline int32_t t1_abs(int32_t x)

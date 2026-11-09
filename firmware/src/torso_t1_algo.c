@@ -5,7 +5,9 @@
 #include "torso_t1_algo.h"
 
 #if !defined(FELUCCA_ID) && !defined(FM1_SYS_H)
+#ifndef T1_DEVICE
 #include <string.h>
+#endif
 #else
 void *memset(void *d, int c, unsigned n);
 void *memcpy(void *d, const void *s, unsigned n);
@@ -216,23 +218,25 @@ void t1_pace_eval_ratchet(const CycleParams *cp, uint32_t pulse_duration_ticks, 
  * 3. HARMONY & VOICING ENGINE
  * ------------------------------------------------------------------------- */
 
+/* Bit n = n semitones above the root. Order = the UI's SCALE_NAMES (torso_t1_ui.c) and TORSO_T1_GUIDE.md;
+ * each mask is its interval list (tests/torso_phase2_test.c checks all 16 against these) */
 const uint16_t T1_SCALE_MASKS[T1_NUM_SCALES] = {
-    0x0FFFu, /* 0: Chromatic (12 notes) */
-    0x0AD5u, /* 1: Major (Ionian) [1,0,1,0,1,1,0,1,0,1,0,1] */
-    0x05ADu, /* 2: Natural Minor (Aeolian) [1,0,1,1,0,1,0,1,1,0,1,0] */
-    0x06ADu, /* 3: Dorian [1,0,1,1,0,1,0,1,0,1,1,0] */
-    0x06D5u, /* 4: Mixolydian [1,0,1,0,1,1,0,1,0,1,1,0] */
-    0x0295u, /* 5: Major Pentatonic [1,0,1,0,1,0,0,1,0,1,0,0] */
-    0x04A9u, /* 6: Minor Pentatonic [1,0,0,1,0,1,0,1,0,0,1,0] */
-    0x09ADu, /* 7: Harmonic Minor [1,0,1,1,0,1,0,1,1,0,0,1] */
-    0x056Du, /* 8: Phrygian [1,1,0,1,0,1,0,1,1,0,1,0] */
-    0x0AF5u, /* 9: Lydian [1,0,1,0,1,0,1,1,0,1,0,1] */
-    0x056Bu, /* 10: Locrian [1,1,0,1,0,1,1,0,1,0,1,0] */
-    0x0AD7u, /* 11: Melodic Minor [1,0,1,1,0,1,0,1,0,1,0,1] */
-    0x04E9u, /* 12: Blues [1,0,0,1,0,1,1,1,0,0,1,0] */
-    0x0555u, /* 13: Whole Tone [1,0,1,0,1,0,1,0,1,0,1,0] */
-    0x06DBu, /* 14: Diminished Half-Whole [1,1,0,1,1,0,1,1,0,1,1,0] */
-    0x0B6Du, /* 15: Diminished Whole-Half [1,0,1,1,0,1,1,0,1,1,0,1] */
+    0x0FFFu, /*  0: Chromatic {0,1,2,3,4,5,6,7,8,9,10,11} */
+    0x0AB5u, /*  1: Major (Ionian) {0,2,4,5,7,9,11} */
+    0x05ADu, /*  2: Natural Minor {0,2,3,5,7,8,10} */
+    0x06ADu, /*  3: Dorian {0,2,3,5,7,9,10} */
+    0x05ABu, /*  4: Phrygian {0,1,3,5,7,8,10} */
+    0x0AD5u, /*  5: Lydian {0,2,4,6,7,9,11} */
+    0x06B5u, /*  6: Mixolydian {0,2,4,5,7,9,10} */
+    0x05ADu, /*  7: Aeolian {0,2,3,5,7,8,10} */
+    0x056Bu, /*  8: Locrian {0,1,3,5,6,8,10} */
+    0x0295u, /*  9: Pentatonic Major {0,2,4,7,9} */
+    0x04A9u, /* 10: Pentatonic Minor {0,3,5,7,10} */
+    0x04E9u, /* 11: Blues {0,3,5,6,7,10} */
+    0x0555u, /* 12: Whole Tone {0,2,4,6,8,10} */
+    0x09ADu, /* 13: Harmonic Minor {0,2,3,5,7,8,11} */
+    0x0AADu, /* 14: Melodic Minor {0,2,3,5,7,9,11} */
+    0x06DBu, /* 15: Diminished (Half-Whole) {0,1,3,4,6,7,9,10} */
 };
 
 const char * const T1_SCALE_NAMES[T1_NUM_SCALES] = {
@@ -324,7 +328,7 @@ int16_t t1_harmony_eval_phrase(uint8_t phrase_shape, uint8_t range, uint8_t step
     if (range == 0 || total_steps <= 1) return 0;
     step_idx %= total_steps;
 
-    int32_t max_semitones = (int32_t)range * 7; /* Excursion span scaled by range */
+    int32_t max_semitones = (int32_t)range;     /* RANGE: the contour's excursion in semitones (the UI's unit) */
     int32_t delta = 0;
 
     switch (phrase_shape) {

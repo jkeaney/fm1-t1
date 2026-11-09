@@ -5,8 +5,12 @@
 #include "torso_t1.h"
 
 #if !defined(FELUCCA_ID) && !defined(FM1_SYS_H)
+#ifndef T1_DEVICE
 #include <string.h>
+#endif
+#ifndef T1_DEVICE
 #include <time.h>
+#endif
 #else
 void *memset(void *d, int c, unsigned n);
 void *memcpy(void *d, const void *s, unsigned n);
@@ -18,17 +22,22 @@ int memcmp(const void *a, const void *b, unsigned n);
  * Statically allocate SequencerRAM (9,344 bytes active + snapshot patterns)
  * in fast internal SRAM to avoid heap fragmentation and latency (PLAN.md Phase 1, item 2).
  */
-SequencerRAM   t1_sequencer_ram;
+#ifdef T1_DEVICE
+#define T1_POOL __attribute__((section(".pool")))   /* the FM-1: the spare pool, not the 72 KB RAM (NOLOAD: t1_system_init zeroes) */
+#else
+#define T1_POOL
+#endif
+SequencerRAM   t1_sequencer_ram T1_POOL;
 
 /*
  * Static ring buffers for external MIDI queues (256 bytes per interface)
  * Allocated statically for UART TRS-MIDI and USB-MIDI.
  */
-MidiRingBuffer t1_midi_uart_queue;
-MidiRingBuffer t1_midi_usb_queue;
+MidiRingBuffer t1_midi_uart_queue T1_POOL;
+MidiRingBuffer t1_midi_usb_queue T1_POOL;
 
 /* Micro-Queue Dispatcher Storage */
-T1MicroQueue   t1_micro_queue;
+T1MicroQueue   t1_micro_queue T1_POOL;
 
 /* Performance & Timing Statistics */
 T1TimerStats   t1_timer_stats;
@@ -80,9 +89,8 @@ const T1TaskDescriptor t1_task_table[T1_TASK_COUNT] = {
 /* ---------------------------- High-Resolution Timestamp Helper --- */
 uint32_t t1_get_now_us(void)
 {
-#if defined(FM1_TICKS_PER_US) || defined(FM1_SYS_H) || defined(FELUCCA_ID)
-    extern uint32_t fm1_ticks(void);
-    return fm1_ticks() / 24u;
+#ifdef T1_DEVICE
+    return fm1_ticks() / FM1_TICKS_PER_US;
 #else
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -353,7 +361,8 @@ int8_t t1_fm_voice_alloc(uint8_t note, uint8_t velocity)
     return (int8_t)steal_idx;
 }
 
-/* Default FM voice trigger stubs (can be hooked directly to Felucca FM engine) */
+/* Default FM voice trigger stubs for the host tests; on the FM-1, t1_glue.c plays them on track 1 */
+#ifndef T1_DEVICE
 __attribute__((weak)) void synth_note_on(uint8_t voice, uint8_t note, uint8_t velocity)
 {
     (void)voice;
@@ -365,6 +374,10 @@ __attribute__((weak)) void synth_note_off(uint8_t voice)
 {
     (void)voice;
 }
+#else
+void synth_note_on(uint8_t voice, uint8_t note, uint8_t velocity);
+void synth_note_off(uint8_t voice);
+#endif
 
 /* Dispatch events due up to current_tick */
 uint32_t t1_micro_queue_dispatch(uint32_t current_tick, uint16_t current_sub_tick)

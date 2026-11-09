@@ -174,6 +174,7 @@ static void fm1_main(void)
     panel_init();
     felucca_init();
     master_boot();
+    t1_glue_init();                           /* Torso T-1: its pattern RAM (the pool) and default pattern */
     kb_boot_hold = 1;                         /* #137: no notes from the keys before the UI (seq.c keyboard_block) */
     audio_init();
     usb_start();

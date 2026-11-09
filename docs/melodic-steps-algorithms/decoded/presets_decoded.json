@@ -1,0 +1,2049 @@
+{
+ "Melodic Steps Aeolian": {
+  "user": "",
+  "params": {
+   "OctLength": {
+    "v": 4.0,
+    "d": 2.0
+   },
+   "TransLength": {
+    "v": 7.0,
+    "d": 3.0
+   },
+   "LenLength": {
+    "v": 6.0,
+    "d": 8.0
+   },
+   "VeloLength": {
+    "v": 5.0,
+    "d": 15.0
+   },
+   "ChanceLength": {
+    "v": 8.0,
+    "d": 4.0
+   },
+   "Resync": {
+    "v": 0.0,
+    "d": 0.0
+   }
+  },
+  "blob": {
+   "Chance[10]": [
+    0
+   ],
+   "Chance[11]": [
+    0
+   ],
+   "Chance[12]": [
+    0
+   ],
+   "Chance[13]": [
+    0
+   ],
+   "Chance[14]": [
+    0
+   ],
+   "Chance[15]": [
+    0
+   ],
+   "Chance[16]": [
+    0
+   ],
+   "Chance[1]": [
+    3
+   ],
+   "Chance[2]": [
+    6
+   ],
+   "Chance[3]": [
+    3
+   ],
+   "Chance[4]": [
+    0
+   ],
+   "Chance[5]": [
+    3
+   ],
+   "Chance[6]": [
+    3
+   ],
+   "Chance[7]": [
+    3
+   ],
+   "Chance[8]": [
+    3
+   ],
+   "Chance[9]": [
+    0
+   ],
+   "Length[10]": [
+    2
+   ],
+   "Length[11]": [
+    1
+   ],
+   "Length[12]": [
+    1
+   ],
+   "Length[13]": [
+    2
+   ],
+   "Length[14]": [
+    3
+   ],
+   "Length[15]": [
+    1
+   ],
+   "Length[16]": [
+    1
+   ],
+   "Length[1]": [
+    1
+   ],
+   "Length[2]": [
+    1
+   ],
+   "Length[3]": [
+    3
+   ],
+   "Length[4]": [
+    2
+   ],
+   "Length[5]": [
+    3
+   ],
+   "Length[6]": [
+    3
+   ],
+   "Length[7]": [
+    1
+   ],
+   "Length[8]": [
+    3
+   ],
+   "Length[9]": [
+    3
+   ],
+   "MIDI": [
+    0
+   ],
+   "Octave[10]": [
+    3
+   ],
+   "Octave[11]": [
+    3
+   ],
+   "Octave[12]": [
+    3
+   ],
+   "Octave[13]": [
+    3
+   ],
+   "Octave[14]": [
+    3
+   ],
+   "Octave[15]": [
+    3
+   ],
+   "Octave[16]": [
+    3
+   ],
+   "Octave[1]": [
+    2
+   ],
+   "Octave[2]": [
+    4
+   ],
+   "Octave[3]": [
+    5
+   ],
+   "Octave[4]": [
+    3
+   ],
+   "Octave[5]": [
+    3
+   ],
+   "Octave[6]": [
+    3
+   ],
+   "Octave[7]": [
+    3
+   ],
+   "Octave[8]": [
+    3
+   ],
+   "Octave[9]": [
+    3
+   ],
+   "Root Note": [
+    45.0
+   ],
+   "Scales": [
+    6.0
+   ],
+   "Swing": [
+    0.0
+   ],
+   "Transpose[10]": [
+    0
+   ],
+   "Transpose[11]": [
+    0
+   ],
+   "Transpose[12]": [
+    0
+   ],
+   "Transpose[13]": [
+    0
+   ],
+   "Transpose[14]": [
+    0
+   ],
+   "Transpose[15]": [
+    0
+   ],
+   "Transpose[16]": [
+    0
+   ],
+   "Transpose[1]": [
+    0
+   ],
+   "Transpose[2]": [
+    0
+   ],
+   "Transpose[3]": [
+    3
+   ],
+   "Transpose[4]": [
+    3
+   ],
+   "Transpose[5]": [
+    3
+   ],
+   "Transpose[6]": [
+    1
+   ],
+   "Transpose[7]": [
+    1
+   ],
+   "Transpose[8]": [
+    0
+   ],
+   "Transpose[9]": [
+    0
+   ],
+   "Triplets": [
+    0
+   ],
+   "Velocity[10]": [
+    5
+   ],
+   "Velocity[11]": [
+    5
+   ],
+   "Velocity[12]": [
+    5
+   ],
+   "Velocity[13]": [
+    5
+   ],
+   "Velocity[14]": [
+    5
+   ],
+   "Velocity[15]": [
+    5
+   ],
+   "Velocity[16]": [
+    5
+   ],
+   "Velocity[1]": [
+    1
+   ],
+   "Velocity[2]": [
+    4
+   ],
+   "Velocity[3]": [
+    3
+   ],
+   "Velocity[4]": [
+    2
+   ],
+   "Velocity[5]": [
+    0
+   ],
+   "Velocity[6]": [
+    5
+   ],
+   "Velocity[7]": [
+    5
+   ],
+   "Velocity[8]": [
+    5
+   ],
+   "Velocity[9]": [
+    5
+   ],
+   "live.menu[2]": [
+    3
+   ],
+   "live.menu[3]": [
+    3
+   ]
+  }
+ },
+ "Melodic Steps Chromatic": {
+  "user": "",
+  "params": {
+   "OctLength": {
+    "v": 6.0,
+    "d": 2.0
+   },
+   "TransLength": {
+    "v": 7.0,
+    "d": 3.0
+   },
+   "LenLength": {
+    "v": 5.0,
+    "d": 8.0
+   },
+   "VeloLength": {
+    "v": 12.0,
+    "d": 15.0
+   },
+   "ChanceLength": {
+    "v": 16.0,
+    "d": 4.0
+   },
+   "Resync": {
+    "v": 0.0,
+    "d": 0.0
+   }
+  },
+  "blob": {
+   "Chance[10]": [
+    4
+   ],
+   "Chance[11]": [
+    2
+   ],
+   "Chance[12]": [
+    4
+   ],
+   "Chance[13]": [
+    1
+   ],
+   "Chance[14]": [
+    1
+   ],
+   "Chance[15]": [
+    3
+   ],
+   "Chance[16]": [
+    4
+   ],
+   "Chance[1]": [
+    4
+   ],
+   "Chance[2]": [
+    5
+   ],
+   "Chance[3]": [
+    1
+   ],
+   "Chance[4]": [
+    5
+   ],
+   "Chance[5]": [
+    4
+   ],
+   "Chance[6]": [
+    3
+   ],
+   "Chance[7]": [
+    5
+   ],
+   "Chance[8]": [
+    5
+   ],
+   "Chance[9]": [
+    5
+   ],
+   "Length[10]": [
+    2
+   ],
+   "Length[11]": [
+    2
+   ],
+   "Length[12]": [
+    2
+   ],
+   "Length[13]": [
+    2
+   ],
+   "Length[14]": [
+    2
+   ],
+   "Length[15]": [
+    2
+   ],
+   "Length[16]": [
+    2
+   ],
+   "Length[1]": [
+    1
+   ],
+   "Length[2]": [
+    2
+   ],
+   "Length[3]": [
+    2
+   ],
+   "Length[4]": [
+    1
+   ],
+   "Length[5]": [
+    2
+   ],
+   "Length[6]": [
+    2
+   ],
+   "Length[7]": [
+    2
+   ],
+   "Length[8]": [
+    2
+   ],
+   "Length[9]": [
+    2
+   ],
+   "MIDI": [
+    0
+   ],
+   "Octave[10]": [
+    3
+   ],
+   "Octave[11]": [
+    3
+   ],
+   "Octave[12]": [
+    3
+   ],
+   "Octave[13]": [
+    3
+   ],
+   "Octave[14]": [
+    3
+   ],
+   "Octave[15]": [
+    3
+   ],
+   "Octave[16]": [
+    3
+   ],
+   "Octave[1]": [
+    3
+   ],
+   "Octave[2]": [
+    2
+   ],
+   "Octave[3]": [
+    3
+   ],
+   "Octave[4]": [
+    3
+   ],
+   "Octave[5]": [
+    3
+   ],
+   "Octave[6]": [
+    4
+   ],
+   "Octave[7]": [
+    3
+   ],
+   "Octave[8]": [
+    3
+   ],
+   "Octave[9]": [
+    3
+   ],
+   "Root Note": [
+    36.0
+   ],
+   "Scales": [
+    0.0
+   ],
+   "Swing": [
+    10.0
+   ],
+   "Transpose[10]": [
+    0
+   ],
+   "Transpose[11]": [
+    0
+   ],
+   "Transpose[12]": [
+    0
+   ],
+   "Transpose[13]": [
+    0
+   ],
+   "Transpose[14]": [
+    0
+   ],
+   "Transpose[15]": [
+    0
+   ],
+   "Transpose[16]": [
+    0
+   ],
+   "Transpose[1]": [
+    3
+   ],
+   "Transpose[2]": [
+    3
+   ],
+   "Transpose[3]": [
+    0
+   ],
+   "Transpose[4]": [
+    4
+   ],
+   "Transpose[5]": [
+    4
+   ],
+   "Transpose[6]": [
+    1
+   ],
+   "Transpose[7]": [
+    1
+   ],
+   "Transpose[8]": [
+    0
+   ],
+   "Transpose[9]": [
+    0
+   ],
+   "Triplets": [
+    0
+   ],
+   "Velocity[10]": [
+    5
+   ],
+   "Velocity[11]": [
+    5
+   ],
+   "Velocity[12]": [
+    3
+   ],
+   "Velocity[13]": [
+    5
+   ],
+   "Velocity[14]": [
+    5
+   ],
+   "Velocity[15]": [
+    5
+   ],
+   "Velocity[16]": [
+    5
+   ],
+   "Velocity[1]": [
+    5
+   ],
+   "Velocity[2]": [
+    5
+   ],
+   "Velocity[3]": [
+    3
+   ],
+   "Velocity[4]": [
+    5
+   ],
+   "Velocity[5]": [
+    5
+   ],
+   "Velocity[6]": [
+    3
+   ],
+   "Velocity[7]": [
+    5
+   ],
+   "Velocity[8]": [
+    5
+   ],
+   "Velocity[9]": [
+    3
+   ],
+   "live.menu[2]": [
+    3
+   ],
+   "live.menu[3]": [
+    3
+   ]
+  }
+ },
+ "Melodic Steps Dorian": {
+  "user": "",
+  "params": {
+   "OctLength": {
+    "v": 5.0,
+    "d": 2.0
+   },
+   "TransLength": {
+    "v": 9.0,
+    "d": 3.0
+   },
+   "LenLength": {
+    "v": 8.0,
+    "d": 8.0
+   },
+   "VeloLength": {
+    "v": 7.0,
+    "d": 15.0
+   },
+   "ChanceLength": {
+    "v": 6.0,
+    "d": 4.0
+   },
+   "Resync": {
+    "v": 0.0,
+    "d": 0.0
+   }
+  },
+  "blob": {
+   "Chance[10]": [
+    0
+   ],
+   "Chance[11]": [
+    0
+   ],
+   "Chance[12]": [
+    0
+   ],
+   "Chance[13]": [
+    0
+   ],
+   "Chance[14]": [
+    0
+   ],
+   "Chance[15]": [
+    0
+   ],
+   "Chance[16]": [
+    0
+   ],
+   "Chance[1]": [
+    6
+   ],
+   "Chance[2]": [
+    2
+   ],
+   "Chance[3]": [
+    6
+   ],
+   "Chance[4]": [
+    2
+   ],
+   "Chance[5]": [
+    1
+   ],
+   "Chance[6]": [
+    4
+   ],
+   "Chance[7]": [
+    0
+   ],
+   "Chance[8]": [
+    0
+   ],
+   "Chance[9]": [
+    0
+   ],
+   "Length[10]": [
+    2
+   ],
+   "Length[11]": [
+    2
+   ],
+   "Length[12]": [
+    2
+   ],
+   "Length[13]": [
+    2
+   ],
+   "Length[14]": [
+    2
+   ],
+   "Length[15]": [
+    2
+   ],
+   "Length[16]": [
+    2
+   ],
+   "Length[1]": [
+    2
+   ],
+   "Length[2]": [
+    2
+   ],
+   "Length[3]": [
+    2
+   ],
+   "Length[4]": [
+    2
+   ],
+   "Length[5]": [
+    2
+   ],
+   "Length[6]": [
+    2
+   ],
+   "Length[7]": [
+    2
+   ],
+   "Length[8]": [
+    2
+   ],
+   "Length[9]": [
+    2
+   ],
+   "MIDI": [
+    0
+   ],
+   "Octave[10]": [
+    4
+   ],
+   "Octave[11]": [
+    4
+   ],
+   "Octave[12]": [
+    4
+   ],
+   "Octave[13]": [
+    4
+   ],
+   "Octave[14]": [
+    4
+   ],
+   "Octave[15]": [
+    4
+   ],
+   "Octave[16]": [
+    4
+   ],
+   "Octave[1]": [
+    3
+   ],
+   "Octave[2]": [
+    4
+   ],
+   "Octave[3]": [
+    3
+   ],
+   "Octave[4]": [
+    5
+   ],
+   "Octave[5]": [
+    4
+   ],
+   "Octave[6]": [
+    4
+   ],
+   "Octave[7]": [
+    4
+   ],
+   "Octave[8]": [
+    4
+   ],
+   "Octave[9]": [
+    4
+   ],
+   "Root Note": [
+    38.0
+   ],
+   "Scales": [
+    2
+   ],
+   "Swing": [
+    0
+   ],
+   "Transpose[10]": [
+    0
+   ],
+   "Transpose[11]": [
+    0
+   ],
+   "Transpose[12]": [
+    0
+   ],
+   "Transpose[13]": [
+    0
+   ],
+   "Transpose[14]": [
+    0
+   ],
+   "Transpose[15]": [
+    0
+   ],
+   "Transpose[16]": [
+    0
+   ],
+   "Transpose[1]": [
+    0
+   ],
+   "Transpose[2]": [
+    0
+   ],
+   "Transpose[3]": [
+    1
+   ],
+   "Transpose[4]": [
+    1
+   ],
+   "Transpose[5]": [
+    2
+   ],
+   "Transpose[6]": [
+    2
+   ],
+   "Transpose[7]": [
+    3
+   ],
+   "Transpose[8]": [
+    3
+   ],
+   "Transpose[9]": [
+    4
+   ],
+   "Triplets": [
+    0
+   ],
+   "Velocity[10]": [
+    4
+   ],
+   "Velocity[11]": [
+    4
+   ],
+   "Velocity[12]": [
+    4
+   ],
+   "Velocity[13]": [
+    4
+   ],
+   "Velocity[14]": [
+    4
+   ],
+   "Velocity[15]": [
+    4
+   ],
+   "Velocity[16]": [
+    4
+   ],
+   "Velocity[1]": [
+    6
+   ],
+   "Velocity[2]": [
+    4
+   ],
+   "Velocity[3]": [
+    2
+   ],
+   "Velocity[4]": [
+    1
+   ],
+   "Velocity[5]": [
+    6
+   ],
+   "Velocity[6]": [
+    4
+   ],
+   "Velocity[7]": [
+    2
+   ],
+   "Velocity[8]": [
+    4
+   ],
+   "Velocity[9]": [
+    4
+   ],
+   "live.menu[2]": [
+    3
+   ],
+   "live.menu[3]": [
+    3
+   ]
+  }
+ },
+ "Melodic Steps Locrian": {
+  "user": "",
+  "params": {
+   "OctLength": {
+    "v": 12.0,
+    "d": 2.0
+   },
+   "TransLength": {
+    "v": 7.0,
+    "d": 3.0
+   },
+   "LenLength": {
+    "v": 5.0,
+    "d": 8.0
+   },
+   "VeloLength": {
+    "v": 6.0,
+    "d": 15.0
+   },
+   "ChanceLength": {
+    "v": 16.0,
+    "d": 4.0
+   },
+   "Resync": {
+    "v": 0.0,
+    "d": 0.0
+   }
+  },
+  "blob": {
+   "Chance[10]": [
+    4
+   ],
+   "Chance[11]": [
+    2
+   ],
+   "Chance[12]": [
+    0
+   ],
+   "Chance[13]": [
+    1
+   ],
+   "Chance[14]": [
+    1
+   ],
+   "Chance[15]": [
+    0
+   ],
+   "Chance[16]": [
+    3
+   ],
+   "Chance[1]": [
+    0
+   ],
+   "Chance[2]": [
+    1
+   ],
+   "Chance[3]": [
+    0
+   ],
+   "Chance[4]": [
+    5
+   ],
+   "Chance[5]": [
+    0
+   ],
+   "Chance[6]": [
+    3
+   ],
+   "Chance[7]": [
+    5
+   ],
+   "Chance[8]": [
+    0
+   ],
+   "Chance[9]": [
+    5
+   ],
+   "Length[10]": [
+    2
+   ],
+   "Length[11]": [
+    2
+   ],
+   "Length[12]": [
+    2
+   ],
+   "Length[13]": [
+    2
+   ],
+   "Length[14]": [
+    2
+   ],
+   "Length[15]": [
+    2
+   ],
+   "Length[16]": [
+    2
+   ],
+   "Length[1]": [
+    2
+   ],
+   "Length[2]": [
+    1
+   ],
+   "Length[3]": [
+    1
+   ],
+   "Length[4]": [
+    1
+   ],
+   "Length[5]": [
+    1
+   ],
+   "Length[6]": [
+    2
+   ],
+   "Length[7]": [
+    2
+   ],
+   "Length[8]": [
+    2
+   ],
+   "Length[9]": [
+    2
+   ],
+   "MIDI": [
+    0
+   ],
+   "Octave[10]": [
+    1
+   ],
+   "Octave[11]": [
+    1
+   ],
+   "Octave[12]": [
+    4
+   ],
+   "Octave[13]": [
+    3
+   ],
+   "Octave[14]": [
+    3
+   ],
+   "Octave[15]": [
+    3
+   ],
+   "Octave[16]": [
+    3
+   ],
+   "Octave[1]": [
+    5
+   ],
+   "Octave[2]": [
+    2
+   ],
+   "Octave[3]": [
+    4
+   ],
+   "Octave[4]": [
+    3
+   ],
+   "Octave[5]": [
+    6
+   ],
+   "Octave[6]": [
+    2
+   ],
+   "Octave[7]": [
+    2
+   ],
+   "Octave[8]": [
+    3
+   ],
+   "Octave[9]": [
+    2
+   ],
+   "Root Note": [
+    40.0
+   ],
+   "Scales": [
+    7
+   ],
+   "Swing": [
+    10
+   ],
+   "Transpose[10]": [
+    0
+   ],
+   "Transpose[11]": [
+    0
+   ],
+   "Transpose[12]": [
+    0
+   ],
+   "Transpose[13]": [
+    0
+   ],
+   "Transpose[14]": [
+    0
+   ],
+   "Transpose[15]": [
+    0
+   ],
+   "Transpose[16]": [
+    0
+   ],
+   "Transpose[1]": [
+    3
+   ],
+   "Transpose[2]": [
+    2
+   ],
+   "Transpose[3]": [
+    1
+   ],
+   "Transpose[4]": [
+    0
+   ],
+   "Transpose[5]": [
+    4
+   ],
+   "Transpose[6]": [
+    3
+   ],
+   "Transpose[7]": [
+    2
+   ],
+   "Transpose[8]": [
+    0
+   ],
+   "Transpose[9]": [
+    0
+   ],
+   "Triplets": [
+    0
+   ],
+   "Velocity[10]": [
+    0
+   ],
+   "Velocity[11]": [
+    0
+   ],
+   "Velocity[12]": [
+    0
+   ],
+   "Velocity[13]": [
+    0
+   ],
+   "Velocity[14]": [
+    0
+   ],
+   "Velocity[15]": [
+    0
+   ],
+   "Velocity[16]": [
+    0
+   ],
+   "Velocity[1]": [
+    3
+   ],
+   "Velocity[2]": [
+    2
+   ],
+   "Velocity[3]": [
+    1
+   ],
+   "Velocity[4]": [
+    5
+   ],
+   "Velocity[5]": [
+    1
+   ],
+   "Velocity[6]": [
+    0
+   ],
+   "Velocity[7]": [
+    0
+   ],
+   "Velocity[8]": [
+    0
+   ],
+   "Velocity[9]": [
+    0
+   ],
+   "live.menu[2]": [
+    3
+   ],
+   "live.menu[3]": [
+    3
+   ]
+  }
+ },
+ "Melodic Steps Mixolydian": {
+  "user": "",
+  "params": {
+   "OctLength": {
+    "v": 9.0,
+    "d": 2.0
+   },
+   "TransLength": {
+    "v": 8.0,
+    "d": 3.0
+   },
+   "LenLength": {
+    "v": 6.0,
+    "d": 8.0
+   },
+   "VeloLength": {
+    "v": 15.0,
+    "d": 15.0
+   },
+   "ChanceLength": {
+    "v": 7.0,
+    "d": 4.0
+   },
+   "Resync": {
+    "v": 0.0,
+    "d": 0.0
+   }
+  },
+  "blob": {
+   "Chance[10]": [
+    0
+   ],
+   "Chance[11]": [
+    0
+   ],
+   "Chance[12]": [
+    0
+   ],
+   "Chance[13]": [
+    0
+   ],
+   "Chance[14]": [
+    0
+   ],
+   "Chance[15]": [
+    0
+   ],
+   "Chance[16]": [
+    0
+   ],
+   "Chance[1]": [
+    2
+   ],
+   "Chance[2]": [
+    4
+   ],
+   "Chance[3]": [
+    6
+   ],
+   "Chance[4]": [
+    0
+   ],
+   "Chance[5]": [
+    6
+   ],
+   "Chance[6]": [
+    0
+   ],
+   "Chance[7]": [
+    3
+   ],
+   "Chance[8]": [
+    0
+   ],
+   "Chance[9]": [
+    0
+   ],
+   "Length[10]": [
+    2
+   ],
+   "Length[11]": [
+    2
+   ],
+   "Length[12]": [
+    2
+   ],
+   "Length[13]": [
+    2
+   ],
+   "Length[14]": [
+    2
+   ],
+   "Length[15]": [
+    2
+   ],
+   "Length[16]": [
+    2
+   ],
+   "Length[1]": [
+    2
+   ],
+   "Length[2]": [
+    1
+   ],
+   "Length[3]": [
+    2
+   ],
+   "Length[4]": [
+    1
+   ],
+   "Length[5]": [
+    2
+   ],
+   "Length[6]": [
+    0
+   ],
+   "Length[7]": [
+    2
+   ],
+   "Length[8]": [
+    2
+   ],
+   "Length[9]": [
+    2
+   ],
+   "MIDI": [
+    0
+   ],
+   "Octave[10]": [
+    4
+   ],
+   "Octave[11]": [
+    4
+   ],
+   "Octave[12]": [
+    4
+   ],
+   "Octave[13]": [
+    4
+   ],
+   "Octave[14]": [
+    4
+   ],
+   "Octave[15]": [
+    4
+   ],
+   "Octave[16]": [
+    4
+   ],
+   "Octave[1]": [
+    4
+   ],
+   "Octave[2]": [
+    1
+   ],
+   "Octave[3]": [
+    3
+   ],
+   "Octave[4]": [
+    2
+   ],
+   "Octave[5]": [
+    4
+   ],
+   "Octave[6]": [
+    2
+   ],
+   "Octave[7]": [
+    4
+   ],
+   "Octave[8]": [
+    2
+   ],
+   "Octave[9]": [
+    2
+   ],
+   "Root Note": [
+    41.0
+   ],
+   "Scales": [
+    5
+   ],
+   "Swing": [
+    0
+   ],
+   "Transpose[10]": [
+    0
+   ],
+   "Transpose[11]": [
+    0
+   ],
+   "Transpose[12]": [
+    0
+   ],
+   "Transpose[13]": [
+    0
+   ],
+   "Transpose[14]": [
+    0
+   ],
+   "Transpose[15]": [
+    0
+   ],
+   "Transpose[16]": [
+    0
+   ],
+   "Transpose[1]": [
+    6
+   ],
+   "Transpose[2]": [
+    4
+   ],
+   "Transpose[3]": [
+    0
+   ],
+   "Transpose[4]": [
+    0
+   ],
+   "Transpose[5]": [
+    0
+   ],
+   "Transpose[6]": [
+    0
+   ],
+   "Transpose[7]": [
+    1
+   ],
+   "Transpose[8]": [
+    3
+   ],
+   "Transpose[9]": [
+    0
+   ],
+   "Triplets": [
+    0
+   ],
+   "Velocity[10]": [
+    3
+   ],
+   "Velocity[11]": [
+    3
+   ],
+   "Velocity[12]": [
+    2
+   ],
+   "Velocity[13]": [
+    2
+   ],
+   "Velocity[14]": [
+    1
+   ],
+   "Velocity[15]": [
+    1
+   ],
+   "Velocity[16]": [
+    0
+   ],
+   "Velocity[1]": [
+    3
+   ],
+   "Velocity[2]": [
+    4
+   ],
+   "Velocity[3]": [
+    5
+   ],
+   "Velocity[4]": [
+    4
+   ],
+   "Velocity[5]": [
+    3
+   ],
+   "Velocity[6]": [
+    2
+   ],
+   "Velocity[7]": [
+    4
+   ],
+   "Velocity[8]": [
+    4
+   ],
+   "Velocity[9]": [
+    2
+   ],
+   "live.menu[2]": [
+    3
+   ],
+   "live.menu[3]": [
+    3
+   ]
+  }
+ },
+ "Melodic Steps Phrygian": {
+  "user": "",
+  "params": {
+   "OctLength": {
+    "v": 4.0,
+    "d": 2.0
+   },
+   "TransLength": {
+    "v": 7.0,
+    "d": 3.0
+   },
+   "LenLength": {
+    "v": 6.0,
+    "d": 8.0
+   },
+   "VeloLength": {
+    "v": 15.0,
+    "d": 15.0
+   },
+   "ChanceLength": {
+    "v": 3.0,
+    "d": 4.0
+   },
+   "Resync": {
+    "v": 0.0,
+    "d": 0.0
+   }
+  },
+  "blob": {
+   "Chance[10]": [
+    0
+   ],
+   "Chance[11]": [
+    0
+   ],
+   "Chance[12]": [
+    0
+   ],
+   "Chance[13]": [
+    0
+   ],
+   "Chance[14]": [
+    0
+   ],
+   "Chance[15]": [
+    0
+   ],
+   "Chance[16]": [
+    0
+   ],
+   "Chance[1]": [
+    6
+   ],
+   "Chance[2]": [
+    0
+   ],
+   "Chance[3]": [
+    3
+   ],
+   "Chance[4]": [
+    0
+   ],
+   "Chance[5]": [
+    0
+   ],
+   "Chance[6]": [
+    0
+   ],
+   "Chance[7]": [
+    0
+   ],
+   "Chance[8]": [
+    0
+   ],
+   "Chance[9]": [
+    0
+   ],
+   "Length[10]": [
+    2
+   ],
+   "Length[11]": [
+    1
+   ],
+   "Length[12]": [
+    1
+   ],
+   "Length[13]": [
+    2
+   ],
+   "Length[14]": [
+    3
+   ],
+   "Length[15]": [
+    1
+   ],
+   "Length[16]": [
+    1
+   ],
+   "Length[1]": [
+    1
+   ],
+   "Length[2]": [
+    1
+   ],
+   "Length[3]": [
+    3
+   ],
+   "Length[4]": [
+    2
+   ],
+   "Length[5]": [
+    3
+   ],
+   "Length[6]": [
+    3
+   ],
+   "Length[7]": [
+    1
+   ],
+   "Length[8]": [
+    3
+   ],
+   "Length[9]": [
+    3
+   ],
+   "MIDI": [
+    0
+   ],
+   "Octave[10]": [
+    3
+   ],
+   "Octave[11]": [
+    3
+   ],
+   "Octave[12]": [
+    3
+   ],
+   "Octave[13]": [
+    3
+   ],
+   "Octave[14]": [
+    3
+   ],
+   "Octave[15]": [
+    3
+   ],
+   "Octave[16]": [
+    3
+   ],
+   "Octave[1]": [
+    2
+   ],
+   "Octave[2]": [
+    4
+   ],
+   "Octave[3]": [
+    5
+   ],
+   "Octave[4]": [
+    3
+   ],
+   "Octave[5]": [
+    3
+   ],
+   "Octave[6]": [
+    3
+   ],
+   "Octave[7]": [
+    3
+   ],
+   "Octave[8]": [
+    3
+   ],
+   "Octave[9]": [
+    3
+   ],
+   "Root Note": [
+    43.0
+   ],
+   "Scales": [
+    3
+   ],
+   "Swing": [
+    15
+   ],
+   "Transpose[10]": [
+    0
+   ],
+   "Transpose[11]": [
+    0
+   ],
+   "Transpose[12]": [
+    0
+   ],
+   "Transpose[13]": [
+    0
+   ],
+   "Transpose[14]": [
+    0
+   ],
+   "Transpose[15]": [
+    0
+   ],
+   "Transpose[16]": [
+    0
+   ],
+   "Transpose[1]": [
+    0
+   ],
+   "Transpose[2]": [
+    1
+   ],
+   "Transpose[3]": [
+    0
+   ],
+   "Transpose[4]": [
+    3
+   ],
+   "Transpose[5]": [
+    0
+   ],
+   "Transpose[6]": [
+    1
+   ],
+   "Transpose[7]": [
+    0
+   ],
+   "Transpose[8]": [
+    0
+   ],
+   "Transpose[9]": [
+    0
+   ],
+   "Triplets": [
+    0
+   ],
+   "Velocity[10]": [
+    6
+   ],
+   "Velocity[11]": [
+    4
+   ],
+   "Velocity[12]": [
+    5
+   ],
+   "Velocity[13]": [
+    5
+   ],
+   "Velocity[14]": [
+    4
+   ],
+   "Velocity[15]": [
+    4
+   ],
+   "Velocity[16]": [
+    5
+   ],
+   "Velocity[1]": [
+    6
+   ],
+   "Velocity[2]": [
+    4
+   ],
+   "Velocity[3]": [
+    5
+   ],
+   "Velocity[4]": [
+    3
+   ],
+   "Velocity[5]": [
+    5
+   ],
+   "Velocity[6]": [
+    6
+   ],
+   "Velocity[7]": [
+    5
+   ],
+   "Velocity[8]": [
+    6
+   ],
+   "Velocity[9]": [
+    6
+   ],
+   "live.menu[2]": [
+    3
+   ],
+   "live.menu[3]": [
+    3
+   ]
+  }
+ },
+ "Neurothmic Drums": {
+  "user": "",
+  "params": {
+   "OctLength": {
+    "v": 2.0,
+    "d": 2.0
+   },
+   "TransLength": {
+    "v": 16.0,
+    "d": 3.0
+   },
+   "LenLength": {
+    "v": 16.0,
+    "d": 8.0
+   },
+   "VeloLength": {
+    "v": 16.0,
+    "d": 15.0
+   },
+   "ChanceLength": {
+    "v": 16.0,
+    "d": 4.0
+   },
+   "Resync": {
+    "v": 0.0,
+    "d": 0.0
+   }
+  },
+  "blob": {
+   "Chance[10]": [
+    6
+   ],
+   "Chance[11]": [
+    5
+   ],
+   "Chance[12]": [
+    6
+   ],
+   "Chance[13]": [
+    6
+   ],
+   "Chance[14]": [
+    5
+   ],
+   "Chance[15]": [
+    6
+   ],
+   "Chance[16]": [
+    6
+   ],
+   "Chance[1]": [
+    6
+   ],
+   "Chance[2]": [
+    6
+   ],
+   "Chance[3]": [
+    6
+   ],
+   "Chance[4]": [
+    6
+   ],
+   "Chance[5]": [
+    6
+   ],
+   "Chance[6]": [
+    6
+   ],
+   "Chance[7]": [
+    6
+   ],
+   "Chance[8]": [
+    6
+   ],
+   "Chance[9]": [
+    6
+   ],
+   "Length[10]": [
+    5
+   ],
+   "Length[11]": [
+    5
+   ],
+   "Length[12]": [
+    3
+   ],
+   "Length[13]": [
+    5
+   ],
+   "Length[14]": [
+    1
+   ],
+   "Length[15]": [
+    0
+   ],
+   "Length[16]": [
+    2
+   ],
+   "Length[1]": [
+    6
+   ],
+   "Length[2]": [
+    6
+   ],
+   "Length[3]": [
+    0
+   ],
+   "Length[4]": [
+    0
+   ],
+   "Length[5]": [
+    2
+   ],
+   "Length[6]": [
+    1
+   ],
+   "Length[7]": [
+    6
+   ],
+   "Length[8]": [
+    4
+   ],
+   "Length[9]": [
+    2
+   ],
+   "MIDI": [
+    0
+   ],
+   "Octave[10]": [
+    3
+   ],
+   "Octave[11]": [
+    3
+   ],
+   "Octave[12]": [
+    3
+   ],
+   "Octave[13]": [
+    3
+   ],
+   "Octave[14]": [
+    3
+   ],
+   "Octave[15]": [
+    3
+   ],
+   "Octave[16]": [
+    3
+   ],
+   "Octave[1]": [
+    3
+   ],
+   "Octave[2]": [
+    3
+   ],
+   "Octave[3]": [
+    3
+   ],
+   "Octave[4]": [
+    3
+   ],
+   "Octave[5]": [
+    3
+   ],
+   "Octave[6]": [
+    3
+   ],
+   "Octave[7]": [
+    3
+   ],
+   "Octave[8]": [
+    3
+   ],
+   "Octave[9]": [
+    3
+   ],
+   "Root Note": [
+    36
+   ],
+   "Scales": [
+    0
+   ],
+   "Swing": [
+    0
+   ],
+   "Transpose[10]": [
+    6
+   ],
+   "Transpose[11]": [
+    5
+   ],
+   "Transpose[12]": [
+    6
+   ],
+   "Transpose[13]": [
+    6
+   ],
+   "Transpose[14]": [
+    2
+   ],
+   "Transpose[15]": [
+    4
+   ],
+   "Transpose[16]": [
+    2
+   ],
+   "Transpose[1]": [
+    0
+   ],
+   "Transpose[2]": [
+    6
+   ],
+   "Transpose[3]": [
+    5
+   ],
+   "Transpose[4]": [
+    6
+   ],
+   "Transpose[5]": [
+    2
+   ],
+   "Transpose[6]": [
+    6
+   ],
+   "Transpose[7]": [
+    5
+   ],
+   "Transpose[8]": [
+    0
+   ],
+   "Transpose[9]": [
+    1
+   ],
+   "Triplets": [
+    0
+   ],
+   "Velocity[10]": [
+    3
+   ],
+   "Velocity[11]": [
+    2
+   ],
+   "Velocity[12]": [
+    4
+   ],
+   "Velocity[13]": [
+    5
+   ],
+   "Velocity[14]": [
+    4
+   ],
+   "Velocity[15]": [
+    2
+   ],
+   "Velocity[16]": [
+    4
+   ],
+   "Velocity[1]": [
+    6
+   ],
+   "Velocity[2]": [
+    4
+   ],
+   "Velocity[3]": [
+    3
+   ],
+   "Velocity[4]": [
+    4
+   ],
+   "Velocity[5]": [
+    5
+   ],
+   "Velocity[6]": [
+    4
+   ],
+   "Velocity[7]": [
+    2
+   ],
+   "Velocity[8]": [
+    4
+   ],
+   "Velocity[9]": [
+    5
+   ],
+   "live.menu[2]": [
+    3.0
+   ],
+   "live.menu[3]": [
+    3.0
+   ],
+   "live.menu[4]": [
+    3
+   ]
+  }
+ }
+}

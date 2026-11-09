@@ -1,0 +1,129 @@
+## 1 EUCLIDEAN  (x = pulse)  steps,pulses -> pattern | reference Bresenham equals up to rotation?
+E(3,8) x..x..x.  pop=3  rot-equal-ref=1
+E(5,8) x.xx.xx.  pop=5  rot-equal-ref=1
+E(4,16) x...x...x...x...  pop=4  rot-equal-ref=1
+E(5,16) x..x..x..x..x...  pop=5  rot-equal-ref=1
+E(7,16) x..x.x.x..x.x.x.  pop=7  rot-equal-ref=1
+E(9,16) x.xx.x.x.xx.x.x.  pop=9  rot-equal-ref=1
+E(5,12) x..x.x..x.x.  pop=5  rot-equal-ref=1
+E(5,13) x..x.x..x.x..  pop=5  rot-equal-ref=1
+E(23,64) x..x.x..x..x..x..x.x..x..x..x.x..x..x..x..x.x..x..x..x.x..x..x..  pop=23  rot-equal-ref=1
+E(3,7) x.x.x..  pop=3  rot-equal-ref=1
+E(4,9) x.x.x.x..  pop=4  rot-equal-ref=1
+E(3,10) x..x..x...  pop=3  rot-equal-ref=1
+## 2 SCALE MASKS: name -> pitch classes set in code
+ 0 Chromatic   0xFFF: 0 1 2 3 4 5 6 7 8 9 10 11
+ 1 Major       0xAD5: 0 2 4 6 7 9 11
+ 2 Minor       0x5AD: 0 2 3 5 7 8 10
+ 3 Dorian      0x6AD: 0 2 3 5 7 9 10
+ 4 Mixolydian  0x6D5: 0 2 4 6 7 9 10
+ 5 Maj Pent    0x295: 0 2 4 7 9
+ 6 Min Pent    0x4A9: 0 3 5 7 10
+ 7 Harm Minor  0x9AD: 0 2 3 5 7 8 11
+ 8 Phrygian    0x56D: 0 2 3 5 6 8 10
+ 9 Lydian      0xAF5: 0 2 4 5 6 7 9 11
+10 Locrian     0x56B: 0 1 3 5 6 8 10
+11 Mel Minor   0xAD7: 0 1 2 4 6 7 9 11
+12 Blues       0x4E9: 0 3 5 6 7 10
+13 Whole Tone  0x555: 0 2 4 6 8 10
+14 Dim H-W     0x6DB: 0 1 3 4 6 7 9 10
+15 Dim W-H     0xB6D: 0 2 3 5 6 8 9 11
+## 3 QUANTIZE root=0: raw 60..71 -> out, per scale 1(Major) 2(Minor) 5(MajPent)
+scale 1: 60 60 62 62 64 64 66 67 67 69 69 71
+scale 2: 60 60 62 63 63 65 65 67 68 68 70 70
+scale 5: 60 60 62 62 64 64 64 67 67 69 69 69
+scale 10: 60 61 61 63 63 65 66 66 68 68 70 70
+root=9(A) scale 10(min pent) raw 57..69: 57 58 58 60 60 62 63 63 65 65 67 67 69
+## 4 PHRASE offsets, total_steps=16, range=1 (max 7 semitones)
+FLAT    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+SINE    0   3   5   6   7   6   5   3   0  -3  -5  -6  -7  -6  -5  -3
+TRI     0   0   1   2   3   4   5   6   7   6   5   4   3   2   1   0
+SAWU    0   0   0   1   1   2   2   3   3   4   4   5   5   6   6   7
+SAWD    7   6   6   5   5   4   4   3   3   2   2   1   1   0   0   0
+ARCH    7   7   7   7   7   7   7   7   7   7   7   7   7   7   7   7
+INVA    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+RAND   -7  -7   0   0   7   7  -1  -1   6   6  -2  -2   5   5  -3  -3
+TRI range=12 (device default) max: 84 semitones
+## 5 STYLE index order, pool=4 (steps 0..11)
+UP    0 1 2 3 0 1 2 3 0 1 2 3
+DOWN  3 2 1 0 3 2 1 0 3 2 1 0
+UPDN  0 1 2 3 2 1 0 1 2 3 2 1
+DNUP  3 2 1 0 1 2 3 2 1 0 1 2
+CNVRG 0 3 1 2 0 3 1 2 0 3 1 2
+DIVRG 2 1 3 0 2 1 3 0 2 1 3 0
+RAND  3 0 1 2 3 0 1 2 3 0 1 2
+ORDER 0 1 2 3 0 1 2 3 0 1 2 3
+## 5b STYLE pool=7 steps 0..13 (what the pipeline uses)
+UP    0 1 2 3 4 5 6 0 1 2 3 4 5 6
+DOWN  6 5 4 3 2 1 0 6 5 4 3 2 1 0
+UPDN  0 1 2 3 4 5 6 5 4 3 2 1 0 1
+DNUP  6 5 4 3 2 1 0 1 2 3 4 5 6 5
+CNVRG 0 6 1 5 2 4 3 0 6 1 5 2 4 3
+DIVRG 3 2 4 1 5 0 6 3 2 4 1 5 0 6
+RAND  3 5 0 2 4 6 1 3 5 0 2 4 6 1
+ORDER 0 1 2 3 4 5 6 0 1 2 3 4 5 6
+## 6 PACE: tick offsets for 4 repeats, 192-tick step, time=64
+pace -64:   0(g42)  84(g30) 144(g18) 180(g6)
+pace -32:   0(g33)  66(g27) 120(g21) 162(g15)
+pace   0:   0(g24)  48(g24)  96(g24) 144(g24)
+pace  32:   0(g15)  30(g21)  72(g27) 126(g33)
+pace  63:   0(g6)  12(g18)  48(g30) 108(g42)
+8 repeats in 48t offset=-40 velocities: 100 95 89 83 78 72 66 60 | offsets: 0 6 12 18 24 30 36 42
+## 7 LFSR: period and modulate range
+period from 0x1234: 65535
+modulate depth=127 delta range: -60..64
+modulate depth=24 delta range: -12..12
+random_rate 0 -> loop_period 1
+random_rate 1 -> loop_period 2
+random_rate 2 -> loop_period 3
+random_rate 3 -> loop_period 4
+random_rate 4 -> loop_period 6
+random_rate 5 -> loop_period 6
+random_rate 6 -> loop_period 1
+random_rate 7 -> loop_period 2
+random_rate 8 -> loop_period 3
+## 8 SWING step lengths at 1/16 (48t)
+swing 50 note-on ticks: 0 48 96 144 192
+swing 60 note-on ticks: 0 52 96 148 192
+swing 70 note-on ticks: 0 57 96 153 192
+swing 80 note-on ticks: 0 60 96 156 192
+## 9 DEFAULT-INITIALISED track 0, 4 pulses of 16, style 0, phrase 0, scale 0: note sequence over 3 bars
+notes: 60 61 62 63 64 65 66 60 61 62 63 64
+## 9b same, style=1(DOWN)
+notes: 72 70 68 66 64 62 60 72 70 68 66 64
+## 9c repeats=3, style=2: repeat pitches
+notes: 60 61 62 64 65 66 68 67 66 66 65 64
+## 10 DEVICE DEFAULT TB-3 bass (t1_default_pattern replica), 8 bars, track 1 -> MIDI ch index 1
+note-ons=44  lowest=22 highest=115  first bar: 22@0(v80) 77@144(v80) 79@576(v80) 50@672(v80) 41@768(v80) 81@912(v80) 82@1008(v80) 99@1104(v80) 94@1248(v80) 79@1344(v80)
+note-offs=44
+distinct pitches=25
+## 11 GLOBAL page-4 bug: turn each encoder with GLOBAL active on MOD/CC page; do STEPS change?
+enc 0 shift 0: steps 16 -> 19  random_depth=0 delay=0
+enc 0 shift 1: steps 16 -> 19  random_depth=0 delay=0
+enc 1 shift 0: steps 16 -> 16  random_depth=3 delay=0
+enc 1 shift 1: steps 16 -> 16  random_depth=3 delay=0
+enc 2 shift 0: steps 16 -> 19  random_depth=0 delay=0
+enc 2 shift 1: steps 16 -> 16  random_depth=0 delay=3
+enc 3 shift 0: steps 16 -> 19  random_depth=0 delay=0
+enc 3 shift 1: steps 16 -> 19  random_depth=0 delay=0
+## 12 RHYTHM page GLOBAL enc3 (cycle knob) -> ?
+steps 16 -> 20, active_cycle=0
+## 13 MASTER LENGTH OVERRIDE has effect?
+note-ons in one 16-step bar with override=4: 16 (16 expected if ignored)
+## 14 QUEUE OVERFLOW: all 6 tracks, repeats=16, chord=4, 1/16, 16 pulses
+dropped_events=16416  midi on=2048 off=2016  fm on=2048 off=2048  uart_dropped=0 usb_dropped=0
+## 15 P-LOCK arena: system_init sets 0xFF; fresh memset(0) cycle behaves?
+zeroed arena: lock(step0,param0) found=1
+after clear_all found=0
+set 12 locks: accepted=11 (arena=11)
+## 16 FLASH: bank offsets and sector sharing
+bank 0 off=0x00000 end=0x06D7F sector64=0
+bank 1 off=0x08000 end=0x0ED7F sector64=0
+bank 2 off=0x10000 end=0x16D7F sector64=1
+bank 3 off=0x18000 end=0x1ED7F sector64=1
+bank 4 off=0x20000 end=0x26D7F sector64=2
+bank 5 off=0x28000 end=0x2ED7F sector64=2
+verify=1  sizeof(Pattern)*6=28032
+## 17 TEMP revert/commit
+after revert pulses=3 (3 expected)
+after commit+revert pulses=9 (9 expected)

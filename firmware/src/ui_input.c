@@ -1490,6 +1490,7 @@ static void ui_input(void)
     fx_usb_fixed = (ui_prefs & PREF_USB_FIXED) != 0u;   /* (MENU > USB LEVEL: fx.c, audio.c) */
     scope_mix = (ui_prefs2 & (PREF_SCOPE_MIX >> 16)) != 0u;   /* (MENU > SCOPE: fx.c, audio.c) */
     rp_apply();                                         /* (MENU > CLICK, CLICK LEVEL, COUNT-IN: click.c, seq.c) */
+    t1_poll();                                          /* (SYSTEM > T1 SEQ: the T-1 mode, ui_t1.c) */
     if (!ui.menu)
         usb_serial_apply();                             /* (MENU > USB SERIAL: when the menu has closed) */
     settings_later_poll();                              /* (#197: LIST / FAV written once the view is left or idle) */
@@ -1506,6 +1507,16 @@ static void ui_input(void)
         ui_message("KEPT");
     }
     home = btn_hold(&ui.home_t0, B_HOME, now, 1);
+    if (t1_mode && !ui.menu && !ui.confirm) {           /* T1 SEQ: the T-1's controls (ui_t1.c); HOME held: the MENU */
+        if (home == BT_HOLD) {
+            ui.menu = 1;
+            name_close();
+            ui.force = 1;
+            song.seq_mode = 0;
+        } else
+            t1_input(pressed, notes);
+        return;
+    }
     rec = btn_hold(&ui.rec_t0, B_REC, now, 0);          /* (a tap; held, the REC layer: ui_layer.c) */
     save = btn_hold(&ui.save_t0, B_SAVE, now, !ui.menu && !ui.confirm);   /* held: UNDO (ui.c undo_swap) */
     layer_lock_input(pressed);                          /* (#83: a button closes a locked layer) */

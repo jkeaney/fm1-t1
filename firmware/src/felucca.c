@@ -38,6 +38,9 @@
 #error "FELUCCA_OTA needs FELUCCA_FLASH"
 #endif
 
+/* the Torso T-1 sequencer (torso_t1*.c, t1_glue.c, ui_t1.c) is in this build; its sources freestanding (torso_t1_port.c) */
+#define T1_DEVICE 1
+
 /* ------------------------------------------------------------- HAL --- */
 #include <stdint.h>
 #include "fm1_time.h"
@@ -72,11 +75,13 @@
 #endif
 #include "song_chain.c"
 #include "seq.c"
+#include "torso_t1_port.c"
 #include "torso_t1.c"
 #include "torso_t1_algo.c"
 #include "torso_t1_pipeline.c"
 #include "torso_t1_state.c"
 #include "torso_t1_ui.c"
+#include "t1_glue.c"              /* the T-1 in the audio ISR: clock, transport, MIDI OUT */
 #include "audio.c"
 
 /* -------------------------------------------------------------- UI --- */
@@ -88,6 +93,7 @@
 #include "ui_draw.c"
 #include "ui_menu.c"
 #include "ui_input.c"
+#include "ui_t1.c"               /* the Torso T-1 mode: screen and controls (SYSTEM > T1 SEQ) */
 #include "ui_layer.c"              /* the quick layers (FX GLO SCL EDIT REC held; SEQ TOOLS: ui_tools.c) */
 
 /* --------------------------------------------- storage, update, editor --- */

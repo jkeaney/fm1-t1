@@ -1,0 +1,10 @@
+## consecutive raw draws: s2 vs s1 (first 6)
+s1=0x091A s2=0x048D  s1>>1=0x048D  (s2 == s1>>1 ^ taps? 1)
+s1=0xB646 s2=0x5B23  s1>>1=0x5B23  (s2 == s1>>1 ^ taps? 1)
+s1=0x9991 s2=0xF8C8  s1>>1=0x4CC8  (s2 == s1>>1 ^ taps? 1)
+s1=0x7C64 s2=0x3E32  s1>>1=0x3E32  (s2 == s1>>1 ^ taps? 1)
+s1=0x1F19 s2=0xBB8C  s1>>1=0x0F8C  (s2 == s1>>1 ^ taps? 1)
+s1=0x5DC6 s2=0x2EE3  s1>>1=0x2EE3  (s2 == s1>>1 ^ taps? 1)
+## pitch/velocity modulation, depth 127, 32767 pairs: correlation = 0.500
+rnd2 mod 128 == (rnd1 mod 256)>>1 in 20000 of 20000 consecutive pairs
+P(second<50 | first<50) = 0.500 ; P(second<50 | first>=50) = 0.502 (independent would be 0.5 both)

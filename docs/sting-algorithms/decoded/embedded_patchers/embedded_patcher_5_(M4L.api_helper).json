@@ -1,0 +1,453 @@
+{
+	"patcher" : 	{
+		"fileversion" : 1,
+		"appversion" : 		{
+			"major" : 5,
+			"minor" : 1,
+			"revision" : 9
+		}
+,
+		"rect" : [ 59.0, 60.0, 482.0, 429.0 ],
+		"bglocked" : 0,
+		"defrect" : [ 59.0, 60.0, 482.0, 429.0 ],
+		"openrect" : [ 0.0, 0.0, 0.0, 0.0 ],
+		"openinpresentation" : 0,
+		"default_fontsize" : 10.0,
+		"default_fontface" : 0,
+		"default_fontname" : "Arial Bold",
+		"gridonopen" : 0,
+		"gridsize" : [ 8.0, 8.0 ],
+		"gridsnaponopen" : 0,
+		"toolbarvisible" : 1,
+		"boxanimatetime" : 200,
+		"imprint" : 0,
+		"enablehscroll" : 1,
+		"enablevscroll" : 1,
+		"devicewidth" : 0.0,
+		"boxes" : [ 			{
+				"box" : 				{
+					"maxclass" : "newobj",
+					"text" : "route bang <empty>",
+					"outlettype" : [ "", "", "" ],
+					"id" : "obj-16",
+					"fontname" : "Arial Bold",
+					"patching_rect" : [ 144.0, 296.0, 106.0, 18.0 ],
+					"numinlets" : 1,
+					"numoutlets" : 3,
+					"fontsize" : 10.0
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "comment",
+					"text" : "-->",
+					"frgb" : [ 0.101961, 0.121569, 0.172549, 1.0 ],
+					"id" : "obj-15",
+					"fontname" : "Arial",
+					"patching_rect" : [ 120.0, 320.0, 23.0, 18.0 ],
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"fontsize" : 10.0
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "comment",
+					"text" : "the list has the format \"id 1 id 2 id 3\" - so we get rid of the \"id\" tokens and count the members",
+					"linecount" : 5,
+					"frgb" : [ 0.101961, 0.121569, 0.172549, 1.0 ],
+					"id" : "obj-14",
+					"fontname" : "Arial",
+					"patching_rect" : [ 16.0, 320.0, 107.0, 64.0 ],
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"fontsize" : 10.0
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "comment",
+					"text" : "< after the live.object points to the current Live Set we ask it for the list of scenes",
+					"linecount" : 2,
+					"frgb" : [ 0.101961, 0.121569, 0.172549, 1.0 ],
+					"id" : "obj-10",
+					"fontname" : "Arial",
+					"patching_rect" : [ 256.0, 232.0, 208.0, 29.0 ],
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"fontsize" : 10.0
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "message",
+					"text" : "help live.object",
+					"bgcolor" : [ 0.984314, 0.819608, 0.05098, 1.0 ],
+					"outlettype" : [ "" ],
+					"id" : "obj-12",
+					"fontname" : "Arial Bold",
+					"patching_rect" : [ 256.0, 264.0, 83.0, 16.0 ],
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"fontsize" : 10.0
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "newobj",
+					"text" : "pcontrol",
+					"outlettype" : [ "" ],
+					"id" : "obj-13",
+					"fontname" : "Arial Bold",
+					"patching_rect" : [ 256.0, 288.0, 50.0, 18.0 ],
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"fontsize" : 10.0,
+					"hidden" : 1
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "comment",
+					"text" : "< first we set the live.path to the current Live Set and feed the live.object below with its ID",
+					"linecount" : 2,
+					"frgb" : [ 0.101961, 0.121569, 0.172549, 1.0 ],
+					"id" : "obj-53",
+					"fontname" : "Arial",
+					"patching_rect" : [ 256.0, 136.0, 210.0, 29.0 ],
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"fontsize" : 10.0
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "message",
+					"text" : "help live.path",
+					"bgcolor" : [ 0.984314, 0.819608, 0.05098, 1.0 ],
+					"outlettype" : [ "" ],
+					"id" : "obj-52",
+					"fontname" : "Arial Bold",
+					"patching_rect" : [ 256.0, 168.0, 74.0, 16.0 ],
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"fontsize" : 10.0
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "newobj",
+					"text" : "pcontrol",
+					"outlettype" : [ "" ],
+					"id" : "obj-51",
+					"fontname" : "Arial Bold",
+					"patching_rect" : [ 256.0, 192.0, 50.0, 18.0 ],
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"fontsize" : 10.0,
+					"hidden" : 1
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "comment",
+					"prototypename" : "ML.subpatcher-title",
+					"text" : "Get Scene Count",
+					"frgb" : [ 0.3, 0.34, 0.4, 1.0 ],
+					"id" : "obj-48",
+					"fontname" : "Arial Bold Italic",
+					"patching_rect" : [ 16.0, 16.0, 272.0, 34.0 ],
+					"numinlets" : 1,
+					"textcolor" : [ 0.3, 0.34, 0.4, 1.0 ],
+					"numoutlets" : 0,
+					"fontsize" : 24.0
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "comment",
+					"prototypename" : "ML.patcher-story",
+					"text" : "Get the total number of scenes in the current Live Set.",
+					"frgb" : [ 0.101961, 0.121569, 0.172549, 1.0 ],
+					"id" : "obj-50",
+					"fontname" : "Arial Italic",
+					"patching_rect" : [ 16.0, 48.0, 323.0, 19.0 ],
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"fontsize" : 11.0
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "newobj",
+					"text" : "t b l",
+					"outlettype" : [ "bang", "" ],
+					"id" : "obj-11",
+					"fontname" : "Arial Bold",
+					"patching_rect" : [ 184.0, 160.0, 33.0, 18.0 ],
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"fontsize" : 10.0
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "outlet",
+					"id" : "obj-9",
+					"patching_rect" : [ 144.0, 376.0, 18.0, 18.0 ],
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"comment" : ""
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "newobj",
+					"text" : "zl 666 len",
+					"outlettype" : [ "", "" ],
+					"id" : "obj-8",
+					"fontname" : "Arial Bold",
+					"patching_rect" : [ 144.0, 344.0, 55.0, 18.0 ],
+					"numinlets" : 2,
+					"numoutlets" : 2,
+					"fontsize" : 10.0
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "newobj",
+					"text" : "zl 666 delace",
+					"outlettype" : [ "", "" ],
+					"id" : "obj-7",
+					"fontname" : "Arial Bold",
+					"patching_rect" : [ 144.0, 320.0, 72.0, 18.0 ],
+					"numinlets" : 2,
+					"numoutlets" : 2,
+					"fontsize" : 10.0
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "newobj",
+					"text" : "route scenes",
+					"outlettype" : [ "", "" ],
+					"id" : "obj-6",
+					"fontname" : "Arial Bold",
+					"patching_rect" : [ 144.0, 264.0, 72.0, 18.0 ],
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"fontsize" : 10.0
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "message",
+					"text" : "get scenes",
+					"outlettype" : [ "" ],
+					"id" : "obj-5",
+					"fontname" : "Arial Bold",
+					"patching_rect" : [ 136.0, 200.0, 63.0, 16.0 ],
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"fontsize" : 10.0
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "message",
+					"text" : "path live_set",
+					"outlettype" : [ "" ],
+					"id" : "obj-4",
+					"fontname" : "Arial Bold",
+					"patching_rect" : [ 160.0, 112.0, 71.0, 16.0 ],
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"fontsize" : 10.0
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "newobj",
+					"text" : "live.path",
+					"outlettype" : [ "", "", "" ],
+					"id" : "obj-3",
+					"fontname" : "Arial Bold",
+					"color" : [ 0.984314, 0.819608, 0.05098, 1.0 ],
+					"patching_rect" : [ 160.0, 136.0, 66.0, 18.0 ],
+					"numinlets" : 1,
+					"numoutlets" : 3,
+					"fontsize" : 10.0
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "newobj",
+					"text" : "live.object",
+					"outlettype" : [ "" ],
+					"id" : "obj-2",
+					"fontname" : "Arial Bold",
+					"color" : [ 0.984314, 0.819608, 0.05098, 1.0 ],
+					"patching_rect" : [ 144.0, 232.0, 73.0, 18.0 ],
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"fontsize" : 10.0,
+					"saved_object_attributes" : 					{
+						"_persistence" : 0
+					}
+
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "inlet",
+					"outlettype" : [ "" ],
+					"id" : "obj-1",
+					"patching_rect" : [ 160.0, 80.0, 18.0, 18.0 ],
+					"numinlets" : 0,
+					"numoutlets" : 1,
+					"comment" : ""
+				}
+
+			}
+ ],
+		"lines" : [ 			{
+				"patchline" : 				{
+					"source" : [ "obj-7", 1 ],
+					"destination" : [ "obj-8", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-8", 0 ],
+					"destination" : [ "obj-9", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-3", 1 ],
+					"destination" : [ "obj-11", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-5", 0 ],
+					"destination" : [ "obj-2", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-4", 0 ],
+					"destination" : [ "obj-3", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-11", 1 ],
+					"destination" : [ "obj-2", 1 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-11", 0 ],
+					"destination" : [ "obj-5", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-2", 0 ],
+					"destination" : [ "obj-6", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-1", 0 ],
+					"destination" : [ "obj-4", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-12", 0 ],
+					"destination" : [ "obj-13", 0 ],
+					"hidden" : 1,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-52", 0 ],
+					"destination" : [ "obj-51", 0 ],
+					"hidden" : 1,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-6", 0 ],
+					"destination" : [ "obj-16", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-16", 2 ],
+					"destination" : [ "obj-7", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+ ]
+	}
+
+}

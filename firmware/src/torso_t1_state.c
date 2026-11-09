@@ -5,7 +5,9 @@
 #include "torso_t1_state.h"
 
 #if !defined(FELUCCA_ID) && !defined(FM1_SYS_H)
+#ifndef T1_DEVICE
 #include <string.h>
+#endif
 #else
 void *memset(void *d, int c, unsigned n);
 void *memcpy(void *d, const void *s, unsigned n);

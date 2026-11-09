@@ -182,7 +182,35 @@ static void test_harmony_and_voicing_engine(void)
     /* 1. All 16 Scales Defined */
     TEST_ASSERT(T1_NUM_SCALES == 16, "16 scales defined");
     TEST_ASSERT(T1_SCALE_MASKS[0] == 0x0FFF, "Scale 0 is Chromatic");
-    TEST_ASSERT(T1_SCALE_MASKS[1] == 0x0AD5, "Scale 1 is Major");
+    TEST_ASSERT(T1_SCALE_MASKS[1] == 0x0AB5, "Scale 1 is Major {0,2,4,5,7,9,11}");
+    {   /* every scale is its interval list, in the UI's order (SCALE_NAMES) */
+        static const uint8_t IV[16][13] = {
+            {0,1,2,3,4,5,6,7,8,9,10,11,255},   /* Chromatic */
+            {0,2,4,5,7,9,11,255},   /* Major (Ionian) */
+            {0,2,3,5,7,8,10,255},   /* Natural Minor */
+            {0,2,3,5,7,9,10,255},   /* Dorian */
+            {0,1,3,5,7,8,10,255},   /* Phrygian */
+            {0,2,4,6,7,9,11,255},   /* Lydian */
+            {0,2,4,5,7,9,10,255},   /* Mixolydian */
+            {0,2,3,5,7,8,10,255},   /* Aeolian */
+            {0,1,3,5,6,8,10,255},   /* Locrian */
+            {0,2,4,7,9,255},   /* Pentatonic Major */
+            {0,3,5,7,10,255},   /* Pentatonic Minor */
+            {0,3,5,6,7,10,255},   /* Blues */
+            {0,2,4,6,8,10,255},   /* Whole Tone */
+            {0,2,3,5,7,8,11,255},   /* Harmonic Minor */
+            {0,2,3,5,7,9,11,255},   /* Melodic Minor */
+            {0,1,3,4,6,7,9,10,255},   /* Diminished (Half-Whole) */
+        };
+        int all = 1;
+        for (int i = 0; i < 16; i++) {
+            uint16_t m = 0;
+            for (int k = 0; IV[i][k] != 255; k++) m |= (uint16_t)(1u << IV[i][k]);
+            all &= T1_SCALE_MASKS[i] == m;
+        }
+        TEST_ASSERT(all, "All 16 scale masks match their interval lists (UI order)");
+        TEST_ASSERT(t1_harmony_quantize(70, 9, 10) == 69, "A# in A minor pentatonic snaps down to A");
+    }
     TEST_ASSERT(T1_SCALE_MASKS[2] == 0x05AD, "Scale 2 is Natural Minor");
 
     /* 2. Scale Quantization (C Major: C, D, E, F, G, A, B) */

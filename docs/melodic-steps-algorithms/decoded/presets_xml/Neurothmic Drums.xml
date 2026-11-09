@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Ableton MajorVersion="5" MinorVersion="12.0_12049" SchemaChangeCount="13" Creator="Ableton Live 12.0.5d1" Revision="c8849981f93a9d440f7f2c0552a2ef239207ef03">
+	<MxDeviceMidiEffect>
+		<LomId Value="0" />
+		<LomIdView Value="0" />
+		<IsExpanded Value="true" />
+		<On>
+			<LomId Value="0" />
+			<Manual Value="true" />
+			<AutomationTarget Id="0">
+				<LockEnvelope Value="0" />
+			</AutomationTarget>
+			<MidiCCOnOffThresholds>
+				<Min Value="64" />
+				<Max Value="127" />
+			</MidiCCOnOffThresholds>
+		</On>
+		<ModulationSourceCount Value="0" />
+		<ParametersListWrapper LomId="0" />
+		<Pointee Id="0" />
+		<LastSelectedTimeableIndex Value="0" />
+		<LastSelectedClipEnvelopeIndex Value="0" />
+		<LastPresetRef>
+			<Value>
+				<AbletonDefaultPresetRef Id="2">
+					<FileRef>
+						<RelativePathType Value="0" />
+						<RelativePath Value="" />
+						<Path Value="" />
+						<Type Value="2" />
+						<LivePackName Value="" />
+						<LivePackId Value="" />
+						<OriginalFileSize Value="0" />
+						<OriginalCrc Value="0" />
+					</FileRef>
+					<DeviceId Name="MxDeviceMidiEffect" />
+				</AbletonDefaultPresetRef>
+			</Value>
+		</LastPresetRef>
+		<LockedScripts />
+		<IsFolded Value="false" />
+		<ShouldShowPresetName Value="true" />
+		<UserName Value="" />
+		<Annotation Value="" />
+		<SourceContext>
+			<Value />
+		</SourceContext>
+		<OverwriteProtectionNumber Value="3073" />
+		<PatchSlot>
+			<Value>
+				<MxPatchRef Id="1">
+					<FileRef>
+						<RelativePathType Value="5" />
+						<RelativePath Value="MIDI Effects/Melodic Steps/Ableton Folder Info/Melodic Steps.amxd" />
+						<Path Value="/Volumes/data/tmp/trunk/Creative Extensions/MIDI Effects/Melodic Steps/Ableton Folder Info/Melodic Steps.amxd" />
+						<Type Value="2" />
+						<LivePackName Value="Creative Extensions" />
+						<LivePackId Value="www.ableton.com/260" />
+						<OriginalFileSize Value="971473" />
+						<OriginalCrc Value="50988" />
+					</FileRef>
+					<LastModDate Value="1610020881" />
+					<SourceContext />
+					<SampleUsageHint Value="0" />
+				</MxPatchRef>
+			</Value>
+		</PatchSlot>
+		<ParameterList>
+			<ParameterList>
+				<MxDIntParameter Id="0">
+					<Index Value="0" />
+					<Type Value="1" />
+					<Name Value="OctLength" />
+					<ShortName Value="Oct Length" />
+					<MinValue Value="2" />
+					<MaxValue Value="16" />
+					<Default Value="2" />
+					<ModType Value="0" />
+					<MinMod Value="-1" />
+					<MaxMod Value="1" />
+					<Timeable>
+						<LomId Value="0" />
+						<Manual Value="2" />
+						<MidiControllerRange>
+							<Min Value="2" />
+							<Max Value="2" />
+						</MidiControllerRange>
+						<AutomationTarget Id="0">
+							<LockEnvelope Value="0" />
+						</AutomationTarget>
+						<ModulationTarget Id="0">
+							<LockEnvelope Value="0" />
+						</ModulationTarget>
+					</Timeable>
+					<ScrollPosArranger Value="-1073741824" />
+					<ScrollPosEnvelope Value="-1073741824" />
+				</MxDIntParameter>
+				<MxDIntParameter Id="1">
+					<Index Value="1" />
+					<Type Value="1" />
+					<Name Value="TransLength" />
+					<ShortName Value="Transp Length" />
+					<MinValue Value="2" />
+					<MaxValue Value="16" />
+					<Default Value="3" />
+					<ModType Value="0" />
+					<MinMod Value="-1" />
+					<MaxMod Value="1" />
+					<Timeable>
+						<LomId Value="0" />
+						<Manual Value="16" />
+						<MidiControllerRange>
+							<Min Value="2" />
+							<Max Value="2" />
+						</MidiControllerRange>
+						<AutomationTarget Id="0">
+							<LockEnvelope Value="0" />
+						</AutomationTarget>
+						<ModulationTarget Id="0">
+							<LockEnvelope Value="0" />
+						</ModulationTarget>
+					</Timeable>
+					<ScrollPosArranger Value="-1073741824" />
+					<ScrollPosEnvelope Value="-1073741824" />
+				</MxDIntParameter>
+				<MxDIntParameter Id="2">
+					<Index Value="2" />
+					<Type Value="1" />
+					<Name Value="LenLength" />
+					<ShortName Value="Length Length" />
+					<MinValue Value="2" />
+					<MaxValue Value="16" />
+					<Default Value="8" />
+					<ModType Value="0" />
+					<MinMod Value="-1" />
+					<MaxMod Value="1" />
+					<Timeable>
+						<LomId Value="0" />
+						<Manual Value="16" />
+						<MidiControllerRange>
+							<Min Value="2" />
+							<Max Value="2" />
+						</MidiControllerRange>
+						<AutomationTarget Id="0">
+							<LockEnvelope Value="0" />
+						</AutomationTarget>
+						<ModulationTarget Id="0">
+							<LockEnvelope Value="0" />
+						</ModulationTarget>
+					</Timeable>
+					<ScrollPosArranger Value="-1073741824" />
+					<ScrollPosEnvelope Value="-1073741824" />
+				</MxDIntParameter>
+				<MxDIntParameter Id="3">
+					<Index Value="3" />
+					<Type Value="1" />
+					<Name Value="VeloLength" />
+					<ShortName Value="Velo Length" />
+					<MinValue Value="2" />
+					<MaxValue Value="16" />
+					<Default Value="15" />
+					<ModType Value="0" />
+					<MinMod Value="-1" />
+					<MaxMod Value="1" />
+					<Timeable>
+						<LomId Value="0" />
+						<Manual Value="16" />
+						<MidiControllerRange>
+							<Min Value="2" />
+							<Max Value="2" />
+						</MidiControllerRange>
+						<AutomationTarget Id="0">
+							<LockEnvelope Value="0" />
+						</AutomationTarget>
+						<ModulationTarget Id="0">
+							<LockEnvelope Value="0" />
+						</ModulationTarget>
+					</Timeable>
+					<ScrollPosArranger Value="-1073741824" />
+					<ScrollPosEnvelope Value="-1073741824" />
+				</MxDIntParameter>
+				<MxDIntParameter Id="4">
+					<Index Value="4" />
+					<Type Value="1" />
+					<Name Value="ChanceLength" />
+					<ShortName Value="Chance Length" />
+					<MinValue Value="2" />
+					<MaxValue Value="16" />
+					<Default Value="4" />
+					<ModType Value="0" />
+					<MinMod Value="-1" />
+					<MaxMod Value="1" />
+					<Timeable>
+						<LomId Value="0" />
+						<Manual Value="16" />
+						<MidiControllerRange>
+							<Min Value="2" />
+							<Max Value="2" />
+						</MidiControllerRange>
+						<AutomationTarget Id="0">
+							<LockEnvelope Value="0" />
+						</AutomationTarget>
+						<ModulationTarget Id="0">
+							<LockEnvelope Value="0" />
+						</ModulationTarget>
+					</Timeable>
+					<ScrollPosArranger Value="-1073741824" />
+					<ScrollPosEnvelope Value="-1073741824" />
+				</MxDIntParameter>
+				<MxDEnumParameter Id="5">
+					<Index Value="5" />
+					<Type Value="2" />
+					<Name Value="Resync" />
+					<ShortName Value="Resync" />
+					<MinValue Value="0" />
+					<MaxValue Value="1" />
+					<Default Value="0" />
+					<ModType Value="0" />
+					<MinMod Value="-1" />
+					<MaxMod Value="1" />
+					<Timeable>
+						<LomId Value="0" />
+						<Manual Value="0" />
+						<AutomationTarget Id="0">
+							<LockEnvelope Value="0" />
+						</AutomationTarget>
+					</Timeable>
+					<Names>
+						<Name Id="0">
+							<Name Value="0" />
+						</Name>
+						<Name Id="1">
+							<Name Value="1" />
+						</Name>
+					</Names>
+				</MxDEnumParameter>
+			</ParameterList>
+		</ParameterList>
+		<FileDropList>
+			<FileDropList />
+		</FileDropList>
+		<IdRefList>
+			<IdRefList>
+				<MxDIdRef Id="1">
+					<Name Value="obj-34::obj-16" />
+					<LomId Value="1" />
+					<Property Value="tempo" />
+				</MxDIdRef>
+			</IdRefList>
+		</IdRefList>
+		<BlobSlot>
+			<Value>
+				<MxDBlob Id="5">
+					<Blob>
+						7B0A09224368616E63655B31305D22203A205B2036205D2C0A09224368616E63655B31315D22203A
+						205B2035205D2C0A09224368616E63655B31325D22203A205B2036205D2C0A09224368616E63655B
+						31335D22203A205B2036205D2C0A09224368616E63655B31345D22203A205B2035205D2C0A092243
+						68616E63655B31355D22203A205B2036205D2C0A09224368616E63655B31365D22203A205B203620
+						5D2C0A09224368616E63655B315D22203A205B2036205D2C0A09224368616E63655B325D22203A20
+						5B2036205D2C0A09224368616E63655B335D22203A205B2036205D2C0A09224368616E63655B345D
+						22203A205B2036205D2C0A09224368616E63655B355D22203A205B2036205D2C0A09224368616E63
+						655B365D22203A205B2036205D2C0A09224368616E63655B375D22203A205B2036205D2C0A092243
+						68616E63655B385D22203A205B2036205D2C0A09224368616E63655B395D22203A205B2036205D2C
+						0A09224C656E6774685B31305D22203A205B2035205D2C0A09224C656E6774685B31315D22203A20
+						5B2035205D2C0A09224C656E6774685B31325D22203A205B2033205D2C0A09224C656E6774685B31
+						335D22203A205B2035205D2C0A09224C656E6774685B31345D22203A205B2031205D2C0A09224C65
+						6E6774685B31355D22203A205B2030205D2C0A09224C656E6774685B31365D22203A205B2032205D
+						2C0A09224C656E6774685B315D22203A205B2036205D2C0A09224C656E6774685B325D22203A205B
+						2036205D2C0A09224C656E6774685B335D22203A205B2030205D2C0A09224C656E6774685B345D22
+						203A205B2030205D2C0A09224C656E6774685B355D22203A205B2032205D2C0A09224C656E677468
+						5B365D22203A205B2031205D2C0A09224C656E6774685B375D22203A205B2036205D2C0A09224C65
+						6E6774685B385D22203A205B2034205D2C0A09224C656E6774685B395D22203A205B2032205D2C0A
+						09224D49444922203A205B2030205D2C0A09224F63746176655B31305D22203A205B2033205D2C0A
+						09224F63746176655B31315D22203A205B2033205D2C0A09224F63746176655B31325D22203A205B
+						2033205D2C0A09224F63746176655B31335D22203A205B2033205D2C0A09224F63746176655B3134
+						5D22203A205B2033205D2C0A09224F63746176655B31355D22203A205B2033205D2C0A09224F6374
+						6176655B31365D22203A205B2033205D2C0A09224F63746176655B315D22203A205B2033205D2C0A
+						09224F63746176655B325D22203A205B2033205D2C0A09224F63746176655B335D22203A205B2033
+						205D2C0A09224F63746176655B345D22203A205B2033205D2C0A09224F63746176655B355D22203A
+						205B2033205D2C0A09224F63746176655B365D22203A205B2033205D2C0A09224F63746176655B37
+						5D22203A205B2033205D2C0A09224F63746176655B385D22203A205B2033205D2C0A09224F637461
+						76655B395D22203A205B2033205D2C0A0922526F6F74204E6F746522203A205B203336205D2C0A09
+						225363616C657322203A205B2030205D2C0A09225377696E6722203A205B2030205D2C0A09225472
+						616E73706F73655B31305D22203A205B2036205D2C0A09225472616E73706F73655B31315D22203A
+						205B2035205D2C0A09225472616E73706F73655B31325D22203A205B2036205D2C0A09225472616E
+						73706F73655B31335D22203A205B2036205D2C0A09225472616E73706F73655B31345D22203A205B
+						2032205D2C0A09225472616E73706F73655B31355D22203A205B2034205D2C0A09225472616E7370
+						6F73655B31365D22203A205B2032205D2C0A09225472616E73706F73655B315D22203A205B203020
+						5D2C0A09225472616E73706F73655B325D22203A205B2036205D2C0A09225472616E73706F73655B
+						335D22203A205B2035205D2C0A09225472616E73706F73655B345D22203A205B2036205D2C0A0922
+						5472616E73706F73655B355D22203A205B2032205D2C0A09225472616E73706F73655B365D22203A
+						205B2036205D2C0A09225472616E73706F73655B375D22203A205B2035205D2C0A09225472616E73
+						706F73655B385D22203A205B2030205D2C0A09225472616E73706F73655B395D22203A205B203120
+						5D2C0A0922547269706C65747322203A205B2030205D2C0A092256656C6F636974795B31305D2220
+						3A205B2033205D2C0A092256656C6F636974795B31315D22203A205B2032205D2C0A092256656C6F
+						636974795B31325D22203A205B2034205D2C0A092256656C6F636974795B31335D22203A205B2035
+						205D2C0A092256656C6F636974795B31345D22203A205B2034205D2C0A092256656C6F636974795B
+						31355D22203A205B2032205D2C0A092256656C6F636974795B31365D22203A205B2034205D2C0A09
+						2256656C6F636974795B315D22203A205B2036205D2C0A092256656C6F636974795B325D22203A20
+						5B2034205D2C0A092256656C6F636974795B335D22203A205B2033205D2C0A092256656C6F636974
+						795B345D22203A205B2034205D2C0A092256656C6F636974795B355D22203A205B2035205D2C0A09
+						2256656C6F636974795B365D22203A205B2034205D2C0A092256656C6F636974795B375D22203A20
+						5B2032205D2C0A092256656C6F636974795B385D22203A205B2034205D2C0A092256656C6F636974
+						795B395D22203A205B2035205D2C0A09226C6976652E6D656E755B325D22203A205B20332E30205D
+						2C0A09226C6976652E6D656E755B335D22203A205B20332E30205D2C0A09226C6976652E6D656E75
+						5B345D22203A205B2033205D0A7D0A00
+					</Blob>
+					<HasData Value="true" />
+				</MxDBlob>
+			</Value>
+		</BlobSlot>
+		<Routables>
+			<InRoutings />
+			<OutRoutings />
+			<MidiInRoutings />
+			<MidiOutRoutings />
+		</Routables>
+		<MpeEnabled Value="false" />
+	</MxDeviceMidiEffect>
+</Ableton>

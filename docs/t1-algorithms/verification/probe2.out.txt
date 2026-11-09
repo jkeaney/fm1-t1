@@ -1,0 +1,44 @@
+## A stuck notes after overflow: stress, then silence, drain 5000 ticks
+dropped=16416 | MIDI note-on=2048 note-off=2016 (unmatched=32) | FM on=2048 off=2048 (unmatched=0)
+## B moderate load: all 6 tracks, repeats=4 chord=2, 16 pulses: any drops?
+dropped=0
+## C cycle select by key (t1_ui_select_cycle) vs encoder: does the rhythm change?
+cycle0 (4 pulses) bar: 4 note-ons | after select_cycle(1) (12 pulses): 4 | after explicit mask invalidate: 12
+## D random-target knob: one detent at a time
+detent 1 -> random_targets=0x02
+detent 2 -> random_targets=0x00
+detent 3 -> random_targets=0x02
+detent 4 -> random_targets=0x00
+detent 5 -> random_targets=0x02
+detent 6 -> random_targets=0x00
+one detent back -> 0x02
+2 detents in one frame -> 0x04
+3 detents in one frame -> 0x08
+4 detents in one frame -> 0x10
+5 detents in one frame -> 0x20
+6 detents in one frame -> 0x40
+7 detents in one frame -> 0x80
+8 detents in one frame -> 0x01
+## E step-mod knob (RHYTHM, shift, enc 3)
+detent 1 -> active_mask_lo=0x00000002
+detent 2 -> active_mask_lo=0x00000000
+detent 3 -> active_mask_lo=0x00000002
+## F muted track phase
+after un-mute: track0 step_index=2 tick_accum=48 | track1 step_index=3 tick_accum=30 (tick now 174)
+## G zeroed p-lock arena
+set(step3,param57) on zeroed arena -> 0 (0 = refused: arena looks full)
+## H LFSR determinism across loops: probability 50%, 16 pulses, loop_period 1: do consecutive bars match?
+bar 1: xx.x.x...x.xx..x
+bar 2: xx.x.x...x.xx..x
+bar 3: xx.x.x...x.xx..x
+bar 4: xx.x.x...x.xx..x
+## I same with random_rate=3 (loop 4 cycles)
+bar 1: xx.x.x...x.xx..x
+bar 2: .xx.x..xxxxx.x..
+bar 3: ...xx.xxxxxxxxxx
+bar 4: .x......x....xx.
+bar 5: xx.x.x...x.xx..x
+bar 6: .xx.x..xxxxx.x..
+bar 7: ...xx.xxxxxxxxxx
+bar 8: .x......x....xx.
+bar 9: xx.x.x...x.xx..x

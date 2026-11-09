@@ -5,7 +5,9 @@
 #include "torso_t1_pipeline.h"
 
 #if !defined(FELUCCA_ID) && !defined(FM1_SYS_H)
+#ifndef T1_DEVICE
 #include <string.h>
+#endif
 #else
 void *memset(void *d, int c, unsigned n);
 void *memcpy(void *d, const void *s, unsigned n);
@@ -157,6 +159,16 @@ void t1_pipeline_invalidate_masks(void)
     }
 }
 
+/* 8 fresh bits of a track's random line. t1_lfsr_next shifts one bit per call, so two draws in a row are nearly
+ * the same number (an accent drawn right after the pitch never came up): a decision of its own takes 8 new bits */
+static uint8_t t1_lfsr_byte(T1LFSRState *lfsr)
+{
+    uint8_t r = 0;
+    for (uint8_t i = 0; i < 8u; i++)
+        r = (uint8_t)(r << 1 | (t1_lfsr_next(lfsr) & 1u));
+    return r;
+}
+
 /* ---------------- Master 192 PPQN Pipeline Step Evaluator --- */
 void t1_pipeline_tick(uint32_t current_tick)
 {
@@ -234,6 +246,10 @@ void t1_pipeline_tick(uint32_t current_tick)
                 /* Arpeggio style direction */
                 note += (int16_t)t1_harmony_eval_style(cp->style, rt->pulse_counter, 7u);
 
+                /* Random pitch (RND TGT PITCH): +-depth/2 semitones before the quantiser, so it stays in the scale */
+                note = (int16_t)t1_lfsr_modulate(&rt->lfsr, cp->random_targets, T1_RND_TARGET_PITCH,
+                                                 note, cp->random_depth, 0, 127);
+
                 /* Master Harmony Link: project relative to pattern master root */
                 uint8_t root = cp->root_note;
                 uint8_t scale = cp->scale_id;
@@ -255,10 +271,31 @@ void t1_pipeline_tick(uint32_t current_tick)
                 if (t1_plock_get(cp, rt->step_index, 67 /* P_VEL */, &locked_vel)) {
                     vel = (uint8_t)locked_vel;
                 }
+                /* Random velocity (RND TGT VELOCITY) */
+                vel = (uint8_t)t1_lfsr_modulate(&rt->lfsr, cp->random_targets, T1_RND_TARGET_VELOCITY,
+                                                vel, cp->random_depth, 1, 127);
+                /* ACCENT: added on accented pulses. With RND TGT ACCENT about 3 pulses in 10 are accented, by the
+                 * track's random line (so they loop with RND RATE); without it, the cycle's first step (the downbeat) */
+                if (cp->accent) {
+                    bool accented = (cp->random_targets & T1_RND_TARGET_ACCENT)
+                        ? (t1_lfsr_byte(&rt->lfsr) % 10u) < 3u
+                        : rt->step_index == 0;
+                    if (accented)
+                        vel = (uint8_t)(vel + cp->accent > 127 ? 127 : vel + cp->accent);
+                }
 
                 /* 5. Non-linear Ratchet & Pace Evaluation */
                 T1RatchetPattern rat;
                 t1_pace_eval_ratchet(cp, rt->current_step_len, &rat);
+                /* The ratchet's velocities slope from the cycle's base velocity: move them by what the p-lock,
+                 * random and accent did to this pulse's velocity (vel was computed above and otherwise unused) */
+                {
+                    int16_t vdelta = (int16_t)vel - (int16_t)(cp->velocity ? cp->velocity : 100u);
+                    for (uint8_t k = 0; k < rat.repeats; k++) {
+                        int16_t v = (int16_t)rat.velocities[k] + vdelta;
+                        rat.velocities[k] = (uint8_t)(v < 1 ? 1 : v > 127 ? 127 : v);
+                    }
+                }
 
                 /* Micro-delay offset (-12 to +12 ticks) */
                 int32_t delay = (int32_t)cp->delay_ticks;

@@ -1,0 +1,339 @@
+{
+	"patcher" : 	{
+		"fileversion" : 1,
+		"rect" : [ 69.0, 65.0, 392.0, 427.0 ],
+		"bglocked" : 0,
+		"defrect" : [ 69.0, 65.0, 392.0, 427.0 ],
+		"openrect" : [ 0.0, 0.0, 0.0, 0.0 ],
+		"openinpresentation" : 0,
+		"default_fontsize" : 10.0,
+		"default_fontface" : 0,
+		"default_fontname" : "Arial Bold",
+		"gridonopen" : 0,
+		"gridsize" : [ 8.0, 8.0 ],
+		"gridsnaponopen" : 0,
+		"toolbarvisible" : 1,
+		"boxanimatetime" : 200,
+		"imprint" : 0,
+		"enablehscroll" : 1,
+		"enablevscroll" : 1,
+		"devicewidth" : 0.0,
+		"boxes" : [ 			{
+				"box" : 				{
+					"maxclass" : "comment",
+					"text" : "< when we do not get a valid id - which means we are in a state that this_device cannot be computed we want to put out an empty path",
+					"linecount" : 6,
+					"fontname" : "Arial",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"fontsize" : 10.0,
+					"patching_rect" : [ 224.0, 304.0, 131.0, 75.0 ],
+					"frgb" : [ 0.0, 0.0, 0.0, 1.0 ],
+					"id" : "obj-1"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "comment",
+					"text" : "< set the live.path object to the device this patcher is currently used in",
+					"linecount" : 3,
+					"fontname" : "Arial",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"fontsize" : 10.0,
+					"patching_rect" : [ 224.0, 192.0, 131.0, 41.0 ],
+					"frgb" : [ 0.0, 0.0, 0.0, 1.0 ],
+					"id" : "obj-5"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "comment",
+					"prototypename" : "ML.patcher-summary",
+					"text" : "Get the canonical path of the \"this\" device.",
+					"fontname" : "Arial Bold Italic",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"fontsize" : 11.0,
+					"patching_rect" : [ 16.0, 48.0, 254.0, 19.0 ],
+					"frgb" : [ 0.0, 0.0, 0.0, 1.0 ],
+					"id" : "obj-49"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "comment",
+					"prototypename" : "ML.subpatcher-title",
+					"text" : "Get this canonical Device Path",
+					"fontname" : "Arial Bold Italic",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"fontsize" : 24.0,
+					"patching_rect" : [ 16.0, 16.0, 359.0, 34.0 ],
+					"textcolor" : [ 0.3, 0.34, 0.4, 1.0 ],
+					"frgb" : [ 0.3, 0.34, 0.4, 1.0 ],
+					"id" : "obj-33"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "comment",
+					"prototypename" : "ML.patcher-story",
+					"text" : "Bang to output the path to the current device. Will output an empty path if the device does not exist in a LOM structure at the moment (e.g. during copy/paste)",
+					"linecount" : 3,
+					"fontname" : "Arial Italic",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"fontsize" : 11.0,
+					"patching_rect" : [ 16.0, 64.0, 361.0, 44.0 ],
+					"frgb" : [ 0.0, 0.0, 0.0, 1.0 ],
+					"id" : "obj-50"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "message",
+					"text" : "path",
+					"fontname" : "Arial Bold",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"fontsize" : 10.0,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 160.0, 304.0, 32.5, 16.0 ],
+					"id" : "obj-22"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "message",
+					"text" : "getpath",
+					"fontname" : "Arial Bold",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"fontsize" : 10.0,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 72.0, 304.0, 47.0, 16.0 ],
+					"id" : "obj-19"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "newobj",
+					"text" : "t b",
+					"fontname" : "Arial Bold",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"fontsize" : 10.0,
+					"outlettype" : [ "bang" ],
+					"patching_rect" : [ 72.0, 280.0, 23.0, 18.0 ],
+					"id" : "obj-16"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "newobj",
+					"text" : "M4L.api.ValidId",
+					"fontname" : "Arial Bold",
+					"numinlets" : 1,
+					"color" : [ 0.545098, 0.85098, 0.592157, 1.0 ],
+					"numoutlets" : 2,
+					"fontsize" : 10.0,
+					"outlettype" : [ "", "" ],
+					"patching_rect" : [ 72.0, 256.0, 107.0, 18.0 ],
+					"id" : "obj-13"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "newobj",
+					"text" : "t l l",
+					"fontname" : "Arial Bold",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"fontsize" : 10.0,
+					"outlettype" : [ "", "" ],
+					"patching_rect" : [ 160.0, 224.0, 48.5, 18.0 ],
+					"id" : "obj-12"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "newobj",
+					"text" : "live.object",
+					"fontname" : "Arial Bold",
+					"numinlets" : 2,
+					"color" : [ 0.984314, 0.819608, 0.05098, 1.0 ],
+					"numoutlets" : 1,
+					"fontsize" : 10.0,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 72.0, 344.0, 137.0, 18.0 ],
+					"id" : "obj-11"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "message",
+					"text" : "path this_device",
+					"fontname" : "Arial Bold",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"fontsize" : 10.0,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 144.0, 160.0, 89.0, 16.0 ],
+					"id" : "obj-10"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "newobj",
+					"text" : "live.path",
+					"fontname" : "Arial Bold",
+					"numinlets" : 1,
+					"color" : [ 0.984314, 0.819608, 0.05098, 1.0 ],
+					"numoutlets" : 3,
+					"fontsize" : 10.0,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 144.0, 192.0, 51.0, 18.0 ],
+					"id" : "obj-3"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "inlet",
+					"numinlets" : 0,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 144.0, 128.0, 18.0, 18.0 ],
+					"id" : "obj-27",
+					"comment" : ""
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "outlet",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 72.0, 392.0, 18.0, 18.0 ],
+					"id" : "obj-28",
+					"comment" : ""
+				}
+
+			}
+ ],
+		"lines" : [ 			{
+				"patchline" : 				{
+					"source" : [ "obj-11", 0 ],
+					"destination" : [ "obj-28", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-22", 0 ],
+					"destination" : [ "obj-28", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-27", 0 ],
+					"destination" : [ "obj-10", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-10", 0 ],
+					"destination" : [ "obj-3", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-3", 1 ],
+					"destination" : [ "obj-12", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-12", 1 ],
+					"destination" : [ "obj-11", 1 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-12", 0 ],
+					"destination" : [ "obj-13", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-13", 0 ],
+					"destination" : [ "obj-16", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-16", 0 ],
+					"destination" : [ "obj-19", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-19", 0 ],
+					"destination" : [ "obj-11", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-13", 1 ],
+					"destination" : [ "obj-22", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+ ]
+	}
+
+}

@@ -81,6 +81,8 @@ static uint32_t up_gen;                      /* bumped on every user bank change
 #define PREF_SEL_PAGE (0x10u << 16)
 #define PREF_WAKE_PANEL (0x20u << 16)
 #define PREF_SEL_HI (0x40u << 16)
+#define PREF_T1 (0x80u << 16)                  /* SYSTEM > T1 SEQ ON: the Torso T-1 sequencer mode (ui_t1.c, t1_glue.c); bit 7
+                                                * of ui_prefs2, 0 in every older setting = OFF */
 /* MENU > CONTROL > SELECT: 0 BPM, 1 PAGE (1.5.5, #188), 2 MODW, 3 VEL (1.5.6, #84: ui_input.c sel_play), bit 4 and bit 6 of
  * ui_prefs2 (0 in every older setting = BPM; 1.5.5's PAGE keeps its bit; firmware before 1.5.6 reads MODW as BPM and
  * VEL as PAGE (its bit 4), before 1.5.5 both as BPM) */
@@ -135,6 +137,16 @@ static uint8_t sync_reload;                  /* engine / preset / project / user
  * the panel 76..198 (a SURF area; the graphs live in it), footer 202..240; BG between them */
 #define Y_HEAD 0
 #define H_HEAD 24
+/* the Torso T-1 mode's screen and controls (ui_t1.c, included after ui_layer.c) */
+#ifdef T1_DEVICE
+static void t1_poll(void);
+static void t1_input(uint32_t pressed, uint32_t notes);
+static void t1_draw(void);
+#else
+static void t1_poll(void) {}
+static void t1_input(uint32_t pressed, uint32_t notes) { (void)pressed; (void)notes; }
+static void t1_draw(void) {}
+#endif
 #define Y_LABEL 28                    /* the cards */
 #define Y_SEP_END 72
 #define CARD_W 57

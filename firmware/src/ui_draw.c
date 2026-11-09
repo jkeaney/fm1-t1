@@ -1506,6 +1506,10 @@ static void ui_draw_page(uint32_t counting)
         draw_head();                                    /* recording remains visible over confirmations */
         return;
     }
+    if (t1_mode) {                                      /* SYSTEM > T1 SEQ ON: the T-1's screen (ui_t1.c) */
+        t1_draw();
+        return;
+    }
     if (name_on()) {                                    /* NAME: a user preset's or a project's (ui_name.c) */
         name_draw();
         return;
