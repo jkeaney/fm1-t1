@@ -132,12 +132,11 @@ ALGORITHM = tab, PRESETS = row, K1-K4 = value, HOME tap closes (Felucca menu nav
 - **CONTROL:** HOLD (the 0.3-0.6 s tap/hold threshold), ACCEL, SCALE LEDS, STEP PREVIEW, CHORD ENTRY.
 - **AUDIO:** SPEAKER EQ, USB LEVEL, CLICK, CLICK LEVEL, COUNT-IN, TUNE.
 - **MIDI:** MIDI IN routing, AUTO SELECT, SCREEN WAKE, LEARN CLEAR.
-- **SYSTEM:** MODE `SEQ` / `GROOVE` (default `SEQ`; `GROOVE` is the legacy Felucca panel, decision 32), USB SERIAL,
+- **SYSTEM:** USB SERIAL,
   RESTORE LAST, HELP, CALIBRATION, INFO, ABOUT.
 
 Moved out because they are musical functions now on the panel: `MI_TCH1..4` (CHAN layer), `MI_SELECT` (SELECT is fixed
-to channel select), `MI_BPMLOCK` (tempo is on GLO / tap tempo), `MI_T1SEQ` (replaced by MODE), `MI_LATCH` (no FX layer
-in SEQ mode). Row counts change in `menu_items.c`, so the dev task updates `tests/ui_test.c`.
+to channel select), `MI_BPMLOCK` (tempo is on GLO / tap tempo), `MI_T1SEQ` (the sequencer is always on, decision 32b), `MI_LATCH` (no FX layer). Row counts change in `menu_items.c`, so the dev task updates `tests/ui_test.c`.
 
 ## 6. Conflicts from the T-1 guide, resolved
 
@@ -154,7 +153,7 @@ it; this table says what each guide claim becomes.
 | SAVE or LFO held = TEMP snapshot; OCT+ commits | ui_t1.c:56-68 | SAVE tap saves the preset, SAVE hold 0.7 s undoes a load; LFO is the SHAPE dice; TEMP is dropped |
 | GLO held = relative delta on all tracks | ui_t1.c:69-72 | GLO opens the GLOB page: GATE, DIV, SWING, BPM are global by nature (decision 4); no per-track delta |
 | Page 4 K4 shift = "LoopSync", MOD/CC page, RATCHET page, HARMONY page | chord voices etc. | Not in v1; ratchet is the ARTIC layer and scale / key live in the SCL layer |
-| LFO-held MOMENTARY (Felucca) | knob moves snap back on release | Dropped in SEQ mode (LFO = SHAPE dice); revisit after the first hardware test (decision 36) |
+| LFO-held MOMENTARY (Felucca) | knob moves snap back on release | Dropped (LFO = SHAPE dice); revisit after the first hardware test (decision 36) |
 
 ## 7. Flex points (ADR-0004 addendum)
 

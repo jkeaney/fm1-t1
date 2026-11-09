@@ -62,9 +62,9 @@ Why this layout:
   hundreds of times per session and the settings a few times.
 - **Synth-only printing (FX ENV LFO ARP SEQ) becomes dice.** Rule 2: the synth is only a preview, so those labels
   have no job; the screen's 2 x 6 button picture shows the real role under each printed position.
-- Felucca's groovebox pages (ENV, LFO, FX, ARP, SONG, sound editing) are not part of this map. They stay reachable
-  only as a set-and-forget legacy mode, MENU > SYSTEM > MODE `SEQ`/`GROOVE` (default `SEQ`); in `GROOVE` the panel
-  behaves exactly as CONTROL_INVENTORY.md describes. Owner question 32.
+- Felucca's groovebox pages (ENV, LFO, FX, ARP, SONG, sound editing) are not part of this map. They are not reachable
+  at all: decision 32b removes the groovebox from the v1 UI (there is no mode switch and no menu route to it; the
+  device boots straight into the sequencer).
 
 ### 1.2 Contexts
 
@@ -171,15 +171,15 @@ The KEYS legend (HOME tap on PERF) replaces the sequence band with the 27-key ma
 
 Kept: DISPLAY tab (COLOR, STYLE, LARGE, ANIM, LEDS, SCREEN OFF, SCOPE, HOME view), CONTROL tab (HOLD, ACCEL, SCALE
 LEDS, STEP PREVIEW, CHORD ENTRY), AUDIO tab (SPEAKER EQ, USB LEVEL, CLICK, CLICK LEVEL, COUNT-IN, TUNE), MIDI tab (MIDI
-IN routing, AUTO SELECT, SCREEN WAKE, LEARN CLEAR), SYSTEM tab (MODE `SEQ`/`GROOVE` replacing T1 SEQ, USB SERIAL,
+IN routing, AUTO SELECT, SCREEN WAKE, LEARN CLEAR), SYSTEM tab (USB SERIAL,
 RESTORE LAST, HELP, CALIBRATION, INFO, ABOUT).
 
 Removed from the menu because they are musical functions now on the panel: `MI_TCH1..4` (CHAN layer), `MI_SELECT`
-(SELECT is fixed to channel select), `MI_BPMLOCK` (tempo is no longer on SELECT), `MI_T1SEQ` (replaced by MODE, and
-`SEQ` is the default), `MI_LATCH` (FX layer does not exist in SEQ mode; kept for GROOVE only). Tab row counts change,
+(SELECT is fixed to channel select), `MI_BPMLOCK` (tempo is no longer on SELECT), `MI_T1SEQ` (the sequencer is always on,
+decision 32b), `MI_LATCH` (the FX layer does not exist). Tab row counts change,
 so the dev task that edits `menu_items.c` updates `tests/ui_test.c`.
 
-## 2. Workflows (exact controls, from power-on in SEQ mode)
+## 2. Workflows (exact controls, from power-on)
 
 Defaults at power-on (first boot or after INIT): CH1 ACID MIDI 1 unmuted; CH2 EUCLID MIDI 2, CH3 SNAKE MIDI 3, CH4
 STAGE MIDI 4, all three muted; global KEY C, SCALE MINPEN, OCTAVE 0, GATE 50 %, DIV 1/16, SWING 50 %, BPM 120;
