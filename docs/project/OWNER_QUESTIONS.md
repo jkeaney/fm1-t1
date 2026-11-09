@@ -145,3 +145,11 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 49 | CHANGED: design the per-morph reset gesture NOW, as part of a performance-first design pass (task P1-014). |
 | Perf | Design for performance. All knobs accounted for; the panel buttons align to the algorithm controls; the keyboard aligns to performance features and step controls; all within the UX guidelines and scored with the ease rubric. Controls available, perform, fun to play. The user must never feel lost and must be able to play it WITHOUT a manual. P1-014. |
 | Push | Approved. |
+
+## Requirements (owner, 2026-11-10, ninth round): pattern length, pages, per-step performance, keybed expression
+| # | Requirement |
+| --- | --- |
+| R1 | Each channel has its own pattern length (step count to fill), not fixed at 16. This amends VISION rule 3: a channel's settings are its MIDI channel, its algorithm and its pattern length (plus anything the design proves necessary and scores well). |
+| R2 | Viewing a channel, the 16 white keys align to its steps. The pattern is PAGINATED by its step length (page 1 = steps 1-16, page 2 = 17-32 ...), with a way to swap pages; the screen always shows the page and the playhead. |
+| R3 | Selecting a step has performative functionality: per-step ratchet, slide, mute, accent, probability etc. |
+| R4 | Use the keybed for expression: reference the open-source project that unlocked MPE-like capability from the FM-1 keybed, so playing a key gives performative options (ratchet, slide, mute ...). The project has not been identified yet (a first web search did not find it): task P1-015 identifies it and the keybed hardware capability; owner to confirm which project. |

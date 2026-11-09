@@ -1,0 +1,37 @@
+---
+id: P1-015
+title: Identify the open-source keybed-expression (MPE-like) reference and what the FM-1 keybed can sense
+phase: P1
+type: spike
+status: todo
+priority: 0
+executor: sonnet
+depends_on: [P0-001]
+gate: none
+---
+## Goal
+Owner requirement R4: perform a key and get expression (ratchet, slide, mute ...) using the keybed, following the open-source project that unlocked MPE-like capability from the FM-1 keybed. The project is not identified yet. Find it, learn how it does it, and say what the hardware allows.
+
+## Read first
+- docs/project/OWNER_QUESTIONS.md (requirements R1-R4, ninth round)
+- docs/design/CONTROL_INVENTORY.md and firmware/src/panel.c (how keys are scanned today), hal/ headers for the key matrix
+- Candidate community/official projects named in press: FM1 Open (M-VAVE official open firmware, GitHub, SDK, V14), KARMA, SLOOP, Felucca (this repo's base), X0X, FM-106; plus Elektronauts thread 'M-vave fm-1' and the reverse-engineering write-ups (e.g. the Korean zeli.app firmware reverse-engineering story). Search the web for MPE, aftertouch, key pressure, velocity, 'per-key', 'expression' with these names; read the actual repo sources (git clone into a NEW empty directory under /tmp, never run code from it; read-only).
+
+## Deliverable
+- docs/design/KEYBED_EXPRESSION_REFERENCE.md: (1) which project(s) do this, with URLs, licence (GPL compatible?), commit/file references, and a verdict on how sure you are; if no project does, say so plainly and list the closest; (2) how it works: what the hardware senses (velocity by two-contact timing? pressure? per-key analog? a held-time gesture?), the scan method, resolution and latency, and the exact MIDI it emits (per-note channel/MPE zone, pitch bend, pressure, CC74); (3) what the FM-1 keybed can and cannot sense, evidence for each claim tagged [V] verified in source, [I] inferred, or unconfirmed; (4) candidate performative gestures this enables for a sequencer step/key (ratchet, slide, mute, accent, probability, pitch bend), each with the input needed, feasibility (certain/likely/unlikely) and cost in CPU/RAM if known; (5) a recommendation for which gestures the design should rely on and a fallback if the hardware can only do velocity/hold-time; (6) owner questions.
+
+## Acceptance criteria
+- [ ] Every claim about hardware capability cites a source file/URL and is tagged [V]/[I]/unconfirmed
+- [ ] The answer to 'which project unlocked MPE-like expression from the keybed' is stated, or 'not found' with the list of repos/pages checked
+- [ ] At least 4 candidate gestures are assessed for feasibility
+- [ ] Nothing was cloned into or executed from the repo directory; no code run from downloaded sources
+
+## Verification
+```sh
+test -f docs/design/KEYBED_EXPRESSION_REFERENCE.md && grep -c '\[V\]\|\[I\]' docs/design/KEYBED_EXPRESSION_REFERENCE.md
+```
+
+## Out of scope
+- Writing firmware; flashing.
+
+## Log
