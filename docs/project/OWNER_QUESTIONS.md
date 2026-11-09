@@ -40,6 +40,12 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 34 | P1-012 UX | A preset load (PRESETS turn) is queued to the next loop start (immediate when stopped), and SAVE held 0.7 s undoes it. Acceptable? | P1-012 review |
 | 35 | P1-012 UX | K1 at 0 = `KEYS ONLY` (only typed steps play) is how "enter steps instead of an algorithm" works. Acceptable, or should there be a fifth ALGORITHM choice `STEPS`? Recommend K1 = 0 (no new algorithm). | P1-012 review |
 | 36 | P1-012 UX | Felucca's LFO-held MOMENTARY (knob moves snap back on release) is dropped in SEQ mode because LFO is now the SHAPE dice. Bring back a momentary-morph gesture after the first hardware test? | first hardware test |
+| 37 | P2-002 system map | Remove the web editor (SysEx editor, backup/restore, `web/editor.html`) in v1? Recommend yes; the update path stays. | P2-002 review |
+| 38 | P2-002 system map | Keep the CDC serial console (936 B) and USB audio of the preview in v1? Recommend keep both, revisit in v2. | P2-002 review |
+| 39 | P2-002 system map | Drop the CONTROL-tab row `CHORD ENTRY` and chord.c (it targets groovebox step editing)? Recommend yes (CONTROL tab 4 rows). | P2-002 review |
+| 40 | P2-002 system map | Preview patch: is ANALOG preset 0 acceptable as the one fixed boot patch, and does TUNE stay in the AUDIO tab? | P2-002 review |
+| 41 | P2-002 system map | Keep MIDI learn (`LEARN CLEAR`, 458 B) in a sequencer, or remove it? | P2-002 review |
+| 42 | P2-002 system map | Sequencer is permanent, so host tests must link the T-1 sources (now stubbed): make that a prerequisite task? Recommend yes. | P2-002 review |
 
 ## Decisions (owner, 2026-11-09)
 | # | Decision |
@@ -86,3 +92,8 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | # | Decision |
 | --- | --- |
 | 32b | The groovebox is completely OUT of the UI in v1. The device boots straight into the new sequencer UI and works immediately (no setup, no mode choice). No MODE GROOVE menu row. Groovebox-only subsystems are removed (or compiled out) in v1 per the system map; E9 only cleans up what could not be removed safely. Follow-up edits needed: remove the MODE GROOVE mention in UX_REVIEW.md / CONTROL_MAP.md / control_map.tsv; add 'boot straight to a working sequencer' to the screen spec (P2-003) and architecture (P2-004). |
+
+## Superseding note (2026-11-10, P2-002)
+| # | Decision |
+| --- | --- |
+| 32 (superseded) | The groovebox is NOT kept as a legacy menu mode: it is completely out of the UI in v1 (device boots straight to the sequencer, no MODE row). Groovebox-only subsystems are REMOVE in v1; v2 (E9) is the clean-up of what v1 could not safely remove. docs/design/SYSTEM_MAP.md follows this; CONTROL_MAP / UX_REVIEW still mention `MODE SEQ/GROOVE` and need a one-line update. |
