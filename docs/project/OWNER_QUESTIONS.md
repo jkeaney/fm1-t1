@@ -46,6 +46,11 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 40 | P2-002 system map | Preview patch: is ANALOG preset 0 acceptable as the one fixed boot patch, and does TUNE stay in the AUDIO tab? | P2-002 review |
 | 41 | P2-002 system map | Keep MIDI learn (`LEARN CLEAR`, 458 B) in a sequencer, or remove it? | P2-002 review |
 | 42 | P2-002 system map | Sequencer is permanent, so host tests must link the T-1 sources (now stubbed): make that a prerequisite task? Recommend yes. | P2-002 review |
+| 43 | P2-004 ADR-0003 | Swing: odd steps start `2*(swing-50)`% of a step late (66 = triplet feel, 75 = dotted), instead of the T-1's `(swing-50)`%. OK? (a constant) | P2-004 review |
+| 44 | P2-004 ADR-0003 | GATE 10..100 % defaults to 50 %: the ADR makes 50 % neutral (x1.0 of each algorithm's own gate, 100 % = x2.0 capped) via a table. Or should 100 % be neutral? | P2-004 review |
+| 45 | P2-004 ADR-0003 | "Next loop start" for a queued preset load = every 16 steps (one bar at 1/16), since channels have different loop lengths. OK? | P2-004 review |
+| 46 | P2-004 ADR-0003 | Undo is one record per channel (the last dice / dice-all / pin-clear), tap again = redo, instead of one previous-seed per seed. OK? | P2-004 review |
+| 47 | P2-004 ADR-0003 | An algorithm or MIDI-channel change does not cut sounding notes (pending note-offs go to the old channel); only stop, panic and USB reconnect cut. OK? | P2-004 review |
 
 ## Decisions (owner, 2026-11-09)
 | # | Decision |
