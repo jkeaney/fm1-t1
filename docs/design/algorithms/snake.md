@@ -27,10 +27,10 @@ deterministic from four seeds.
 | Random, Velocities lane [V] | range lo..hi | 16 values 0..127 | Free-running in source; **seeded [D]** as the VEL layer, fixed range 50..127 |
 | Per-lane clock: Length, Speed, Direction, Shift [V structure, ⚠ `live.step` exact semantics] | transport, Length 1..16 | step number 1..16 per lane | Pure function of the step counter. **Only Length is kept** (Notes lane via the LEN morph; Velocities lane via the POLY layer); Gates lane fixed at 16 |
 | Quantiser: late dial value -> scale degree [V, formula verified against the 16 stored defaults] | value, scale table, root | MIDI note | Pure function. Redefined **[D]** in integer form (6.3) keeping the principle: fixed octave span regardless of scale size |
-| Scale tables (37) [V] | index | degrees | **Dropped**; the shared SCL layer supplies the scale |
-| Swing, Note length [V structure, ⚠ units, ⚠ `Direction_convert` name] | swing 0..1, length 64n..4n | delay, note-off | **Dropped**; shared channel SWING and GATE settings |
+| Scale tables (37) [V] | index | degrees | **Dropped**; the global scale control supplies the scale |
+| Swing, Note length [V structure, ⚠ units, ⚠ `Direction_convert` name] | swing 0..1, length 64n..4n | delay, note-off | **Dropped**; the global GATE and SWING settings (owner decision 4) |
 | Custom lanes x3 (modulation of Live parameters) [V structure] | 16 values, target parameter | parameter writes, no notes | **Dropped** (not a note algorithm; Live API only). See 6 and 7 |
-| MIDI-in control (root, User scale, Random All) [V structure, ⚠ octave names] | notes 48 / 60-71 / 72-83 | root, scale, re-roll | **Dropped**; root from SCL, re-roll is the dice-all gesture |
+| MIDI-in control (root, User scale, Random All) [V structure, ⚠ octave names] | notes 48 / 60-71 / 72-83 | root, scale, re-roll | **Dropped**; root from the global scale control, re-roll is the dice-all gesture |
 | Reset (per lane) [I, ⚠ what it restores] | button | defaults | **Dropped** (undo-dice replaces it) |
 
 ## 3. Layers (what can be diced independently)
@@ -65,18 +65,18 @@ not the ISR).
 | DENS (hit count `den`) | 1..16, default 10 | Cell `k` triggers iff its rank in the GATES-seed order is `< den`. Fewer = sparser, more rests; 16 = every step. | 1 table read + compare |
 | RANGE (pitch span `rng`) | 0..48 semitone units, default 24 | Raw pitch value `r` (0..255) is scaled to `p = r * rng / 255` and then quantised late through the scale. 0 = one note, 12 = one octave, 24 = two, 48 = four. Scale size does not change the span (same principle as the source quantiser [V]). | 16 integer multiplies + table reads |
 
-Rejected as morphs (kept out of the 4 knobs): gate length, swing, speed, direction (shared channel concerns, the
-channel's DIV / SWING / GATE), steps shift (a 5th control; LEN + PATH already move the play window), per-lane
+Rejected as morphs (kept out of the 4 knobs): gate length, swing, speed, direction (global performance settings, the
+global DIV / SWING / GATE), steps shift (a 5th control; LEN + PATH already move the play window), per-lane
 shapes (one shape for all three lanes keeps the display and the mental model to a single picture).
 
 ## 5. Fit against the vision (score 0–3 each, with one line of why)
 | Criterion | Score | Why |
 | --- | --- | --- |
-| Quick to a usable sequence (rule 5) | 3 | Selecting SNAKE plays a full defaulted line immediately: PATH 7, LEN 7, DENS 10, RANGE 24, the built-in minor-pentatonic fallback scale and fixed per-channel starting seeds (DENS 10 means exactly 10 of 16 steps trigger; the informative example in 6.3 was checked for channels 0..5); no setting besides the channel's MIDI channel. |
+| Quick to a usable sequence (rule 5) | 3 | Selecting SNAKE plays a full defaulted line immediately: PATH 7, LEN 7, DENS 10, RANGE 24, the global scale and fixed per-channel starting seeds (DENS 10 means exactly 10 of 16 steps trigger; the informative example in 6.3 was checked for channels 0..5); no setting besides the channel's MIDI channel. |
 | Performable with 4 knobs + dice buttons, no menus (rules 1, 4) | 3 | Four knobs map one-to-one to four audible, reversible morphs; four orthogonal dice layers plus dice-all map to buttons; the 4x4 grid with the live playhead cell is a ready-made screen picture of what each knob does. |
-| Monophonic bassline/lead use (the TB-3 workflow) | 2 | Strictly one note per step, and the rhythm gate is a clean on/off mask, so it is monophonic-safe. But it has no accent/slide/gate-length lane (velocity stands in for accent; gate length is the shared GATE), and the pitches are uniformly random across the span, so it is more of a lead / polymetric-riff generator than a groove-aware bass line. Range from MIDI 36 up to about 95. |
+| Monophonic bassline/lead use (the TB-3 workflow) | 2 | Strictly one note per step, and the rhythm gate is a clean on/off mask, so it is monophonic-safe. But it has no accent/slide/gate-length lane (velocity stands in for accent; gate length is the global GATE), and the pitches are uniformly random across the span, so it is more of a lead / polymetric-riff generator than a groove-aware bass line. Range from MIDI 36 up to about 95. |
 | Distinct from the other families (adds something new) | 3 | Only family whose novelty is structural, not statistical: traversal shapes (order is data) and per-lane lengths giving polymeter between rhythm, pitch and dynamics. Nothing else in the catalogue does either (cross-family comparison is not assessed here; score is on the source spec alone). |
-| Fits the FM-1 budget (RAM < 2 KB per channel, ISR cost small) | 3 | About 140 B per channel (6.4) plus 224 B of shared constants; per step the ISR does 3 table reads and 3 modulos; generation is ~50 xorshift draws on the main loop. |
+| Fits the FM-1 budget (RAM < 2 KB per channel, ISR cost small) | 3 | About 122 B per channel (6.4) plus 224 B of shared constants; per step the ISR does 3 table reads and 3 modulos; generation is ~50 xorshift draws on the main loop. |
 
 ## 6. Redesign for this sequencer
 
@@ -87,13 +87,13 @@ shapes (one shape for all three lanes keeps the display and the mental model to 
   Physical button binding is a control-map table row; this spec only declares the targets.
 - **What we drop from the original, and why:**
   - Per-lane Speed (32n..2n), Direction (5 modes, two of them ⚠), Steps Shift, and per-lane Shape: four settings per
-    lane times three lanes is a menu (rule 1); the shared DIV, plus PATH + LEN, cover the musical use. Direction and
+    lane times three lanes is a menu (rule 1); the global DIV, plus PATH + LEN, cover the musical use. Direction and
     random direction would also break "same settings and seed play the same pattern" (rule 4) in the random case.
-  - Swing and Note length: shared channel settings (and ⚠ in the source).
-  - The 37 scales and the User scale: the shared SCL layer owns the scale.
+  - Swing and Note length: global settings (and ⚠ in the source).
+  - The 37 scales and the User scale: the global scale control owns the scale.
   - The three Custom modulation lanes: they drive Live parameters, not notes, and rule 3 gives a channel only a MIDI
     channel. Mapping them to MIDI CC / p-locks is a possible post-v1 extra.
-  - MIDI-in control (note 72-83 root, 60-71 user scale, 48 random-all): there is a SCL layer and a dice-all gesture.
+  - MIDI-in control (note 72-83 root, 60-71 user scale, 48 random-all): there is a global scale control and a dice-all gesture.
   - Reset: undo-dice replaces it, and what the source's Reset restores is ⚠.
   - A free Gate-lane length: the gate lane is the bar and stays 16.
 - **What we improve over the original:**
@@ -178,10 +178,11 @@ only the top end 127 [V] is relied on).
 
 **POLY layer** (stream: `init(s_poly, SALT_POLY)`): `vlen = 3 + rnd(10)` (3..12).
 
-**Scale table `tbl`/`N`** (shared with the SCL layer): `tbl` = the SCL scale's semitone degrees ascending, `N` their
-count (chromatic = `[0..11]`, `N = 12`). When the SCL scale is off, `tbl = [0,3,5,7,10]` (minor pentatonic), `N = 5`
-**[D]**: random pitches on a chromatic reference sound arbitrary, and the default must be musical (rule 5). Root and
-transpose enter only at output.
+**Scale table `tbl`/`N`** (the single global scale control, owner decision 3): `tbl` = the global scale's semitone degrees ascending, `N` their
+count (chromatic = `[0..11]`, `N = 12`). SNAKE has **no fallback scale of its own**: it uses whatever the global scale
+control holds (chromatic included). Golden files pass `tbl` explicitly; the reference fixture is minor pentatonic
+`[0,3,5,7,10]`, `N = 5`. Whether the global default is musical is owner question 4 (docs/project/OWNER_QUESTIONS.md).
+Root and transpose enter only at output.
 
 **Pitch cache** (rebuilt on a NOTES seed, RANGE, scale, root or transpose change; pure). For each cell `k`:
 1. `p = (raw[k] * rng) / 255` (integer; `0..rng`)
@@ -191,13 +192,13 @@ transpose enter only at output.
 `36` (C2) is the base note **[D]** (the source's quantiser puts its lowest band at MIDI 24 [V]; 36 matches the ACID
 base). The highest possible note is below 36+11+48+11 = 106 before transpose.
 
-**Playback** (the shared channel engine calls this once per step; `t` = the channel's step counter, a u32 that starts
-at 0 on transport start or restart and increments once per step at the channel's DIV; nothing here is swung):
+**Playback** (the channel engine calls this once per step; `t` = the channel's step counter, a u32 that starts
+at 0 on transport start or restart and increments once per step at the global DIV; nothing here is swung):
 1. `cg = order[t % 16]` (gate cell). `if pin_mask bit (t % 16)`: `hit = 1`, `n = pin_note[t % 16]` -> note below.
    Else `hit = gate[cg]`. If `hit == 0`: no note this step.
 2. `cp = order[t % len]` (pitch cell). `note = (pinned) ? clamp(36 + root + pin_note + transpose, 0, 127) : note[cp]`.
 3. `cv = order[t % vlen]` (velocity cell). `velocity = vel[cv]`.
-4. `length` = 50 % of one step (constant `gate_pct = 50` **[D]**); the shared GATE setting multiplies it.
+4. `length` = 50 % of one step (constant `gate_pct = 50` **[D]**); the global GATE setting multiplies it.
 Because every lane reads `t`, not its own stored phase, any morph (LEN, PATH, DENS, RANGE) or dice takes effect
 immediately on the next step without disturbing the clock phase of the other lanes [V, 06 §6.1: lanes are
 phase-locked to the song position]. The ISR only reads the caches below; `%` is three integer divisions per step.
@@ -207,7 +208,7 @@ phase-locked to the song position]. The ISR only reads the caches below; `%` is 
 The cache is recomputed on any seed, knob, scale, root, transpose or pin change.
 
 **Informative check** (not normative; the golden file will supersede it). With channel 0, all defaults, no pins,
-scale off, root 0, transpose 0, the first 16 steps (note, velocity or `-` for a rest) from a throwaway Python
+scale `[0,3,5,7,10]` (fixture), root 0, transpose 0, the first 16 steps (note, velocity or `-` for a rest) from a throwaway Python
 transcription of this procedure are:
 `- ; 48,95 ; 53,82 ; 43,89 ; 43,122 ; - ; - ; 53,82 ; - ; - ; 43,60 ; 43,95 ; 55,82 ; 43,89 ; - ; 48,60`
 (seeds 14941 / 29882 / 44823 / 59764, `vlen` = 5).
@@ -244,8 +245,7 @@ step.
 Remappable by editing a table row, no algorithm code change:
 - Which knob drives which morph (K1..K4 <-> PATH/LEN/DENS/RANGE), each morph's label, range, default.
 - Which physical button dices which layer, and the gesture for dice-all and undo-dice.
-- Fixed constants: base note 36, velocity range 50..127, `vlen` range 3..12, `gate_pct` 50, the built-in fallback
-  scale, default shape 7, default seed multiplier 0x3A5D, the 14 shape rows.
+- Fixed constants: base note 36, velocity range 50..127, `vlen` range 3..12, `gate_pct` 50, default shape 7, default seed multiplier 0x3A5D, the 14 shape rows.
 - Adding a dice layer that reuses an existing stream, e.g. a PATH dice that offsets `shp` by a seed-derived amount,
   or splitting NOTES into pitch vs range; giving K2 to a different morph.
 
@@ -255,7 +255,7 @@ the single-trigger-lane rule (Gates is the sole trigger), adding a genuinely new
 a CC lane), changing the grid/step count (16).
 
 - **Parameters that must not exist (settings creep that breaks rule 1):** per-lane Speed, Direction, Shift, Shape or
-  Length; Swing and Note length as algorithm settings; scale/root as SNAKE settings (shared SCL layer); a User scale;
+  Length; Swing and Note length as algorithm settings; scale/root as SNAKE settings (global scale control); a User scale;
   Custom-lane modulation targets and ranges; MIDI-in control; Reset; Random Range sliders; a seed entry field;
   a per-cell edit grid (steps are entered on the white keys, 6.5).
 
@@ -269,22 +269,21 @@ Design points that rely on ⚠ claims, and how each is neutralised:
 | 2 | Out-of-range scale index clamps to the last degree (⚠ 04 §4.2 #1, 07 §7.5 #1) | Quantiser | Not relied on: `idx = (pos*N)/12 <= N-1` always. Fidelity to the original top-of-band sliver is not claimed. |
 | 3 | What Reset restores (⚠ 05 §5.2, 07 §7.5 #2) | none | Reset dropped. |
 | 4 | Ping-pong end repeats, random direction repeats (⚠ 06 §6.2, 07 §7.5 #3, #4) | none | Direction dropped. |
-| 5 | Swing units and comparators, swing follows the Gates lane speed (⚠ 06 §6.4, §6.5) | none | Swing is the shared channel setting. |
-| 6 | Note length menu is really `Direction_convert` (⚠ 06 §6.6, 07 §7.5 #6) | note length | Replaced by `gate_pct` 50 x shared GATE. |
+| 5 | Swing units and comparators, swing follows the Gates lane speed (⚠ 06 §6.4, §6.5) | none | Swing is a global setting. |
+| 6 | Note length menu is really `Direction_convert` (⚠ 06 §6.6, 07 §7.5 #6) | note length | Replaced by `gate_pct` 50 x global GATE. |
 | 7 | `live.step` exact semantics (⚠ 06 §6.2) | lane clock | Not relied on: we define the lane position as `order[t % length]`; only "lanes loop at their own lengths" [V] is used. The order of the lane clocks inside the original's step is unknown, so the original may read a latched pitch one step old; we define same-step reads **[D]**. |
-| 8 | User scale sorting/length (⚠ 07 §7.5 #7), MIDI-in octave names (⚠ 02, 07 §7.5 #8), "Minor" scale table (⚠ 04 §4.4 #2, 07 §7.5 #9) | none | Dropped, or owned by the shared SCL spec. |
+| 8 | User scale sorting/length (⚠ 07 §7.5 #7), MIDI-in octave names (⚠ 02, 07 §7.5 #8), "Minor" scale table (⚠ 04 §4.4 #2, 07 §7.5 #9) | none | Dropped, or owned by the global scale spec. |
 | 9 | Custom lane parameter mapping to p-locks (07 §7.6, [V structure]) | none | Dropped. |
 
 Relied on and **[V]**: the 14 shape tables and their permutation/contiguity properties (03), independent lane
 lengths giving polymeter (01, 06), trigger/pitch/velocity separation (01, 05 §5.4-5.6), and late quantisation (04).
 
 Other open questions for the owner or other specs (not source ⚠):
-- **Scale fallback.** SNAKE uses minor pentatonic when the SCL scale is off, which differs from ACID (Scale off =
-  chromatic). The scale/quantise spec must decide whether the fallback is per-algorithm (as here) or global.
-- **Dependence on shared channel settings.** DIV, GATE scaling, SWING, SCL (root, scale, transpose) are referenced as
-  "shared" but VISION rule 3 gives a channel only a MIDI channel and no such spec exists yet. Until they lock, the
-  reference implementation uses: step = one 1/16 note, `gate_pct` 50 unscaled, no swing, scale off (fallback),
-  root 0, transpose 0.
+- **Global settings (owner decisions 3 and 4, 2026-11-09):** scale (with root and transpose) and DIV / GATE / SWING
+  are global performance settings, not per channel and not per algorithm. SNAKE reads them and owns none. The global
+  spec is still unwritten; until it locks, the reference implementation uses: step = one 1/16 note, `gate_pct` 50
+  unscaled, no swing, root 0, transpose 0, and the fixture scale above. The earlier per-algorithm minor-pentatonic
+  fallback was removed.
 - **Playhead display.** The 4x4 grid with a moving cell for each of the three lanes is the natural screen for SNAKE
   (it shows PATH, LEN and DENS at once); it belongs to the screen spec and is not defined here.
 - **Hardware:** are the defaults (PATH 7, LEN 7, DENS 10, RANGE 24, minor pentatonic, base C2) good on a TB-3? All
@@ -299,7 +298,7 @@ Other open questions for the owner or other specs (not source ⚠):
 shapes re-order the same material with a single knob, and independent lane lengths give polymeter between rhythm,
 pitch and dynamics, so one algorithm choice yields patterns the other families cannot. It also maps almost
 one-to-one onto the panel (4 morphs on 4 knobs, 4 dice layers, a grid screen that shows the playhead). The cost is
-about 120 bytes per channel plus 224 bytes of shared tables and a few table reads per step. Nothing in the redesign
+about 122 bytes per channel plus 224 bytes of shared tables and a few table reads per step. Nothing in the redesign
 depends on a ⚠ claim: all unverified source behaviour (direction, swing, note length, reset, scale clamp) is dropped
 or replaced with a rule defined here. The residual risk is musical, not technical (random pitches are less
 bass-like than ACID, a point for hardware tuning by table edit), and the dropped Custom modulation lanes could return

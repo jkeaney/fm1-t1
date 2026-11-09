@@ -3,7 +3,7 @@ id: P1-004
 title: Assess the snake algorithm family against the vision
 phase: P1
 type: spike
-status: review
+status: done
 priority: 2
 executor: sonnet
 depends_on: [P0-001]
@@ -57,3 +57,11 @@ Owner questions:
 3. Custom modulation lanes dropped; should a CC lane come back post-v1?
 4. Shared channel settings (DIV, GATE, SWING, SCL) still have no spec; reference impl uses the defaults in section 7.
 5. Owner re-lock after golden files exist (ADR-0004).
+
+### 2026-11-09 review (sonnet)
+Verdict: PASS (gate none).
+- Template: 8 sections, section 5 has 5 scored rows with reasons, 4 morphs (PATH/LEN/DENS/RANGE) and 4 dice layers, all labels <= 6 chars, exactly one verdict (INCLUDE in v1). The grep verification prints nothing missing.
+- ADR-0004 readiness: ranges, defaults, seeds, salts, xorshift, shuffle, shape tables and playback are concrete. I re-ran an independent Python transcription: the informative 16-step check matches exactly (vlen 5). RAM table sums to 122 B.
+- Musical sense: integer quantiser with fixed octave span is sound; Gates-as-sole-trigger and t-based lane clocks are fine.
+- Trivial fixes made by the reviewer: RAM figure 140 B -> 122 B (section 5, section 8); owner decisions 3 and 4 applied: the per-algorithm pentatonic fallback is removed, and scale and DIV/GATE/SWING are described as global settings (sections 2, 5, 6, 6.3, 6.6, 7). Executor owner questions 1 and 4 are answered by those decisions.
+- Remaining owner questions appended as OWNER_QUESTIONS rows 4-6 (global scale default, random-pitch bass, CC lane).

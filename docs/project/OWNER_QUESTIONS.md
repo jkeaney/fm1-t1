@@ -7,6 +7,9 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 1 | P1-003 sting | Is ACID without slide (TB-3 portamento) acceptable for v1? | P1-010 |
 | 2 | P1-003 sting | How does the shared scale-quantise (SCL QNT) setting relate to ACID's own scale snap? | P2-001 |
 | 3 | P1-003 sting | VISION rule 3 says a channel's only setting is its MIDI channel, but the algorithm docs assume shared GATE / DIV / SWING. Are those global, per-algorithm, or dropped? | P2-001 / P2-004 |
+| 4 | P1-004 snake | The global scale control: what is its default value, and is "off" (chromatic) a setting? SNAKE's random pitches sound arbitrary on chromatic; recommend a minor-pentatonic default or a non-chromatic first scale. | P2-001 |
+| 5 | P1-004 snake | Is a uniformly random pitch lane acceptable as a bass? Fallbacks: lower default RANGE (12) or scale-weighted pitches. | P1-010 |
+| 6 | P1-004 snake | Should the dropped Custom modulation lanes return post-v1 as a CC lane? | P1-010 |
 
 ## Decisions (owner, 2026-11-09)
 | # | Decision |
