@@ -3,7 +3,7 @@ id: P0-002
 title: Make the host test suite green: fix the spaced-path web test and gate wall-clock benchmarks
 phase: P0
 type: task
-status: review
+status: todo
 priority: 0
 executor: haiku
 depends_on: [P0-001]
@@ -74,3 +74,24 @@ The T1_BENCH=1 path was checked by reading the source, not by running it: the as
 Criteria: all three ticked, each verified above. Suite run took about 20 minutes on this machine, so the full output is in /tmp/tests.log, not in this log.
 
 Reviewer note: the F18 "Phase 3 passes apart from the timing test (F18)" sentence at T1_ISSUES.md ~line 322 is an older status note and was left unchanged.
+
+### 2026-11-09 review (sonnet)
+
+Verdict: FAIL (one finding, a one-line fix).
+
+Re-run by reviewer:
+- `./build.sh`: exit 0, RAM .data+.bss 55744 of 73728, pool 342876 of 368640.
+- `sh tests/run_tests.sh` (full, T1_BENCH unset): `ALL HOST TESTS PASSED`, exit=0, `STEP FAILED` count 0. Log: /tmp/review_tests.log.
+- `node web/test_web.mjs` and `node web/test_backup.mjs`: both pass.
+- `grep -rn "import.meta.url).pathname" web`: nothing. Only `location.pathname` in web/editor.html:2747 remains, which is a browser URL, not import.meta, so it is out of scope.
+- Phase 3 and 4 compiled directly. With T1_BENCH unset: exit 0 and the "(benchmark not enforced: set T1_BENCH=1)" line prints. With T1_BENCH=1: exit 0, the assert is live and passes (phase 3 max 12 us of 80; phase 4 max 1 us of 10). Both `<stdlib.h>` includes are present.
+- Diff matches the Deliverable. No other firmware or test change.
+
+Finding:
+1. docs/T1_ISSUES.md:322 still reads "Unit tests: four of five suites pass; Phase 3 passes apart from the timing test (F18)." F18 is now FIXED and the suite is green, so this sentence is stale and contradicts the F18 status. The executor left it on purpose, but the task owner asked for it to be fixed. Fix: change it to "Unit tests: all suites pass on the host (F18 fixed; wall-clock benchmarks run only with T1_BENCH=1)." or delete the sentence, then re-run the review.
+
+Checklist for the next executor:
+- [ ] Fix docs/T1_ISSUES.md line 322 as above.
+- [ ] No other change is needed. Re-verify with `grep -n "F18" docs/T1_ISSUES.md` and `sh tests/run_tests.sh` if time allows.
+
+Criteria and verification otherwise confirmed by the reviewer. Gate: none.
