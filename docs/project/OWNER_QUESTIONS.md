@@ -81,3 +81,8 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | # | Decision |
 | --- | --- |
 | Mem | If we run out of RAM or flash, re-prioritise the groovebox clean-up (epic E9) ahead of the remaining feature work. Trigger: `tools/check.sh` fails its ram stage, or headroom falls under 8 KB (the hard floor is 4 KB), or flash/pool no longer fits. The orchestrator then files a high-severity BUG, raises E9 to priority 0, and plans the removal before continuing. |
+
+## Decision (owner, 2026-11-10, fourth round): supersedes #32
+| # | Decision |
+| --- | --- |
+| 32b | The groovebox is completely OUT of the UI in v1. The device boots straight into the new sequencer UI and works immediately (no setup, no mode choice). No MODE GROOVE menu row. Groovebox-only subsystems are removed (or compiled out) in v1 per the system map; E9 only cleans up what could not be removed safely. Follow-up edits needed: remove the MODE GROOVE mention in UX_REVIEW.md / CONTROL_MAP.md / control_map.tsv; add 'boot straight to a working sequencer' to the screen spec (P2-003) and architecture (P2-004). |

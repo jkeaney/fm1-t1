@@ -20,3 +20,4 @@ Orchestrator-maintained. Add a line whenever a cycle stalls, bounces or surprise
 - **Design must be flexible (ADR-0004 addendum):** control map, screens and algorithm layer/morph/dice mappings are data tables so producer-driven workflow changes after testing are table edits, not code changes.
 - **Owner decisions 2026-11-09 recorded in docs/project/OWNER_QUESTIONS.md** (flash skipped, slide in v1, scale/GATE/DIV/SWING global). Design tasks must read it.
 - **Memory trigger (owner 2026-11-10):** if RAM/flash runs short, re-prioritise groovebox clean-up (E9). Reviewers: report RAM headroom from the build line on every dev task; under 8 KB headroom means file a BUG and tell the orchestrator.
+- **Owner decision 32b (2026-11-10):** groovebox is fully out of the v1 UI; boot straight into the sequencer and work immediately. Supersedes 'legacy menu mode'.

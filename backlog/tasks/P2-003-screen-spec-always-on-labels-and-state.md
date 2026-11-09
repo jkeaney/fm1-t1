@@ -27,6 +27,7 @@ VISION rule 1, made concrete: every screen always shows what the device is doing
 - [ ] The owner approved it (log line)
 - [ ] Screen layouts are specified as data (regions, label slots, state fields) so a label or layout change is a table edit; a 'Flex points' section lists them
 - [ ] Every knob/button role shown on screen for each context (VISION rule 1)
+- [ ] A 'Boot and first use' section: power-on goes straight to the sequencer main screen with a default channel, algorithm and global scale/key, and PLAY is audible with no setup; no groovebox or mode choice appears anywhere (owner decision 32b)
 
 ## Verification
 ```sh

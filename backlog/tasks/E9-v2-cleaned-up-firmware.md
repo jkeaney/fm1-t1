@@ -10,7 +10,7 @@ depends_on: [E8]
 gate: human-review
 ---
 ## Goal
-After v1 ships (the sequencer is the default, the Felucca groovebox kept as a legacy menu mode, owner decision 32), produce a v2 that is the sequencer only: remove the groovebox and every subsystem the v1 SYSTEM_MAP marks 'v2 REMOVE', then use the freed flash and RAM. See docs/project/ROADMAP.md.
+Owner decision 32b: the groovebox is out of the UI in v1 (boots into the sequencer, works immediately). This epic cleans up whatever the v1 SYSTEM_MAP marks 'v2' because it could not be removed or compiled out safely in v1, and uses the freed flash and RAM. See docs/project/ROADMAP.md.
 
 ## Scope notes (for the planning task that breaks this down)
 - Source of truth: the 'v2' column in docs/design/SYSTEM_MAP.md (P2-002), per subsystem: keep / remove in v1 / remove in v2.
