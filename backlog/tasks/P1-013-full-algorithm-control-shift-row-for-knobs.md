@@ -54,3 +54,17 @@ Verification:
 - `grep -nEi 'TBD|choose|decide' docs/design/FULL_CONTROL.md || echo clean` -> `clean`
 - `python3 tools/backlog.py check` -> `34 items, 0 errors`
 Owner questions 48-52 added to OWNER_QUESTIONS.md. Last criterion (owner approval) left unticked: no Approved line written.
+
+### 2026-11-10 review (sonnet)
+Verdict: **PASS on content; awaiting owner (human-review gate).** Not set done; no Approved line written. This also re-approves P2-004 (ADR-0003).
+Verified independently:
+- `check_control_map.py` OK (343 rows). A script over control_map.tsv: in all four contexts with K1..K4 (PERF, STEP, STEP_HELD, SCL) the OCT pair has exactly one role each (ROW 1/ROW 2, PIN OCT, KB OCT n); CHAN, GLOB, MENU inert/unchanged. Keyboard octave moved to hold SCL + OCT-/OCT+; no clash with SCL (tap = NOTES dice, hold past 0.4 s = layer; the layer uses K1-K3 and K4, not OCT). W14 audition still works (play keys; one two-handed gesture to change octave, scored 7 = setup pass).
+- Arithmetic: ADR-0003 structs recompiled in /tmp with the _Static_asserts: MorphDesc 12, AlgoState 20, ChanSave 102, UndoRec 34, SeqPreset 420 all hold. RAM: core 2257 + 3072 UI = 5329 B bss, 6720 + 840 = 7560 B pool, vs real build 55744 of 73728 (17984 headroom, minus 4096 floor = 13888): fits. 768 ticks = one 4/4 bar at 192 PPQN. Decisions 43-47 are applied; no "owner question" wording left for them.
+- Ease scores: all 36 rows re-summed by script (each V+I+O = total); totals 88 / 297 / 324 are correct; F30 = 9, F31-F34 = 8, F35 = 7; pass rule honest (performance >= 8, no sub-score < 2).
+- Pixels: 24+32+68+52+64 = 240; 12 + 4 x 57 = 240; 2 x 26 = 52. Measured text widths with the real `text_w(&AF_S)`: OFFSET 42 px, ACCNT 39 px, toast lines <= 146 px, all fit.
+- Algorithms: re-derived neutrality with a script: SP16 FWD = t mod n, BWD and PEND are valid walks; SP17 returns v at dyn 10; ACID `ps*sl/4` = `ps` at 4 and monotone in sl (max 60 %); PUNCH 80+40 = 120; EUCLID P2/P3 = 15/20 at rat 4, OFFSET 0 = no rotation, CURVE draws `1+rnd(6)` always so streams are unchanged; SNAKE GLEN 16 equals the original gate lane (the "force g[0]" rule never fires when den >= 1 and gl = 16); STAGE RDIV 4 = original div. Labels <= 6 chars and unique in each row of all four. STAGE OFFSET flagged honestly (3.5, Q50).
+Fixed by the reviewer (doc-only, committed here):
+- sting.md 6.3 step 3 still said "no knob ... 4-morph limit"; snake.md/ml185.md section 8 still said "4 morphs on 4 knobs"; t1.md 6.x "kept out of the four knobs: rotation, ratchet amount" contradicted OFFSET/RATCH; the P1-013 note said "listed above" for lists that are below. All reworded.
+- FULL_CONTROL.md 2.1: AF_S is a 15 px line box with 9 px capitals, not 12 px lines; added the cap-band placement requirement and measured widths for P2-003. 1.2: stated that the row latch also survives preset load and transport stop (it was silent), one latch device-wide. 3.5: EUCLID RATCH repeat count can drop 3 to 2 as `rat` rises (hit-or-not is monotone; still a pure function of `rat`). 4.1: F08 is 9 only while ROW 1 is latched (ROW 2 latched: 8, still a pass).
+Minor notes, not blocking: in the SCL layer "both OCT pressed = octave 0" coexists with "both held 5 s = UPDATE MODE" (harmless, but P2-003 should test it); the ROW 2 morphs add no hardware-verified ear tests (first hardware test).
+Awaiting owner: decide questions 48-52 (OWNER_QUESTIONS.md) and write the approval line.

@@ -108,7 +108,7 @@ shapes (one shape for all three lanes keeps the display and the mental model to 
   - The Gates-only-trigger question left open by the source (07 §7.6) is decided **[D]**: Gates is the sole trigger;
     the Notes and Velocities lanes are read at the same step on their own counters.
 
-> P1-013: parameters listed above under "must not exist" or "drop" that are now ROW 2 morphs (offset, direction, slide amount, accent depth, ratchet amount, contour curve, gate-lane length, stage divider cap, velocity depth) are no longer forbidden; everything else listed stays cut. See FULL_CONTROL.md 3.1 to 3.4.
+> P1-013: parameters listed in this section under "must not exist" or "drop" that are now ROW 2 morphs (offset, direction, slide amount, accent depth, ratchet amount, contour curve, gate-lane length, stage divider cap, velocity depth) are no longer forbidden; everything else listed stays cut. See FULL_CONTROL.md 3.1 to 3.4.
 
 ### 6.1 Parameters (data table; ranges and defaults)
 
@@ -319,7 +319,7 @@ Other open questions for the owner or other specs (not source ⚠):
 **INCLUDE in v1.** SNAKE is the one family that adds a *structure* rather than another probability: traversal
 shapes re-order the same material with a single knob, and independent lane lengths give polymeter between rhythm,
 pitch and dynamics, so one algorithm choice yields patterns the other families cannot. It also maps almost
-one-to-one onto the panel (4 morphs on 4 knobs, 4 dice layers, a grid screen that shows the playhead). The cost is
+one-to-one onto the panel (8 morphs on two rows of 4 knobs, 4 dice layers, a grid screen that shows the playhead). The cost is
 about 122 bytes per channel plus 224 bytes of shared tables and a few table reads per step. Nothing in the redesign
 depends on a ⚠ claim: all unverified source behaviour (direction, swing, note length, reset, scale clamp) is dropped
 or replaced with a rule defined here. The residual risk is musical, not technical (random pitches are less

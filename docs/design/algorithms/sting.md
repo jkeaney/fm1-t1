@@ -111,7 +111,7 @@ and direction (global SWING; direction dropped), jitter (see 6).
     result no longer changes tie direction with Root (fixes quirks 1 and 2 of 03 §3.5). `pitch_orig` is kept, so Scale
     off or a different scale restores/re-snaps exactly [V].
 
-> P1-013: parameters listed above under "must not exist" or "drop" that are now ROW 2 morphs (offset, direction, slide amount, accent depth, ratchet amount, contour curve, gate-lane length, stage divider cap, velocity depth) are no longer forbidden; everything else listed stays cut. See FULL_CONTROL.md 3.1 to 3.4.
+> P1-013: parameters listed in this section under "must not exist" or "drop" that are now ROW 2 morphs (offset, direction, slide amount, accent depth, ratchet amount, contour curve, gate-lane length, stage divider cap, velocity depth) are no longer forbidden; everything else listed stays cut. See FULL_CONTROL.md 3.1 to 3.4.
 
 ### 6.1 Parameters (data table; ranges and defaults)
 
@@ -201,8 +201,8 @@ range 40..127, ⚠ neutral point), listed under flex points.
 2. Fixed 16-entry percent table `ps = [0,20,10,25,8,20,10,25,8,20,10,25,8,20,10,30]` (off-beat sixteenths glide most, downbeats least, like acid lines;
    about 2.5 flags per 16 steps). `ps[0] = 0`: step 0 never glides in, so a slide never crosses the loop point.
 3. `slide[i] = (u[i] < ps[i])`. `slide[i] = 1` means "step `i` is reached by a glide from step `i-1`".
-   There is no knob and no probability parameter (a knob would break the 4-morph limit and rule 1); the only controls are
-   dice (new flags), undo-dice and dice-all.
+   There is no probability parameter and no slide-time parameter; the slide amount is the ROW 2 morph SLIDE `sl` (6.3b). The other
+   controls are dice (new flags), undo-dice and dice-all.
 4. A flag is **effective** only if `hit[i] == 1` and `hit[i-1] == 1` (both steps play; pins count as hits). An ineffective
    flag is stored but silent, so DENS stays reversible: raising DENS can make a stored flag effective again.
 

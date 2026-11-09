@@ -57,7 +57,7 @@ labelled in the button band and the knob band (section 2), which was the failing
 | **Hold OCT- and turn a knob** | ROW 1 is live while held (a peek at ROW 1 while ROW 2 is latched). Same release rule. |
 | Hold either OCT past HOLD without turning | The knob band previews that row (see 2.3) from 0.15 s after the press; on release nothing changes (no latch, no octave). |
 | Press the second OCT button while one is held | No effect (the pair stays reserved for the hidden gestures: both held 5 s = UPDATE MODE; both at power-on = CALIBRATION, unchanged). |
-| Turning a knob while neither OCT is held | Turns the latched row. Power-on: ROW 1. The latch is UI state, not saved in presets; it is not reset by channel select, algorithm change, mute or STEP. |
+| Turning a knob while neither OCT is held | Turns the latched row. Power-on: ROW 1. The latch is UI state, not saved in presets, one latch for the whole device (not per channel); it is not reset by channel select, algorithm change, preset load, mute, STEP, or transport start/stop (the knob band keeps showing the latched row while stopped, so the screen is never ambiguous). Only power-on resets it to ROW 1. |
 
 "Shift held while turning" is therefore well defined: the held button's row wins for every knob turned during the hold.
 There is no timeout: a latched ROW 2 stays until OCT- is tapped, and the screen shows it permanently (section 2).
@@ -99,7 +99,10 @@ y26  | 2 | [ OFFSET][ SLIDE ][ PUNCH ][ DIR   ]      ROW 2  (26 px)
 - **Gutter** 12 px wide at the left edge holding the row number `1` / `2` (AF_S). The live row's digit is drawn
   inverted (theme `T_ACCENT` background, `T_INK` digit); the other is `T_DIM` on `T_SURF`.
 - **Cells**: 4 per row, each 57 x 26 px (4 x 57 = 228 + 12 gutter = 240). Each cell has two text lines in AF_S
-  (12 px): the **label** (line 1, up to **6 characters**, left aligned) and the **value readout** (line 2, up to
+  (nominal 12 px; the face's line box is 15 px and its capital letters are 9 px tall, ink rows 3..11, so two lines of
+  capitals fit a 26 px cell only when P2-003 places them by the capitals' band, as `cv_text` does for centred text; the
+  labels and values are capitals, digits and symbols, so no descender is needed). Text widths measured with `text_w(&AF_S, ...)`:
+  the longest real label `OFFSET` is 42 px and `ACCNT` 39 px, inside the 57 px cell. The two lines: the **label** (line 1, up to **6 characters**, left aligned) and the **value readout** (line 2, up to
   **5 characters**, left aligned).
 - **Live row**: cells filled `T_ACCENT`, text `T_INK`. **Other row**: cells `T_SURF` fill, label and value in
   `T_DIM`, so all eight values stay readable at once. A cell turned in the last 1.0 s is inverted again (`T_TEXT`
@@ -242,6 +245,7 @@ LONG dice layer re-rolls it; a knob would need a ninth slot).
   source parameter or an owner question (7, 27, 28). **STAGE S1 OFFSET is the one slot with no source parameter**; it
   is kept so that "S1 = where the loop starts" is true for all four algorithms (a producer learns one rule). A table
   edit can give STAGE S1 to a ninth idea without touching the others (flex point 6.2).
+- EUCLID `RATCH`: whether a hit is ratcheted at all is monotonic in `rat`; its repeat count may drop from 3 to 2 when `rat` rises past a threshold (the 3x band `P2 <= u < P3` is overtaken by the 2x band). The result is still a pure function of `rat`, so turning back restores the pattern.
 - Dice layers are unchanged: the five shared layers and their seeds (ALGORITHM_SET 4). The ROW 2 morphs only read
   seeds; they add none. `ROT` (EUCLID dice) and `OFFSET` add: the dice gives a random rotation, the knob moves it
   from there.
@@ -274,7 +278,7 @@ Why each sub-score:
   (tap OCT+, turn the knob). The rubric scores a hold plus a control as 1 ("modifier + control"); the **latch is
   what makes this 2**, and holding is offered only as a convenience on top of it (a producer who already has ROW 2
   latched needs one action). O3 (audible at the next step and the cell shows the new value in the same frame).
-- **F08**: unchanged by this task (the band redraw does not alter the gesture), so the ROW 1 knob scores stay 9.
+- **F08**: unchanged by this task (the band redraw does not alter the gesture), so the ROW 1 knob scores stay 9 while ROW 1 is latched (the power-on state). With ROW 2 latched a ROW 1 turn needs tap OCT- first (two actions, input 2, total 8) or hold OCT- and turn; still a pass.
 - **F35**: V3 (`KB OCT n` in the SCL layer), I1 (modifier + control, the price of freeing the pair), O3.
 
 ### 4.2 The eight knobs for every algorithm
@@ -291,7 +295,7 @@ Why each sub-score:
 | S4 | `DIR` | `CURVE` | `DIR` | `DIR` | 3/2/3 = 8 |
 
 All 32 performance knob functions (8 knobs x 4 algorithms) score at least 8 with no sub-score below 2.
-Totals including F30..F35: current 88 / 324 (32 of 36 fail), proposed 297 / 324 (36 of 36 pass).
+Totals over all 36 functions F00..F35 (as in UX_REVIEW 3.2; recomputed by script): current 88 / 324 (32 of 36 fail), proposed 297 / 324 (36 of 36 pass).
 
 ## 5. Knob value-change rule
 
