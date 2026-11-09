@@ -3,7 +3,7 @@ id: P1-017
 title: Sequencer functionality and UX lock: step-centric editing, 64-step pages, force-sensing keys, page/state/mode framework
 phase: P1
 type: spike
-status: todo
+status: review
 priority: 0
 executor: opus
 depends_on: [P1-014, P1-015]
@@ -331,3 +331,49 @@ Required fixes:
 
 For the owner (not for the executor): VISION.md:35 still says "set its MIDI channel (the TB-3 default is 2)", but CH1
 now defaults to MIDI 2 (question 73). CLAUDE.md rule 3 wording is proposed in the revision-1 log.
+
+### 2026-11-10 executor (claude-opus-5-5), revision 2
+
+The six required items from the revision-1 review are fixed, plus the stale page_states text. Each change is described in a revision-2 note at the top of SEQUENCER_UX.md.
+1. Page sources: CHAN `K3 SOURCE` offers only the distinct blocks that earlier pages play (`src(j)`, j < k), each
+   labelled `Pm` by the first page m that plays it, then `OWN`. A block that no earlier page still plays is shown by
+   its positions (`17-32`, dim) until the user turns away from it, so nothing changes silently. The heard-span cue
+   counts every unheard block, including a gap between heard blocks (`TOTAL 48 (32 heard)`, `17-32 NOT HEARD`).
+   Fixed: 1.4 (the false "exactly as that page" sentence now holds by construction), 4.1, U37, W3 step 4 (K3 offers
+   P1 / OWN; the cue shows; PG- + K3 OWN hears all 48), 11.1 #23, 13, knob_map / control_map / CONTROL_MAP, ml185,
+   ALGORITHM_SET, ADR note.
+2. Pending slot while playing: the load lands on the first 768-tick bar that starts at least `SQ_LOAD_SETTLE`
+   (1.5 s) after the last detent. The main loop stages only after the deadline, so the ISR does not change. Fixed:
+   4.1, the U57/U68 and U69 traces, W7, 11.1 #18/#24, 11.2 row 10, 13, the PRESET rows in the TSVs and CONTROL_MAP,
+   and ADR-0003 (change note and section 10). U69 now covers both stopped and playing.
+3. E1 text: stopped loads land 1.5 s after the last detent (U57, 11). The alternative uses the same settle.
+4. Scores: U18 is now 3/2/3/2 = 10 under the restated rule and 9 under the P1-014 letter. U69 is L2 = 10. 8.5
+   reads 43 of 69 (26 failing, 23 setup rows). Questions 72 and 71 are updated in SEQUENCER_UX 14 and
+   OWNER_QUESTIONS. The total is 734 of 828.
+5. ChanRT: the order `uint32 grid; uint16 pass; uint8 p, tie;` is followed by the ADR fields unchanged. It is
+   written out in 9.1 and in the ADR note. I compiled it in /tmp/p1017r3/s.c: size 24 (grid@0 pass@4 p@6 tie@7
+   nxt@8 open@21). Replacing the field in place gives 28.
+6. PG+ on page 4 at LENGTH 64 toasts `64 STEPS = MAX` (1.3, U35, the 4.3 key table, key_map / control_map /
+   CONTROL_MAP). TIE now crosses the loop end on the same terms as SLIDE: it is cut only by STOP or a LENGTH change,
+   and it lasts at most one loop (1.1, 9.2, 10, ADR note). page_states MOVE_HELD no longer says "scene".
+VISION.md reference workflow step 1 now says that CH1 sends on MIDI 2 by default (owner question 73). CLAUDE.md is
+not edited.
+
+Verification:
+```
+$ python3 tools/check_sequencer_ux.py
+pages=9 button-rows=254 knob-rows=95 key-rows=307 control-rows=441 scored=69 exceptions=3
+OK
+$ python3 tools/check_control_map.py
+rows tsv=441 md=441
+OK
+$ grep -nEi 'TBD|choose|decide' docs/design/SEQUENCER_UX.md || echo clean
+clean
+$ python3 tools/backlog.py check
+38 items, 0 errors
+$ cc -std=c11 -Wall -o /tmp/p1017r3/s /tmp/p1017r3/s.c && /tmp/p1017r3/s
+ChanRT 24 (grid 0 pass 4 p 6 tie 7 nxt 8 open 21) literal 28
+```
+I re-parsed table 8.2 with a script: 69 rows, 21 P, sum 734, 66 pass (U15, U62 and U68 fail). With L1 applied
+to the 23 listed rows, 43 pass. No firmware changed, so check.sh and the 20-minute suite were not run.
+Still unticked: "all pass the high-bar rule" (66 of 69, with exceptions E1-E3 listed) and owner approval.

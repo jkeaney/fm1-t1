@@ -21,6 +21,17 @@ ROW 1 / ROW 2 assignment of [FULL_CONTROL.md](FULL_CONTROL.md) section 3 (re-loc
 > (6) the partial last page, the STAGE `TOTAL` cue, the DRIVE sensing mode and its cost, default MIDI channels
 > (CH1 = MIDI 2 for the TB-3), the NOTE EDIT undo rule and the U28 disclosure. RAM is re-added (6819 B, 9.4).
 
+> **Revision 2 (2026-11-10, after the second review; for owner review).** Six fixes: (1) **source labels tell the
+> truth**: CHAN `K3 SOURCE` offers only the generator blocks that earlier pages actually play, each labelled by the
+> first page that plays it, plus `OWN`; a block no earlier page plays any more is shown by its positions (`17-32`);
+> the heard-span cue counts every unheard block, not only the highest (1.4, W3); (2) **a pending preset waits**: while
+> playing, it lands on the first bar that starts at least `SQ_LOAD_SETTLE` 1.5 s after the last detent, so a SAVE tap
+> always has at least 1.5 s (4.1, U57 / U68 / U69, W7, 11.1, 11.2); (3) the E1 text matches U57 (11); (4) the count
+> under the P1-014 letter is **43 of 69** (U18 step octave falls with the other step-hold rows; under the restated
+> rule U18 is L2 = 10); U69 is L2 = 10; sum 734 (8.2, 8.5); (5) the `ChanRT` field order is given and compiled (24 B,
+> 9.1); (6) PG+ on page 4 at LENGTH 64 toasts `64 STEPS = MAX`, and a TIE crosses the loop end on the same terms as a
+> slide (cut only by STOP and a LENGTH change) (1.3, 9.2, 10).
+
 Machine-readable tables (the source; this document explains them): [page_states.tsv](page_states.tsv),
 [button_modes.tsv](button_modes.tsv), [knob_map.tsv](knob_map.tsv), [key_map.tsv](key_map.tsv) and
 [control_map.tsv](control_map.tsv) (49 controls x 9 pages = 441 rows, mirrored in [CONTROL_MAP.md](CONTROL_MAP.md)
@@ -79,7 +90,7 @@ Fields of an edit, each independently AUTO or set:
 | `ON` | ON, OFF | AUTO: the generator's hit. A tap writes the opposite of what the step does now; a tap that makes it equal to the generator writes AUTO (so two taps never leave a stale edit) |
 | `PITCH` | 0..96 semitones above `36 + KEY` (stored unsnapped) | snapped to the global scale at play time (SP6), so a SCALE change re-snaps reversibly; AUTO: the generated note |
 | `OCT` | -2..+2 | added to the resolved pitch (AUTO pitch too: an octave edit on an AUTO pitch follows NOTES dice) |
-| `GATE` | 10..100 % of a step, or TIE | multiplied by the global GATE like the generated gate (50 % neutral); TIE holds into the next step |
+| `GATE` | 10..100 % of a step, or TIE | multiplied by the global GATE like the generated gate (50 % neutral); TIE holds into the next sounding step (after the last step, across the loop end into step 1, like SLIDE; 9.2) |
 | `VELO` | 1..127 | >= `ACC_THR` 100 is an accent on the TB-3 (shown `ACC`) |
 | `RATCH` | 1x..4x | repeats inside the step (SP5 spacing); AUTO: the generated repeats |
 | `SLIDE` | ON, OFF | **this note glides into the next step** (step p+1; after the last step, step 1: TB-303 rule); if that step does not sound (OFF, chance drew silent, muted) there is no glide and the note plays its own gate; the core turns it into the slide pairing of ADR-0003 7.3 (9.2) |
@@ -141,6 +152,9 @@ the generated value under it) or the set value (bright, with a dot).
 
   A partial page is always completed before a new page is added, so PG+ never jumps LENGTH by an amount the user
   did not see. An odd length is set on CHAN K1.
+- **At the maximum:** on page 4 with LENGTH 64, PG+ shows no prompt and changes nothing; it toasts `64 STEPS = MAX`
+  (the page-map cells are all filled, so the limit is visible before the press). On a partial page 4 (LENGTH 49..63)
+  the third prompt applies (`SHOW ALL OF PAGE 4 (L64)?`), and the press after that is the `64 STEPS = MAX` toast.
 - **Per-channel length:** CHAN page K1 `LENGTH` 1..64 (step 1, fast 4), or OCT- / OCT+ on CHAN = to the page boundary
   below / above (20 -> 16 / 32; 32 -> 16 / 48; at 16 or less OCT- is inert with toast `ONE PAGE: K1 = SHORTER`).
   Each channel loops at its own length, so CH1 at 32 against CH2 at 12 is polymeter.
@@ -148,7 +162,8 @@ the generated value under it) or the set value (bright, with a dot).
 ### 1.4 The generator position: page sources
 
 The generated layer of step `p` is the algorithm's step at the **generator position** `g(p)`. Each page `k` (0-based)
-stores a **source** `src(k)` in `0..k`: the page whose generator positions it reads.
+stores a **source** `src(k)` in `0..k`: the **generator block** it reads (block `b` = generator positions
+`16b..16b+15`). `src(k) = k` is OWN (the page reads its own block).
 
 ```
 page k = p / 16 (0-based), i = p % 16
@@ -165,18 +180,32 @@ generated(p) = step(cache, g(p))  // each algorithm reduces g by its own loop (A
   page 3 reads page 3's positions (`src = 2`, shown `P3`), so it duplicates page 3 exactly; set it to OWN to let the
   algorithm continue again. ACID's own loop is 16, so for ACID every source sounds the same (the CHAN cell shows the
   source and the toast says `ACID REPEATS EVERY 16`).
-- A page reading an earlier page (`P1`..`P3`) changes with every dice and morph exactly as that page's generated
-  layer does; the pages then differ only by their edits.
-- Set on the CHAN page: `K3 SOURCE` of the viewed page, values `P1` up to the page before it, and `OWN` (page 1: `OWN`, fixed). Two bits
-  per page in one byte (`pg_src`, 9.1); re-copying the page before (RESET + `D#4`) copies its source too.
+- **What K3 offers, and what its labels mean.** On the CHAN page, `K3 SOURCE` of the viewed page `k` offers, in this
+  order: the **distinct blocks that the pages before it actually play now** (`src(j)` for `j < k`, duplicates removed), each
+  labelled `Pm` by the **first** page `m` that plays it, then `OWN`. So `P2` is offered only when page 2 plays a block
+  of its own (page 2 is OWN or reads a block page 1 does not), and it always means "the notes page 2 plays now". A page
+  reading `Pm` therefore changes with every dice and morph exactly as page `m`'s generated layer does; the two pages
+  differ only by their edits. Page 1 shows `OWN`, fixed (dim).
+- **A block nobody before plays any more.** If an earlier page's source is changed later, a page that reads the block
+  it used keeps reading it (nothing changes silently). Its K3 value is then shown by the block's positions,
+  `17-32` (dim), with toast `PAGE 3 READS 17-32: NO PAGE BEFORE PLAYS IT`; it stays in the list only while it is the
+  current value (turning away drops it; `OWN` or a `Pm` replace it).
+- Examples (STAGE `TOTAL` 48): pages 1 and 2 both read block 0 -> page 3 offers `P1`, `OWN`. Page 2 set to OWN ->
+  page 3 offers `P1`, `P2` (block 1 = pulses 17-32), `OWN`. Page 3 OWN, page 4 added -> page 4 reads block 2,
+  labelled `P3`.
+- Two bits per page in one byte (`pg_src`, 9.1); re-copying the page before (RESET + `D#4`) copies its source too.
 - **The channel loop resets the generator:** at `p = LENGTH - 1 -> 0` the generator position returns to `g(0) = 0`.
   Generation stays a pure function of (seeds, morphs, globals, sources, p), so the same settings play the same 64
   steps every pass (VISION rule 4). Consequence, stated plainly: SNAKE's long polymeter cycles (for example 112 steps)
   are cut to the channel length (at most 64); owner question 70.
-- **Heard span cue (STAGE `TOTAL`):** the highest generator position any shown page reads, plus one, is the *heard
-  span*. When an algorithm's own loop is longer than the heard span (STAGE `TOTAL` 32 with one page, or with every page
-  reading `P1`), the knob cell reads `TOTAL 32 (16 heard)` and the turn toasts `TOTAL 32 > HEARD 16: D#4 K3 = OWN`,
-  so the user is never left wondering why the turn changed little.
+- **Heard span cue (STAGE `TOTAL`, EUCLID `LEN`, SNAKE lanes):** the algorithm's own loop of `T` positions covers the
+  blocks `0..ceil(T/16)-1` (at most 4). A block is **heard** when at least one shown page reads it; every other block
+  of the loop is **unheard**, whether it lies above or between the heard ones. *Heard* = the positions of the loop
+  that fall in heard blocks. When any block is unheard, the knob cell reads `TOTAL 48 (32 heard)` and the turn toasts
+  the first unheard span, `17-32 NOT HEARD: D#4 K3 = OWN` (with two unheard blocks: `17-32 +1 NOT HEARD`). Examples:
+  `TOTAL` 32 on one page -> `(16 heard)`, `17-32 NOT HEARD`; `TOTAL` 48 with pages 1-2 on block 0 and page 3 OWN
+  (block 2) -> `(32 heard)`, `17-32 NOT HEARD` (the gap, not the top, is reported). So the user is never left
+  wondering why a turn changed little or where part of the loop went.
 
 ### 1.5 Playhead, view and FOLLOW
 
@@ -389,7 +418,7 @@ ARP articulation = slide, LFO movement = chance, SCL notes = a new note, FX all 
 | --- | --- | --- | --- | --- | --- |
 | PERF | live row, column 1 | column 2 | column 3 | column 4 | ROW 1 / ROW 2 by OCT- / OCT+ (4.2) |
 | NOTE_EDIT | `PITCH` scale degree per detent, sounds | `GATE` 10..100 %, TIE | `VELO` 1..127 (`ACC` >= 100) | `RATCH` 1x..4x | one row; each starts at AUTO |
-| CHAN | `LENGTH` 1..64 | `MIDI` 1..16, OFF (defaults CH1..CH4 = 2..5) | `SOURCE` `P1`.. the page before / `OWN` (viewed page) | `FOLLOW` ON / OFF | one row |
+| CHAN | `LENGTH` 1..64 | `MIDI` 1..16, OFF (defaults CH1..CH4 = 2..5) | `SOURCE` of the viewed page: the blocks earlier pages play, labelled `Pm` by the first page `m` that plays each, then `OWN` (1.4) | `FOLLOW` ON / OFF | one row |
 | SET | `BPM` 40..240 | `SWING` 50..75 % | `GATE` 10..100 % (50 neutral) | `DIV` 1/32..1/4 | one row |
 | SCALE | `SCALE` 16 scales | `KEY` C..B | `OCTAVE` -2..+2 | `-` (inert by design) | one row |
 | REC | `CURSOR` | `ACC` OFF / ON | `SLIDE` OFF / ON | `OCT` -2..+2 | one row |
@@ -399,9 +428,11 @@ ARP articulation = slide, LFO movement = chance, SCL notes = a new note, FX all 
 
 Encoders on every page: `SELECT` = channel (closes NOTE_EDIT; in REC the cursor goes to step 1), `ALGORITHM` =
 algorithm of the selected channel (edits kept), `PRESETS` = preset slot, which becomes **pending** (header `P05?`,
-strip `P05: SAVE = save here`): stopped, it loads 1.5 s after the last detent (`SQ_LOAD_SETTLE`); playing, at the next
-768-tick bar; a SAVE tap while it is pending saves the current state into P05 instead and cancels the load; turning
-back to the current slot cancels; inert in REC and RESET. MENU: ALGORITHM = tab, PRESETS = row. MASTER = volume, always.
+strip `P05: SAVE = save here`): stopped, it loads 1.5 s after the last detent (`SQ_LOAD_SETTLE`); playing, on the
+**first 768-tick bar that starts at least `SQ_LOAD_SETTLE` after the last detent** (every detent moves the target on;
+so the load lands between 1.5 s and 1.5 s + one bar after the user lets go: 1.5..3.5 s at 120 BPM); a SAVE tap at
+any time while it is pending (at least 1.5 s in every case) saves the current state into P05 instead and cancels the
+load; turning back to the current slot cancels; inert in REC and RESET. MENU: ALGORITHM = tab, PRESETS = row. MASTER = volume, always.
 Knob value rule (FULL_CONTROL 5.1, unchanged): relative detents, slow = exact step, detents under 40 ms apart = the
 fast step on ranges over 32 values (NOTE_EDIT `VELO` fast 8, CHAN `LENGTH` fast 4, SET `BPM` fast 5).
 
@@ -436,7 +467,7 @@ Force column: **F** = the key senses force (F3..C5: white W01-W12 and black B01-
 | B07 G#4 (PIT) | F | hold: FILL | **pressure** = density: light = halfway from K1 to maximum, firm = maximum (live readout `FILL 80%`) | fixed maximum |
 | B08 A#4 (GLD) | F | hold: ROLL | **pressure bins** 2x / 3x / 4x (readout `ROLL 3x`) | fixed 2x |
 | B09 C#5 (MONO) | - | tap: PG- | none | - |
-| B10 D#5 (POLY) | - | tap: PG+ (last page: the prompt of 1.3: add a copy, show a hidden page, or complete a partial page) | none | - |
+| B10 D#5 (POLY) | - | tap: PG+ (last page: the prompt of 1.3: add a copy, show a hidden page, or complete a partial page; page 4 at LENGTH 64: toast `64 STEPS = MAX`, nothing changes) | none | - |
 | B11 F#5 | - | tap: RESTRT (all to step 1 at the next step) | none | - |
 | all 27 in REC | F on 20 | play and write | **landing force = written velocity** 1..127 | velocity 100, or 120 with `K2 ACC` |
 
@@ -488,9 +519,9 @@ preview synth plays CH1 (ADR-0003). API names are ADR-0003 section 6 plus the ad
 | U32 | EDIT hold, D#4 | `sq_page_copy(ch,page-1 -> page)` (page 1: clear) | next pass | page redrawn |
 | U33 | (look) | - | - | corner ticks and glyphs (1.2) |
 | U34 | PG- / PG+ tap | `view_page[ch]` +-1, FOLLOW off | none | lane shows the page, `PG 2/4`, toast `FOLLOW OFF` |
-| U35 | PG+ on the last page, PG+ | `sq_page_add(ch)`: partial last page -> LENGTH to its end; else a hidden next page -> shown as stored; else copy the page before (16 edits + `src`), LENGTH = 16 x pages | none audible (a copy reads the same generator positions with the same edits) | the prompt of 1.3, ghost cell, then the page in view, `L48` |
+| U35 | PG+ on the last page, PG+ | `sq_page_add(ch)`: partial last page -> LENGTH to its end; else LENGTH 64 -> nothing (toast `64 STEPS = MAX`, no prompt); else a hidden next page -> shown as stored; else copy the page before (16 edits + `src`), LENGTH = 16 x pages | none audible (a copy reads the same generator positions with the same edits) | the prompt of 1.3, ghost cell, then the page in view, `L48` |
 | U36 | D#4, K1 | `sq_set_length(ch,L)` | the loop ends at L from the next step | `LENGTH 24`, page map |
-| U37 | D#4, K3 | `sq_set_source(ch,page,src)`: the 2-bit `pg_src` field of the viewed page, 0..page | from the next pass of that page | `SOURCE OWN` / `SOURCE P1`; ACID toast `ACID REPEATS EVERY 16` |
+| U37 | D#4, K3 | the UI steps through the offered list of 1.4 (distinct `src(j)`, `j < page`, labelled by the first page that plays each; then OWN; plus the current value while no earlier page plays it); `sq_set_source(ch,page,src)` writes the 2-bit `pg_src` field of the viewed page | from the next pass of that page | `SOURCE P1` / `SOURCE P2` / `SOURCE OWN` / dim `SOURCE 17-32`; heard-span cue on the algorithm's loop knob (1.4); ACID toast `ACID REPEATS EVERY 16` |
 | U38 | D#4, K4 | UI FOLLOW | none | `FOLLOW ON` |
 | U39 | (look) | - | - | header page map, `PG n/m`, `>P3`, `L32` |
 | U40 | D#4, K2 | `sq_set_midi(ch,m)` | notes after it go to the new channel; sounding notes end on the old one (decision 47) | `MIDI 2`, header `M2` |
@@ -508,9 +539,9 @@ preview synth plays CH1 (ADR-0003). API names are ADR-0003 section 6 plus the ad
 | U54 | REC tap, keys | `sq_rec_write(ch,key,vel)`: stopped at the cursor (advances), playing at the nearest step; writes PITCH, ON, VELO (force), SLIDE / ACC from K2 / K3 | the key sounds at once (note-on at landing + ~5 ms, off on release) | written cell, cursor, last velocity |
 | U55 | REC or HOME tap in REC | disarm | none | banner gone |
 | U56 | SAVE tap | `sq_preset_save` into the header slot Pnn (E7 store) | none | toast `SAVED P03` |
-| U57, U68 | PRESETS turn | slot pending (`sq_ui.pend`); stopped: after `SQ_LOAD_SETTLE` 1.5 s without a detent, load; playing: stage + queue to the 768-tick bar (only the last slot turned lands); turning back to the header slot cancels | stopped: 1.5 s after the last detent; playing: at the bar | header `P05?` at once, then `P05>` with bar countdown dots (playing), then `P05`; strip `P05: SAVE = save here` |
+| U57, U68 | PRESETS turn | slot pending (`sq_ui.pend`, deadline = last detent + `SQ_LOAD_SETTLE` 1.5 s, moved on by every detent); stopped: at the deadline, load; playing: at the deadline, stage the slot and queue it to the first 768-tick bar that starts at or after the deadline (only the last slot turned lands); turning back to the header slot cancels | stopped: 1.5 s after the last detent; playing: on the first bar starting >= 1.5 s after the last detent (1.5 s .. 1.5 s + one bar) | header `P05?` at once (settle), then `P05>` with bar countdown dots (playing, once the bar is fixed), then `P05`; strip `P05: SAVE = save here` until the load lands |
 | U58 | SAVE hold 0.7 s | restore the pre-load copy and the previous header slot at the next step (again = redo); while a slot is pending: cancel it | next step | toast `LOAD UNDONE: P03` |
-| U69 | PRESETS turn, SAVE tap while pending | `sq_preset_save` into the pending slot; the pending load is cancelled; the header slot becomes it | none (the music does not change) | toast `SAVED P05`, header `P05` |
+| U69 | PRESETS turn, SAVE tap while pending (stopped or playing) | `sq_preset_save` into the pending slot; the pending load (settling, or staged for its bar) is cancelled; the header slot becomes it. The window is at least `SQ_LOAD_SETTLE` 1.5 s in both cases (playing: up to 1.5 s + one bar), so a SAVE tap never races the bar | none (the music does not change) | toast `SAVED P05`, header `P05` |
 | U59 | EDIT hold, knob (PERF) | `sq_reset_morph` | next step | `RST` then the default value |
 | U60 | EDIT hold, OCT- / OCT+ | `sq_reset_row` | next step | row values |
 | U61 | EDIT hold, FX / dice | `sq_reset_algo` / `sq_reset_layer` | next step | toast |
@@ -639,8 +670,11 @@ to rotate -> `SEQ` (dice HITS = new rotation) -> `ENV` (new accents) -> `OCT+` t
 2. tap white keys 13 and 15 (steps 29, 31) ON; tap key 4 OFF: page 2 now differs.
 3. hold key 16 (step 32): NOTE_EDIT; `OCT+` (an octave up), `ENV` (accent), `K4` to 2x; `HOME`.
 4. `PG+`, `PG+`: page 3 = copy of page 2 (with its changes; it reads page 1's generator positions, like page 2);
-   `D#4`, `K3` to `OWN` (the algorithm continues on page 3: on STAGE with `TOTAL` 48 it plays pulses 33-48; on ACID
-   the toast says `ACID REPEATS EVERY 16`); `HOME`.
+   `D#4`, `K3` to `OWN` (K3 offers only `P1` and `OWN` here, because pages 1 and 2 both play block 0; the algorithm
+   continues on page 3: on STAGE with `TOTAL` 48 it plays pulses 33-48, and the STAGE `TOTAL` cell now reads
+   `TOTAL 48 (32 heard)` with toast `17-32 NOT HEARD`, because no page plays pulses 17-32; on ACID the toast says
+   `ACID REPEATS EVERY 16`). To hear all 48 pulses in order: `PG-` (page 2, still on CHAN), `K3` to `OWN`; the cue
+   goes away. `HOME`.
 5. `PG+`, `PG+`: page 4 = an exact copy of page 3: its edits, and its source `P3` (it reads page 3's generator
    positions, so it sounds exactly like page 3); vary it the same way, or set it `OWN` too. LENGTH is 64, the header
    map shows 4 pages, FOLLOW shows each page as it plays.
@@ -656,9 +690,11 @@ to rotate -> `SEQ` (dice HITS = new rotation) -> `ENV` (new accents) -> `OCT+` t
 **W7. Save and load.**
 - Save over the current slot: tap `SAVE` (toast `SAVED P03`).
 - Save into another slot (keep P03, store the work as P05): turn `PRESETS` to P05 (header `P05?`, strip
-  `P05: SAVE = save here`) -> tap `SAVE` within the settle (stopped: 1.5 s; playing: before the bar): toast `SAVED P05`,
-  nothing is loaded, the header reads `P05`. 2 gestures.
-- Load: turn `PRESETS` to P04 and let go (stopped: loads after 1.5 s; playing: lands on the next bar, header `P04>`) ->
+  `P05: SAVE = save here`) -> tap `SAVE` while it is pending (at least 1.5 s after the last detent in every case;
+  playing, the load waits for the first bar that starts 1.5 s or more after the last detent): toast `SAVED P05`,
+  nothing is loaded, the header reads `P05`. 2 gestures, never a race with the bar.
+- Load: turn `PRESETS` to P04 and let go (stopped: loads after 1.5 s; playing: lands on the first bar starting at
+  least 1.5 s later, header `P04?` then `P04>` with the bar countdown) ->
   wrong one: hold `SAVE` 0.7 s (the previous state and the header slot P03 return at the next step).
 
 **W8. Clear and recover.** hold `EDIT` -> tap white key 5 (step 5 back to the generator) -> `EDIT` tap brings it back.
@@ -717,7 +753,7 @@ asks for per-step performance. Without U28 the count is 65 of 68 passing.
 | U15 | Accent a step by a hard tap (optional, FORCE on) | P | 1 | 2/3/3/1 = 9 | EXC E3 | hard tap on F3..C5 (`ACC` shown only once pressed; nothing on PERF names it; 12 of 16 step keys) |
 | U16 | Open NOTE EDIT | S | 1 | 3/2/3/2 = 10 | pass | hold a white key 0.4 s |
 | U17 | Step pitch | S | 2 | 3/2/3/2 = 10 | pass | hold key, K1 (sounds) |
-| U18 | Step octave | S | 2 | 3/2/3/3 = 11 | pass | hold key, OCT- / OCT+ (printed octave) |
+| U18 | Step octave | S | 2 | 3/2/3/2 = 10 | pass | hold key, OCT- / OCT+ (printed octave, but reached only through the step hold, like U17) |
 | U19 | Step gate / tie | S | 2 | 3/2/3/2 = 10 | pass | hold key, K2 |
 | U20 | Step velocity | S | 2 | 3/2/3/2 = 10 | pass | hold key, K3 |
 | U21 | Step ratchet | S | 2 | 3/2/3/2 = 10 | pass | hold key, K4 |
@@ -736,7 +772,7 @@ asks for per-step performance. Without U28 the count is 65 of 68 passing.
 | U34 | Swap the viewed page | P | 1 | 3/3/3/2 = 11 | pass | C#5 PG- / D#5 PG+ |
 | U35 | Add a page (copy) | S | 2 | 3/2/3/2 = 10 | pass | PG+ on the last page, PG+ |
 | U36 | Pattern length | S | 2 | 3/2/3/2 = 10 | pass | D#4 (CHAN), K1 |
-| U37 | Page source (an earlier page or OWN) | S | 2 | 3/2/3/2 = 10 | pass | D#4, K3 (viewed page) |
+| U37 | Page source (what an earlier page plays, or OWN) | S | 2 | 3/2/3/2 = 10 | pass | D#4, K3 (viewed page) |
 | U38 | FOLLOW on / off | S | 2 | 3/2/3/2 = 10 | pass | D#4, K4 |
 | U39 | Know page, length, playhead | S | 0 | 3/3/3/3 = 12 | pass | header page map, PG n/m, >P3 |
 | U40 | MIDI channel | S | 2 | 3/2/3/2 = 10 | pass | D#4, K2 |
@@ -767,18 +803,19 @@ asks for per-step performance. Without U28 the count is 65 of 68 passing.
 | U65 | First-run guidance | S | 0 | 3/3/3/3 = 12 | pass | strip on first power-on |
 | U66 | Hear a pitch before keeping it | S | 2 | 3/2/3/2 = 10 | pass | hold key, K1 (each detent sounds); or REC |
 | U67 | Velocity by force in REC | S | 2 | 3/2/3/2 = 10 | pass | REC, play harder |
-| U68 | Cue a preset while playing | S | 1 | 3/3/1/3 = 10 | EXC E1 | PRESETS turn (lands on the 768-tick bar) |
-| U69 | Save into another slot | S | 2 | 3/2/3/3 = 11 | pass | PRESETS turn (`P05?`), SAVE tap (printed SAVE and PRESETS) |
+| U68 | Cue a preset while playing | S | 1 | 3/3/1/3 = 10 | EXC E1 | PRESETS turn (lands on the first 768-tick bar starting >= 1.5 s after the last detent) |
+| U69 | Save into another slot (stopped or playing) | S | 2 | 3/2/3/2 = 10 | pass | PRESETS turn (`P05?`), SAVE tap within the pending window (>= 1.5 s both ways; playing: until the bar the load waits for). L2: the window is shown (`P05?`, strip `SAVE = save here`) but not printed |
 
 Totals (restated L rule): **69 functions, 66 pass, 3 listed exceptions** (E1 U68, E2 U62, E3 U15). 21 performance
 functions: 20 pass at >= 11, U15 fails (9). 48 setup functions: 46 pass at >= 10, U62 (9, I1) and U68 (10, O1) fail
-on a sub-score. No function needs more than 2 gestures. Sum 736 of 828 (recomputed by script).
+on a sub-score. No function needs more than 2 gestures. Sum 734 of 828 (recomputed by script; revision 2 lowers U18
+and U69 to L2).
 
 ### 8.3 The exceptions, argued (listed, not hidden)
 
 | Exc | Function | Sub-score | Why it stays | Alternative (one table constant) |
 | --- | --- | --- | --- | --- |
-| E1 | U68 | O1: heard up to a bar later | owner decision 34 / 45 queue a load to the bar. The reason is musical **and** ergonomic: PRESETS is a detent encoder, so loading at the next step would play every slot turned through (P02, P03 on the way to P04). The screen answers at once (`P04>` and a bar countdown), so the user is never in doubt. Stopped loads are immediate (U57, 12). | `SQ_LOAD_AT = STEP` (with a 300 ms settle after the last detent) scores 3/3/2/3 = 11; owner question 71 |
+| E1 | U68 | O1: heard 1.5 s to 1.5 s + one bar after the last detent (1.5..3.5 s at 120 BPM) | owner decision 34 / 45 queue a load to the bar. The reason is musical **and** ergonomic: PRESETS is a detent encoder, so loading without a settle would play every slot turned through (P02, P03 on the way to P04), and revision 2 adds the `SQ_LOAD_SETTLE` wait so a SAVE tap into the pending slot (U69) never races the bar. The screen answers at once (`P04?`, then `P04>` and a bar countdown), so the user is never in doubt. Stopped loads land 1.5 s after the last detent (U57, 3/3/2/3 = 11, a pass). | `SQ_LOAD_AT = STEP` (the first step that starts at least `SQ_LOAD_SETTLE` after the last detent; the same SAVE window) scores 3/3/2/3 = 11; owner question 71 |
 | E2 | U62 | I1: hold HOME while touching another control (a modifier + control) | **owner decisions 57 and 61** fix HELP as "hold HOME and touch a control", HOME acting on release. HELP is not a musical function, it never blocks PLAY, it is named on PERF (`h:HLP/MENU`) and by the strip the moment HOME is held, and it leaves no page behind. The first draft's alternative (HOME tap on PERF opens a latched HELP page, 10) is reverted because it reopened an owner decision and created a double-HOME dead end | none proposed: a latched HELP would need the owner to reopen decision 57 |
 | E3 | U15 | V2 / L1: nothing on PERF names the hard tap before it happens; 12 of 16 step keys | an **optional extra outside the bar**: `FORCE` defaults OFF until HT-FORCE passes, and every accent is reachable by U23 (NOTE EDIT `ENV`, 10, pass) and U20 (`K3 VELO`). With FORCE on the playing strip alternates in `HARD TAP = ACCENT`, which by rule does not lift L | dropping FS1 would remove the most direct force gesture without raising any score; owner question 68 |
 
@@ -815,12 +852,14 @@ both hands free, which is the "per-step performance" the owner asked for in R3.
 | Rule | Pass | Fail | Failing functions |
 | --- | --- | --- | --- |
 | Restated rule (8.1; hold named on its starting page = L2) | 66 of 69 | 3 | U15 (E3), U62 (E2), U68 (E1) |
-| P1-014 letter (any role found by a hold or combo = L1) | 44 of 69 | 25 | the three above, plus 22 setup functions that fall from 10 to 9 with L1: U16 open NOTE EDIT, U17 step pitch, U19 gate, U20 velocity, U21 ratchet, U22 slide, U23 accent, U24 chance, U25 on/off in NOTE EDIT, U26 dice one step, U27 edit the next step, U29 clear a step, U30 clear a field, U31 clear the page, U32 re-copy the page before, U45 scale, U46 key, U47 global octave, U59 reset a morph, U60 reset a row, U61 reset the algorithm or a layer, U66 hear a pitch first |
+| P1-014 letter (any role found by a hold or combo = L1) | **43 of 69** | 26 | the three above, plus 23 setup functions that fall from 10 to 9 with L1: U16 open NOTE EDIT, U17 step pitch, U18 step octave, U19 gate, U20 velocity, U21 ratchet, U22 slide, U23 accent, U24 chance, U25 on/off in NOTE EDIT, U26 dice one step, U27 edit the next step, U29 clear a step, U30 clear a field, U31 clear the page, U32 re-copy the page before, U45 scale, U46 key, U47 global octave, U59 reset a morph, U60 reset a row, U61 reset the algorithm or a layer, U66 hear a pitch first |
 
-Not affected by the choice: U18 (step octave, L3 from the printed OCT), U58 and U63 (holds printed on the reference
-card: `SAVE hold: undo the last load`, `HOME hold: Menu`), and U49-U51 (momentary black-key moves, L2 as black keys
-named on the legend under both rules). The 22 functions are all set-up edits that live on a page opened by a hold; no
-performance function depends on the restatement.
+Not affected by the choice: U58 and U63 (holds printed on the reference card: `SAVE hold: undo the last load`,
+`HOME hold: Menu`), U49-U51 (momentary black-key moves, L2 as black keys named on the legend under both rules) and
+U69 (a turn and a tap, no hold: L2 = 10 under both). U18 (step octave) **is** affected: the printed OCT word fits the
+job, but the role is reached only through the step hold, exactly like U17, so it is L2 (10) under the restated rule
+and L1 (9) under the P1-014 letter (revision 2; revision 1 wrongly listed it as unaffected at L3). The 23 functions
+are all set-up edits that live on a page opened by a hold; no performance function depends on the restatement.
 
 ## 9. Data model and budget
 
@@ -846,8 +885,9 @@ typedef struct {
     uint8_t  algo;                 /* 0..3 */
     uint8_t  muted;                /* 0/1 */
     uint8_t  len;                  /* 1..64 */
-    uint8_t  pg_src;               /* bits 2k..2k+1 = src(k) in 0..k: the page whose generator positions page k reads
-                                      (1.4); src(0) = 0; src(k) = k is OWN; a new page takes src(k-1) */
+    uint8_t  pg_src;               /* bits 2k..2k+1 = src(k) in 0..k: the generator block page k reads (positions
+                                      16*src..16*src+15; 1.4); src(0) = 0; src(k) = k is OWN; a new page takes src(k-1);
+                                      the CHAN K3 labels (Pm = first page playing that block) are derived, not stored */
     uint8_t  pg_used;              /* bit k = page k holds content (shown or hidden); extend restores, else copies */
     uint8_t  pad[2];
     AlgoState st[SQ_NALGO];        /* 4 x 20 B, unchanged */
@@ -870,7 +910,20 @@ _Static_assert(sizeof(UndoRec) == 92, "UndoRec");
 
 /* Preset = 12 + 4 x 344 = 1388 B (version 2). */
 _Static_assert(sizeof(SeqPreset) == 1388, "SeqPreset");
-/* ChanRT stays 24 B: uint32 t -> uint8 p (0..len-1) + uint16 pass (loops since PLAY) + uint8 tie (TIE holding). */
+/* ISR-only runtime per channel, 24 B. ADR-0003's uint32 t is removed and the new fields go FIRST, in this order
+   (revision 2; compiled: grid@0 pass@4 p@6 tie@7 nxt@8 ... open@21, size 24). Replacing t in place instead
+   (p, pass, tie before grid) pads to 28 B and fails the assert. */
+typedef struct {
+    uint32_t grid;                 /* tick of the nominal (un-swung) start of step p */
+    uint16_t pass;                 /* loops since PLAY / RESTRT (chance draw, 9.3) */
+    uint8_t  p;                    /* index of the NEXT step to start, 0..len-1 */
+    uint8_t  tie;                  /* 1 = a TIE is holding the sounding note (9.2, 10) */
+    PulseOut nxt;                  /* 6 B, unchanged from here on (ADR-0003 section 3) */
+    uint8_t  nxt_ok;
+    uint8_t  snd[2];
+    uint8_t  snd_chan[2];
+    uint8_t  slide_in, act, open;
+} ChanRT;
 _Static_assert(sizeof(ChanRT) == 24, "ChanRT");
 ```
 
@@ -883,7 +936,9 @@ e = ed[p];
 hit  = ON(e) == AUTO ? (o.flags & PO_HIT) : ON(e) == ON;
 note = PITCH set ? sq_note(g, e.note & 0x7F) : o.note;   note += 12 * OCT(e);   (clamped 0..127)
 vel  = e.vel ? e.vel : o.vel;
-gate = GATE(e) ? table[GATE(e)] : o.gate;  TIE -> hold until the next sounding step or the loop point
+gate = GATE(e) ? table[GATE(e)] : o.gate;  TIE -> hold until the next sounding step, searched with the same wrap as n
+       // (after the last step, from step 1): a TIE crosses the loop end like a slide; it ends at the latest when the
+       // tied step itself comes round again (at most one loop); cut only by STOP or a LENGTH change while it holds
 rep  = RATCH(e) ? RATCH(e) : o.rep;
 n    = (p + 1 >= len) ? 0 : p + 1;                       // THE next step: after the last step, step 1
 slideout(p) = (SLIDE(e) == AUTO ? (generated PO_SLIDE_IN of step n, read at g(n)) : SLIDE(e) == ON)
@@ -960,9 +1015,9 @@ What the user hears, checked against ADR-0003 section 7 (192 PPQN; jitter at mos
 | Slide (edited ON on step p) | the TB-3 glides from p into the next step if it sounds (TB-303 rule); if it does not, p plays its own gate | off of p at `S1 + D`, `D = max(1, L/8)` ticks (3 at 1/32, 6 at 1/16): the only legal overlap |
 | Slide on the last step | glides into step 1 across the loop end, every pass (the acid "pickup into the downbeat") | the next step at the wrap is known (`n = 0`), so the pairing is resolved as for any neighbour. Cut only on STOP (every note off, then CC123) and by a LENGTH change inside that step (the off falls back to the step's own gate end). ACID's generated table never flags position 0 (`ps[0] = 0`, sting 6.3), so a generated glide across the wrap appears only through OFFSET / DIR or an edit |
 | Slide from page 1 into page 2 | glides like any neighbour pair | allowed: page boundaries are ordinary step boundaries |
-| TIE | the note holds through following silent steps until the next sounding step or the loop point | off emitted at the next sounding step's start (offs before ons) or at the wrap |
+| TIE | the note holds through following silent steps until the next sounding step, across the loop end too (a tie on the last step holds into step 1, the same rule as a slide) | off emitted at the next sounding step's start (offs before ons); at most one loop (the tied step coming round again ends it). Cut only by STOP (every note off, then CC123) and by a LENGTH change while it holds (the off is sent at the next step start). Revision 1 closed a tie at the wrap while letting a slide cross it; there is no musical reason for the difference (both are the 303 "hold into the next note"), so both now cross |
 | Swing across pages | identical on every page: parity is by pattern position, pages are 16 (even) | with an odd LENGTH the wrap joins two even steps (both on the grid); stated, by design |
-| LENGTH shrunk while playing | the loop closes at the new end from the next step | a sounding note ends by its queued off; an open TIE is closed at the wrap |
+| LENGTH shrunk while playing | the loop closes at the new end from the next step | a sounding note ends by its queued off; an open TIE is closed at the next step start (a LENGTH change cuts a tie, as it cuts a slide) |
 | Channels of different lengths | polymeter (CH1 32 against CH2 12) | each channel wraps on its own; the preset bar stays 768 ticks |
 | Chance 50 % | the step plays on some passes, the same ones every time from PLAY | draw at step start; a step that does not play sends nothing |
 | STOP | silence | every sounding note's off, then CC123 on each channel in use (ADR-0003 8.4) |
@@ -991,12 +1046,12 @@ What the user hears, checked against ADR-0003 section 7 (192 PPQN; jitter at mos
 | 15 | Held HOME and the strip changed | `HOME: touch=HELP  let go=MENU` from 0.25 s; letting go early is a plain HOME; after a touch, letting go returns with nothing changed |
 | 16 | Pressed EDIT expecting "edit" | toast `UNDO: <what>`; HELP on EDIT; a second tap redoes |
 | 17 | Held EDIT and the screen filled with RST | RESET banner; strip `RESET: TOUCH WHAT TO RESET  EDIT=no`; after one reset it closes by itself |
-| 18 | Turned PRESETS while playing and nothing happened | header `P04>` and bar countdown; strip `LOADS AT NEXT BAR  SAVE hold=undo` |
+| 18 | Turned PRESETS while playing and nothing happened | header `P04?` (settling, 1.5 s after the last detent), then `P04>` and the bar countdown; strip `P04 AT BAR  SAVE = save here`, then after the load `SAVE hold=undo` |
 | 19 | Pressed REC and keys play notes | REC banner and LED; strip `REC: PLAY KEYS TO WRITE  REC=done` |
 | 20 | In SCALE, pressing keys changes the key | banner `SCALE`, strip `SCALE: PRESS A KEY = KEY  HOME=back` |
 | 21 | A slide does nothing | the next step is silent (OFF or chance): the `~` glyph is drawn dim; HELP on ARP in NOTE EDIT says `glides into the next step if it plays` |
-| 23 | Turned STAGE `TOTAL` past 16 and little changed | cell `TOTAL 32 (16 heard)`, toast `TOTAL 32 > HEARD 16: D#4 K3 = OWN` (1.4) |
-| 24 | Turned PRESETS and the header shows `P05?` | strip `P05: SAVE = save here` and the settle countdown; let go = it loads; turn back = cancel |
+| 23 | Turned STAGE `TOTAL` past 16 and little changed, or part of a long loop never plays | cell `TOTAL 32 (16 heard)` / `TOTAL 48 (32 heard)`, toast naming the first unheard span `17-32 NOT HEARD: D#4 K3 = OWN`; every unheard block is counted, also a gap between heard ones (1.4) |
+| 24 | Turned PRESETS and the header shows `P05?` | strip `P05: SAVE = save here` and the settle countdown (playing: then the bar countdown); let go = it loads (stopped after 1.5 s; playing on the first bar 1.5 s or more later); SAVE in that time = save here; turn back = cancel |
 | 25 | PG+ on LENGTH 20 did not add page 3 | strip `SHOW ALL OF PAGE 2 (L32)? PG+ = yes`: a partial page is completed first (1.3) |
 | 22 | The dice button does nothing (absent layer) | dim `SHAPE -`, toast `NO SHAPE IN EUCLID` (ALGORITHM_SET 4.4) |
 
@@ -1013,7 +1068,7 @@ What the user hears, checked against ADR-0003 section 7 (192 PPQN; jitter at mos
 | 7 | SCALE | `SCALE: PRESS A KEY = KEY  HOME=back` |
 | 8 | SET | `SET: GLO hold=SCALE  HOME=back` |
 | 9 | SOLO / FILL / ROLL held | `ROLL 3x: let go to stop` (same shape) |
-| 10 | a preset slot pending | `P05: SAVE = save here` (stopped, with the 1.5 s countdown) / `P05 AT BAR  SAVE = save here` (playing) |
+| 10 | a preset slot pending | `P05: SAVE = save here` (stopped, with the 1.5 s countdown) / `P05 AT BAR  SAVE = save here` (playing: from the last detent until the load lands on the first bar starting >= 1.5 s later) |
 | 11 | just after a dice / reset / clear | `EDIT takes it back` (2 s) |
 | 12 | first-run step | the step's text (11.3) |
 | 13 | stopped | `PLAY: start   K1-K4: morph` |
@@ -1071,8 +1126,9 @@ When the owner approves this document, the following are locked for the dev task
 1. The two-layer model: generated layer + per-step edit layer, fields and AUTO semantics (1.1); dice / morph /
    algorithm / scale never touch a set field (1.2); clearing gestures (1.2).
 2. Pages: up to 4 x 16 per channel, LENGTH 1..64 per channel, a new page is an exact copy of the page before (edits
-   and source), the three PG+ prompts (copy, show hidden, complete a partial page), page sources `P1`.. / `OWN` and
-   `g(p) = 16 x src(k) + p % 16`, the heard-span cue, the loop reset (1.3, 1.4); FOLLOW (1.5); extend / shrink / hide /
+   and source), the three PG+ prompts (copy, show hidden, complete a partial page) and `64 STEPS = MAX`, page sources
+   (K3 offers only the blocks earlier pages play, labelled by the first page that plays each, plus `OWN`) and
+   `g(p) = 16 x src(k) + p % 16`, the heard-span cue counting every unheard block, the loop reset (1.3, 1.4); FOLLOW (1.5); extend / shrink / hide /
    commit (1.6).
 3. Nine pages and three overlays with their entry, exit, screen content and cue (section 2, page_states.tsv); HOME
    as the one escape (tap = home; on PERF it only cancels a prompt); HOME hold + touch = HELP, release after 0.7 s
@@ -1084,16 +1140,17 @@ When the owner approves this document, the following are locked for the dev task
    ENV accent, ARP slide, LFO chance 100/50, EDIT tap undo of the last step change (the visit, or a later tap on
    another key: the last change wins), hold another key = move.
 6. CHAN (D#4): LENGTH, MIDI (defaults CH1..CH4 = 2..5), SOURCE, FOLLOW, OCT = to the page boundary below / above.
-   Presets: PRESETS turn = pending slot `Pnn?` (stopped: loads after 1.5 s; playing: at the bar); SAVE tap while
+   Presets: PRESETS turn = pending slot `Pnn?` (stopped: loads after 1.5 s; playing: on the first bar starting at
+   least 1.5 s after the last detent); SAVE tap while
    pending = save there; SAVE hold = undo the last load (state and slot). SET (GLO tap): BPM, SWING, GATE, DIV. SCALE (GLO
    hold): SCALE, KEY (also any key), OCTAVE (also OCT- / OCT+). PG- / PG+ on C#5 / D#5; ADD_PAGE by PG+ twice.
 7. No scenes; no tap tempo; tempo on SET; the freed controls as listed in 4.3.
 8. Force sensing: FS1-FS4 with their fallbacks, DRIVE sensing mode (pull-up fallback), H1-H3 LED handling, the ADC
    schedule, costs, and the HT-FORCE gate (section 6); `FORCE` default OFF until the gate passes.
-9. Data: `StepEdit` 4 B, `ChanSave` 344 B, `UndoRec` 92 B, `SeqPreset` 1388 B, `ChanRT` 24 B with `p` / `pass` /
-   `tie`; `pg_src` 2 bits per page; RAM 6819 B new .bss; pool 24984 B with the R6-before-E7 prerequisite (section 9).
+9. Data: `StepEdit` 4 B, `ChanSave` 344 B, `UndoRec` 92 B, `SeqPreset` 1388 B, `ChanRT` 24 B in the field order of
+   9.1 (`grid`, `pass`, `p`, `tie`, then ADR-0003's fields); `pg_src` 2 bits per page; RAM 6819 B new .bss; pool 24984 B with the R6-before-E7 prerequisite (section 9).
 10. Musical rules of section 10 (SLIDE = glide into the next step, across the loop end, cut only by STOP and a
-    LENGTH change; TIE; swing parity by position; audition notes; note-off guarantees).
+    LENGTH change; TIE on the same terms; swing parity by position; audition notes; note-off guarantees).
 11. Scores of section 8 under the restated L rule (8.1, subject to owner question 72), with the three listed
     exceptions E1, E2, E3.
 
@@ -1113,12 +1170,13 @@ When the owner approves this document, the following are locked for the dev task
     already passes the bar. Accept?
 70. SNAKE's long polymeter cycles are cut at the channel length (at most 64 steps), so the lane always shows what
     plays. Accept?
-71. Exception E1: a preset turned while playing lands on the bar (decision 34, O1 by the letter of the rubric). Keep
-    (recommended by the reviewer and here: a quantised launch with a visible countdown is the musical norm), or load
-    at the next step after a settle (`SQ_LOAD_AT = STEP`, scores 11)?
+71. Exception E1: a preset turned while playing lands on the first bar that starts at least 1.5 s after the last
+    detent (decision 34 plus the save-window settle; O1 by the letter of the rubric). Keep (recommended by the
+    reviewer and here: a quantised launch with a visible countdown is the musical norm), or load at the first step
+    after the settle (`SQ_LOAD_AT = STEP`, scores 11)?
 72. The L rule is restated (8.1): a role reached through a hold scores L2 when the hold is named permanently on the
     page where it starts (the new `h:` sub-labels on PERF) and opens a labelled page; otherwise L1 as in P1-014.
-    Accept? Under the P1-014 letter 22 setup functions fall to 9 and 44 of 69 pass (8.5); under the restated rule 66
+    Accept? Under the P1-014 letter 23 setup functions fall to 9 and 43 of 69 pass (8.5); under the restated rule 66
     of 69 pass with three listed exceptions.
 73. Default MIDI channels: CH1..CH4 send on MIDI 2, 3, 4, 5 (channel number plus one), so CH1 reaches a TB-3 at its
     factory channel with no setup, and any channel is changed in 2 gestures (`D#4`, `K2`). Accept, or keep 1..4 and
