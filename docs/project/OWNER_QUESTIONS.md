@@ -136,3 +136,12 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 47 | Algorithm or MIDI-channel change does not cut sounding notes; only stop, panic and USB reconnect do. |
 | Push | Approved. |
 (ADR-0003 itself is approved together with P1-013.)
+
+## Decisions (owner, 2026-11-10, eighth round)
+| # | Decision |
+| --- | --- |
+| P1-013 / P2-004 | APPROVED together (OCT-/OCT+ row switch, 8 morphs per algorithm, ADR-0003 as amended). |
+| 48,50,51,52 | As recommended (OCT-/OCT+ rows; keep STAGE OFFSET; 52 px knob band; ACID slide under BWD accepted, test on TB-3). |
+| 49 | CHANGED: design the per-morph reset gesture NOW, as part of a performance-first design pass (task P1-014). |
+| Perf | Design for performance. All knobs accounted for; the panel buttons align to the algorithm controls; the keyboard aligns to performance features and step controls; all within the UX guidelines and scored with the ease rubric. Controls available, perform, fun to play. The user must never feel lost and must be able to play it WITHOUT a manual. P1-014. |
+| Push | Approved. |

@@ -6,13 +6,14 @@ type: task
 status: todo
 priority: 2
 executor: sonnet
-depends_on: [P2-001, P1-013]
+depends_on: [P2-001, P1-013, P1-014]
 gate: human-review
 ---
 ## Goal
 VISION rule 1, made concrete: every screen always shows what the device is doing and the current role of every control.
 
 ## Read first
+- docs/design/PERFORMANCE_DESIGN.md (P1-014: performance-first controls; supersedes anything it changes in FULL_CONTROL.md)
 - docs/design/FULL_CONTROL.md (P1-013: shift row, up to 8 morphs per algorithm, live two-row labels)
 - docs/design/CONTROL_MAP.md
 - firmware/src/ui.c layout constants (H_HEAD, Y_LABEL, CARD_H, Y_GRAPH, Y_FOOT)

@@ -3,7 +3,7 @@ id: P2-004
 title: ADR-0003: sequencer core architecture and the algorithm interface
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P1-010, P2-002]
@@ -27,7 +27,7 @@ Fix the data model and interfaces that P4–P6 build on: channels, steps, the al
 ## Acceptance criteria
 - [x] Every v1 algorithm in ALGORITHM_SET fits the vtable (a short mapping table)
 - [x] The RAM budget sums to at most the headroom freed by SYSTEM_MAP plus the current headroom, minus 4 KB
-- [ ] The owner approved it (log line)
+- [x] The owner approved it (log line)
 - [x] The algorithm interface declares layers, morph targets and dice targets as data tables so remapping a knob/button needs no algorithm code change; 'Flex points' section included
 - [x] The architecture states the boot sequence into the sequencer and the power-on defaults (owner decision 32b); no groovebox mode switch exists
 
@@ -62,3 +62,6 @@ Verdict: **pass on the design checks; leaves at `review`. Awaiting owner: approv
 - Departures in section 17 judged against musical practice: swing 2x (pair-ratio, MPC-style 50-75 %) and the single undo record are sound. GATE neutral 50 % is sound in effect but the screen must not read "GATE 50 %" as 50 % of a step (the note is at the algorithm's own gate): P2-003 should label it as a percentage of the algorithm's gate. Preset load every 16 steps is the weakest: half a bar at 1/32, four bars at 1/4; suggested 768 ticks (always one bar), noted on question 45. No note cut on change is sound (events carry their MIDI channel).
 - Prerequisites 1-12 are ordered and executable (types -> prims -> F3 -> usb -> scheduler on a mock table -> state API -> algorithms -> cut-over -> UI -> store -> hardware). No TBD/choose/decide wording found.
 - Not verified here (no tooling): behaviour on the TB-3 (question 8), actual CPU cost of `sq_tick`.
+
+### 2026-11-10 owner
+Approved: James Keaney 2026-11-10 (P1-013 and ADR-0003 approved together; rulings 48,50,51,52 as recommended; ruling 49 changed to: design a per-morph reset gesture NOW, and a whole performance-first control pass in P1-014, which may amend this scheme).

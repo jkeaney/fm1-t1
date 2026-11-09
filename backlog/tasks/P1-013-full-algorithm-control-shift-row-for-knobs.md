@@ -3,7 +3,7 @@ id: P1-013
 title: Full algorithm control: a shift row doubles the knobs (up to 8 morphs per algorithm)
 phase: P1
 type: spike
-status: review
+status: done
 priority: 0
 executor: sonnet
 depends_on: [P1-012, P2-001, P2-002]
@@ -33,7 +33,7 @@ Owner decision (2026-11-10, 'Shift'): algorithms need full control. Add a SHIFT 
 - [x] control_map.tsv and CONTROL_MAP.md updated; check_control_map.py prints OK
 - [x] ADR-0003 and the four algorithm docs updated consistently (morph counts, RAM)
 - [x] No 'TBD', 'choose' or 'decide' wording
-- [ ] The owner approved it (log line 'Approved: <name> <date>'); this also covers re-approving P2-004
+- [x] The owner approved it (log line 'Approved: <name> <date>'); this also covers re-approving P2-004
 
 ## Verification
 ```sh
@@ -68,3 +68,6 @@ Fixed by the reviewer (doc-only, committed here):
 - FULL_CONTROL.md 2.1: AF_S is a 15 px line box with 9 px capitals, not 12 px lines; added the cap-band placement requirement and measured widths for P2-003. 1.2: stated that the row latch also survives preset load and transport stop (it was silent), one latch device-wide. 3.5: EUCLID RATCH repeat count can drop 3 to 2 as `rat` rises (hit-or-not is monotone; still a pure function of `rat`). 4.1: F08 is 9 only while ROW 1 is latched (ROW 2 latched: 8, still a pass).
 Minor notes, not blocking: in the SCL layer "both OCT pressed = octave 0" coexists with "both held 5 s = UPDATE MODE" (harmless, but P2-003 should test it); the ROW 2 morphs add no hardware-verified ear tests (first hardware test).
 Awaiting owner: decide questions 48-52 (OWNER_QUESTIONS.md) and write the approval line.
+
+### 2026-11-10 owner
+Approved: James Keaney 2026-11-10 (P1-013 and ADR-0003 approved together; rulings 48,50,51,52 as recommended; ruling 49 changed to: design a per-morph reset gesture NOW, and a whole performance-first control pass in P1-014, which may amend this scheme).
