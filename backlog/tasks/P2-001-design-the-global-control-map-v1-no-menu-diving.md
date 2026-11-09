@@ -3,7 +3,7 @@ id: P2-001
 title: Design the global control map v1 (no menu diving)
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P1-001, P1-010, P1-012]
@@ -53,3 +53,7 @@ $ for b in FX SCL ENV LFO EDIT GLO HOME SAVE ARP SEQ PLAY REC OCTDN OCTUP; do gr
 (no output)
 ```
 Criteria: workflow section 4 reaches performing with no MENU step; all 49 controls have rows (none reserved/unused); only one held modifier per gesture (section 1); layout and rows agree with the TSV (script above); flex points section 7; labels from TSV. No new owner questions (none found).
+
+### 2026-11-10 review (sonnet)
+Verdict: PASS (gate none). Re-ran `python3 tools/check_control_map.py`: rows tsv=343 md=343, OK; 14-button grep prints nothing. Spot-checked 40+ TSV rows against CONTROL_MAP.md section 2/3/4 (all encoders and knobs in SCL/CHAN/GLOB/STEP_HELD, SCL/EDIT/GLO/HOME/SAVE/REC/OCT hold and combo rows, first/last white keys, black keys B01/B05/B09/B10/B11): behaviour matches, no redesign. Every combo is one held thing plus a turn or press; tap-vs-hold (0.4 s default via HOLD setting, 0.7 s HOME/SAVE/REC) stated consistently. Reference workflow reaches PERFORM with no MENU step (only EDIT hold). 4 channels, flex points (section 7), and T-1 conflicts (REC no-op, P-LOCK unwired, OCT+ was SHIFT) match CONTROL_INVENTORY. No TBD wording ("Choose an algorithm" is a gesture name).
+Fix by reviewer: tools/check_control_map.py section-2 check was a bare substring test over the text before Appendix A; it now searches only section 2 with whole-token matching (so C4 is not satisfied by C#4). Re-run: OK.
