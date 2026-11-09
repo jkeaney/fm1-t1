@@ -7,9 +7,11 @@ status: todo
 priority: 1
 executor: sonnet
 depends_on: [P1-001, P1-010, P1-012]
-gate: human-review
+gate: none
 ---
 ## Goal
+OWNER-APPROVED INPUT: P1-012 already designed and the owner approved the control scheme (docs/design/UX_REVIEW.md, control_map.tsv, 2026-11-10). This task CONSOLIDATES it into the firmware-facing CONTROL_MAP.md; it must not redesign. Any conflict or gap found goes to docs/project/OWNER_QUESTIONS.md as a question and the task stops at `blocked` with the reason in the log.
+
 Assign every button, knob, encoder and key to the vision: channel select, algorithm select, step entry, morph, dice, transport, mute. Every musical function one gesture away, with on-screen labels.
 
 ## Read first
@@ -27,7 +29,7 @@ Assign every button, knob, encoder and key to the vision: channel select, algori
 - [ ] The reference workflow walkthrough reaches 'performing' without any MENU step
 - [ ] Every control from CONTROL_INVENTORY has a row (or 'unused, reserved')
 - [ ] No gesture needs more than one held modifier
-- [ ] The owner approved it (log line)
+- [ ] CONTROL_MAP.md agrees with control_map.tsv row for row (a script check is logged); no behaviour differs from the approved UX_REVIEW.md
 - [ ] Control map is a machine-readable table (docs/design/control_map.tsv or similar) that firmware can load as a const table; a 'Flex points' section lists what is re-mappable by editing a row
 - [ ] Every row meets VISION rule 1: reachable without menu diving, with its on-screen label
 
