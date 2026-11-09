@@ -157,5 +157,5 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 ## P1-015 findings (2026-11-10): keybed expression (R4)
 | # | Question |
 | --- | --- |
-| 53 | The project that reads force from the FM-1 keybed is Velo (charlesvestal/fm1-velocity, GPL-3.0; also used by MONK-1 and Scintilla). It gives velocity and polyphonic aftertouch via the ADC, not MPE; Felucca MPE is MPE input only. Is Velo the project you meant? |
-| 54 | Force sensing covers F3-C5 only (20 keys), is uneven across a chord, and its author parked it. Recommendation: v1 uses tap-count and hold gestures (certain, all 27 keys); force is a later optional port. Agree? See docs/design/KEYBED_EXPRESSION_REFERENCE.md. |
+| 53 | The project that reads force from the FM-1 keybed is Velo (charlesvestal/fm1-velocity, GPL-3.0) and its shipped successor CTL-1 (charlesvestal/fm1-ctl, MPL-2.0; also used by MONK-1 and Scintilla). It gives velocity and polyphonic aftertouch via the ADC, not MPE; Felucca MPE is MPE input only. Is Velo the project you meant? |
+| 54 | Force sensing covers F3-C5 only (20 keys), is uneven across a chord, and Velo's author parked it (CTL-1 ships it, with caveats: edge presses read soft, LEDs disturb readings). Recommendation: v1 uses tap-count and hold gestures (certain, all 27 keys); force is a later optional port. Agree? See docs/design/KEYBED_EXPRESSION_REFERENCE.md. |

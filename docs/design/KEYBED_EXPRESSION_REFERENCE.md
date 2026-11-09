@@ -4,7 +4,7 @@ Researched 2026-11-10. Repos were cloned shallow into new empty directories unde
 
 ## 1. Which project unlocked this
 
-**Answer: Charles Vestal's "Velo" (`fm1-velocity`).** Confidence: high that it is the project; high that it is *velocity + polyphonic aftertouch*, not "MPE" in the protocol sense.
+**Answer: Charles Vestal's "Velo" (`fm1-velocity`), now shipped as CTL-1 (`fm1-ctl`).** Confidence: high that this is the family the owner means (the only open work that reads key force from the FM-1 keybed); high that it is *velocity + polyphonic aftertouch*, not "MPE" in the protocol sense. Reviewer note: the executor's first draft missed CTL-1, which is the more current and usable reference (Velo is parked; CTL-1 ships the same sensing as a user feature, so "the author parked it" understates maturity).
 
 | Project | URL | Commit read | Licence | Role |
 | --- | --- | --- | --- | --- |
@@ -12,6 +12,8 @@ Researched 2026-11-10. Repos were cloned shallow into new empty directories unde
 | MONK-1 | https://github.com/charlesvestal/fm1-monk | e8e9200 | GPL-3.0 | Re-uses Velo's sensing; aftertouch moves vowel/pitch [V README lines 9-11, 28-29]. |
 | Scintilla | https://github.com/joakimeriksson/scintilla-fm1 | 314d449 | GPL-3.0 | Synthex firmware; README says velocity and aftertouch from the keys, "played on a real FM-1 (2026-11-01)" [I: README only, sensing code not read]. |
 | Felucca MPE | https://github.com/monch1962/mvave-fm1-mpe | 2aaeae3 | GPL-3.0 | NOT keybed. MPE *input* from an external controller (per-note bend/pressure/timbre) [V README]. Name collision is probably why the first search was confusing. |
+| CTL-1 (added by reviewer; the author's shipped successor to Velo) | https://github.com/charlesvestal/fm1-ctl | 2a9f92b (2026-11-08) | MPL-2.0 (LICENSING.md; GPL-3 compatible through MPL section 3.3 secondary-licence clause; its platform came from Felucca "under MPL-2.0 with his permission") | Released firmware ("ctl-X.Y.fwsc") that makes the FM-1 a MIDI controller with velocity from the keys and poly or channel aftertouch, a user "Touch" page (Velocity Keys/Fixed, Curve, Aftertouch Off/Poly/Channel, AT sens) [V docs/MANUAL.md "Touch", README line 3]. Key sensing lives in `base/` ("lib/touch") [V LICENSING.md line 21]. Same sensing family as Velo, polished. Emits velocity and aftertouch only; no pitch bend/CC74 per note [I: manual lists none]. Practical facts from its manual: pressing near a key's bottom edge plays softer; F3-C5 read landing force and have aftertouch, top 7 keys read differently with a narrow soft end and no aftertouch; a note sounds ~5 ms after key-down; a lit LED changes the reading of keys beside it, so the column's LEDs go dark each time the held key is read [V MANUAL.md lines 337-375]. |
+| Other pressure users (reviewer web check) | CS-1 (github.com/twochannels/CS-1, GPL-3.0), FRASIL (github.com/styvesgoupil/frasil, MPL-2.0) | not read | as shown | Consume velocity/pressure (CS-1 "touch response"; FRASIL polyphonic aftertouch swells a note) [I: READMEs; FRASIL takes pressure in over MIDI]. Not independent sensing work. |
 | FM1 Open (official) | https://github.com/m-vave/fm1_open | 4c7496d | GPLv3 + FM1 SDK linking exception | Grep of `app/` and `sdk/` for velocity/aftertouch/pressure hit only midi_router.c, instrument.h, presets.c, screen.c, fm1.h; I did not read them for keybed sensing. No evidence it senses key force [I]. |
 
 Index of FM-1 projects: https://github.com/cicloid/awesome-fm-1 (README lines 77, 79, 181, 203 list Velo, MONK-1, Scintilla, Felucca MPE). Reverse engineering: https://github.com/AL-255/FM-1-RE (`docs/io/07-input.md`: key scan, 41 key positions, 3-tick debounce, long-press at 41 ticks [V in that doc, "med" confidence by its own tags]; nothing on key force).
@@ -74,10 +76,12 @@ Hold-time and tap gestures need only the digital keys (certain); anything force-
 1. **Design the gestures on digital input first** (certain): tap count for ratchet, hold for mute, step key held + knobs for slide / probability / accent per P1-014. These work on all 27 keys with zero new hardware use and no RAM risk.
 2. **Treat force sensing as an optional later layer** (a separate backlog task, not part of v1 core): velocity as a coarse two-bin accent/mute choice on F3-C5 only, and aftertouch for one continuous parameter. Do not require it; the top 7 keys lack it and consistency across a chord is poor. Make the force mapping a data table (ADR-0004 addendum).
 3. **Fallback if the hardware proves only velocity/hold-time:** the digital set in item 1 covers ratchet, slide, mute, accent and probability by gestures. Nothing in R3 requires force.
+
+Budget note (reviewer, ADR-0003 section 11): the sequencer core costs +2257 B `.bss` and ~7.6 KB pool, leaving 46496 B of RAM headroom after the E3 removals against the 4096 B build floor and the 8 KB trigger; a ~2 KB force layer fits on RAM alone. The ISR cost is the unknown (one ADC start/read per 100 us tick plus a possible shared-ADC conflict with the MASTER pot, which `fm1_adc_read` polls blockingly from the main loop at firmware/src/master.c:10), so measure CPU before committing. Also note the LED interaction in CTL-1's manual: step-key LEDs lit by a sequencer could skew readings of neighbouring keys.
 4. Reuse Velo's code only by porting under GPL-3.0 (compatible); a hardware-test gate is needed because sensing depends on ADC timing.
 
 ## 6. Owner questions
 
-1. Is Velo (fm1-velocity, Charles Vestal) the project you meant by "MPE-like keybed expression"? It is the only one I found that senses force from the keybed; Felucca MPE is input-side only.
+1. Is Velo (fm1-velocity, Charles Vestal; or its shipped successor CTL-1) the project you meant by "MPE-like keybed expression"? It is the only one I found that senses force from the keybed; Felucca MPE is input-side only.
 2. Is a force layer worth a port (two-bin accent via velocity, optional pressure), given the author's own "parked" verdict, an uneven chord response and the top 7 keys not covered? Or hold-time/tap gestures only for v1? Recommendation: tap/hold only for v1, force as a later optional task.
 3. Do you have a Velo or Scintilla firmware flashed anywhere? If so, you could judge the feel before we commit (I did not flash or run anything).
