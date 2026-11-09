@@ -12,14 +12,15 @@ in that log and, per ADR-0004, "Design locked" later.
 > fixed 768-tick bar (45), one undo record per channel (46), no note cut on algorithm or MIDI-channel change (47); the
 > "owner question" wording for these is removed.
 
+> Change note (P1-014 revision, scheme B2; for owner review): the MUTATE snapshot `sq_mut` (24 B) and `sq_mutate()` are **removed** (MUTATE is dropped as a gesture, PERFORMANCE_DESIGN 4.2); a **REC state** is added (armed bit, write cursor, ACC / SLIDE flags, REC octave: 4 B, plus a 27-entry sounding-note table so a key-up sends the matching note-off: 27 B) and 2 B for the held-step pitch gesture; the section 11.1 total is re-added below (6962 B, headroom 39534 B after the removals and 11022 B before, 4 KB floor respected). `EDIT` tap is UNDO (hold = RESET layer); the first P1-014 note's `UNDO = ARP tap` is superseded. The undo record also covers a written REC note (`what` bit 3 one step record). A preset load clears `UndoRec.what` (toast `NOTHING TO UNDO`). New API: `sq_rec_arm(on)`, `sq_rec_write(ch, key, vel)` (writes a pin at the cursor or the step nearest the playhead, `step_rec` flags from ACC / SLIDE) and `sq_pin_pitch(ch, pos, degree)` (hold + press pitch; scale degree to semitones through the section 5 table). Reasoning: PERFORMANCE_DESIGN 3.1, 3.1b, 9.1.
 > Change note (P1-014, performance-first design, owner eighth round; for owner review): [PERFORMANCE_DESIGN.md](../../design/PERFORMANCE_DESIGN.md)
 > adds control-level state. Changed: `UndoRec` 34 to 48 B (it now carries the 8 morphs and one touched step record so that a reset and a
-> pin edit are undoable); new `sq_mut` MUTATE snapshot (24 B), `sq_perf` flags (SOLO, ROLL), saved FILL morph, scene A / B (two preset-sized
+> pin edit are undoable); (MUTATE snapshot withdrawn by the revision note above) `sq_perf` flags (SOLO, ROLL), saved FILL morph, scene A / B (two preset-sized
 > pool copies, volatile, recalled through the section 10 bar-queued load); new API `sq_reset_morph / sq_reset_row / sq_reset_algo / sq_reset_layer`
 > (factory values from `MorphDesc.def` and `seed_k[]`, so no new table); section 11 table re-added (section 11.1); section 15 flex rows. **Reserved,
 > not specified here:** the ninth-round requirements R1-R4 (per-channel pattern length, pages, per-step properties, keybed expression). The
 > single-pin `pin_mask` / `pin_note[16]` layout of section 3 is an upper-bound placeholder for P1-016's per-step record (reserve 64 steps x 3 B x 4 channels
-> = 768 B live + 768 B undo, already inside the 11.1 totals); P1-016 integrates it. The RAM floor holds (11.1). The pin-edit gestures of section 9 (K3 NOTE, OCT- / OCT+ = +-12) are superseded by the held-step band of PERFORMANCE_DESIGN 3.1 (two rows of four properties); P1-016 integrates them. Key labels in this ADR that say `EDIT-tap` or `D#5` follow the P1-014 control map (UNDO = ARP tap, restart = F#5).
+> = 768 B live + 768 B undo, already inside the 11.1 totals); P1-016 integrates it. The RAM floor holds (11.1). The pin-edit gestures of section 9 (K3 NOTE, OCT- / OCT+ = +-12) are superseded by the held-step band of PERFORMANCE_DESIGN 3.1 (two rows of four properties); P1-016 integrates them. Key labels in this ADR that say `EDIT-tap` or `D#5` follow the P1-014 control map (UNDO = EDIT tap after the P1-014 revision, restart = F#5).
 
 Inputs: [VISION](../VISION.md), [ADR-0004](ADR-0004-design-lock.md) (and its flexibility addendum),
 [OWNER_QUESTIONS](../OWNER_QUESTIONS.md) (all owner decisions), [ALGORITHM_SET](../../design/ALGORITHM_SET.md)
@@ -131,7 +132,7 @@ typedef struct {
     uint16_t seed[SQ_NSEED];       /* the OTHER value of each masked seed (swapped on undo/redo) */
     uint16_t pin_mask;             /* the OTHER pin set */
     uint8_t  pin_note[SQ_NPIN];
-    uint8_t  morph[SQ_NMORPH];     /* the OTHER 8 morph values (bit2: a reset or a MUTATE keep) */
+    uint8_t  morph[SQ_NMORPH];     /* the OTHER 8 morph values (bit2: a reset) */
     uint8_t  step_rec[3];          /* the OTHER step record of `step` (3 B placeholder until P1-016) */
     uint8_t  pad[3];
 } UndoRec;
@@ -364,7 +365,9 @@ void    sq_reset_morph(uint8_t ch, uint8_t knob);                 /* P1-014: one
 void    sq_reset_row(uint8_t ch, uint8_t row);                    /* row 0/1: its four morphs to defaults; undoable */
 void    sq_reset_algo(uint8_t ch);                                /* all 8 morphs + all seeds to factory (seed_k); undoable */
 void    sq_reset_layer(uint8_t ch, uint8_t layer);                /* that layer's seeds to factory; undoable */
-void    sq_mutate(uint8_t ch, uint8_t on);                        /* MUTATE: on = save AlgoState to sq_mut + dice all; off = restore it */
+void    sq_rec_arm(uint8_t on);                                   /* REC (P1-014 revision): armed = keys write pins; cursor 0 */
+void    sq_rec_write(uint8_t ch, uint8_t key, uint8_t vel);       /* a REC key: pin at the cursor (stopped) or nearest the playhead (playing), ACC / SLIDE from K2 / K3 */
+void    sq_pin_pitch(uint8_t ch, uint8_t pos, uint8_t degree);    /* held step + another white key: that scale degree, auditioned */
 void    sq_perf(uint8_t bits);                                    /* SOLO 1, ROLL 2 (ISR flags); FILL = main-loop morph[0] max with restore */
 int     sq_scene(uint8_t n, uint8_t store);                       /* scene A/B: store = copy to pool; else queue the section 10 load (returns 0 if empty) */
 void    sq_global_set(const GlobalSave *g);                       /* recomputes snap[], rebuilds all caches */
@@ -525,7 +528,7 @@ applied after `step()`), so morphs and dice never disturb them.
   position (`step(pos)` converted back with `semi = note - 36 - key - 12 * octave`, clamped 0..96) or 0 (the root) when
   that step is silent. `pin_note` writes before `pin_mask`.
 - **Edit (P1-014):** hold a step key; K1 `NOTE` = one scale degree per detent (the UI walks the scale table), OCT+ then K4 `OCT` = +-12 per detent; both clamp 0..96.
-- **Clear:** `sq_pin_clear` removes one; `sq_pin_clear_all` is recorded in `UndoRec.what bit1`, so an UNDO (ARP) tap undoes it (P1-014: UNDO moved from EDIT to ARP).
+- **Clear:** `sq_pin_clear` removes one; `sq_pin_clear_all` is recorded in `UndoRec.what bit1`, so an UNDO (EDIT) tap undoes it (P1-014 revision: UNDO stays on EDIT).
 - **K1 = 0:** `m[0] == 0` means the algorithm's `build()` produces no `PO_HIT`; pins still play because the overlay
   forces `PO_HIT`. No fifth algorithm (owner decision 35). Because `step()` still fills `vel`/`gate`, pins sound at the
   right dynamics.
@@ -587,14 +590,16 @@ Facts (SYSTEM_MAP section 9): RAM `.data+.bss` after the E3 removals 27232 B of 
 | --- | ---: | --- |
 | Section 11 total new .bss (P1-013 version) | 5329 | |
 | `UndoRec` 34 to 48 B, x4 | 56 | .bss |
-| MUTATE snapshot `sq_mut` (`AlgoState` 20 + channel + flags) | 24 | .bss |
+| MUTATE snapshot `sq_mut` | 0 | removed in the revision (was 24) |
+| REC state (armed, cursor, ACC / SLIDE, REC octave) 4 + sounding-note table 27 | 31 | .bss |
+| held-step pitch gesture (step index, pressed bit) | 2 | .bss |
 | `sq_perf`, saved FILL morph, scene valid / pending bits, `view_page` | 8 | .bss |
 | Reserved for P1-016: step records 64 x 3 B x 4 (live) | 768 | .bss (replaces `pin_note` / `pin_mask`, 72 B) |
 | Reserved for P1-016: step-record undo copy 64 x 3 B x 4 | 768 | .bss |
-| **Total new .bss** | **6953** | |
+| **Total new .bss** | **6962** | 5329 + 56 + 0 + 8 + 31 + 2 + 768 + 768 |
 | Pool: 16 presets + staging + undo-load copy + scenes A, B (about 1120 B each at the upper bound = 20 copies) | about 22400 | .pool |
 
-Checks (SYSTEM_MAP section 9: headroom 46496 B after the removals, 17984 B before; floor 4096; E9 trigger 8192): after the removals 46496 - 6953 = **39543 B** left; before them 17984 - 6953 = **11031 B** left (above the 8 KB trigger). Pool today 25764 - 22400 = **3364 B** left, so the removals (R6) must precede preset storage (E7), or P1-016 must shrink the step record; after the removals 217975 - 22400 = 195575 B. Scenes are volatile (owner question 58).
+Checks (SYSTEM_MAP section 9: headroom 46496 B after the removals, 17984 B before; floor 4096; E9 trigger 8192): after the removals 46496 - 6962 = **39534 B** left; before them 17984 - 6962 = **11022 B** left (above the 8 KB trigger, 6926 B above the 4096 B floor). Pool today 25764 - 22400 = **3364 B** left, so the removals (R6) must precede preset storage (E7), or P1-016 must shrink the step record; after the removals 217975 - 22400 = 195575 B. Scenes are volatile (owner question 58).
 
 Removed with R8 (T-1 retirement): `t1_micro_queue` 4096 B and the two `MidiRingBuffer` 2 x 264 B and `t1_sequencer_ram`
 9348 B + the T-1 `.pool` buffers (13980 B total per SYSTEM_MAP; all in the pool, `.bss` impact 36 B). CPU: per tick

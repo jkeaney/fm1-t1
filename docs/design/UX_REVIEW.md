@@ -2,6 +2,8 @@
 
 > P2-009: the chord row of the CONTROL tab is removed (owner decision 39). CONTROL tab is 4 rows; 28 menu rows in total (SYSTEM_MAP section 7).
 
+> P1-014 revision (printed-word pass, scheme B2; for owner review): supersedes the layer-order note below. The buttons follow their printed words: `FX` ALL, `SCL` NOTES, `SEQ` HITS, `ENV` ACCNT, `ARP` ARTIC, `LFO` SHAPE (all on press), `EDIT` = UNDO / RESET, `GLO` = SET, `REC` = RECORD (new context), MUTATE removed; hold a step key + another white key = its pitch. Sections 1.2 and 1.3 are regenerated from control_map.tsv (294 rows = 49 controls x 6 contexts); sections 2 and 3.3 follow; the scores of 3.2 are the history of P1-012 / P1-013, the live scores are PERFORMANCE_DESIGN.md 7.2 (honest L; B2 576 of 648, no failure).
+
 > P1-014 (performance-first, owner eighth round; for owner review): the control layout is re-organised by ONE principle (top button row = the six dice in layer order, bottom row = safety and system, white keys = the steps, black keys = performance moves) and the rubric gains a fourth sub-score **L (learnable without a manual)**, section 3.3. **Superseded here:** sections 1.2 and 1.3 are regenerated from the new control_map.tsv (five contexts `PERF STEP_HELD SET RESET MENU`); the dice positions in 1.1 / 5.2 and the workflows W4 / W7 follow the new map. The score tables in 3.2 and the iteration table in 4 stay as the P1-013 history (the "proposed" column there is the approved P1-013 scheme); the current scores are PERFORMANCE_DESIGN.md 7.2. Source of truth for the map: [CONTROL_MAP.md](CONTROL_MAP.md) and [control_map.tsv](control_map.tsv).
 
 > P1-013 (owner decision "Shift"): the knobs now have **two rows** (up to 8 morphs per algorithm). OCT- / OCT+ become the row buttons (tap latches ROW 1 / ROW 2; hold and turn is momentary); the keyboard octave moves to SCL held + OCT-/OCT+. Changed here: 1.1 and 1.3 rows, 1.4 knob band, W5/W6/W14, scores F30..F35 and totals, R1 note, 5.1 knob table, 5.4. Design: [FULL_CONTROL.md](FULL_CONTROL.md). Every score row below that is not named above is unchanged.
@@ -43,102 +45,101 @@ row KNOB 1..KNOB 4; under the knobs the 2 x 6 button block; the 27-key keyboard 
 | `EN_PRESET` | PRESETS | relative encoder | **preset slot** P01..P16 (whole-device state) | exact | owns |
 | `EN_K1`..`EN_K4` | KNOB 1..4 | relative encoders | the four morphs of the selected channel, K1 left to K4 right, drawn in the same order on screen | exact (position = column) | owns |
 | `B_FX` | FX | button, row 1 col 1 | DICE ALL | new meaning; screen label `ALL` | owns |
-| `B_SCL` | SCL | row 1 col 2 | tap dice NOTES; hold = SCL layer (global KEY, SCALE, OCTAVE) | exact for the hold (scale); NOTES is the pitch layer that the scale shapes | owns (tap) / page (hold) |
+| `B_SCL` | SCL | row 1 col 2 | press: dice NOTES (P1-014 revision: no hold role; the scale and key are on the SET page) | fair (scale -> the pitch layer) | owns |
 | `B_ENV` | ENV | row 1 col 3 | dice ACCNT | envelope = dynamics; screen label `ACCNT` | owns |
 | `B_LFO` | LFO | row 1 col 4 | dice SHAPE | LFO = shape over time; screen label `SHAPE` | owns |
-| `B_EDIT` | EDIT | row 1 col 5 | tap UNDO/REDO dice; hold = CHAN layer (MIDI channel of CH1..CH4) | exact for the hold (edit the channels) | owns (tap) / page (hold) |
-| `B_GLO` | GLO | row 1 col 6 | GLOB page: GATE, DIV, SWING, BPM | exact | page |
-| `B_HOME` | HOME | row 2 col 1 | tap = back to PERF (on PERF: KEYS legend); hold 0.7 s = MENU | exact (as today) | page |
+| `B_EDIT` | EDIT | row 1 col 5 | tap UNDO/REDO; hold = the RESET layer (P1-014 revision; the MIDI channel moved to SET) | weak (edit -> undo) | owns (tap) / page (hold) |
+| `B_GLO` | GLO | row 1 col 6 | the SET page: GATE, DIV, SWING, BPM; SCALE, OCTAVE, MIDI, LENGTH (P1-014 revision) | exact (global) | page |
+| `B_HOME` | HOME | row 2 col 1 | tap = back to PERF from anywhere; hold = HELP while held (touch a control), MENU on release after 0.7 s with nothing touched | exact (stock: tap home, hold menu) | page |
 | `B_SAVE` | SAVE | row 2 col 2 | tap save to the shown slot; hold 0.7 s undo the last load | exact (hold-undo as today) | owns |
 | `B_ARP` | ARP | row 2 col 3 | dice ARTIC | arpeggio = articulation (gate, glide, repeats); screen label `ARTIC` | owns |
 | `B_SEQ` | SEQ | row 2 col 4 | dice HITS | sequencer steps = which steps sound; screen label `HITS` | owns |
 | `B_PLAY` | PLAY/STOP | row 2 col 5 | start / stop all channels | exact | owns |
-| `B_REC` | REC | row 2 col 6 | tap = STEP entry on/off; hold 0.7 s = clear the channel's pins | exact (record steps, as Felucca's step record) | owns |
-| `B_OCTDN`, `B_OCTUP` | OCT-, OCT+ | buttons under the encoders | knob ROW 1 / ROW 2 (tap latches, hold and turn is momentary); with a step held, the pin's octave; with SCL held, the keyboard octave | exact once the cells read `ROW 1` / `ROW 2` | owns |
-| 16 white keys F3..G5 | none | keys, place 0..15 | live notes; in STEP: steps 1..16 | n/a | owns |
-| 11 black keys F#3..F#5 | small stock-firmware legends, not used | keys, place 0..10 | F#3 G#3 A#3 C#4 mute CH1-4; D#4 F#4 G#4 A#4 select CH1-4; C#5 unmute all; D#5 restart; F#5 tap tempo | n/a | owns |
+| `B_REC` | REC | row 2 col 6 | tap = RECORD (latched, LED): the 27 keys play pitches and write them (P1-014 revision; MUTATE removed) | exact ("arm to record") | page |
+| `B_OCTDN`, `B_OCTUP` | OCT-, OCT+ | buttons under the encoders | knob ROW 1 / ROW 2 (tap latches, hold and turn is momentary); with a step held, the step band row; in SET, the SET row | override (printed: octave; owner decision 48) | owns |
+| 16 white keys F3..G5 | none | keys, place 0..15 | the 16 steps of the viewed page (hold + another white key = that step's pitch); in REC they play pitches F3..G5 | n/a | owns |
+| 11 black keys F#3..F#5 | `OP1 OP2 OP3 OP4 OP5 OP6 PIT GLD MONO POLY` (last: blank) | keys, place 0..10 | F#3 G#3 A#3 C#4 mute CH1-4 (OP1..OP4); D#4 PAGE; F#4 SOLO; G#4 FILL; A#4 ROLL; C#5 / D#5 SCENE A / B; F#5 RESTART; in REC they play pitches | weak (OP1..OP4 = parts) | owns |
 | Hidden maintenance | - | OCT- + OCT+ | both 5 s = UPDATE MODE; both at power-on = CALIBRATION (unchanged) | n/a | device |
 
 Why this layout:
 - **The dice cluster is spatial.** Row 1 holds the pitch and dynamics layers (SCL NOTES, ENV ACCNT, LFO SHAPE), row 2
   the time layers (ARP ARTIC, SEQ HITS) next to PLAY. FX (ALL) and EDIT (UNDO) flank the row-1 dice: "new everything"
   on the left, "take it back" on the right.
-- **Buttons with a setting in their name open that setting when held** (SCL, EDIT, GLO), so every setting is under
-  the button that names it. The tap of SCL and EDIT is a performance action (dice, undo) because those are used
-  hundreds of times per session and the settings a few times.
+- **P1-014 revision:** the buttons that name a setting now open it by a tap (GLO = SET) or have none (SCL = NOTES dice, EDIT = UNDO with RESET on hold); the old holds (SCL layer, EDIT = MIDI channels) moved to the SET page so every dice button acts on press.
 - **Synth-only printing (FX ENV LFO ARP SEQ) becomes dice.** Rule 2: the synth is only a preview, so those labels
   have no job; the screen's 2 x 6 button picture shows the real role under each printed position.
 - Felucca's groovebox pages (ENV, LFO, FX, ARP, SONG, sound editing) are not part of this map. They are not reachable
   at all: decision 32b removes the groovebox from the v1 UI (there is no mode switch and no menu route to it; the
   device boots straight into the sequencer).
 
-### 1.2 Contexts (P1-014: five)
+### 1.2 Contexts (P1-014 revision: six)
 
 | Context | Entered by | Left by | Screen |
 | --- | --- | --- | --- |
 | `PERF` | power-on default | n/a | main screen (1.4): header, channels, lane with `PG n/M`, two knob rows, button picture, black-key legend, cue strip |
-| `STEP_HELD` | hold a white key (a tap toggles the pin) | let go of all white keys | step band: row 1 `NOTE ACC SLIDE RATCH`, row 2 `TIE MUTE PROB OCT` |
-| `SET` | tap SEQ (latched) or hold SEQ | tap SEQ, tap HOME, or release | SET page: row 1 `GATE DIV SWING BPM`, row 2 `SCALE OCTAVE MIDI LENGTH` |
-| `RESET` | hold UNDO (ARP) past HOLD, or press a control while it is held | let go of UNDO | cells tagged `RST`, buttons relabelled |
-| `MENU` | hold HOME 0.7 s | HOME tap | Felucca menu (1.5) |
+| `STEP_HELD` | hold a white key (a tap toggles the pin) | let go of the key | step band: row 1 `NOTE ACC SLIDE RATCH`, row 2 `TIE MUTE PROB OCT`; another white key = that step's pitch |
+| `SET` | tap GLO (latched) or hold GLO | tap GLO, tap HOME, or release | SET page: row 1 `GATE DIV SWING BPM`, row 2 `SCALE OCTAVE MIDI LENGTH` |
+| `RESET` | hold EDIT (UNDO) past HOLD, or press a control while it is held | let go of EDIT | cells tagged `RST`, buttons relabelled |
+| `REC` | tap REC (latched, LED) | tap REC or HOME | banner `REC`, one-row band `CURSOR ACC SLIDE OCT`, the 27 keys play pitches and write them |
+| `MENU` | hold HOME 0.7 s, release | HOME tap | Felucca menu (1.5) |
 
-Precedence: MENU > SET > RESET > STEP_HELD > PERF. HOME tap leaves every state for PERF. UNDO and SEQ use the layer time (MENU > HOLD, default 0.4 s); HOME, SAVE and the scene keys use 0.7 s. The old contexts `STEP`, `SCL`, `CHAN`, `GLOB` no longer exist.
+Precedence: MENU > SET > RESET > REC > STEP_HELD > PERF. HOME tap leaves every state for PERF; HOME held shows `touch = HELP, let go = MENU` and acts on release. EDIT and GLO use the layer time (MENU > HOLD, default 0.4 s); SAVE and the scene keys use 0.7 s.
 
 ### 1.3 The control map (every control x every context, regenerated from control_map.tsv, P1-014)
 
 Each cell is the on-screen label and the function ids scored in PERFORMANCE_DESIGN.md 7.2. Full action text per row: [control_map.tsv](control_map.tsv).
 
-| Control | PERF | STEP_HELD | SET | RESET | MENU |
-| --- | --- | --- | --- | --- | --- |
-| B_FX | `ALL` F14 12 | `ALL` F14 12 | `ALL` F14 12 | `RST ALL` F45 9 | `close` F29 11 |
-| B_SCL | `NOTES +sub` F09 12 | `NOTES +sub` F09 12 | `NOTES +sub` F09 12 | `RST NOT` F45 9 | `close` F29 11 |
-| B_ENV | `HITS +sub` F10 12 | `HITS +sub` F10 12 | `HITS +sub` F10 12 | `RST HIT` F45 9 | `close` F29 11 |
-| B_LFO | `ACCNT +sub` F11 12 | `ACCNT +sub` F11 12 | `ACCNT +sub` F11 12 | `RST ACC` F45 9 | `close` F29 11 |
-| B_EDIT | `ARTIC +sub` F12 12 | `ARTIC +sub` F12 12 | `ARTIC +sub` F12 12 | `RST ART` F45 9 | `close` F29 11 |
-| B_GLO | `SHAPE +sub` F13 12 | `SHAPE +sub` F13 12 | `SHAPE +sub` F13 12 | `RST SHP` F45 9 | `close` F29 11 |
-| B_HOME | `HOME` F47 12 F29 11 F46 9 | `HOME` F47 12 F46 9 | `HOME` F47 12 F46 9 | `HOME` F47 12 F46 9 | `BACK` F29 11 F47 12 |
-| B_SAVE | `SAVE Pnn` F22 12 F24 10 | `SAVE Pnn` F22 12 F24 10 | `SAVE Pnn` F22 12 F24 10 | `SAVE Pnn` F22 12 F24 10 | `close` F29 11 |
-| B_ARP | `UNDO` F15 12 F43 9 | `UNDO` F15 12 | `UNDO` F15 12 | `RESET` F43 9 | `close` F29 11 |
-| B_SEQ | `SET` F16 10 | `-` F05 9 | `BACK` F47 12 | `-` F43 9 | `close` F29 11 |
-| B_PLAY | `PLAY / STOP` F25 12 | `PLAY / STOP` F25 12 | `PLAY / STOP` F25 12 | `PLAY / STOP` F25 12 | `PLAY / STOP` F25 12 |
-| B_REC | `MUTATE` F36 11 | `MUTATE` F36 11 | `MUTATE` F36 11 | `CLR PIN` F06 10 | `close` F29 11 |
-| B_OCTDN | `ROW 1` F30 12 | `STEP 1` F51 9 | `SET 1` F16 10 | `RST R1` F44 9 | `-` F29 11 |
-| B_OCTUP | `ROW 2` F30 12 | `STEP 2` F51 9 | `SET 2` F16 10 | `RST R2` F44 9 | `-` F29 11 |
-| EN_SELECT | `CH n` F01 12 | `CH n` F01 12 | `CH n` F01 12 | `CH n` F01 12 | `CH n` F01 12 |
-| EN_ALGO | `ALGO name` F03 12 | `ALGO name` F03 12 | `ALGO name` F03 12 | `ALGO name` F03 12 | `tab` F29 11 |
-| EN_PRESET | `Pnn` F23 10 | `Pnn` F23 10 | `Pnn` F23 10 | `Pnn` F23 10 | `row` F29 11 |
-| MASTER | `-`  | `-`  | `-`  | `-`  | `-`  |
-| EN_K1 | `algo label` F08 12 F31 11 | `NOTE / TIE` F05 9 F51 9 | `GATE / SCALE` F16 10 F19 9 | `RST` F43 9 | `value` F29 11 |
-| EN_K2 | `algo label` F08 12 F32 11 | `ACC / MUTE` F42 9 F51 9 | `DIV / OCTAVE` F16 10 F27 9 | `RST` F43 9 | `value` F29 11 |
-| EN_K3 | `algo label` F08 12 F33 11 | `SLIDE / PROB` F42 9 F51 9 | `SWING / MIDI` F16 10 F02 9 | `RST` F43 9 | `value` F29 11 |
-| EN_K4 | `algo label` F08 12 F34 11 | `RATCH / OCT` F42 9 F05 9 | `BPM / LENGTH` F17 10 F50 9 | `RST` F43 9 | `value` F29 11 |
-| KEY_W01_F3 | `step 1` F04 12 F26 12 | `step 1` F05 9 F42 9 | `KEY / step` F18 10 | `CLR 1` F06 10 | `-`  |
-| KEY_W02_G3 | `step 2` F04 12 F26 12 | `step 2` F05 9 F42 9 | `KEY / step` F18 10 | `CLR 2` F06 10 | `-`  |
-| KEY_W03_A3 | `step 3` F04 12 F26 12 | `step 3` F05 9 F42 9 | `KEY / step` F18 10 | `CLR 3` F06 10 | `-`  |
-| KEY_W04_B3 | `step 4` F04 12 F26 12 | `step 4` F05 9 F42 9 | `KEY / step` F18 10 | `CLR 4` F06 10 | `-`  |
-| KEY_W05_C4 | `step 5` F04 12 F26 12 | `step 5` F05 9 F42 9 | `KEY / step` F18 10 | `CLR 5` F06 10 | `-`  |
-| KEY_W06_D4 | `step 6` F04 12 F26 12 | `step 6` F05 9 F42 9 | `KEY / step` F18 10 | `CLR 6` F06 10 | `-`  |
-| KEY_W07_E4 | `step 7` F04 12 F26 12 | `step 7` F05 9 F42 9 | `KEY / step` F18 10 | `CLR 7` F06 10 | `-`  |
-| KEY_W08_F4 | `step 8` F04 12 F26 12 | `step 8` F05 9 F42 9 | `KEY / step` F18 10 | `CLR 8` F06 10 | `-`  |
-| KEY_W09_G4 | `step 9` F04 12 F26 12 | `step 9` F05 9 F42 9 | `KEY / step` F18 10 | `CLR 9` F06 10 | `-`  |
-| KEY_W10_A4 | `step 10` F04 12 F26 12 | `step 10` F05 9 F42 9 | `KEY / step` F18 10 | `CLR 10` F06 10 | `-`  |
-| KEY_W11_B4 | `step 11` F04 12 F26 12 | `step 11` F05 9 F42 9 | `KEY / step` F18 10 | `CLR 11` F06 10 | `-`  |
-| KEY_W12_C5 | `step 12` F04 12 F26 12 | `step 12` F05 9 F42 9 | `KEY / step` F18 10 | `CLR 12` F06 10 | `-`  |
-| KEY_W13_D5 | `step 13` F04 12 F26 12 | `step 13` F05 9 F42 9 | `KEY / step` F18 10 | `CLR 13` F06 10 | `-`  |
-| KEY_W14_E5 | `step 14` F04 12 F26 12 | `step 14` F05 9 F42 9 | `KEY / step` F18 10 | `CLR 14` F06 10 | `-`  |
-| KEY_W15_F5 | `step 15` F04 12 F26 12 | `step 15` F05 9 F42 9 | `KEY / step` F18 10 | `CLR 15` F06 10 | `-`  |
-| KEY_W16_G5 | `step 16` F04 12 F26 12 | `step 16` F05 9 F42 9 | `KEY / step` F18 10 | `CLR 16` F06 10 | `-`  |
-| KEY_B01_F#3 | `MUTE1` F20 12 | `MUTE1` F20 12 | `KEY / MUTE1` F18 10 F20 12 | `MUTE1` F20 12 | `MUTE1` F20 12 |
-| KEY_B02_G#3 | `MUTE2` F20 12 | `MUTE2` F20 12 | `KEY / MUTE2` F18 10 F20 12 | `MUTE2` F20 12 | `MUTE2` F20 12 |
-| KEY_B03_A#3 | `MUTE3` F20 12 | `MUTE3` F20 12 | `KEY / MUTE3` F18 10 F20 12 | `MUTE3` F20 12 | `MUTE3` F20 12 |
-| KEY_B04_C#4 | `MUTE4` F20 12 | `MUTE4` F20 12 | `KEY / MUTE4` F18 10 F20 12 | `MUTE4` F20 12 | `MUTE4` F20 12 |
-| KEY_B05_D#4 | `PAGE` F49 12 F50 9 | `PAGE` F49 12 F50 9 | `KEY / PAGE` F18 10 F49 12 | `PAGE` F49 12 F50 9 | `PAGE` F49 12 F50 9 |
-| KEY_B06_F#4 | `SOLO` F39 12 | `SOLO` F39 12 | `KEY / SOLO` F18 10 F39 12 | `SOLO` F39 12 | `SOLO` F39 12 |
-| KEY_B07_G#4 | `FILL` F37 12 | `FILL` F37 12 | `KEY / FILL` F18 10 F37 12 | `FILL` F37 12 | `FILL` F37 12 |
-| KEY_B08_A#4 | `ROLL` F38 12 | `ROLL` F38 12 | `KEY / ROLL` F18 10 F38 12 | `ROLL` F38 12 | `ROLL` F38 12 |
-| KEY_B09_C#5 | `SCN A` F40 11 F41 10 | `SCN A` F40 11 F41 10 | `KEY / SCN A` F18 10 F40 11 | `SCN A` F40 11 F41 10 | `SCN A` F40 11 F41 10 |
-| KEY_B10_D#5 | `SCN B` F40 11 F41 10 | `SCN B` F40 11 F41 10 | `KEY / SCN B` F18 10 F40 11 | `SCN B` F40 11 F41 10 | `SCN B` F40 11 F41 10 |
-| KEY_B11_F#5 | `RESTRT` F28 12 | `RESTRT` F28 12 | `KEY / RESTRT` F18 10 F28 12 | `RESTRT` F28 12 | `RESTRT` F28 12 |
+| Control | PERF | STEP_HELD | SET | RESET | REC | MENU |
+| --- | --- | --- | --- | --- | --- | --- |
+| B_FX | `ALL`  | `ALL`  | `ALL`  | `RST ALL` F45 9 | `ALL`  | `close` F29 11 |
+| B_SCL | `NOTES +sub`  | `NOTES +sub`  | `NOTES +sub`  | `RST NOT` F45 9 | `NOTES +sub`  | `close` F29 11 |
+| B_ENV | `ACCNT +sub`  | `ACCNT +sub`  | `ACCNT +sub`  | `RST ACC` F45 9 | `ACCNT +sub`  | `close` F29 11 |
+| B_LFO | `SHAPE +sub`  | `SHAPE +sub`  | `SHAPE +sub`  | `RST SHP` F45 9 | `SHAPE +sub`  | `close` F29 11 |
+| B_EDIT | `UNDO` F15 11 F43 9 | `UNDO` F15 11 | `UNDO` F15 11 | `RESET` F43 9 | `UNDO` F15 11 | `close` F29 11 |
+| B_GLO | `SET` F16 11 | `-` F05 10 | `BACK` F47 12 | `-` F43 9 | `-`  | `close` F29 11 |
+| B_HOME | `HOME` F47 12 F29 11 F46 9 | `HOME` F47 12 F29 11 F46 9 | `HOME` F47 12 F29 11 F46 9 | `HOME` F47 12 F46 9 | `HOME` F47 12 F29 11 F46 9 | `BACK` F29 11 F47 12 |
+| B_SAVE | `SAVE Pnn` F22 12 F24 11 | `SAVE Pnn` F22 12 F24 11 | `SAVE Pnn` F22 12 F24 11 | `SAVE Pnn` F22 12 F24 11 | `SAVE Pnn` F22 12 F24 11 | `close` F29 11 |
+| B_ARP | `ARTIC +sub`  | `ARTIC +sub`  | `ARTIC +sub`  | `RST ART` F45 9 | `ARTIC +sub`  | `close` F29 11 |
+| B_SEQ | `HITS +sub`  | `HITS +sub`  | `HITS +sub`  | `RST HIT` F45 9 | `HITS +sub`  | `close` F29 11 |
+| B_PLAY | `PLAY / STOP` F25 12 | `PLAY / STOP` F25 12 | `PLAY / STOP` F25 12 | `PLAY / STOP` F25 12 | `PLAY / STOP` F25 12 | `PLAY / STOP` F25 12 |
+| B_REC | `REC` F53 12 F26 10 | `REC` F53 12 | `REC` F53 12 | `CLR PIN` F06 10 | `REC` F53 12 | `close` F29 11 |
+| B_OCTDN | `ROW 1` F30 11 | `STEP 1` F51 9 | `SET 1` F16 11 | `RST R1` F44 9 | `-`  | `-` F29 11 |
+| B_OCTUP | `ROW 2` F30 11 | `STEP 2` F51 9 | `SET 2` F16 11 | `RST R2` F44 9 | `-`  | `-` F29 11 |
+| EN_SELECT | `CH n` F01 12 | `CH n` F01 12 | `CH n` F01 12 | `CH n` F01 12 | `CH n` F01 12 | `CH n` F01 12 |
+| EN_ALGO | `ALGO name` F03 12 | `ALGO name` F03 12 | `ALGO name` F03 12 | `ALGO name` F03 12 | `ALGO name` F03 12 | `tab` F29 11 |
+| EN_PRESET | `Pnn` F23 10 | `Pnn` F23 10 | `Pnn` F23 10 | `Pnn` F23 10 | `-`  | `row` F29 11 |
+| MASTER | `-`  | `-`  | `-`  | `-`  | `-`  | `-`  |
+| EN_K1 | `algo label` F08 12 F31 10 | `NOTE / TIE` F05 10 F51 9 | `GATE / SCALE` F16 11 F19 9 | `RST` F43 9 | `CURSOR` F53 12 | `value` F29 11 |
+| EN_K2 | `algo label` F08 12 F32 10 | `ACC / MUTE` F42 9 F51 9 | `DIV / OCTAVE` F16 11 F27 9 | `RST` F43 9 | `ACC` F53 12 | `value` F29 11 |
+| EN_K3 | `algo label` F08 12 F33 10 | `SLIDE / PROB` F42 9 F51 9 | `SWING / MIDI` F16 11 F02 9 | `RST` F43 9 | `SLIDE` F53 12 | `value` F29 11 |
+| EN_K4 | `algo label` F08 12 F34 10 | `RATCH / OCT` F42 9 F05 10 | `BPM / LENGTH` F17 11 F50 9 | `RST` F43 9 | `OCT` F53 12 | `value` F29 11 |
+| KEY_W01_F3 | `step 1` F04 12 F26 10 | `pitch / step 1` F05 10 F42 9 | `KEY / step` F18 10 | `CLR 1` F06 10 | `note` F53 12 F26 10 | `-`  |
+| KEY_W02_G3 | `step 2` F04 12 F26 10 | `pitch` F05 10 F42 9 | `KEY / step` F18 10 | `CLR 2` F06 10 | `note` F53 12 F26 10 | `-`  |
+| KEY_W03_A3 | `step 3` F04 12 F26 10 | `pitch` F05 10 F42 9 | `KEY / step` F18 10 | `CLR 3` F06 10 | `note` F53 12 F26 10 | `-`  |
+| KEY_W04_B3 | `step 4` F04 12 F26 10 | `pitch` F05 10 F42 9 | `KEY / step` F18 10 | `CLR 4` F06 10 | `note` F53 12 F26 10 | `-`  |
+| KEY_W05_C4 | `step 5` F04 12 F26 10 | `pitch` F05 10 F42 9 | `KEY / step` F18 10 | `CLR 5` F06 10 | `note` F53 12 F26 10 | `-`  |
+| KEY_W06_D4 | `step 6` F04 12 F26 10 | `pitch` F05 10 F42 9 | `KEY / step` F18 10 | `CLR 6` F06 10 | `note` F53 12 F26 10 | `-`  |
+| KEY_W07_E4 | `step 7` F04 12 F26 10 | `pitch` F05 10 F42 9 | `KEY / step` F18 10 | `CLR 7` F06 10 | `note` F53 12 F26 10 | `-`  |
+| KEY_W08_F4 | `step 8` F04 12 F26 10 | `pitch` F05 10 F42 9 | `KEY / step` F18 10 | `CLR 8` F06 10 | `note` F53 12 F26 10 | `-`  |
+| KEY_W09_G4 | `step 9` F04 12 F26 10 | `pitch` F05 10 F42 9 | `KEY / step` F18 10 | `CLR 9` F06 10 | `note` F53 12 F26 10 | `-`  |
+| KEY_W10_A4 | `step 10` F04 12 F26 10 | `pitch` F05 10 F42 9 | `KEY / step` F18 10 | `CLR 10` F06 10 | `note` F53 12 F26 10 | `-`  |
+| KEY_W11_B4 | `step 11` F04 12 F26 10 | `pitch` F05 10 F42 9 | `KEY / step` F18 10 | `CLR 11` F06 10 | `note` F53 12 F26 10 | `-`  |
+| KEY_W12_C5 | `step 12` F04 12 F26 10 | `pitch` F05 10 F42 9 | `KEY / step` F18 10 | `CLR 12` F06 10 | `note` F53 12 F26 10 | `-`  |
+| KEY_W13_D5 | `step 13` F04 12 F26 10 | `pitch` F05 10 F42 9 | `KEY / step` F18 10 | `CLR 13` F06 10 | `note` F53 12 F26 10 | `-`  |
+| KEY_W14_E5 | `step 14` F04 12 F26 10 | `pitch` F05 10 F42 9 | `KEY / step` F18 10 | `CLR 14` F06 10 | `note` F53 12 F26 10 | `-`  |
+| KEY_W15_F5 | `step 15` F04 12 F26 10 | `pitch` F05 10 F42 9 | `KEY / step` F18 10 | `CLR 15` F06 10 | `note` F53 12 F26 10 | `-`  |
+| KEY_W16_G5 | `step 16` F04 12 F26 10 | `pitch` F05 10 F42 9 | `KEY / step` F18 10 | `CLR 16` F06 10 | `note` F53 12 F26 10 | `-`  |
+| KEY_B01_F#3 | `MUTE1` F20 11 | `MUTE1` F20 11 | `KEY / MUTE1` F18 10 F20 11 | `MUTE1` F20 11 | `note` F53 12 F26 10 | `-`  |
+| KEY_B02_G#3 | `MUTE2` F20 11 | `MUTE2` F20 11 | `KEY / MUTE2` F18 10 F20 11 | `MUTE2` F20 11 | `note` F53 12 F26 10 | `-`  |
+| KEY_B03_A#3 | `MUTE3` F20 11 | `MUTE3` F20 11 | `KEY / MUTE3` F18 10 F20 11 | `MUTE3` F20 11 | `note` F53 12 F26 10 | `-`  |
+| KEY_B04_C#4 | `MUTE4` F20 11 | `MUTE4` F20 11 | `KEY / MUTE4` F18 10 F20 11 | `MUTE4` F20 11 | `note` F53 12 F26 10 | `-`  |
+| KEY_B05_D#4 | `PAGE` F49 11 F50 9 | `-`  | `KEY / PAGE` F18 10 F49 11 | `PAGE` F49 11 F50 9 | `note` F53 12 F26 10 | `-`  |
+| KEY_B06_F#4 | `SOLO` F39 11 | `SOLO` F39 11 | `KEY / SOLO` F18 10 F39 11 | `SOLO` F39 11 | `note` F53 12 F26 10 | `-`  |
+| KEY_B07_G#4 | `FILL` F37 11 | `FILL` F37 11 | `KEY / FILL` F18 10 F37 11 | `FILL` F37 11 | `note` F53 12 F26 10 | `-`  |
+| KEY_B08_A#4 | `ROLL` F38 11 | `ROLL` F38 11 | `KEY / ROLL` F18 10 F38 11 | `ROLL` F38 11 | `note` F53 12 F26 10 | `-`  |
+| KEY_B09_C#5 | `SCN A` F40 11 F41 10 | `SCN A` F40 11 F41 10 | `KEY / SCN A` F18 10 F40 11 | `SCN A` F40 11 F41 10 | `note` F53 12 F26 10 | `-`  |
+| KEY_B10_D#5 | `SCN B` F40 11 F41 10 | `SCN B` F40 11 F41 10 | `KEY / SCN B` F18 10 F40 11 | `SCN B` F40 11 F41 10 | `note` F53 12 F26 10 | `-`  |
+| KEY_B11_F#5 | `RESTRT` F28 11 | `RESTRT` F28 11 | `KEY / RESTRT` F18 10 F28 11 | `RESTRT` F28 11 | `note` F53 12 F26 10 | `-`  |
 
 Conflict check (done on the TSV): in every context each control has exactly one action; the only deliberate duplicates are none (SELECT is the only channel select; TEMPO is SET K4 only). White keys are inert in MENU.
 
@@ -179,23 +180,23 @@ preset P01; keyboard OCT 0. The preview synth plays the selected channel; MASTER
 | W | Workflow | Steps (controls pressed) | Function ids |
 | --- | --- | --- | --- |
 | W1 | Select channel 1 | 1. Turn SELECT until the header cell `1` is inverted, (black keys no longer select, P1-014). | F01, F21 |
-| W2 | Set its MIDI channel (TB-3 = 2) | (P1-014) 1. Tap SEQ (the SET page opens), tap OCT+ (row 2). 2. Turn K3 until `MIDI` reads `2`. 3. Tap HOME. The next note goes out on MIDI channel 2. | F02 |
+| W2 | Set its MIDI channel (TB-3 = 2) | (P1-014 revision) 1. Tap GLO (the SET page opens), tap OCT+ (row 2). 2. Turn K3 until `MIDI` reads `2`. 3. Tap HOME. The next note goes out on MIDI channel 2. | F02 |
 | W3 | Pick an algorithm | 1. Turn ALGORITHM: `ACID > EUCLID > SNAKE > STAGE`. The new algorithm plays from the next step with its own stored morphs and seeds (S7). | F03 |
-| W4 | Enter steps on the 16 white keys | (P1-014) 1. Turn K1 fully down (`KEYS ONLY`) if only typed steps should play. 2. Tap white key n: step n is pinned and sounds (no STEP mode). 3. Hold the key and turn K1 `NOTE`; OCT+ then K4 `OCT` for the octave; K2 `ACC`, K3 `SLIDE`, K4 `RATCH` per step. 4. Tap a pinned key to clear; hold UNDO + REC clears all. | F04, F05, F06, F42 |
+| W4 | Enter steps on the 16 white keys | (P1-014 revision) 1. Turn K1 fully down (`KEYS ONLY`) if only typed steps should play. 2. Tap white key n: step n is pinned and sounds (no STEP mode). 3. Pitches: tap REC and play the line on the keys (they write at the cursor / nearest step; tap REC or HOME to leave), or hold the step key and press another white key (= that scale degree). 4. Per-step feel: hold the key, K2 `ACC`, K3 `SLIDE`, K4 `RATCH`; OCT+ then `TIE MUTE PROB OCT`. 5. Tap a pinned key to clear; hold EDIT + REC clears all. | F04, F05, F06, F42 |
 | W5 | Dial a sequence in with the knobs | 1. Press PLAY. 2. Turn K1 (density), K2 (form), K3 (pitch width), K4 (spice). For the second row, tap OCT+ (the band fills ROW 2) and turn the same four knobs: S1 start (`OFFSET`), S2 articulation, S3 dynamics, S4 read order; tap OCT- to go back (or hold OCT+ while turning for a momentary ROW 2). Each detent is heard from the next step and its cell shows the value. | F07, F25 |
 | W6 | Morph live | Same controls as W5 while playing. Every morph is monotonic and reversible: turning back restores the exact pattern. | F08 |
-| W7 | Dice each layer | (P1-014) Top row, left to right: FX = all, SCL = NOTES, ENV = HITS, LFO = ACCNT, EDIT = ARTIC, GLO = SHAPE, all on press. ARP tap = undo / redo. | F09-F15 |
-| W8 | Tune the algorithm | The algorithm's own parameters are the four morphs (W5). The global feel it reads: (P1-014) 1. Tap SEQ (SET page, row 1). 2. Turn K1 GATE, K2 DIV, K3 SWING, K4 BPM. 3. Tap HOME (or SEQ) to go back. | F16 |
-| W9 | Set the global scale and key (S5) | (P1-014) 1. Tap SEQ, tap OCT+ (SET row 2). 2. Press any key for the KEY; turn K1 (SCALE), K2 (OCTAVE). 3. Tap HOME. Every channel re-snaps from the next step; the header shows `KEY SCALE` on every screen. | F18, F19, F27 |
+| W7 | Dice each layer | (P1-014 revision) FX = all, SCL = NOTES, SEQ = HITS, ENV = ACCNT, ARP = ARTIC, LFO = SHAPE, all on press. EDIT tap = undo / redo. | F09-F15 |
+| W8 | Tune the algorithm | The algorithm's own parameters are the four morphs (W5). The global feel it reads: (P1-014) 1. Tap GLO (SET page, row 1). 2. Turn K1 GATE, K2 DIV, K3 SWING, K4 BPM. 3. Tap HOME (or GLO) to go back. | F16 |
+| W9 | Set the global scale and key (S5) | (P1-014 revision) 1. Tap GLO, tap OCT+ (SET row 2). 2. Press any key for the KEY; turn K1 (SCALE), K2 (OCTAVE). 3. Tap HOME. Every channel re-snaps from the next step; the header shows `KEY SCALE` on every screen. | F18, F19, F27 |
 | W10 | Mute / switch channels | (P1-014) Mute: tap F#3 / G#3 / A#3 / C#4 for CH1-4 (toggle). Switch: turn SELECT (black keys no longer select; there is no `ALL ON`). Restart all from step 1: tap F#5. | F20, F21, F28 |
 | W11 | Save / load | Save: tap SAVE (`SAVED P01`). Save to another slot: turn PRESETS to an empty slot (`P05 EMPTY`), tap SAVE. Load: turn PRESETS to a filled slot; it loads at the next loop start (immediately when stopped), the header shows `P03>` until then. Undo a load: hold SAVE 0.7 s (again: redo). | F22, F23, F24 |
-| W12 | Tempo | (P1-014) Tap SEQ, turn K4 (BPM); the TAP key is given up for PAGE. | F17 |
+| W12 | Tempo | (P1-014 revision) Tap GLO, turn K4 (BPM); the TAP key is given up for PAGE. | F17 |
 | W13 | Transport | PLAY starts / stops every channel. | F25 |
-| W14 | Audition notes | (P1-014) There are no live notes: a white key press pins and sounds step n (the generated note, or the root); change its pitch with hold + K1 `NOTE`. Reviewer flag: arbitrary pitches cannot be played to audition them (PERFORMANCE_DESIGN review log). | F26 |
+| W14 | Audition notes | (P1-014 revision) Tap REC: every key (F3..G5, chromatic) sounds on the selected channel and writes a pin; EDIT tap takes the last note back. Outside REC a white key press pins and sounds step n; a held step key + another white key sounds that scale degree; K1 `NOTE` sounds each detent. | F26 |
 | W15 | Set-and-forget settings | Hold HOME 0.7 s; ALGORITHM = tab, PRESETS = row, K1-K4 = value; HOME tap closes. | F29 |
 
-The reference workflow (VISION) is therefore: SELECT to `1` -> tap SEQ, OCT+, K3 to `2`, HOME -> ALGORITHM to `ACID` -> PLAY ->
-K1-K4 and the dice buttons. That is 5 gestures to sound on the TB-3, all on the main screen except the SET page (tap SEQ, OCT+).
+The reference workflow (VISION) is therefore: SELECT to `1` -> tap GLO, OCT+, K3 to `2`, HOME -> ALGORITHM to `ACID` -> PLAY ->
+K1-K4 and the dice buttons. That is 5 gestures to sound on the TB-3, all on the main screen except the SET page (tap GLO, OCT+).
 
 ## 3. Ease score
 
@@ -268,7 +269,7 @@ KEYS legend, not on the main screen; reviewer correction, they had been scored V
 
 ### 3.3 The L sub-score and the extended pass rule (P1-014)
 
-**L = learnable without a manual** (0 needs the manual; 1 guessable only from other controls; 2 role visible on screen but must be discovered; 3 role obvious from the label and position, and the cue strip names it). Totals are out of 12. Pass: performance functions >= 11 with no sub-score below 2; setup functions >= 9 with no 0. Every function F00-F52, approved (P1-013) versus proposed (P1-014), with V/I/O/L and the pass result, is the table in [PERFORMANCE_DESIGN.md](PERFORMANCE_DESIGN.md) section 7.2: under the extended rule the approved scheme fails 24 of 53 functions (L is the new cause for F02, F05, F20, F28, F31-F34; F36-F52 do not exist there), the proposed scheme passes all 52 live functions (570 of 624).
+**L = learnable without a manual** (0 needs the manual; 1 guessable only from other controls; 2 role visible on screen but must be discovered, including a printed word that only loosely fits or contradicts the role; 3 role obvious from the printed word or position without the screen, and the cue strip names it). Totals are out of 12. Pass: performance functions >= 11 with no sub-score below 2; setup functions >= 9 with no 0. Every function F00-F55, approved (P1-013) versus B (the first P1-014 version, L corrected) versus B2 (final), with V/I/O/L and the pass result, is the table in [PERFORMANCE_DESIGN.md](PERFORMANCE_DESIGN.md) section 7.2: under the extended rule the approved scheme fails 25 of 56 functions; B2 passes all 54 live functions (576 of 648) with one disclosed classification (F31-F34, the ROW 2 morphs, are setup dial-ins at 10: owner question 60).
 
 ## 4. Redesign iterations
 
@@ -322,7 +323,7 @@ detent, 4 per detent when turned fast on ranges over 32 values): FULL_CONTROL.md
 
 ### 5.2 Dice buttons
 
-> P1-014: the button positions in this section are the P1-012 / P1-013 ones. Current: top row `FX SCL ENV LFO EDIT GLO` = ALL NOTES HITS ACCNT ARTIC SHAPE (press), `ARP` tap = UNDO. Layer meanings, seeds and sub-labels below are unchanged.
+> P1-014 revision: the button positions in this section are the P1-012 / P1-013 ones and are **current again** (scheme B2): `FX` ALL, `SCL` NOTES, `SEQ` HITS, `ENV` ACCNT, `ARP` ARTIC, `LFO` SHAPE (all press-only), `EDIT` tap = UNDO. (The first P1-014 version had moved them into layer order; withdrawn.) Layer meanings, seeds and sub-labels below are unchanged.
 
 Main label (always the shared name) / sub-label (the algorithm's own layer, max 6 characters) / seeds diced.
 `-` = absent: the button is drawn dimmed as `SHAPE -`, a press changes nothing and shows `NO SHAPE IN EUCLID` for

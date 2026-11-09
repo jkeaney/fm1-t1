@@ -3,7 +3,7 @@ id: P1-014
 title: Performance-first control design: every control accounted for, fun to play, never lost, no manual
 phase: P1
 type: spike
-status: todo
+status: review
 priority: 0
 executor: sonnet
 depends_on: [P1-013]
@@ -107,3 +107,21 @@ The reviewer's findings (full list in its log above) show the design does not ye
 4. HOME: resolve the conflict between the HELP window and the 0.7 s hold that opens the menu.
 5. Fill the undefined states the reviewer listed, and add to the confusing-states list.
 6. Keep the owner-numbered questions (55-59) consistent; do not renumber others. Update all affected documents, re-run python3 tools/check_control_map.py (OK), keep ADR-0003 RAM re-added. Do not write an Approved line.
+
+### 2026-11-10 executor revision (sonnet)
+Revision pass after review and the orchestrator's six required items. Design only (no firmware, tests or flashing). Looked at docs/controls.jpg (including a 2x crop of the key labels: black keys read OP1 OP2 OP3 | OP4 OP5 | OP6 PIT GLD | MONO POLY | blank) and panel.c.
+1. **Honest L.** New rule (PERFORMANCE_DESIGN 7.1): L3 only where a printed word already means the job; fair or weak fits and unprinted positions are L2; the cue strip does not lift L. All dice, UNDO, black-key moves are now 11 (3/3/3/2). F31-F34 (ROW 2 morphs) are 3/2/3/2 = 10 and cannot pass as performance functions by any honest scoring: B2 classes them as **setup dial-ins** (pass at 10 vs 9) and says so plainly (7.2); owner question 60 offers the alternative (move the four most-performed morphs to ROW 1).
+2. **B2 (printed words).** FX = ALL; SCL = NOTES; SEQ = HITS; ENV = ACCNT; ARP = ARTIC; LFO = SHAPE (the P1-012 positions, which came from the printing; the first version's layer-order row was the thing that fought it); EDIT = UNDO / RESET; GLO = SET; REC = RECORD (new `REC` context: the 27 keys play pitches and write them); HOME / SAVE / PLAY as printed; OCT-/OCT+ remains the one hard override (owner decision 48). **REC = MUTATE is replaced** and MUTATE is removed (scored I2 / L1; dice + EDIT tap covers "try and take back"). Scored B (honest) vs B2 vs A vs C; B2 chosen (7.2, 8): approved 414/672 with 25 fails; B honest 568/648 with 5 fails (F31-F34, F36); B2 576/648, 0 fails; 22-function comparison A 180 (13 fail), B 231 (1), B2 235 (1 as P, 0 with F31 as S), C 220 (10). B2 is "A plus B's keys"; A's zeros are a property of freezing the keys.
+3. **Pitch entry.** REC: tap REC, play keys F3..G5 (chromatic, sounds = the audition path), K1 CURSOR K2 ACC K3 SLIDE K4 OCT, EDIT tap takes the last note back: 17 gestures for 16 pitched steps (B: about 80). One step: hold the step key + press another white key = that scale degree (F05 10). K1 NOTE sounds each detent.
+4. **HOME.** HOME acts on release: tap = home; held + any control touched (no time window) = HELP; released after 0.7 s with nothing touched = MENU; the strip shows `HOME: touch=HELP  let go=MENU` at once (PERFORMANCE_DESIGN 5.3; owner question 61).
+5. **Undefined states** defined (5.6, 13 rows) and the confusing-states list extended from 14 to 20 rows (stopped vs playing, mute + solo, EDIT after a load, brush guard, HOME menu surprise, REC pitch mistakes, two buttons held); black keys inert in MENU (TSV rows fixed); 60 s script rewritten (ARP-undo error removed; HELP, pitch gesture, REC and RESET are used).
+6. **Numbering:** 55-59 kept (55, 56, 57 reworded for B2), 60-64 added in OWNER_QUESTIONS.md; no other numbers touched.
+Files: docs/design/PERFORMANCE_DESIGN.md (rewritten, 11 sections), control_map.tsv and CONTROL_MAP.md (294 rows = 49 controls x 6 contexts, regenerated), FULL_CONTROL.md, UX_REVIEW.md (1.1, 1.2, 1.3 regenerated, W2-W14, 3.3, 5.2 note), ALGORITHM_SET.md, ADR-0003 (REC state added, MUTATE 24 B removed, 11.1 re-added), OWNER_QUESTIONS.md.
+RAM (ADR-0003 11.1): new .bss 5329 + 56 + 0 + 8 + 31 + 2 + 768 + 768 = **6962 B**; headroom 46496 - 6962 = **39534 B** after the removals, 17984 - 6962 = **11022 B** before (6926 B above the 4096 B floor; > 8 KB trigger). Pool unchanged (3364 B spare today).
+Verification:
+```
+python3 tools/check_control_map.py   -> rows tsv=294 md=294 / OK
+grep -nEi 'TBD|choose|decide' docs/design/PERFORMANCE_DESIGN.md || echo clean   -> clean
+python3 tools/backlog.py check   -> 37 items, 0 errors
+```
+Reviewer should look at: (a) the F31-F34 reclassification (the one place a pass is by classification, not by score); (b) REC's interaction rules (5.6) and the 27-byte sounding-note table; (c) that SCL lost its hold (scale and key now only on SET row 2); (d) the black keys keep L2 (printing OP1..OP6 not used except OP1..OP4 loosely). No Approved line written (human-review gate); the last acceptance box stays unticked.
