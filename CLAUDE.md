@@ -63,6 +63,7 @@ is in `~/.jieli/toolchain` and the AC79 SDK in `~/fw-AC79_AIoT_SDK`. Python tool
 (already has mido, python-rtmidi, Pillow, fonttools; Homebrew `libraqm` is needed for the font rasteriser).
 
 ```sh
+sh tools/check.sh                            # build + RAM headroom + host tests + backlog check; ends CHECK PASS or CHECK FAIL: <stage>
 ./build.sh                                   # -> build/felucca.bin, build/loader/ota.bin, build/felucca.fwsc
                                              # prints "image … RAM .data+.bss N of 73728; pool …": watch the RAM line
 export AC79_SDK=~/fw-AC79_AIoT_SDK PATH="$PWD/.venv/bin:$PATH"
