@@ -13,6 +13,7 @@ gate: human-review
 Assign every button, knob, encoder and key to the vision: channel select, algorithm select, step entry, morph, dice, transport, mute. Every musical function one gesture away, with on-screen labels.
 
 ## Read first
+- docs/project/OWNER_QUESTIONS.md (owner decisions: scale, GATE/DIV/SWING are global; ACID has slide)
 - docs/design/CONTROL_INVENTORY.md
 - docs/design/ALGORITHM_SET.md
 - docs/project/VISION.md (reference workflow)

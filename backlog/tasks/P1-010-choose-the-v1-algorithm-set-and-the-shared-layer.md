@@ -6,13 +6,14 @@ type: task
 status: todo
 priority: 1
 executor: sonnet
-depends_on: [P1-003, P1-004, P1-005, P1-006, P1-007, P1-008, P1-009]
+depends_on: [P1-011, P1-003, P1-004, P1-005, P1-006, P1-007, P1-008, P1-009]
 gate: human-review
 ---
 ## Goal
 One coherent algorithm menu for channels: which algorithms ship in v1, the layers they share (so the dice buttons mean the same thing everywhere) and a consistent knob morph scheme.
 
 ## Read first
+- docs/project/OWNER_QUESTIONS.md (owner decisions: scale, GATE/DIV/SWING are global; ACID has slide)
 - docs/design/algorithms/*.md (all 7 assessments)
 - docs/project/VISION.md
 

@@ -13,6 +13,7 @@ gate: human-review
 Fix the data model and interfaces that P4–P6 build on: channels, steps, the algorithm plugin interface (layers, seeds, morph parameters), the event router to MIDI and the preview synth, timing, memory budget.
 
 ## Read first
+- docs/project/OWNER_QUESTIONS.md (owner decisions: scale, GATE/DIV/SWING are global; ACID has slide)
 - docs/design/ALGORITHM_SET.md
 - docs/design/SYSTEM_MAP.md
 - docs/t1-algorithms/01-architecture.md, 08-output-and-dispatch.md

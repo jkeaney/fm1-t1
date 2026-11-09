@@ -3,7 +3,7 @@ id: P0-005
 title: Flash the fixed-bassline build and verify it on the TB-3
 phase: P0
 type: task
-status: todo
+status: dropped
 priority: 1
 executor: human
 depends_on: [P0-003, P0-004]
@@ -36,3 +36,6 @@ sh tools/check.sh                    # CHECK PASS
 - Firmware changes (file a BUG instead).
 
 ## Log
+
+### 2026-11-09 orchestrator
+Owner decision: skip the flash; dropped. Hardware testing deferred to the designed build.
