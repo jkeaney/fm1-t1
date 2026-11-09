@@ -20,6 +20,10 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 14 | P1-006 steparp | Is a 2..4-note chord pool enough for a TB-3 bass, or does it want a root-on-downbeat bias? | first hardware test (only if promoted) |
 | 15 | P1-006 steparp | Chord snap on sparse scales turns major into minor in minor pentatonic. Acceptable? (Relates to #2 and #4.) | P2-001 |
 | 16 | P1-006 steparp | Chord-tone snap direction: at or below (as inferred in the source) or nearest? | P2-001 |
+| 17 | P1-007 rhythmic-steps | Is a fixed base note 36 with the alt at +12 acceptable for the pitchless RHYTHM algorithm, or must a drum channel carry a note setting (breaks rule 3)? | P1-010 |
+| 18 | P1-007 rhythmic-steps | A pin on a step at or past LEN is silent until LEN is raised. Acceptable (same shape as #10)? | P1-010 / P2-003 |
+| 19 | P1-007 rhythmic-steps | Add NUDGE (reversible small mutate, 0..8 steps) to the global dice vocabulary for all algorithms, independent of whether RHYTHM ships? | P1-010 / P2-004 |
+| 20 | P1-007 rhythmic-steps | Is a drum-voice channel a v1 goal at all? If not, RHYTHM stays LATER; also lift the groove-template HITS order into the shared density primitive? | P1-010 |
 
 ## Decisions (owner, 2026-11-09)
 | # | Decision |
