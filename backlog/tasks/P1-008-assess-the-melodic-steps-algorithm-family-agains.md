@@ -3,7 +3,7 @@ id: P1-008
 title: Assess the melodic-steps algorithm family against the vision
 phase: P1
 type: spike
-status: todo
+status: review
 priority: 2
 executor: sonnet
 depends_on: [P0-001]
@@ -21,11 +21,11 @@ Decide whether and how the Melodic Steps five-lane polymetric melody becomes an 
 - docs/design/algorithms/melodic-steps.md, following _TEMPLATE.md section by section (all 8 sections, no section left empty)
 
 ## Acceptance criteria
-- [ ] All 8 template sections are present and filled
-- [ ] Section 5 has a 0–3 score and a reason on each of the 5 rows
-- [ ] Section 6 names at most 4 knob morphs and at least 1 dice layer, with on-screen labels of at most 6 characters
-- [ ] Section 8 is exactly one of INCLUDE in v1 / LATER / REJECT
-- [ ] Any design point that relies on a ⚠ claim is listed in section 7
+- [x] All 8 template sections are present and filled
+- [x] Section 5 has a 0–3 score and a reason on each of the 5 rows
+- [x] Section 6 names at most 4 knob morphs and at least 1 dice layer, with on-screen labels of at most 6 characters
+- [x] Section 8 is exactly one of INCLUDE in v1 / LATER / REJECT
+- [x] Any design point that relies on a ⚠ claim is listed in section 7
 
 ## Verification
 ```sh
@@ -38,3 +38,15 @@ grep -E 'INCLUDE in v1|LATER|REJECT' docs/design/algorithms/melodic-steps.md
 - Assessing other families.
 
 ## Log
+
+### 2026-11-09 executor (sonnet)
+Verification: the 8-heading loop printed nothing; `grep -E 'INCLUDE in v1|LATER|REJECT'` hits section 8 (**LATER**) and the verdict preview.
+Section 6 morphs: LEN, LEAP, SPAN, DENS (all <= 6 chars); dice: NOTES, RESTS, OCT, GATE, ACCNT (5 layers) + dice-all/undo. Section 5 scored all 5 rows (3/3/2/1/3).
+Informative check in 6.3 was produced by a throwaway Python transcription of the procedure (not committed).
+Overlap with the existing five assessments is tabulated in 6.7 for P1-010 (rank-order DENS, velocity/accent lane, gate lane, octave lane, LEN all duplicate/near-duplicate). Genuinely new: contour pitch walk (LEAP/SPAN), per-note lane clock `hc`, pins that do not consume the contour.
+All source ⚠ claims touched are listed in section 7 (none relied on).
+Owner questions (also appended to docs/project/OWNER_QUESTIONS.md as #22-25):
+22. Lift the contour walk into SNAKE/STAGE NOTES as a pitch-source option (answers #5)?
+23. Note lanes per sounding note (hc) or per step (t)?
+24. Should a typed/pinned step consume a contour note (recommend no)?
+25. Cheaper v1 option: SNAKE + a LEAP morph instead of a separate MELODY (only if #22 yes)?

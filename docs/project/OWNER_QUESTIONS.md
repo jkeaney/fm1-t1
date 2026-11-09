@@ -25,6 +25,10 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 19 | P1-007 rhythmic-steps | Add NUDGE (reversible small mutate, 0..8 steps) to the global dice vocabulary for all algorithms, independent of whether RHYTHM ships? | P1-010 / P2-004 |
 | 20 | P1-007 rhythmic-steps | Is a drum-voice channel a v1 goal at all? If not, RHYTHM stays LATER; also lift the groove-template HITS order into the shared density primitive? | P1-010 |
 | 21 | P1-007 rhythmic-steps (review) | None of the five assessed families places hits by even spacing (Euclidean). Björklund already exists in the T-1 code (`torso_t1_algo.c`: `t1_euclidean_bjorklund`, `_rotate`). Should P1-010 carry a reworked Euclidean algorithm into v1 as the rhythm-first choice (pitch from the global scale), and should the groove-template HITS order be offered as a second density source? | P1-010 |
+| 22 | P1-008 melodic-steps | If MELODY is not promoted, should its contour walk (LEAP/SPAN, starting on the root) become a pitch-source option for SNAKE's and STAGE's NOTES layers? (Answers #5.) | P1-010 |
+| 23 | P1-008 melodic-steps | Should note lanes advance per sounding note (hit counter, keeps the tune in order when thinned or pinned) or per step (`t`, as SNAKE/STAGE)? Shared primitive if per note. | P1-010 / P2-001 |
+| 24 | P1-008 melodic-steps | Should a typed (pinned) step consume a contour note? Recommended no. | first hardware test |
+| 25 | P1-008 melodic-steps | Cheaper v1 option: SNAKE plus a LEAP morph on its pitch lane instead of a separate MELODY algorithm (only if #22 is yes)? | P1-010 |
 
 ## Decisions (owner, 2026-11-09)
 | # | Decision |
