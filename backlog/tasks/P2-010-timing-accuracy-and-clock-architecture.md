@@ -26,6 +26,7 @@ Owner requirement (2026-11-10): "make sure our code has all the tools to ensure 
   4. Clock source model: INT master, EXT follow, hand-over rules, what happens when the clock stops or jumps, and how the sequencer position stays locked (Start/Continue/SPP handling).
   5. A visibility spec that makes the clock and its source obvious on every page (a persistent clock badge with source and BPM, LED behaviour, a beat pulse), consistent with SCREEN_SPEC section 6; add rows to SCREEN_SPEC/page_states.tsv if needed.
   6. A measurement plan: extend tools/fm1_midi_listen.py (or a new tool) to capture timestamped MIDI and report inter-note jitter and clock-out accuracy; define host tests where timing logic can be tested, and a hardware-test gate (FM-1 to Ableton with sync on/off, FM-1 to TB-3) with pass thresholds.
+  6b. Test mode (owner, 2026-11-10: "we can test it properly once our own firmware is in test mode"): specify a firmware test mode (a build flag or a hidden menu entry) that plays a fixed timing pattern (for example straight 16ths on one note, a known BPM, clock out on) and can follow or send clock, so the measurement tool can compare expected against received timestamps with no musical variation. Define what it plays, how it is entered, that it costs no RAM in the normal build, and which dev task implements it.
   7. RAM/CPU cost and which dev tasks (E4/E5) must implement it.
 - Owner questions listed with options.
 
@@ -33,7 +34,7 @@ Owner requirement (2026-11-10): "make sure our code has all the tools to ensure 
 - [ ] The five areas above are specified with numbers (block length, jitter target, clock-out accuracy), not adjectives
 - [ ] Every claim about current behaviour cites source lines
 - [ ] Visibility spec added to the screen docs without changing locked UX decisions
-- [ ] A hardware-test gate with thresholds is defined
+- [ ] A hardware-test gate with thresholds is defined, run on our own firmware in its test mode
 - [ ] `python3 tools/check_sequencer_ux.py`, `tools/check_control_map.py` and `backlog.py check` pass
 - [ ] Owner approval
 
@@ -48,3 +49,4 @@ python3 tools/backlog.py check
 
 ## Log
 - 2026-11-10 created by the orchestrator from owner feedback after a loose Ableton recording.
+- 2026-11-10 owner: timing will be tested properly once our own firmware has a test mode; added to the deliverable (6b).
