@@ -38,7 +38,7 @@ express this (it has no layers, no per-layer seeds, no pins, no slide), and its 
 5. **Events leave through one function** (`sq_emit`) to `midi_out_event` and, for the selected channel, to the preview
    synth (ANALOG on `trk[0]`). Note-offs are never dropped; stop/panic/disconnect silence everything. (Section 8.)
 6. **Always on, boots working.** No mode switch, no T-1 flag. (Section 12.)
-7. **RAM: +2.2 KB `.bss` for the core**, ~6.4 KB pool; fits today and after the E3 removals. (Section 11.)
+7. **RAM: +2.2 KB `.bss` for the core (2193 B)**, ~6.4 KB pool; fits today and after the E3 removals. (Section 11.)
 
 ## 3. Data model (exact C; all structs live in a new `sq_types.h`, included before every `sq_*.c`)
 
@@ -137,6 +137,7 @@ typedef struct {
     uint8_t  snd_chan[2];          /* the SeqEvent.chan byte each was sent with (its note-off goes to the same place) */
     uint8_t  slide_in;             /* the step about to start was announced as a glide target */
     uint8_t  act;                  /* +1 per note-on, read by the UI as an activity pulse */
+    uint8_t  open;                 /* 1 = the sounding note snd[0] has NO queued note-off (a tie was announced; section 7.3 step 7) */
 } ChanRT;
 _Static_assert(sizeof(ChanRT) == 24, "ChanRT");
 
@@ -299,7 +300,7 @@ event queue. Shared (written by main, read by ISR) is exactly this list; nothing
 
 | Shared item | Protocol |
 | --- | --- |
-| `uint8_t sq_cache[4][2][64]`, `volatile uint8_t sq_cidx[4]` | Main loop builds into `[ch][cidx^1]`, then sets `sq_cidx[ch] ^= 1` (one byte store). The ISR reads `sq_cidx[ch]` **once per channel per tick** and finishes all `step()` calls for that tick from that buffer. The ISR never keeps a pointer across blocks. |
+| `uint32_t sq_cache[4][2][16]` (64 B per buffer, 4-byte aligned: algorithms cast it to their cache struct, and pi32v2 must not see a misaligned 16/32-bit access), `uint8_t sq_calgo[4][2]` (the algorithm id each buffer was built for), `volatile uint8_t sq_cidx[4]` | Main loop builds into `[ch][cidx^1]` and writes `sq_calgo[ch][cidx^1]`, then sets `sq_cidx[ch] ^= 1` (one byte store). The ISR takes the algorithm from `ALGOS[sq_calgo[ch][cidx]]`, **never** from `ChanSave.algo`, so a cache is always read by the algorithm that built it. The ISR reads `sq_cidx[ch]` **once per channel per tick** and finishes all `step()` calls for that tick from that buffer. The ISR never keeps a pointer across blocks. |
 | `SeqGlobal sq_gdb[2]`, `volatile uint8_t sq_gidx` | Same double buffer. The ISR copies nothing; it reads `sq_gdb[sq_gidx]` once per block. |
 | `ChanSave.pin_mask` / `pin_note[]` | ISR reads directly. Main writes `pin_note[i]` first, then `pin_mask` (a 16-bit aligned store is atomic). A one-step glitch on a pin edit is acceptable (no stuck note: notes are paired). |
 | `midi_ch`, `muted`, `algo`, `sq_sel` | Single bytes, read once per tick. |
@@ -353,7 +354,8 @@ musical gain, and the integer-tick grid keeps host tests exact.
 ```c
 static void sq_block(uint32_t n)           /* events_block: instead of the T-1 / pattern-track branch; n = seq_n */
 {   if (!sq_ready) return;
-    sq_consume_requests();                 /* START: sq_all_off(); t=0, grid=tick=0; STOP / PANIC: sq_all_off() */
+    sq_entropy_ctr += n;                   /* free-running, also while stopped: the dice seed source (3.1) */
+    sq_consume_requests();                 /* START: sq_all_off(); t=0, grid=tick=0, sq_acc = beat_samples() (tick 0 on the first block, as `t1_on_start` does); STOP / PANIC: sq_all_off() */
     sq_usb_edge();                         /* usb.config 0->1: panic all, so a reconnect finds nothing hanging */
     if (!song.playing || !beat_samples()) { sq_dispatch_overdue(); return; }
     sq_acc += n * SQ_PPQN;
@@ -381,23 +383,23 @@ they call `t1_on_start()/t1_on_stop()` today.
    the snapshot taken one step earlier (`vel`, `gate`, `rep`, `hold` stay live: a dice of ACCNT or GATE is heard on the
    next step; a hit/note/slide change on the one after: owner question 9, ALGORITHM_SET question-9 mitigation).
 3. `out1 = eval(c, t+1)`; if `AF_PAIRING`: `rt.nxt = out1; rt.nxt_ok = 1`.
-4. If `muted` or `!(out.flags & PO_HIT)`: `rt.slide_in = 0`; skip to step 8. (Muting keeps phase: `t` and `grid` still
+4. If `muted` or `!(out.flags & PO_HIT)`: if `rt.open` (a previous step left the sounding note without an off, expecting a tie) emit its NOTE_OFF now (`rt.snd[0]` on `rt.snd_chan[0]`) and clear `rt.open`; `rt.slide_in = 0`; skip to step 8. (Muting keeps phase: `t` and `grid` still
    advance. Owner/T1 F10.)
 5. `slideout = AF_PAIRING && (out1.flags & PO_HIT) && (out1.flags & PO_SLIDE_IN) && ((t + 1) % loop_len != 0)`.
-   `tie = rt.slide_in && rt.snd[0] && out.note == (rt.snd[0] - 1)`.
+   `tie = rt.slide_in && rt.snd[0] && out.note == (rt.snd[0] - 1)`. If `rt.open` and not `tie` (a mute, a note change or an algorithm switch happened since the tie was announced), emit the NOTE_OFF of `rt.snd[0]` now, before step 6. `rt.open = 0` after this line.
 6. **Note-on.** If `tie`: schedule nothing (the sounding note continues, `vel` ignored). Else schedule NOTE_ON(`out.note`,
    `out.vel`) at `S` (also at `S` for `rep > 1`, then SP5 repeats). If `rt.slide_in` and not tie the previous note's
    NOTE_OFF is already queued at `S + D` (step 7 of the previous step), so on-before-off holds. Same-pitch safety: if
    `out.note` is already in `rt.snd[]`, its NOTE_OFF is emitted immediately before the NOTE_ON.
 7. **Note-off** (scheduled together with the on, atomically, section 8.2):
    - `slideout` and `out1.note != out.note`: NOTE_OFF at `S1 + D`, `D = max(1, L / 8)`.
-   - `slideout` and `out1.note == out.note` (tie into the next step): **no** NOTE_OFF now; the next step schedules it.
+   - `slideout` and `out1.note == out.note` (tie into the next step): **no** NOTE_OFF now, `rt.open = 1`; the next step schedules it (or step 4 / step 5 emits it if the tie does not happen).
    - `PO_HOLD`: NOTE_OFF at `G + hold * L - GAP` (`GAP = 2` ticks), ignoring GATE.
    - else: `len = max(1, L * gate_eff / 100)`; NOTE_OFF at `min(S + len, S1 - 1)` (strictly before the next start, so
      a non-slide pair is always off-before-on).
-   - `rep > 1`: SP5 returns up to 3 `(offset, length, vel)` repeats inside `[S, S + L)`; each is its own on/off pair
+   - `rep > 1`: SP5 returns up to 3 `(offset, length, vel)` repeats inside `[S, S1 - 1]` (cell width `S1 - S`, which swing shortens for an odd step, so a repeat can never run into the next step); each is its own on/off pair
      (spacing at least 3 ticks, otherwise `rep` is reduced).
-8. `rt.slide_in = slideout; rt.t = t + 1; rt.grid = G + L; rt.act++` (if a note was scheduled).
+8. `rt.slide_in = slideout; sq_set_algo clears `nxt_ok` (the snapshot belongs to the old algorithm); rt.t = t + 1; rt.grid = G + L; rt.act++` (if a note was scheduled).
 
 Ordering rule at one tick: `sq_dispatch` emits **all NOTE_OFFs due, then all NOTE_ONs due**. A slide pair never ties on
 the same tick (the off is at `S + D`, `D >= 1`); a normal pair never does either (off capped at `S1 - 1`). Ratchet
@@ -427,6 +429,7 @@ keyboard_block (white keys) --> sq_live_on/off: sq_emit(now), no queue
   `trk_note_off(&trk[0], note)`. The preview synth is ANALOG preset 0 (owner decision 40) and plays only the selected
   channel. When `sq_sel` changes, the ISR first releases the previous channel's `snd[]` notes on `trk[0]` (tracked by
   `ChanRT.snd`).
+- A NOTE_OFF is sent only if its note is in `rt.snd[]` (otherwise its NOTE_ON was dropped by the reserve rule of 8.3 and the off is discarded), so the stream never carries an off without an on.
 - Bookkeeping: NOTE_ON stores `note + 1` in a free `rt.snd[]` slot (if both are full, the older note gets a NOTE_OFF first);
   NOTE_OFF clears the matching slot. `rt.act` is bumped on every NOTE_ON.
 - Velocity 0 is never sent as a NOTE_ON (clamped to 1).
@@ -467,7 +470,7 @@ switches. A pin at position `pos` (0..15) overlays whatever the algorithm produc
 
 ```c
 static void sq_eval(uint8_t c, uint32_t t, PulseOut *o)
-{   const AlgoDesc *a = &ALGOS[sq_ch[c].algo];  const void *k = sq_cache[c][sq_cidx[c]];
+{   uint8_t i = sq_cidx[c];  const AlgoDesc *a = &ALGOS[sq_calgo[c][i]];  const void *k = sq_cache[c][i];     /* one read of cidx */
     a->step(k, t, o);
     uint8_t pos = t % a->loop_len(k);                       /* pins sit on the visible loop (STAGE: first 16 pulses) */
     if (pos < SQ_NPIN && (sq_ch[c].pin_mask >> pos & 1u)) {
@@ -521,19 +524,20 @@ Facts (SYSTEM_MAP section 9): RAM `.data+.bss` after the E3 removals 27232 B of 
 | Algorithm caches, double buffered (2 x 64) | 128 | 512 | .bss |
 | `SeqGlobal` x2 (double buffer) + `cidx[4]` + `gidx` | | 41 | .bss |
 | Event queue `evq[96]` (96 x 8) | | 768 | .bss |
-| Transport / clock / requests / counters (`sq_acc`, `sq_now`, `sq_bar`, flags, `sq_drops`, `sq_epoch`, `sq_sel`) | | 32 | .bss |
+| Transport / clock / requests / counters (`sq_acc`, `sq_now`, `sq_bar`, `sq_entropy_ctr`, flags, `sq_drops`, `sq_epoch`, `sq_sel`) | | 32 | .bss |
+| `sq_calgo[4][2]` | | 8 | .bss |
 | USB-MIDI out ring 64 -> 128 packets (separate `MQO`) | | +256 | .bss |
-| **Core total (.bss)** | **272** | **2185** | |
+| **Core total (.bss)** | **272** | **2193** | |
 | UI state allowance for P2-003 (toasts, knob highlight timers, layer state, redraw signatures) | | 3072 | .bss (cap; P2-003 must fit or amend) |
-| **Total new .bss** | | **5257** | |
+| **Total new .bss** | | **5265** | |
 | Preset slots P01..P16 (16 x 356) | | 5696 | .pool / `.noinit` (replaces `proj_slot` 15360 B; E7) |
 | Staging preset + "undo last load" copy | | 712 | .pool |
 | **Total new pool** | | **6408** | |
 
 | Check | Allowed | Used | Result |
 | --- | ---: | ---: | --- |
-| `.bss`, after E3 removals: 46496 - 4096 | 42400 | 5257 | fits, headroom left 41239 (> 8 KB trigger) |
-| `.bss`, if built before the removals: 17984 - 4096 | 13888 | 5257 | fits, headroom left 12727 (> 8 KB trigger) |
+| `.bss`, after E3 removals: 46496 - 4096 | 42400 | 5265 | fits, headroom left 41231 (> 8 KB trigger) |
+| `.bss`, if built before the removals: 17984 - 4096 | 13888 | 5265 | fits, headroom left 12719 (> 8 KB trigger) |
 | Pool, today | 25764 | 6408 | fits |
 | Stack | n/a | `build` <= 256 B (main loop), `step` <= 64 B (ISR) | each dev task measures |
 
@@ -604,7 +608,8 @@ cut-over (one line in `events_block`, one in `main.c`) is the R8 task.
   `sq_types.h` -> `sq_prims.c` (SP1 xorshift, SP2 rank-order, SP3 accent count, SP4 velocity lane, SP5 ratchet, SP6/SP7/SP9
   `sq_gbuild`/`sq_note`, SP11 wrappers) -> `sq_algo_acid.c`, `sq_algo_euclid.c`, `sq_algo_snake.c`, `sq_algo_stage.c`
   -> `sq_algos.c` (the `ALGOS[]` table) -> `sq_core.c` (scheduler, API; the only file that touches `midi_out_event`,
-  `trk_*`, `beat_samples`). Everything in `sq_prims.c` and `sq_algo_*.c` is hosted-includes-free (`<stdint.h>` only) so the
+  `trk_*`, `beat_samples`). `seq.c` is included before these, so it forward-declares `sq_block`, `sq_on_start`, `sq_on_stop`,
+  `sq_live_on`, `sq_live_off` exactly as it does for `t1_block` today (seq.c lines 61-64), with `#ifndef T1_DEVICE` no-op stubs for the host tests. Everything in `sq_prims.c` and `sq_algo_*.c` is hosted-includes-free (`<stdint.h>` only) so the
   same files compile with plain `cc` in `tests/`.
 - **Algorithm golden vectors (P2-008 produces, dev tasks reproduce).** P2-008 writes each prototype as the *same two
   functions* (`build`, `step`) against `sq_types.h` and `sq_prims.h`, in `docs/design/algorithms/<name>/`. Golden file
@@ -687,7 +692,7 @@ Each task cites the section named. None may start before the owner approves this
 | --- | --- | --- | --- |
 | a | ALGORITHM_SET 4.3 per-seed previous seed, undo swaps all previous seeds | One `UndoRec` per channel (last dice / dice-all / pin-clear) | 46 |
 | b | sting 6.3a rule 3: algorithm or MIDI-channel change cuts notes | No cut; events carry their MIDI channel; only stop/panic/disconnect cut | 47 |
-| c | ACID "GATE multiplies"; control map default GATE 50 % | `GATE_MUL(x) = x * 2 / 100`: 50 % = the algorithm's own gate | 44 |
+| c | ACID "GATE multiplies"; control map default GATE 50 % | `GATE_MUL(x) = x * 2` (percent; 50 % = x1.00): 50 % = the algorithm's own gate | 44 |
 | d | T-1 swing: odd steps shifted by `(swing - 50)` % of a step | pair-ratio swing, `2 * (swing - 50)` % of a step | 43 |
 | e | "preset load at the next loop start" (loop undefined with 4 different loop lengths) | every 16 steps (a bar at 1/16) | 45 |
 | f | SNAKE/EUCLID informative output lines | superseded by P2-008 goldens (SP6/SP7 late quantise) | none |
@@ -698,6 +703,6 @@ Each task cites the section named. None may start before the owner approves this
 - The algorithm work (P2-008, dev tasks 8a-8d) is independent of the scheduler work (6-7): both meet at `PulseOut`.
 - A workflow change after hardware testing (a different knob on a different morph, a different dice grouping) is a
   table edit plus re-lock, never a code change (ADR-0004 addendum).
-- 5257 B of `.bss` and ~6.4 KB of pool buy the whole product; the E9 trigger (8 KB headroom) is not approached.
+- 5265 B of `.bss` and ~6.4 KB of pool buy the whole product; the E9 trigger (8 KB headroom) is not approached.
 - Risks: the slide-as-overlap behaviour on the TB-3 is unverified (question 8); next-step latency of up to one step
   for hit/note/slide changes (question 9); the 0.73 ms block quantisation is inaudible but measurable on a scope.

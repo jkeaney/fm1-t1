@@ -6,13 +6,14 @@ type: task
 status: todo
 priority: 1
 executor: sonnet
-depends_on: [P1-010, P2-004]
+depends_on: [P1-010, P2-004, P1-013]
 gate: human-review
 ---
 ## Goal
 Prove each v1 algorithm in a seeded host prototype and check in its golden output, so dev tasks reproduce known-good behaviour (ADR-0004).
 
 ## Read first
+- docs/design/FULL_CONTROL.md (P1-013: shift row, up to 8 morphs per algorithm, live two-row labels)
 - docs/project/decisions/ADR-0004-design-lock.md
 - docs/project/decisions/ADR-0003-sequencer-core.md
 - the P1-010 v1 shortlist and layer/morph model

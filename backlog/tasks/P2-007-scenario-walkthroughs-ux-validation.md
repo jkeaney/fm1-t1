@@ -6,13 +6,14 @@ type: task
 status: todo
 priority: 1
 executor: sonnet
-depends_on: [P2-001, P2-003]
+depends_on: [P2-001, P2-003, P1-013]
 gate: human-review
 ---
 ## Goal
 Script the target workflow as step-by-step scenarios so the control map and screen spec are proven complete before development (ADR-0004).
 
 ## Read first
+- docs/design/FULL_CONTROL.md (P1-013: shift row, up to 8 morphs per algorithm, live two-row labels)
 - docs/project/decisions/ADR-0004-design-lock.md
 - docs/project/VISION.md
 - docs/design/CONTROL_MAP.md and the screen spec from P2-001 and P2-003

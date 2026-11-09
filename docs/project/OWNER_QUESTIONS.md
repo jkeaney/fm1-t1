@@ -48,7 +48,7 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 42 | P2-002 system map | Sequencer is permanent, so host tests must link the T-1 sources (now stubbed): make that a prerequisite task? Recommend yes. | P2-002 review |
 | 43 | P2-004 ADR-0003 | Swing: odd steps start `2*(swing-50)`% of a step late (66 = triplet feel, 75 = dotted), instead of the T-1's `(swing-50)`%. OK? (a constant) | P2-004 review |
 | 44 | P2-004 ADR-0003 | GATE 10..100 % defaults to 50 %: the ADR makes 50 % neutral (x1.0 of each algorithm's own gate, 100 % = x2.0 capped) via a table. Or should 100 % be neutral? | P2-004 review |
-| 45 | P2-004 ADR-0003 | "Next loop start" for a queued preset load = every 16 steps (one bar at 1/16), since channels have different loop lengths. OK? | P2-004 review |
+| 45 | P2-004 ADR-0003 | "Next loop start" for a queued preset load = every 16 steps (one bar at 1/16), since channels have different loop lengths. OK? Reviewer note: 16 steps is half a bar at 1/32 and four bars at 1/4; a constant of 768 ticks (always one 4/4 bar) is the DIV-independent alternative (one table constant, `SQ_BAR_STEPS` becomes `SQ_BAR_TICKS`). | P2-004 review |
 | 46 | P2-004 ADR-0003 | Undo is one record per channel (the last dice / dice-all / pin-clear), tap again = redo, instead of one previous-seed per seed. OK? | P2-004 review |
 | 47 | P2-004 ADR-0003 | An algorithm or MIDI-channel change does not cut sounding notes (pending note-offs go to the old channel); only stop, panic and USB reconnect cut. OK? | P2-004 review |
 
@@ -115,3 +115,8 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 42 | Add a prerequisite dev task: host tests link the real T-1/sequencer sources (P2-005 must create it first in the removal chain). |
 | P0-005 | Listen test deferred. The owner will connect the TB-3 once the work here is done to test the sequencer interface: control of steps, notes, slides, accents etc. P2-005 must plan hardware-test gated tasks with a TB-3 checklist covering exactly those (steps, notes, slides, accents, morph, dice). |
 | Push | Approved. |
+
+## Decision (owner, 2026-11-10, sixth round): full algorithm control
+| # | Decision |
+| --- | --- |
+| Shift | Every algorithm needs FULL control. A SHIFT for the knobs is approved: it doubles the usable knobs (K1-K4 plus a shift row of 4 = up to 8 morphs per algorithm), and the screen instructs the change live (both rows of labels always visible; the active row and the shift state are unmistakable). This supersedes the 4-morph cap and the 'no shift page' stance. Easy access is the requirement: the shift must score >= 8 on the ease rubric with no sub-score below 2. Task P1-013. |
