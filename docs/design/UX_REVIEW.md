@@ -2,6 +2,8 @@
 
 > P2-009: the chord row of the CONTROL tab is removed (owner decision 39). CONTROL tab is 4 rows; 28 menu rows in total (SYSTEM_MAP section 7).
 
+> P1-013 (owner decision "Shift"): the knobs now have **two rows** (up to 8 morphs per algorithm). OCT- / OCT+ become the row buttons (tap latches ROW 1 / ROW 2; hold and turn is momentary); the keyboard octave moves to SCL held + OCT-/OCT+. Changed here: 1.1 and 1.3 rows, 1.4 knob band, W5/W6/W14, scores F30..F35 and totals, R1 note, 5.1 knob table, 5.4. Design: [FULL_CONTROL.md](FULL_CONTROL.md). Every score row below that is not named above is unchanged.
+
 Task P1-012 (owner directive 2026-11-10). Status: **for owner review** (gate `human-review`; approval also re-approves
 P1-010). Design only: no firmware is changed by this document.
 
@@ -50,10 +52,10 @@ row KNOB 1..KNOB 4; under the knobs the 2 x 6 button block; the 27-key keyboard 
 | `B_SEQ` | SEQ | row 2 col 4 | dice HITS | sequencer steps = which steps sound; screen label `HITS` | owns |
 | `B_PLAY` | PLAY/STOP | row 2 col 5 | start / stop all channels | exact | owns |
 | `B_REC` | REC | row 2 col 6 | tap = STEP entry on/off; hold 0.7 s = clear the channel's pins | exact (record steps, as Felucca's step record) | owns |
-| `B_OCTDN`, `B_OCTUP` | OCT-, OCT+ | buttons under the encoders | keyboard octave; with a step held, the pin's octave | exact | owns |
+| `B_OCTDN`, `B_OCTUP` | OCT-, OCT+ | buttons under the encoders | knob ROW 1 / ROW 2 (tap latches, hold and turn is momentary); with a step held, the pin's octave; with SCL held, the keyboard octave | exact once the cells read `ROW 1` / `ROW 2` | owns |
 | 16 white keys F3..G5 | none | keys, place 0..15 | live notes; in STEP: steps 1..16 | n/a | owns |
 | 11 black keys F#3..F#5 | small stock-firmware legends, not used | keys, place 0..10 | F#3 G#3 A#3 C#4 mute CH1-4; D#4 F#4 G#4 A#4 select CH1-4; C#5 unmute all; D#5 restart; F#5 tap tempo | n/a | owns |
-| Hidden maintenance | - | OCT- + OCT+ | both = octave 0; both 5 s = UPDATE MODE; both at power-on = CALIBRATION (unchanged) | n/a | device |
+| Hidden maintenance | - | OCT- + OCT+ | both 5 s = UPDATE MODE; both at power-on = CALIBRATION (unchanged) | n/a | device |
 
 Why this layout:
 - **The dice cluster is spatial.** Row 1 holds the pitch and dynamics layers (SCL NOTES, ENV ACCNT, LFO SHAPE), row 2
@@ -110,16 +112,16 @@ id scored in section 3. Full action text, page-or-owns and score per row: [contr
 | B_SEQ | `HITS +sub` F10 | = PERF | = PERF | = PERF | = PERF | = PERF | `close` F29 |
 | B_PLAY | `PLAY / STOP` F25 | = PERF | = PERF | = PERF | = PERF | = PERF | = PERF |
 | B_REC | `STEP` F04 | `STEP ON` F04 | `STEP ON` F06 | = PERF | = PERF | = PERF | `close` F29 |
-| B_OCTDN | `OCT n` F26 | = PERF | `PIN OCT` F05 | = PERF | = PERF | = PERF | `-` F29 |
-| B_OCTUP | `OCT n` F26 | = PERF | `PIN OCT` F05 | = PERF | = PERF | = PERF | `-` F29 |
+| B_OCTDN | `ROW 1` F30 | = PERF | `PIN OCT` F05 | `KB OCT n` F35 | `-` | `-` | `-` F29 |
+| B_OCTUP | `ROW 2` F30 | = PERF | `PIN OCT` F05 | `KB OCT n` F35 | `-` | `-` | `-` F29 |
 | EN_SELECT | `CH n` F01 | = PERF | = PERF | = PERF | = PERF | = PERF | = PERF |
 | EN_ALGO | `ALGO name` F03 | = PERF | = PERF | = PERF | = PERF | = PERF | `tab` F29 |
 | EN_PRESET | `Pnn` F23 | = PERF | = PERF | = PERF | = PERF | = PERF | `row` F29 |
 | MASTER | `-` - | = PERF | = PERF | = PERF | = PERF | = PERF | = PERF |
-| EN_K1 | `algo label` F08 | = PERF | = PERF | `KEY` F18 | `CH1 MID` F02 | `GATE` F16 | `value` F29 |
-| EN_K2 | `algo label` F08 | = PERF | = PERF | `SCALE` F19 | `CH2 MID` F02 | `DIV` F16 | `value` F29 |
-| EN_K3 | `algo label` F08 | = PERF | `NOTE` F05 | `OCTAVE` F27 | `CH3 MID` F02 | `SWING` F16 | `value` F29 |
-| EN_K4 | `algo label` F08 | = PERF | = PERF | = PERF | `CH4 MID` F02 | `BPM` F17 | `value` F29 |
+| EN_K1 | `algo label` F08 / F31 | = PERF | = PERF | `KEY` F18 | `CH1 MID` F02 | `GATE` F16 | `value` F29 |
+| EN_K2 | `algo label` F08 / F32 | = PERF | = PERF | `SCALE` F19 | `CH2 MID` F02 | `DIV` F16 | `value` F29 |
+| EN_K3 | `algo label` F08 / F33 | = PERF | `NOTE` F05 | `OCTAVE` F27 | `CH3 MID` F02 | `SWING` F16 | `value` F29 |
+| EN_K4 | `algo label` F08 / F34 | = PERF | = PERF | = PERF | `CH4 MID` F02 | `BPM` F17 | `value` F29 |
 | KEY_W01_F3 | `-` F26 | `step 1` F04 | `step 1` F05 | `KEY` F18 | = PERF | = PERF | `-` F26 |
 | KEY_W02_G3 | `-` F26 | `step 2` F04 | `step 2` F05 | `KEY` F18 | = PERF | = PERF | `-` F26 |
 | KEY_W03_A3 | `-` F26 | `step 3` F04 | `step 3` F05 | `KEY` F18 | = PERF | = PERF | `-` F26 |
@@ -162,8 +164,8 @@ mirroring the panel (knob row above the button block):
 | --- | --- |
 | Header, 24 px | transport glyph and BPM (`EXT` when slaved), global `KEY SCALE` (for example `C MINPEN`), preset `P01` (`P03>` while a load is queued, `P05 EMPTY` on an empty slot), `STEP` banner in STEP |
 | Channels, 32 px | four cells `1 ACID 2` (channel, algorithm, MIDI channel); selected cell inverted; muted cell dimmed with `M` |
-| Sequence, 80 px | the selected channel's algorithm name in large type and its 16-step lane: hits, accents, pins (outlined), playhead; in STEP the white-key number under each step; STAGE draws stage bars over its TOTAL pulses |
-| Knobs, 40 px | four cells K1..K4: label (max 6 characters) and value; a cell turned in the last 1 s is highlighted |
+| Sequence, 68 px (was 80) | the selected channel's algorithm name in large type and its 16-step lane: hits, accents, pins (outlined), playhead; in STEP the white-key number under each step; STAGE draws stage bars over its TOTAL pulses |
+| Knobs, 52 px (P1-013; the sequence band is 68 px) | two rows of four cells, each 26 px high: ROW 1 K1..K4 above ROW 2 S1..S4, a 12 px gutter with the row number `1` / `2`; each cell has a label (max 6 characters) and a value; the live row is filled, the other dimmed; a cell turned in the last 1 s is inverted. Exact zone and states: FULL_CONTROL.md section 2 |
 | Buttons, 64 px | 2 x 6 grid in the panel's order (FX SCL ENV LFO EDIT GLO / HOME SAVE ARP SEQ PLAY REC): current label, second line `+sub` for dice buttons; absent layer drawn dimmed with `-` |
 
 The KEYS legend (HOME tap on PERF) replaces the sequence band with the 27-key map: black keys `MUTE1..4`, `CH1..4`,
@@ -193,7 +195,7 @@ preset P01; keyboard OCT 0. The preview synth plays the selected channel; MASTER
 | W2 | Set its MIDI channel (TB-3 = 2) | 1. Hold EDIT (the CHAN layer opens after HOLD). 2. Turn K1 until `CH1 MID` reads `2`. 3. Let go of EDIT. The next note goes out on MIDI channel 2. | F02 |
 | W3 | Pick an algorithm | 1. Turn ALGORITHM: `ACID > EUCLID > SNAKE > STAGE`. The new algorithm plays from the next step with its own stored morphs and seeds (S7). | F03 |
 | W4 | Enter steps on the 16 white keys | 1. Tap REC (LED lit, `STEP` banner). 2. Turn K1 fully down (`KEYS ONLY`) if only typed steps should play. 3. Tap white key n to pin step n; it sounds at once and is outlined in the lane. 4. To change a pin's pitch: hold its key, turn K3 (`NOTE`, one scale degree per detent) and/or press OCT-/OCT+ (`PIN OCT`); each change is auditioned. 5. Tap a pinned key again to remove its pin. 6. Tap REC to leave STEP. Hold REC 0.7 s clears all pins (EDIT tap brings them back). | F04, F05, F06 |
-| W5 | Dial a sequence in with the knobs | 1. Press PLAY. 2. Turn K1 (density), K2 (form), K3 (pitch width), K4 (spice); each detent is heard from the next step and its cell shows the value. | F07, F25 |
+| W5 | Dial a sequence in with the knobs | 1. Press PLAY. 2. Turn K1 (density), K2 (form), K3 (pitch width), K4 (spice). For the second row, tap OCT+ (the band fills ROW 2) and turn the same four knobs: S1 start (`OFFSET`), S2 articulation, S3 dynamics, S4 read order; tap OCT- to go back (or hold OCT+ while turning for a momentary ROW 2). Each detent is heard from the next step and its cell shows the value. | F07, F25 |
 | W6 | Morph live | Same controls as W5 while playing. Every morph is monotonic and reversible: turning back restores the exact pattern. | F08 |
 | W7 | Dice each layer | Press SCL (tap) = NOTES, SEQ = HITS, ENV = ACCNT, ARP = ARTIC, LFO = SHAPE. FX = all layers. EDIT tap = undo the last dice (tap again = redo, an A/B compare). The new layer plays from the next step; the toast names the algorithm's own layer (`ACID: OCTAVE`). | F09-F15 |
 | W8 | Tune the algorithm | The algorithm's own parameters are the four morphs (W5). The global feel it reads: 1. Tap GLO. 2. Turn K1 GATE, K2 DIV, K3 SWING. 3. Tap GLO (or HOME) to go back. | F16 |
@@ -202,7 +204,7 @@ preset P01; keyboard OCT 0. The preview synth plays the selected channel; MASTER
 | W11 | Save / load | Save: tap SAVE (`SAVED P01`). Save to another slot: turn PRESETS to an empty slot (`P05 EMPTY`), tap SAVE. Load: turn PRESETS to a filled slot; it loads at the next loop start (immediately when stopped), the header shows `P03>` until then. Undo a load: hold SAVE 0.7 s (again: redo). | F22, F23, F24 |
 | W12 | Tempo | Tap GLO, turn K4 (BPM); or tap F#5 in time (TAP). | F17 |
 | W13 | Transport | PLAY starts / stops every channel. | F25 |
-| W14 | Audition notes | Play the white keys in PERF (snapped to the global scale, OCT-/OCT+ shift the octave). | F26 |
+| W14 | Audition notes | Play the white keys in PERF (snapped to the global scale); to shift the keyboard octave hold SCL and press OCT- / OCT+ (`KB OCT n`). | F26 |
 | W15 | Set-and-forget settings | Hold HOME 0.7 s; ALGORITHM = tab, PRESETS = row, K1-K4 = value; HOME tap closes. | F29 |
 
 The reference workflow (VISION) is therefore: SELECT to `1` -> hold EDIT, K1 to `2` -> ALGORITHM to `ACID` -> PLAY ->
@@ -262,13 +264,19 @@ Current = CONTROL_INVENTORY.md, T1 mode. V/I/O = visual / input / output.
 | F23 | Load | S | not wired | 0/0/0 = 0 | PRESETS turn (queued to loop start) | 3/3/1 = 7 | +7 | yes |
 | F24 | Undo a load | S | not wired | 0/0/0 = 0 | hold SAVE 0.7 s | 3/2/3 = 8 | +8 | yes |
 | F25 | Start / stop | P | PLAY | 3/3/3 = 9 | PLAY | 3/3/3 = 9 | 0 | yes |
-| F26 | Audition notes on keys | S | keys silent in T1 mode (song.grid 2) | 0/0/0 = 0 | white keys in PERF, OCT-/OCT+ | 2/3/3 = 8 | +8 | yes |
+| F26 | Audition notes on keys | S | keys silent in T1 mode (song.grid 2) | 0/0/0 = 0 | white keys in PERF | 2/3/3 = 8 | +8 | yes |
 | F27 | Global output octave | S | per track HARMONY K1 PITCH | 1/1/2 = 4 | hold SCL + K3 | 3/1/3 = 7 | +3 | yes |
 | F28 | Restart all from step 1 | P | GLO + PLAY in Felucca only; none in T1 mode | 0/0/0 = 0 | black D#5 | 2/3/3 = 8 | +8 | yes |
 | F29 | Set-and-forget settings | S | hold HOME 0.7 s | 3/2/3 = 8 | hold HOME 0.7 s | 3/2/3 = 8 | 0 | yes |
+| F30 | Switch the knob row | P | unlabelled OCT+ SHIFT, SEQ pages (T-1) | 1/1/2 = 4 | tap OCT+ / OCT-, or hold and turn | 3/3/3 = 9 | +5 | yes |
+| F31 | Turn S1 START (`OFFSET`) | P | cut (not reachable) | 0/0/0 = 0 | tap OCT+, turn K1 | 3/2/3 = 8 | +8 | yes |
+| F32 | Turn S2 ARTIC (`SLIDE` `RATCH` `GLEN` `RDIV`) | P | cut | 0/0/0 = 0 | tap OCT+, turn K2 | 3/2/3 = 8 | +8 | yes |
+| F33 | Turn S3 DYNAMICS (`PUNCH` `DYN`) | P | cut | 0/0/0 = 0 | tap OCT+, turn K3 | 3/2/3 = 8 | +8 | yes |
+| F34 | Turn S4 READ (`DIR` `CURVE`) | P | cut | 0/0/0 = 0 | tap OCT+, turn K4 | 3/2/3 = 8 | +8 | yes |
+| F35 | Keyboard octave (moved by P1-013) | S | keys silent in T1 mode | 0/0/0 = 0 | hold SCL, then OCT- / OCT+ | 3/1/3 = 7 | +7 | yes |
 
-Totals: current 84 / 270, proposed 249 / 270. Current: 26 of 30 functions fail. Proposed: 30 of 30 pass.
-Performance functions proposed: F01 F03 F08-F15 F21 F25 = 9 each; F20 and F28 = 8 (V2: the black-key labels are on the
+Totals (P1-013, 36 functions): current 88 / 324 (the F30-F35 current column adds 4), proposed 297 / 324. Current: 32 of 36 functions fail. Proposed: 36 of 36 pass. (Before P1-013: 84 / 270 and 249 / 270.)
+Performance functions proposed: F30 = 9; F31-F34 = 8 (input 2: tap OCT+, then turn); F01 F03 F08-F15 F21 F25 = 9 each; F20 and F28 = 8 (V2: the black-key labels are on the
 KEYS legend, not on the main screen; reviewer correction, they had been scored V3); none has a sub-score below 2.
 
 ## 4. Redesign iterations
@@ -278,7 +286,7 @@ way and rejected; each line gives the score that settled it.
 
 | # | Function | Tried | Score | Kept | Score | Why |
 | --- | --- | --- | --- | --- | --- | --- |
-| R1 | F02 MIDI channel | OCT+ held as SHIFT + SELECT on PERF | 1/1/3 = 5 (fail, shift role unlabelled) | hold EDIT, K1..K4 per channel | 7 | The layer screen labels all four channels; the knob under the label is the channel's column. |
+| R1 | F02 MIDI channel | OCT+ held as SHIFT + SELECT on PERF | 1/1/3 = 5 (fail, shift role unlabelled; P1-013 reuses OCT as a labelled, latched row switch for the knobs, F30 = 9) | hold EDIT, K1..K4 per channel | 7 | The layer screen labels all four channels; the knob under the label is the channel's column. |
 | R2 | F02 MIDI channel | EDIT tap opens a latched CHAN page | 3/2/3 = 8 | hold EDIT | 7 | EDIT's tap is UNDO (F15 needs 9, a performance function); setup at 7 passes. |
 | R3 | F14 / F15 | FX tap = UNDO, FX hold = DICE ALL | ALL 3/2/3 = 8 | FX press = ALL, EDIT tap = UNDO | 9 / 9 | Dice-all is the fastest way to a new sequence (rule 5): it gets a direct press. |
 | R4 | F12 + slide | ARP press = GATE+SLIDE; ARP hold = SLIDE only | slide-only 2/2/3 = 7 (fail as P) | one ARP press dices GATE and SLIDE (ACID) | 9 | See S1 (5.3). |
@@ -309,6 +317,18 @@ algorithm: 0 = `KEYS ONLY`, no generated hits, only pins play (rank-order densit
 | `SNAKE` | `DENS` 0..16, 10 | `LEN` 1..16, 7 | `RANGE` 0..48, **12** | `PATH` 1..14, 7 | 9 each |
 | `STAGE` | `DENS` 0..8, 6 | `TOTAL` 8..64, 16 (step 4; 1 when turned slowly) | `RANGE` 0..36, 12 | `RATCH` 0..8, 2 | 9 each |
 
+**ROW 2 (P1-013).** The same four physical knobs after tapping OCT+ (or while OCT+ is held). Label, range, default:
+
+| Algorithm | S1 START | S2 ARTIC | S3 DYNAMICS | S4 READ | Score per knob |
+| --- | --- | --- | --- | --- | --- |
+| `ACID` | `OFFSET` 0..15, 0 | `SLIDE` 0..8, 4 | `PUNCH` 0..47, 40 | `DIR` 0..2, 0 | 3/2/3 = 8 each |
+| `EUCLID` | `OFFSET` 0..15, 0 | `RATCH` 0..8, 4 | `PUNCH` 0..47, 40 | `CURVE` 0..6, 0 | 8 each |
+| `SNAKE` | `OFFSET` 0..15, 0 | `GLEN` 1..16, 16 | `DYN` 0..10, 10 | `DIR` 0..2, 0 | 8 each |
+| `STAGE` | `OFFSET` 0..63, 0 | `RDIV` 1..4, 4 | `DYN` 0..10, 10 | `DIR` 0..2, 0 | 8 each |
+
+Formulas, restored source parameters and the parameters that stay cut: FULL_CONTROL.md section 3. Step rule (1 per
+detent, 4 per detent when turned fast on ranges over 32 values): FULL_CONTROL.md 5.1.
+
 ### 5.2 Dice buttons
 
 Main label (always the shared name) / sub-label (the algorithm's own layer, max 6 characters) / seeds diced.
@@ -336,7 +356,7 @@ Main label (always the shared name) / sub-label (the algorithm's own layer, max 
 | **S4** scale snap rule | Every note of every algorithm, **pins and live keys included**, is snapped at output by SP6: nearest scale tone by circular pitch-class distance, ties to the lower one, applied after span mapping (SP7). The unsnapped value (`pitch_orig`, a pin's `pin_note`) is kept, so changing the scale back restores the exact notes. `CHROM` passes notes through. | Scale or key change: heard on every channel from the next step, header shows it: output 3 (F18, F19). Snap-down (today's `t1_harmony_quantize`) moves a note up to 2 semitones on MINPEN versus 1 for nearest, and flattens low SPAN values (t1 risk 7). Pins entered with K3 move by scale degree, so they are in scale at entry anyway. |
 | **S6** defaults | Confirmed: SCALE `MINPEN`, KEY C, OCTAVE 0; SNAKE `RANGE` 12. | Rule 5 / W5: PLAY on the defaults gives an in-scale, one-octave bass line on the first step (F25 9, F07 9). RANGE 24 spans two octaves, which on a TB-3 reads as a lead, not a bass (owner question 5). |
 
-### 5.4 Algorithm doc edits that follow (applied by the doc-edit or P2-008 task, not here)
+### 5.4 Algorithm doc edits that follow (the ROW 1 slot edits are applied by P1-013 with the ROW 2 parameters; the rest by P2-008)
 
 | File | Edit |
 | --- | --- |

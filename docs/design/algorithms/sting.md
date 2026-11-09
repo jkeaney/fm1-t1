@@ -1,5 +1,7 @@
 # Assessment: Sting (acid line generator)
 
+> Change note (P1-013, owner decision "Shift"): this algorithm now has **8 morphs** (ROW 1 K1..K4 and ROW 2 S1..S4, see docs/design/FULL_CONTROL.md). Section 6 below is updated: the morph labels and slots follow UX_REVIEW 5.1 (they had not been applied yet), 6.1 lists all 8, 6.3b adds the ROW 2 procedure, 6.4 the RAM, 6.6 the flex points. Every ROW 2 default is neutral, so the base-row output and golden files are unchanged.
+
 Source spec: `docs/sting-algorithms/` (read all of it). Vision: docs/project/VISION.md.
 Use the source's confidence tags ([V]/[I]/⚠) when you rely on a claim, and don't promote ⚠ to fact.
 
@@ -83,8 +85,7 @@ and direction (global SWING; direction dropped), jitter (see 6).
 ## 6. Redesign for this sequencer
 
 - **Proposed name on screen (max 6 characters):** `ACID`
-- **K1–K4 morphs (with on-screen labels, max 6 characters each):**
-  K1 `TYPE`, K2 `DENS`, K3 `JUMP`, K4 `ACCNT`. (The control map owns which context these knob roles apply in.)
+- **Morphs (on-screen labels, max 6 characters each):** K1 `DENS`, K2 `PEDAL`, K3 `JUMP`, K4 `ACCNT` (ROW 1); S1 `OFFSET`, S2 `SLIDE`, S3 `PUNCH`, S4 `DIR` (ROW 2). Full list: docs/design/FULL_CONTROL.md 3.1. (The control map owns which context these knob roles apply in.)
 - **Dice buttons (which layers):** six layer targets `NOTES`, `HITS`, `OCT`, `GATE`, `ACCNT`, `SLIDE`, plus dice-all and
   undo-dice. Physical button binding is a control-map table row; this spec only declares the targets.
 - **What we drop from the original, and why:**
@@ -110,16 +111,22 @@ and direction (global SWING; direction dropped), jitter (see 6).
     result no longer changes tie direction with Root (fixes quirks 1 and 2 of 03 §3.5). `pitch_orig` is kept, so Scale
     off or a different scale restores/re-snaps exactly [V].
 
+> P1-013: parameters listed above under "must not exist" or "drop" that are now ROW 2 morphs (offset, direction, slide amount, accent depth, ratchet amount, contour curve, gate-lane length, stage divider cap, velocity depth) are no longer forbidden; everything else listed stays cut. See FULL_CONTROL.md 3.1 to 3.4.
+
 ### 6.1 Parameters (data table; ranges and defaults)
 
 This table is the single source for the on-screen labels, ranges and defaults. A remap is an edit to this table.
 
 | Id | Kind | Label | Range | Default | Stored as |
 | --- | --- | --- | --- | --- | --- |
-| `typ` | morph, knob 1 | `TYPE` | 0..12 | 6 | u8 |
-| `den` | morph, knob 2 | `DENS` | 1..16 | 12 | u8 |
-| `jmp` | morph, knob 3 | `JUMP` | 0..20 | 5 | u8 |
-| `acc` | morph, knob 4 | `ACCNT` | 0..8 | 3 | u8 |
+| `den` | morph, K1 | `DENS` | 0..16 | 12 | u8 |
+| `typ` | morph, K2 | `PEDAL` | 0..12 | 6 | u8 |
+| `jmp` | morph, K3 | `JUMP` | 0..20 | 5 | u8 |
+| `acc` | morph, K4 | `ACCNT` | 0..8 | 3 | u8 |
+| `off` | morph, S1 | `OFFSET` | 0..15 | 0 | u8 |
+| `sl` | morph, S2 | `SLIDE` | 0..8 | 4 | u8 |
+| `pun` | morph, S3 | `PUNCH` | 0..47 | 40 | u8 |
+| `dir` | morph, S4 | `DIR` | 0..2 (FWD BWD PEND) | 0 | u8 |
 | `s_notes` | dice seed | `NOTES` | 0..65535 | `(0x3A5D * (ch*6 + 1)) & 0xFFFF` | u16 |
 | `s_hits` | dice seed | `HITS` | 0..65535 | `(0x3A5D * (ch*6 + 2)) & 0xFFFF` | u16 |
 | `s_oct` | dice seed | `OCT` | 0..65535 | `(0x3A5D * (ch*6 + 3)) & 0xFFFF` | u16 |
@@ -280,19 +287,34 @@ Cache stored per channel (hit mask u16 separate): `note[16]` (u8),
 `vel[16]` (u8), `gate[16]` (u8): 48 bytes (the hit mask and the effective-slide mask are separate u16s). Cache is recomputed on any seed, knob, scale, root or pin change, and
 swapped in one go (`fm1_irq_off/on` around a 52-byte copy, or double-buffered).
 
+### 6.3b ROW 2 morphs (P1-013, normative; all defaults are neutral, so the procedure above is unchanged at defaults)
+
+Let `u = t + off` (`t` = the free-running channel step counter, OFFSET `off` 0..15) and `i = dir_map(u, 16, dir)` (SP16:
+`dir` 0 FWD, 1 BWD, 2 PEND). `step(t)` reads **every lane of step `i`** (hit, note, vel, gate, slide flag) in place of
+`t % 16`; `off` and `dir` live in the cache. Pins are keyed by the core to `t % 16` and are not moved by OFFSET or DIR.
+- **SLIDE `sl` 0..8 (default 4).** SLIDE layer step 3 becomes `ps_eff[i] = min(100, ps[i] * sl / 4)` (integer division),
+  `slide[i] = (u[i] < ps_eff[i])`. `sl = 4` equals the table `ps`; `sl = 0` removes every slide; `sl = 8` doubles the
+  odds (capped at 100, so at most 60 %). The 16 draws are unchanged, so the stored flags are monotonic in `sl`.
+- **PUNCH `pun` 0..47 (default 40).** ACCENT layer: `vel[i] = accented ? min(127, 80 + pun) : 80` (default 120/80).
+- **Slide pairing with OFFSET and DIR.** The pairing of 6.3a is by **play order**: step `t+1` is read at its own index
+  `i'`; its flag means "glide into this step from the step played just before". The rule `(i < 15)` in 6.3a is
+  replaced by "the next step's index is not 0" (`ps[0] = 0` already guarantees it), so a slide never enters index 0.
+- Reversible: OFFSET and DIR change only which stored value is read; SLIDE and PUNCH are thresholds on stored draws.
+
 ### 6.4 Channel RAM and CPU
 
 | Item | Bytes |
 | --- | --- |
-| 4 knob values | 4 |
+| 8 morph values (ROW 1 and ROW 2) | 8 |
 | 5 seeds + 5 previous seeds (NOTES, HITS, OCT, GATE, ACCNT; the SLIDE pair is in the slide row) | 20 |
 | Pin mask + 16 pin pitches | 18 |
 | Layer scratch (base_pitch 16, ord_type 16, ord_hit/rank 16, u1/u2/dir 48, gate 16, ord_acc 16) | 128 |
 | Playback cache (note, vel, gate) | 48 |
 | Hit mask | 2 |
 | Slide: seed + previous seed 4, `u[16]` scratch 16, effective-slide mask u16 2 | 22 |
+| Cache additions for OFFSET and DIR (`off`, `dir`) | 2 |
 | ISR playback state: `next` snapshot (hit, note, vel, gate, slide) 5, `slidein` 1, up to two sounding notes (old, new; both exist during the overlap `D`) 2, two pending-off times 8 | 16 |
-| **Total** | **258 B per channel** (well under 2 KB) |
+| **Total** | **264 B per channel** (was 258; well under 2 KB) |
 
 Scratch layers can instead be regenerated from seeds on demand (about 100 draws each) and not stored, giving 114 B
 per channel; this is an implementation choice, not a design one. CPU: a full recompute is under 400 integer ops
@@ -310,6 +332,7 @@ per channel; this is an implementation choice, not a design one. CPU: a full rec
 
 ### 6.6 Flex points (ADR-0004 addendum): what is a table edit, what is not
 
+- ROW 2 (P1-013): which knob slot drives OFFSET, SLIDE, PUNCH, DIR (`knob_morph[8]`), their ranges and defaults, the slide base table `ps`, the accent velocity base 80 and the PUNCH range.
 Remappable by editing a table row, no algorithm code change:
 - Which knob drives which morph (K1..K4 <-> TYPE/DENS/JUMP/ACCNT), each morph's label, range, default.
 - Which physical button dices which layer, and which gesture does dice-all and undo-dice.

@@ -1,5 +1,7 @@
 # Control map v1: every control, every context, one gesture
 
+> P1-013: the knobs gain a second row (ROW 2: S1..S4, up to 8 morphs per algorithm). OCT- / OCT+ become the row buttons (tap latches ROW 1 / ROW 2, hold and turn is momentary); the keyboard octave moves to SCL held + OCT- / OCT+; `EN_K1..K4` rows describe both rows. Design in [FULL_CONTROL.md](FULL_CONTROL.md). Appendix A is regenerated from control_map.tsv (still 343 rows).
+
 > P2-009: the chord row of the CONTROL tab is removed (owner decision 39). CONTROL tab is 4 rows; 28 menu rows in total (SYSTEM_MAP section 7).
 
 Task P2-001. Status: consolidation of the owner-approved P1-012 design (approved 2026-11-10, with P1-010; owner
@@ -17,7 +19,7 @@ Inputs: [VISION.md](../project/VISION.md), [ADR-0004](../project/decisions/ADR-0
 
 - **4 channels** (owner decision 31). Power-on defaults: CH1 `ACID` MIDI 1 unmuted; CH2 `EUCLID` MIDI 2, CH3 `SNAKE`
   MIDI 3, CH4 `STAGE` MIDI 4, all three muted. Global KEY C, SCALE `MINPEN`, OCTAVE 0, GATE 50 %, DIV 1/16, SWING 50 %,
-  BPM 120, preset P01, keyboard OCT 0. A channel has only a MIDI channel (1..16 or OFF) and an algorithm.
+  BPM 120, preset P01, keyboard OCT 0, knob row ROW 1 (UI state, not saved). A channel has only a MIDI channel (1..16 or OFF) and an algorithm.
 - **Tap versus hold timing.** A *tap* is a press released **under 0.4 s**. The layer buttons (SCL, EDIT, GLO) use the
   menu setting HOLD (0.3, 0.4, 0.5 or 0.6 s; default **0.4 s**); HOME, SAVE and REC use a fixed **0.7 s** hold
   (`btn_hold`). A button with a hold role acts on **release** when tapped; every other button acts on **press**. All
@@ -38,14 +40,14 @@ PERF**. Only one layer button counts at a time: a second layer button pressed wh
 | --- | --- | --- | --- | --- |
 | `PERF` | resting state | power-on default | n/a | Main screen: header, 4 channel cells, 16-step lane, 4 knob cells, 2 x 6 button picture |
 | `STEP` | latched | tap REC (LED lit) | tap REC or tap HOME | `STEP` banner in the header; the lane shows key numbers 1..16 |
-| `STEP_HELD` | momentary | hold a white key while in STEP | let go of all white keys | K3 cell reads `NOTE`; OCT- / OCT+ cells read `PIN OCT` |
+| `STEP_HELD` | momentary | hold a white key while in STEP | let go of all white keys | K3 cell reads `NOTE`; OCT- / OCT+ cells read `PIN OCT` (the row cannot be switched while a step key is held) |
 | `SCL` | momentary | hold SCL past 0.4 s | let go of SCL | SCL layer: K1 `KEY`, K2 `SCALE`, K3 `OCTAVE`; the SCL cell reads `SCALE` |
 | `CHAN` | momentary | hold EDIT past 0.4 s | let go of EDIT | CHAN layer: four cells `CH1 MID` .. `CH4 MID` with MIDI channel and algorithm |
 | `GLOB` | latched (tap) or momentary (hold) | tap GLO, or hold GLO past 0.4 s | tap GLO or HOME; or release a hold | GLOB page: K1 `GATE`, K2 `DIV`, K3 `SWING`, K4 `BPM`; GLO cell reads `BACK` |
 | `MENU` | latched | hold HOME 0.7 s | tap or hold HOME | Felucca menu; every button but PLAY reads `close` |
 
 **One held modifier at most.** Every combo is "one held thing plus a turn or a press": hold a layer button then turn a
-knob or press a key, or hold white key(s) then turn K3 or press OCT. No gesture needs two different modifiers held, and
+knob or press a key, or hold white key(s) then turn K3 or press OCT, or (PERF and STEP only) hold OCT- / OCT+ while turning a knob for the momentary knob row. No gesture needs two different modifiers held, and
 `STEP_HELD` uses only one *kind* of held control (white keys), which all receive the same edit.
 
 The **context** column of the TSV and of Appendix A uses exactly these seven names.
@@ -62,10 +64,10 @@ layer or key is held / another context is active".
 | `EN_SELECT` (SELECT) | turn: select channel CH1..CH4 (clamped, no wrap) | n/a | works in every context including MENU | `CH n` |
 | `EN_ALGO` (ALGORITHM) | turn: algorithm of the selected channel `ACID > EUCLID > SNAKE > STAGE`; lands at the next step; morphs and seeds kept per algorithm (S7) | n/a | in MENU: next/previous tab | algorithm name |
 | `EN_PRESET` (PRESETS) | turn: preset slot P01..P16; filled slot loads at next loop start (now if stopped); empty slot only selects the SAVE target | n/a | in MENU: next/previous row | `Pnn`, `Pnn>` while queued, `Pnn EMPTY` |
-| `EN_K1` (KNOB 1) | turn: morph DENSITY (0 = `KEYS ONLY`) | n/a | SCL held: KEY; CHAN held: CH1 MIDI; GLOB: GATE; MENU: value | algorithm label, `KEY`, `CH1 MID`, `GATE` |
-| `EN_K2` (KNOB 2) | turn: morph FORM (ACID PEDAL, EUCLID LEN, SNAKE LEN, STAGE TOTAL) | n/a | SCL held: SCALE; CHAN: CH2 MIDI; GLOB: DIV; MENU: value | algorithm label, `SCALE`, `CH2 MID`, `DIV` |
-| `EN_K3` (KNOB 3) | turn: morph PITCH (JUMP, SPAN, RANGE, RANGE) | n/a | key held in STEP: pin NOTE by scale degree; SCL held: OCTAVE; CHAN: CH3 MIDI; GLOB: SWING; MENU: value | algorithm label, `NOTE`, `OCTAVE`, `CH3 MID`, `SWING` |
-| `EN_K4` (KNOB 4) | turn: morph SPICE (ACCNT, ACCNT, PATH, RATCH) | n/a | SCL held: unchanged morph; CHAN: CH4 MIDI; GLOB: BPM (EXT when slaved); MENU: value | algorithm label, `CH4 MID`, `BPM` |
+| `EN_K1` (KNOB 1) | turn: the live row's first function: ROW 1 K1 DENSITY (0 = `KEYS ONLY`), ROW 2 S1 START (`OFFSET`) | n/a | SCL held: KEY; CHAN held: CH1 MIDI; GLOB: GATE; MENU: value | algorithm label (both rows always drawn), `KEY`, `CH1 MID`, `GATE` |
+| `EN_K2` (KNOB 2) | turn: ROW 1 K2 FORM (ACID PEDAL, EUCLID LEN, SNAKE LEN, STAGE TOTAL), ROW 2 S2 ARTIC (SLIDE, RATCH, GLEN, RDIV) | n/a | SCL held: SCALE; CHAN: CH2 MIDI; GLOB: DIV; MENU: value | algorithm label, `SCALE`, `CH2 MID`, `DIV` |
+| `EN_K3` (KNOB 3) | turn: ROW 1 K3 PITCH (JUMP, SPAN, RANGE, RANGE), ROW 2 S3 DYNAMICS (PUNCH, PUNCH, DYN, DYN) | n/a | key held in STEP: pin NOTE by scale degree; SCL held: OCTAVE; CHAN: CH3 MIDI; GLOB: SWING; MENU: value | algorithm label, `NOTE`, `OCTAVE`, `CH3 MID`, `SWING` |
+| `EN_K4` (KNOB 4) | turn: ROW 1 K4 SPICE (ACCNT, ACCNT, PATH, RATCH), ROW 2 S4 READ (DIR, CURVE, DIR, DIR) | n/a | SCL held: the live row's fourth function; CHAN: CH4 MIDI; GLOB: BPM (EXT when slaved); MENU: value | algorithm label, `CH4 MID`, `BPM` |
 | `B_FX` (FX) | press: DICE ALL layers present | same as press | any context except MENU (closes) | `ALL` |
 | `B_SCL` (SCL) | tap: dice NOTES | past 0.4 s: SCL layer (global KEY, SCALE, OCTAVE; any key sets KEY) | in SCL: held keeps the layer open | `NOTES +sub`, `SCALE` |
 | `B_ENV` (ENV) | press: dice ACCNT | n/a | n/a | `ACCNT +sub` |
@@ -78,8 +80,8 @@ layer or key is held / another context is active".
 | `B_SEQ` (SEQ) | press: dice HITS | n/a | n/a | `HITS +sub` |
 | `B_PLAY` (PLAY/STOP) | press: start / stop all channels | n/a | works in every context including MENU | `PLAY / STOP` |
 | `B_REC` (REC) | tap: enter STEP; in STEP: leave STEP | 0.7 s: clear every pin of the selected channel (EDIT tap undoes) | n/a | `STEP`, `STEP ON` |
-| `B_OCTDN` (OCT-) | press: keyboard octave -1 (range -3..+3) | n/a | STEP_HELD: held step pins -12 semitones; both OCT = octave 0; both held 5 s = UPDATE MODE; both at power-on = CALIBRATION | `OCT n`, `PIN OCT` |
-| `B_OCTUP` (OCT+) | press: keyboard octave +1 | n/a | STEP_HELD: held step pins +12 semitones; hidden gestures as OCT- | `OCT n`, `PIN OCT` |
+| `B_OCTDN` (OCT-) | PERF, STEP: tap latches ROW 1 of the knob band (a set, not a toggle) | n/a | hold and turn a knob = ROW 1 live while held; STEP_HELD: held step pins -12 semitones; SCL held: keyboard octave -1 (range -3..+3); both OCT = 0 in SCL; both held 5 s = UPDATE MODE; both at power-on = CALIBRATION; CHAN, GLOB: inert | `ROW 1`, `PIN OCT`, `KB OCT n` |
+| `B_OCTUP` (OCT+) | PERF, STEP: tap latches ROW 2 | n/a | hold and turn a knob = ROW 2 live while held; STEP_HELD: held step pins +12 semitones; SCL held: keyboard octave +1; hidden gestures as OCT- | `ROW 2`, `PIN OCT`, `KB OCT n` |
 | White keys F3 G3 A3 B3 C4 D4 E4 F4 G4 A4 B4 C5 D5 E5 F5 G5 (`KEY_W01_F3` .. `KEY_W16_G5`) | PERF, CHAN, GLOB: play the note live on the selected channel (snapped to the global scale); STEP: toggle the pin on step n | STEP: hold = STEP_HELD (K3 and OCT edit every held step) | SCL held: set global KEY to the key's pitch class | none while playing; `step n` in STEP; `KEY` in SCL |
 | Black key F#3 G#3 A#3 C#4 (`KEY_B01..B04`) | press: mute / unmute CH1..CH4 (latched) | n/a | SCL held: set KEY (F# G# A# C#) | `MUTE1`..`MUTE4`, `KEY` |
 | Black key D#4 F#4 G#4 A#4 (`KEY_B05..B08`) | press: select CH1..CH4 | n/a | SCL held: set KEY (D# F# G# A#) | `CH1`..`CH4`, `KEY` |
@@ -94,7 +96,7 @@ MENU, which keep Felucca's menu rule (previous / next value, and `do it` on CALI
 ## 3. Keys: steps versus channels versus dice
 
 - **16 white keys (F3..G5, place 0..15).** PERF: live notes on the selected channel, snapped to the global scale, keyboard
-  OCT applies. STEP: step 1..16 pins (below). SCL held: set KEY. A key is **never** a dice or channel control.
+  the keyboard octave (SCL held + OCT-/OCT+) applies. STEP: step 1..16 pins (below). SCL held: set KEY. A key is **never** a dice or channel control.
 - **11 black keys (F#3..F#5).** Channel and transport: `F#3 G#3 A#3 C#4` mute CH1-4 (latched); `D#4 F#4 G#4 A#4` select
   CH1-4; `C#5` unmute all; `D#5` restart from step 1; `F#5` tap tempo. They behave the same in PERF, STEP,
   STEP_HELD, CHAN, GLOB and MENU, and set KEY while SCL is held.
@@ -119,7 +121,7 @@ channel setup. Result: **performing within 6 gestures**, every one on the main s
 | 3 | Choose an algorithm | turn ALGORITHM: `ACID > EUCLID > SNAKE > STAGE` (lands at the next step; its own morphs and seeds are restored) | algorithm name in large type | W3 |
 | 4a | Dial a sequence in | press PLAY; turn K1 (density), K2 (form), K3 (pitch width), K4 (spice) | each knob cell highlights for 1 s and shows its value | W5, W6 |
 | 4b | or enter steps | tap REC; turn K1 to `KEYS ONLY`; tap white keys; hold a key + K3 / OCT to set pitch; tap REC | `STEP` banner; pins outlined on the lane | W4 |
-| 5 | Perform | morph with K1-K4; dice with SCL tap (NOTES), SEQ (HITS), ENV (ACCNT), ARP (ARTIC), LFO (SHAPE), FX (all); EDIT tap undoes; mute with F#3..C#4, select with D#4..A#4 or SELECT | every dice button shows its role and sub-label; muted channel cell dimmed with `M` | W6, W7, W10 |
+| 5 | Perform | morph with K1-K4 (ROW 1) and, after tapping OCT+, with the same four knobs as ROW 2 (OFFSET, SLIDE/RATCH/GLEN/RDIV, PUNCH/DYN, DIR/CURVE); tap OCT- to return; dice with SCL tap (NOTES), SEQ (HITS), ENV (ACCNT), ARP (ARTIC), LFO (SHAPE), FX (all); EDIT tap undoes; mute with F#3..C#4, select with D#4..A#4 or SELECT | every dice button shows its role and sub-label; muted channel cell dimmed with `M` | W6, W7, W10 |
 | 6 | Optional global changes | hold SCL (any key = KEY, K1 KEY, K2 SCALE, K3 OCTAVE); tap GLO (K1 GATE, K2 DIV, K3 SWING, K4 BPM); SAVE to keep it | header `C MINPEN` on every screen | W8, W9, W11, W12 |
 
 Gestures 1-3 plus PLAY make sound on a TB-3 (4 gestures); the only hold is gesture 2. Save and load: tap SAVE
@@ -149,7 +151,7 @@ it; this table says what each guide claim becomes.
 | --- | --- | --- |
 | REC arms real-time recording | REC is unreferenced in T1 mode | REC tap = STEP entry (pins on white keys); hold 0.7 s = clear pins |
 | Keys 1-16 hold = step P-LOCK | keys select track/cycle; `edit_step` never set | White key in STEP toggles a pin; hold it + K3 / OCT edits the pin; P-LOCK is dropped |
-| Page navigation via SEQ / OCT- / OCT+ | SEQ next page, OCT- previous, OCT+ is SHIFT | No pages and no SHIFT: K1-K4 always morph the selected channel; SEQ is the HITS dice; OCT keys are keyboard octave / pin octave |
+| Page navigation via SEQ / OCT- / OCT+ | SEQ next page, OCT- previous, OCT+ is SHIFT | No pages; one SHIFT row: OCT- / OCT+ select ROW 1 / ROW 2 of the knobs (labelled on screen, FULL_CONTROL.md); SEQ is the HITS dice; pin octave stays on OCT in STEP_HELD; the keyboard octave moved to SCL held |
 | 6 tracks x 6 cycles | 6 tracks, track 1 on the synth | 4 channels (decision 31); every channel sends MIDI; no cycles |
 | Black keys 1-6 mute, white keys 1-6 select track, 7-12 cycle | as the guide | Black keys F#3..C#4 mute CH1-4, D#4..A#4 select CH1-4; white keys play or enter steps |
 | SAVE or LFO held = TEMP snapshot; OCT+ commits | ui_t1.c:56-68 | SAVE tap saves the preset, SAVE hold 0.7 s undoes a load; LFO is the SHAPE dice; TEMP is dropped |
@@ -165,13 +167,13 @@ What a producer can re-map by **editing one row**, with no algorithm or screen c
 | --- | --- | --- |
 | `control_map.tsv` | action, label for a (control, context) | Any button, encoder, knob or key role in any context, for example swap FX and EDIT, move UNDO to OCT-, move mutes to other black keys |
 | Context table (section 1) | hold thresholds, enter/leave gesture | Make GLOB hold-only, change the REC hold time, change the 0.4 s default via the HOLD menu setting |
-| Knob table (UX_REVIEW 5.1) | slot, label, range, default, step | Remap K1..K4 per algorithm, rename `PEDAL`, change SNAKE RANGE default, STAGE TOTAL coarse step |
+| Knob table (UX_REVIEW 5.1, FULL_CONTROL.md section 3) | slot, label, range, default, step, fast step | Remap K1..K4 and S1..S4 per algorithm, rename `PEDAL`, change SNAKE RANGE default, STAGE TOTAL coarse step |
 | Dice table (UX_REVIEW 5.2) | button -> layer, sub-label, seeds | Bind SLIDE alone to its own gesture, rename a sub-label, mark a layer absent |
 | Global table (UX_REVIEW 6) | scale list order, defaults | Default scale, key, octave; scale order on K2 |
 | Black-key rows | key -> MUTEn / CHn / ALL ON / RESTRT / TAP | Re-place channel keys if the channel count changes (6 channels would need a second CHAN row and moved select keys) |
 | Defaults (section 0) | channel algorithms, MIDI channels, mutes | Power-on state |
 
-Not changeable without code: the seven contexts and their precedence; tap-on-release for buttons with a hold role
+Not changeable without code: two knob rows (eight slots); the seven contexts and their precedence; tap-on-release for buttons with a hold role
 (`btn_hold`, `ui_layer.c`); the five shared dice layers and their meanings; scale snap rule and output order; the queued
 preset load at the loop start; the main-screen bands.
 
@@ -270,19 +272,19 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `B_REC` | `CHAN` | tap (release before 0.7 s): enter STEP; hold 0.7 s: clear every pin of the selected channel (undoable with EDIT tap) | `STEP` |
 | `B_REC` | `GLOB` | tap (release before 0.7 s): enter STEP; hold 0.7 s: clear every pin of the selected channel (undoable with EDIT tap) | `STEP` |
 | `B_REC` | `MENU` | press: closes the menu (no other action) | `close` |
-| `B_OCTDN` | `PERF` | press: keyboard octave -1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE) | `OCT n` |
-| `B_OCTDN` | `STEP` | press: keyboard octave -1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE) | `OCT n` |
+| `B_OCTDN` | `PERF` | tap (release before HOLD, no knob turned): latch ROW 1 of the knob band (a set, not a toggle); hold and turn a knob: ROW 1 is live while held, then the latched row returns; both OCT held 5 s = UPDATE MODE | `ROW 1` |
+| `B_OCTDN` | `STEP` | tap (release before HOLD, no knob turned): latch ROW 1 of the knob band (a set, not a toggle); hold and turn a knob: ROW 1 is live while held, then the latched row returns; both OCT held 5 s = UPDATE MODE | `ROW 1` |
 | `B_OCTDN` | `STEP_HELD` | press: the held step(s)' pin note -12 semitones (clamped 0..96), auditioned | `PIN OCT` |
-| `B_OCTDN` | `SCL` | press: keyboard octave -1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE) | `OCT n` |
-| `B_OCTDN` | `CHAN` | press: keyboard octave -1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE) | `OCT n` |
-| `B_OCTDN` | `GLOB` | press: keyboard octave -1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE) | `OCT n` |
+| `B_OCTDN` | `SCL` | press: keyboard octave -1 (range -3..+3; both OCT pressed together = 0) | `KB OCT n` |
+| `B_OCTDN` | `CHAN` | inert in this context (the knob band is replaced here, a row switch would be invisible; both held 5 s = UPDATE MODE still works) | `-` |
+| `B_OCTDN` | `GLOB` | inert in this context (the knob band is replaced here, a row switch would be invisible; both held 5 s = UPDATE MODE still works) | `-` |
 | `B_OCTDN` | `MENU` | release: previous value / back (Felucca menu rule) | `-` |
-| `B_OCTUP` | `PERF` | press: keyboard octave +1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE) | `OCT n` |
-| `B_OCTUP` | `STEP` | press: keyboard octave +1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE) | `OCT n` |
+| `B_OCTUP` | `PERF` | tap (release before HOLD, no knob turned): latch ROW 2 of the knob band (a set, not a toggle); hold and turn a knob: ROW 2 is live while held, then the latched row returns; both OCT held 5 s = UPDATE MODE | `ROW 2` |
+| `B_OCTUP` | `STEP` | tap (release before HOLD, no knob turned): latch ROW 2 of the knob band (a set, not a toggle); hold and turn a knob: ROW 2 is live while held, then the latched row returns; both OCT held 5 s = UPDATE MODE | `ROW 2` |
 | `B_OCTUP` | `STEP_HELD` | press: the held step(s)' pin note +12 semitones (clamped 0..96), auditioned | `PIN OCT` |
-| `B_OCTUP` | `SCL` | press: keyboard octave +1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE) | `OCT n` |
-| `B_OCTUP` | `CHAN` | press: keyboard octave +1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE) | `OCT n` |
-| `B_OCTUP` | `GLOB` | press: keyboard octave +1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE) | `OCT n` |
+| `B_OCTUP` | `SCL` | press: keyboard octave +1 (range -3..+3; both OCT pressed together = 0) | `KB OCT n` |
+| `B_OCTUP` | `CHAN` | inert in this context (the knob band is replaced here, a row switch would be invisible; both held 5 s = UPDATE MODE still works) | `-` |
+| `B_OCTUP` | `GLOB` | inert in this context (the knob band is replaced here, a row switch would be invisible; both held 5 s = UPDATE MODE still works) | `-` |
 | `B_OCTUP` | `MENU` | release: next value / do it (opens CALIBRATION, INFO, ABOUT rows) | `-` |
 | `EN_SELECT` | `PERF` | turn: select channel CH1..CH4 (clamped, no wrap) | `CH n` |
 | `EN_SELECT` | `STEP` | turn: select channel CH1..CH4 (clamped, no wrap) | `CH n` |
@@ -312,31 +314,31 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `MASTER` | `CHAN` | analogue pot: preview-synth and USB-audio volume (song.master_q12); no MIDI effect | `-` |
 | `MASTER` | `GLOB` | analogue pot: preview-synth and USB-audio volume (song.master_q12); no MIDI effect | `-` |
 | `MASTER` | `MENU` | analogue pot: preview-synth and USB-audio volume (song.master_q12); no MIDI effect | `-` |
-| `EN_K1` | `PERF` | turn: morph K1 DENSITY slot of the selected channel: ACID DENS 0..16 / EUCLID HITS 0..16 / SNAKE DENS 0..16 / STAGE DENS 0..8; 0 = KEYS ONLY (only pins play) (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly) | `algo label` |
-| `EN_K1` | `STEP` | turn: morph K1 DENSITY slot of the selected channel: ACID DENS 0..16 / EUCLID HITS 0..16 / SNAKE DENS 0..16 / STAGE DENS 0..8; 0 = KEYS ONLY (only pins play) (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly) | `algo label` |
-| `EN_K1` | `STEP_HELD` | turn: morph K1 DENSITY slot of the selected channel: ACID DENS 0..16 / EUCLID HITS 0..16 / SNAKE DENS 0..16 / STAGE DENS 0..8; 0 = KEYS ONLY (only pins play) (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly) | `algo label` |
+| `EN_K1` | `PERF` | turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K1 DENSITY: ACID DENS 0..16 / EUCLID HITS 0..16 / SNAKE DENS 0..16 / STAGE DENS 0..8; 0 = KEYS ONLY (only pins play). ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S1 START: OFFSET (ACID 0..15 / EUCLID 0..15 / SNAKE 0..15 / STAGE 0..63). Details FULL_CONTROL.md section 3 | `algo label` |
+| `EN_K1` | `STEP` | turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K1 DENSITY: ACID DENS 0..16 / EUCLID HITS 0..16 / SNAKE DENS 0..16 / STAGE DENS 0..8; 0 = KEYS ONLY (only pins play). ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S1 START: OFFSET (ACID 0..15 / EUCLID 0..15 / SNAKE 0..15 / STAGE 0..63). Details FULL_CONTROL.md section 3 | `algo label` |
+| `EN_K1` | `STEP_HELD` | turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K1 DENSITY: ACID DENS 0..16 / EUCLID HITS 0..16 / SNAKE DENS 0..16 / STAGE DENS 0..8; 0 = KEYS ONLY (only pins play). ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S1 START: OFFSET (ACID 0..15 / EUCLID 0..15 / SNAKE 0..15 / STAGE 0..63). Details FULL_CONTROL.md section 3 | `algo label` |
 | `EN_K1` | `SCL` | turn: KEY (global root) C..B | `KEY` |
 | `EN_K1` | `CHAN` | turn: MIDI OUT channel of CH1: 1..16, OFF | `CH1 MID` |
 | `EN_K1` | `GLOB` | turn: GATE 10..100 % (global gate length) | `GATE` |
 | `EN_K1` | `MENU` | turn: change the selected row's value (K1..K4 equivalent) | `value` |
-| `EN_K2` | `PERF` | turn: morph K2 FORM slot of the selected channel: ACID PEDAL 0..12 / EUCLID LEN 2..16 / SNAKE LEN 1..16 / STAGE TOTAL 8..64 (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly) | `algo label` |
-| `EN_K2` | `STEP` | turn: morph K2 FORM slot of the selected channel: ACID PEDAL 0..12 / EUCLID LEN 2..16 / SNAKE LEN 1..16 / STAGE TOTAL 8..64 (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly) | `algo label` |
-| `EN_K2` | `STEP_HELD` | turn: morph K2 FORM slot of the selected channel: ACID PEDAL 0..12 / EUCLID LEN 2..16 / SNAKE LEN 1..16 / STAGE TOTAL 8..64 (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly) | `algo label` |
+| `EN_K2` | `PERF` | turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K2 FORM: ACID PEDAL 0..12 / EUCLID LEN 2..16 / SNAKE LEN 1..16 / STAGE TOTAL 8..64 (step 4 when turned fast, 1 when slow). ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S2 ARTIC: ACID SLIDE 0..8 / EUCLID RATCH 0..8 / SNAKE GLEN 1..16 / STAGE RDIV 1..4. Details FULL_CONTROL.md section 3 | `algo label` |
+| `EN_K2` | `STEP` | turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K2 FORM: ACID PEDAL 0..12 / EUCLID LEN 2..16 / SNAKE LEN 1..16 / STAGE TOTAL 8..64 (step 4 when turned fast, 1 when slow). ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S2 ARTIC: ACID SLIDE 0..8 / EUCLID RATCH 0..8 / SNAKE GLEN 1..16 / STAGE RDIV 1..4. Details FULL_CONTROL.md section 3 | `algo label` |
+| `EN_K2` | `STEP_HELD` | turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K2 FORM: ACID PEDAL 0..12 / EUCLID LEN 2..16 / SNAKE LEN 1..16 / STAGE TOTAL 8..64 (step 4 when turned fast, 1 when slow). ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S2 ARTIC: ACID SLIDE 0..8 / EUCLID RATCH 0..8 / SNAKE GLEN 1..16 / STAGE RDIV 1..4. Details FULL_CONTROL.md section 3 | `algo label` |
 | `EN_K2` | `SCL` | turn: SCALE (global) CHROM..DIM, 16 entries | `SCALE` |
 | `EN_K2` | `CHAN` | turn: MIDI OUT channel of CH2: 1..16, OFF | `CH2 MID` |
 | `EN_K2` | `GLOB` | turn: DIV 1/32, 1/16T, 1/16, 1/8T, 1/8, 1/4 (global step rate) | `DIV` |
 | `EN_K2` | `MENU` | turn: change the selected row's value (K1..K4 equivalent) | `value` |
-| `EN_K3` | `PERF` | turn: morph K3 PITCH slot of the selected channel: ACID JUMP 0..20 / EUCLID SPAN 0..24 / SNAKE RANGE 0..48 / STAGE RANGE 0..36 (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly) | `algo label` |
-| `EN_K3` | `STEP` | turn: morph K3 PITCH slot of the selected channel: ACID JUMP 0..20 / EUCLID SPAN 0..24 / SNAKE RANGE 0..48 / STAGE RANGE 0..36 (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly) | `algo label` |
+| `EN_K3` | `PERF` | turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K3 PITCH: ACID JUMP 0..20 / EUCLID SPAN 0..24 / SNAKE RANGE 0..48 / STAGE RANGE 0..36 (step 4 when turned fast on RANGE, 1 when slow). ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S3 DYNAMICS: ACID PUNCH 0..47 / EUCLID PUNCH 0..47 / SNAKE DYN 0..10 / STAGE DYN 0..10. Details FULL_CONTROL.md section 3 | `algo label` |
+| `EN_K3` | `STEP` | turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K3 PITCH: ACID JUMP 0..20 / EUCLID SPAN 0..24 / SNAKE RANGE 0..48 / STAGE RANGE 0..36 (step 4 when turned fast on RANGE, 1 when slow). ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S3 DYNAMICS: ACID PUNCH 0..47 / EUCLID PUNCH 0..47 / SNAKE DYN 0..10 / STAGE DYN 0..10. Details FULL_CONTROL.md section 3 | `algo label` |
 | `EN_K3` | `STEP_HELD` | turn: NOTE of the held step(s)' pin, one scale degree per detent (snapped, 0..96), auditioned | `NOTE` |
 | `EN_K3` | `SCL` | turn: OCTAVE (global output octave) -2..+2 | `OCTAVE` |
 | `EN_K3` | `CHAN` | turn: MIDI OUT channel of CH3: 1..16, OFF | `CH3 MID` |
 | `EN_K3` | `GLOB` | turn: SWING 50..75 % (global) | `SWING` |
 | `EN_K3` | `MENU` | turn: change the selected row's value (K1..K4 equivalent) | `value` |
-| `EN_K4` | `PERF` | turn: morph K4 SPICE slot of the selected channel: ACID ACCNT 0..8 / EUCLID ACCNT 0..8 / SNAKE PATH 1..14 / STAGE RATCH 0..8 (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly) | `algo label` |
-| `EN_K4` | `STEP` | turn: morph K4 SPICE slot of the selected channel: ACID ACCNT 0..8 / EUCLID ACCNT 0..8 / SNAKE PATH 1..14 / STAGE RATCH 0..8 (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly) | `algo label` |
-| `EN_K4` | `STEP_HELD` | turn: morph K4 SPICE slot of the selected channel: ACID ACCNT 0..8 / EUCLID ACCNT 0..8 / SNAKE PATH 1..14 / STAGE RATCH 0..8 (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly) | `algo label` |
-| `EN_K4` | `SCL` | turn: morph K4 SPICE slot of the selected channel: ACID ACCNT 0..8 / EUCLID ACCNT 0..8 / SNAKE PATH 1..14 / STAGE RATCH 0..8 (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly) | `algo label` |
+| `EN_K4` | `PERF` | turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K4 SPICE: ACID ACCNT 0..8 / EUCLID ACCNT 0..8 / SNAKE PATH 1..14 / STAGE RATCH 0..8. ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S4 READ: ACID DIR 0..2 / EUCLID CURVE 0..6 / SNAKE DIR 0..2 / STAGE DIR 0..2. Details FULL_CONTROL.md section 3 | `algo label` |
+| `EN_K4` | `STEP` | turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K4 SPICE: ACID ACCNT 0..8 / EUCLID ACCNT 0..8 / SNAKE PATH 1..14 / STAGE RATCH 0..8. ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S4 READ: ACID DIR 0..2 / EUCLID CURVE 0..6 / SNAKE DIR 0..2 / STAGE DIR 0..2. Details FULL_CONTROL.md section 3 | `algo label` |
+| `EN_K4` | `STEP_HELD` | turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K4 SPICE: ACID ACCNT 0..8 / EUCLID ACCNT 0..8 / SNAKE PATH 1..14 / STAGE RATCH 0..8. ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S4 READ: ACID DIR 0..2 / EUCLID CURVE 0..6 / SNAKE DIR 0..2 / STAGE DIR 0..2. Details FULL_CONTROL.md section 3 | `algo label` |
+| `EN_K4` | `SCL` | turn: the LIVE ROW's fourth function (K4 SPICE of ROW 1 or S4 READ of ROW 2, as for EN_K4 PERF); K1..K3 are KEY, SCALE, OCTAVE in this layer | `algo label` |
 | `EN_K4` | `CHAN` | turn: MIDI OUT channel of CH4: 1..16, OFF | `CH4 MID` |
 | `EN_K4` | `GLOB` | turn: BPM 40..240 (internal clock; shows EXT when slaved) | `BPM` |
 | `EN_K4` | `MENU` | turn: change the selected row's value (K1..K4 equivalent) | `value` |

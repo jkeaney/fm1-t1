@@ -51,6 +51,11 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 45 | P2-004 ADR-0003 | "Next loop start" for a queued preset load = every 16 steps (one bar at 1/16), since channels have different loop lengths. OK? Reviewer note: 16 steps is half a bar at 1/32 and four bars at 1/4; a constant of 768 ticks (always one 4/4 bar) is the DIV-independent alternative (one table constant, `SQ_BAR_STEPS` becomes `SQ_BAR_TICKS`). | P2-004 review |
 | 46 | P2-004 ADR-0003 | Undo is one record per channel (the last dice / dice-all / pin-clear), tap again = redo, instead of one previous-seed per seed. OK? | P2-004 review |
 | 47 | P2-004 ADR-0003 | An algorithm or MIDI-channel change does not cut sounding notes (pending note-offs go to the old channel); only stop, panic and USB reconnect cut. OK? | P2-004 review |
+| 48 | P1-013 full control | The row switch is OCT- (ROW 1) and OCT+ (ROW 2): tap latches, hold and turn is momentary. This moves the keyboard octave to hold SCL + OCT-/OCT+ (setup, scores 7). Acceptable? Alternative: put the row switch on another button (a table row edit) and keep the keyboard octave on OCT. | P1-013 review |
+| 49 | P1-013 full control | There is no per-morph 'reset to default' gesture in v1 (a hold-a-knob gesture would collide with the layer holds); ROW 2 defaults are neutral. Add one after the first hardware test? | first hardware test |
+| 50 | P1-013 full control | STAGE S1 `OFFSET` has no source parameter (the ML-185 follows the host position); it is there so S1 means 'where the loop starts' on all four algorithms. Keep, or give that slot to a ninth idea (for example the `LONG` hold odds)? | P1-013 review |
+| 51 | P1-013 full control | The knob band grows from 40 to 52 px, so the sequence band shrinks from 80 to 68 px (labels need two rows of two text lines). Acceptable for the 16-step lane, or drop the value line of the dimmed row? | P2-003 |
+| 52 | P1-013 full control | With DIR (backward / pendulum) active, ACID's slide flag means 'glide into this step from the step played just before', and a slide can cross the loop point in BWD. Acceptable? | first hardware test |
 
 ## Decisions (owner, 2026-11-09)
 | # | Decision |

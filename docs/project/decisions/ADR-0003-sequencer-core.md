@@ -1,7 +1,16 @@
 # ADR-0003: Sequencer core architecture and the algorithm interface
 
-Status: **proposed** (task P2-004, 2026-11-10). Awaiting the owner's review at the human-review gate. Nothing here is
-locked until the owner writes "Approved: <name> <date>" in the P2-004 log and, per ADR-0004, "Design locked" later.
+Status: **proposed, amended by P1-013** (task P2-004, 2026-11-10). Awaiting the owner's re-approval at the human-review
+gate of P1-013 (which also covers this ADR). Nothing here is locked until the owner writes "Approved: <name> <date>"
+in that log and, per ADR-0004, "Design locked" later.
+
+> Change note (P1-013, owner decision "Shift", 2026-11-10): an algorithm now has **8 morphs** (two knob rows, see
+> [FULL_CONTROL.md](../../design/FULL_CONTROL.md)). Changed: `SQ_NMORPH` 4 to 8; `AlgoState` 16 to 20 B; `ChanSave`
+> 86 to 102 B; `SeqPreset` 356 to 420 B; `AlgoDesc.knob_morph[8]`, `morph[8]`, `build(m[8], ...)`; the morph tables of
+> 4.1; the cache notes; the RAM table of section 11 (re-added with new totals); section 15 flex points. Also set as
+> **settled** by the owner's seventh round (2026-11-10): swing doubled (43), GATE 50 % neutral (44), queued load on a
+> fixed 768-tick bar (45), one undo record per channel (46), no note cut on algorithm or MIDI-channel change (47); the
+> "owner question" wording for these is removed.
 
 Inputs: [VISION](../VISION.md), [ADR-0004](ADR-0004-design-lock.md) (and its flexibility addendum),
 [OWNER_QUESTIONS](../OWNER_QUESTIONS.md) (all owner decisions), [ALGORITHM_SET](../../design/ALGORITHM_SET.md)
@@ -27,8 +36,8 @@ express this (it has no layers, no per-layer seeds, no pins, no slide), and its 
    context -> a small cache) and `step()` (cache + step counter `t` -> one `PulseOut`). It never sees the clock, MIDI
    or the UI. A shared **core** turns `PulseOut` into timed MIDI (swing, gate, ratchet, slide, hold), pins, mute and
    panic. (Sections 4, 5, 7.)
-2. **Everything an algorithm exposes is a table** (`AlgoDesc`): name, four morphs with labels/ranges/defaults, the
-   knob-to-morph map, five shared layers -> seed lists, sub-labels, seed defaults. Remapping a knob, a dice button or a
+2. **Everything an algorithm exposes is a table** (`AlgoDesc`): name, eight morphs (ROW 1 K1..K4, ROW 2 S1..S4) with
+   labels/ranges/defaults, the knob-slot-to-morph map, five shared layers -> seed lists, sub-labels, seed defaults. Remapping a knob, a dice button or a
    range is a table edit (ADR-0004 addendum). (Section 4.)
 3. **Time is 192 PPQN**, accumulated from audio samples exactly as `t1_block` does today. All six DIV values are whole
    tick counts. (Section 7.)
@@ -38,7 +47,7 @@ express this (it has no layers, no per-layer seeds, no pins, no slide), and its 
 5. **Events leave through one function** (`sq_emit`) to `midi_out_event` and, for the selected channel, to the preview
    synth (ANALOG on `trk[0]`). Note-offs are never dropped; stop/panic/disconnect silence everything. (Section 8.)
 6. **Always on, boots working.** No mode switch, no T-1 flag. (Section 12.)
-7. **RAM: +2.2 KB `.bss` for the core (2193 B)**, ~6.4 KB pool; fits today and after the E3 removals. (Section 11.)
+7. **RAM: +2.3 KB `.bss` for the core (2257 B)**, ~7.6 KB pool (7560 B); fits today and after the E3 removals. (Section 11.)
 
 ## 3. Data model (exact C; all structs live in a new `sq_types.h`, included before every `sq_*.c`)
 
@@ -47,7 +56,7 @@ Constants:
 ```c
 #define SQ_NCH        4          /* channels (owner decision 31) */
 #define SQ_NALGO      4          /* 0 ACID, 1 EUCLID, 2 SNAKE, 3 STAGE */
-#define SQ_NMORPH     4          /* K1..K4 */
+#define SQ_NMORPH     8          /* slots 0..3 = K1..K4 (ROW 1), 4..7 = S1..S4 (ROW 2); P1-013 */
 #define SQ_NSEED      6          /* seeds stored per algorithm (max of the four: ACID has 6) */
 #define SQ_NLAYER     5          /* 0 NOTES, 1 HITS, 2 ACCNT, 3 ARTIC, 4 SHAPE (ALGORITHM_SET 4.1; fixed) */
 #define SQ_NPIN       16         /* pin positions = the 16 white keys */
@@ -75,7 +84,7 @@ typedef struct {
 #define PO_PIN        0x40   /* set by the core when a pin overlaid this step (UI: outline) */
 _Static_assert(sizeof(PulseOut) == 6, "PulseOut");
 
-typedef struct { char label[8]; uint8_t min, max, def, step; } MorphDesc;       /* label <= 6 chars + NUL; 12 B */
+typedef struct { char label[7]; uint8_t min, max, def, step, fast; } MorphDesc;  /* label <= 6 chars + NUL; step per slow detent, fast per detent under 40 ms (FULL_CONTROL 5.1); 12 B */
 typedef struct { uint8_t n; uint8_t seed[2]; } LayerDesc;                        /* n = 0: layer absent (dimmed); 3 B */
 _Static_assert(sizeof(MorphDesc) == 12, "MorphDesc");
 _Static_assert(sizeof(LayerDesc) == 3, "LayerDesc");
@@ -88,11 +97,11 @@ typedef struct { GlobalSave s; uint8_t snap[12]; } SeqGlobal;
  * beat_samples()). snap[r] = scale tone for interval r above the key (SP6), derived, never saved. */
 _Static_assert(sizeof(GlobalSave) == 6 && sizeof(SeqGlobal) == 18, "SeqGlobal");
 
-/* What one algorithm remembers for one channel (S7: all four are kept). 16 B */
+/* What one algorithm remembers for one channel (S7: all four are kept). 8 morphs + 6 seeds = 20 B */
 typedef struct { uint8_t morph[SQ_NMORPH]; uint16_t seed[SQ_NSEED]; } AlgoState;
-_Static_assert(sizeof(AlgoState) == 16, "AlgoState");
+_Static_assert(sizeof(AlgoState) == 20, "AlgoState");
 
-/* One channel as saved in a preset and read by the UI. The channel's only settings are midi_ch and algo (VISION 3). 86 B */
+/* One channel as saved in a preset and read by the UI. The channel's only settings are midi_ch and algo (VISION 3). 102 B */
 typedef struct {
     uint8_t  midi_ch;              /* 0..15 = MIDI channel 1..16; 16 = OFF (no MIDI out, still previews) */
     uint8_t  algo;                 /* 0..3 */
@@ -102,7 +111,7 @@ typedef struct {
     uint8_t  pin_note[SQ_NPIN];    /* semitones above 36+key, 0..96, UNSNAPPED (so a scale change re-snaps reversibly) */
     AlgoState st[SQ_NALGO];        /* per-algorithm morphs and seeds, indexed by algorithm id */
 } ChanSave;
-_Static_assert(sizeof(ChanSave) == 86, "ChanSave");
+_Static_assert(sizeof(ChanSave) == 102, "ChanSave");
 
 /* One undo/redo record per channel: the last dice / dice-all / pin-clear. Swapping it in again = redo. 34 B */
 typedef struct {
@@ -116,7 +125,7 @@ typedef struct {
 } UndoRec;
 _Static_assert(sizeof(UndoRec) == 34, "UndoRec");
 
-/* The saved device state = a preset (P01..P16) = the autosave. 356 B */
+/* The saved device state = a preset (P01..P16) = the autosave. 420 B */
 typedef struct {
     uint8_t  version;              /* 1 */
     uint8_t  flags;                /* 0 */
@@ -125,7 +134,7 @@ typedef struct {
     ChanSave ch[SQ_NCH];
     uint16_t crc;                  /* CRC-16 over the bytes before it (the storage layer, E7, fills/checks it) */
 } SeqPreset;
-_Static_assert(sizeof(SeqPreset) == 356, "SeqPreset");
+_Static_assert(sizeof(SeqPreset) == 420, "SeqPreset");
 
 /* ISR-only runtime per channel. 24 B */
 typedef struct {
@@ -156,7 +165,7 @@ _Static_assert(sizeof(SeqEvent) == 8, "SeqEvent");
 
 Static-assert plan: every `_Static_assert` above lives in `sq_types.h`; each `sq_algo_*.c` also asserts
 `sizeof(its cache struct) <= SQ_CACHE_MAX` and `AlgoDesc.cache_bytes == sizeof(its cache struct)`; `sq_core.c`
-asserts `SQ_EVQ_N * sizeof(SeqEvent) == 768`, `sizeof(((SeqPreset*)0)->ch) == 344`, and
+asserts `SQ_EVQ_N * sizeof(SeqEvent) == 768`, `sizeof(((SeqPreset*)0)->ch) == 408`, and
 `(sizeof(DIV_TICKS) / sizeof(DIV_TICKS[0])) == 6`. A struct size change is a contract change: it needs an ADR-0003
 amendment, because the preset layout is stored.
 
@@ -187,7 +196,7 @@ typedef struct AlgoDesc {
     uint8_t    n_seed;                     /* seeds this algorithm uses (<= SQ_NSEED) */
     uint8_t    flags;                      /* AF_PAIRING 0x01: step t needs the next-step snapshot (slide) */
     uint8_t    cache_bytes;                /* sizeof its cache, <= SQ_CACHE_MAX */
-    uint8_t    knob_morph[SQ_NMORPH];      /* K1..K4 -> morph id. v1 = {0,1,2,3}. THE knob remap table */
+    uint8_t    knob_morph[SQ_NMORPH];      /* knob slot (K1..K4, S1..S4) -> morph id. v1 = {0,1,2,3,4,5,6,7}. THE knob remap table */
     uint8_t    seed_k[SQ_NSEED];           /* default-seed k per seed (0xFF = literal 0) */
     MorphDesc  morph[SQ_NMORPH];           /* label/min/max/def/detent step, indexed by MORPH ID (build()'s m[]) */
     LayerDesc  layer[SQ_NLAYER];           /* shared layer -> seed ids (n = 0 absent). THE dice remap table */
@@ -229,23 +238,34 @@ Shared layer indices: 0 NOTES, 1 HITS, 2 ACCNT, 3 ARTIC, 4 SHAPE. `{n, s0, s1}` 
 
 | Algo | Seeds (index: name, `seed_k`) | `layer[0..4]` (NOTES HITS ACCNT ARTIC SHAPE) | `sub[0..4]` | `knob_morph` |
 | --- | --- | --- | --- | --- |
-| ACID (id 0, n_seed 6, `AF_PAIRING`) | 0 NOTES 1; 1 HITS 2; 2 OCT 3; 3 GATE 4; 4 ACCNT 5; 5 SLIDE 6 | `{1,0}` `{1,1}` `{1,4}` `{2,3,5}` `{1,2}` | NOTES HITS ACCNT GT+SLD OCTAVE | 0,1,2,3 |
-| EUCLID (id 1, n_seed 4) | 0 ROT 0xFF; 1 NOTES 1; 2 ACCNT 2; 3 RATCH 3 | `{1,1}` `{1,0}` `{1,2}` `{1,3}` `{0}` | NOTES ROTATE ACCNT RATCH - | 0,1,2,3 |
-| SNAKE (id 2, n_seed 4) | 0 NOTES 1; 1 GATES 2; 2 VEL 3; 3 POLY 4 | `{1,0}` `{1,1}` `{1,2}` `{0}` `{1,3}` | NOTES GATES VELO - DRIFT | 0,1,2,3 |
-| STAGE (id 3, n_seed 5) | 0 NOTES 1; 1 LENS 2; 2 RESTS 3; 3 MODE 4; 4 VEL 5 | `{1,0}` `{1,2}` `{1,4}` `{1,3}` `{1,1}` | NOTES RESTS VELO RT+HLD LONG | 0,1,2,3 |
+| ACID (id 0, n_seed 6, `AF_PAIRING`) | 0 NOTES 1; 1 HITS 2; 2 OCT 3; 3 GATE 4; 4 ACCNT 5; 5 SLIDE 6 | `{1,0}` `{1,1}` `{1,4}` `{2,3,5}` `{1,2}` | NOTES HITS ACCNT GT+SLD OCTAVE | 0..7 |
+| EUCLID (id 1, n_seed 4) | 0 ROT 0xFF; 1 NOTES 1; 2 ACCNT 2; 3 RATCH 3 | `{1,1}` `{1,0}` `{1,2}` `{1,3}` `{0}` | NOTES ROTATE ACCNT RATCH - | 0..7 |
+| SNAKE (id 2, n_seed 4) | 0 NOTES 1; 1 GATES 2; 2 VEL 3; 3 POLY 4 | `{1,0}` `{1,1}` `{1,2}` `{0}` `{1,3}` | NOTES GATES VELO - DRIFT | 0..7 |
+| STAGE (id 3, n_seed 5) | 0 NOTES 1; 1 LENS 2; 2 RESTS 3; 3 MODE 4; 4 VEL 5 | `{1,0}` `{1,2}` `{1,4}` `{1,3}` `{1,1}` | NOTES RESTS VELO RT+HLD LONG | 0..7 |
 
-Morph tables (`MorphDesc{label,min,max,def,step}`; `step` = value change per detent; a slow turn is always 1):
+Morph tables (`MorphDesc{label,min,max,def,step,fast}`, values `label min,max,def,step,fast`; `step` = change per slow detent
+(always 1), `fast` = change per detent when detents arrive under 40 ms apart; 4 only for ranges over 32 values). Slots
+0..3 are ROW 1 (K1 DENSITY, K2 FORM, K3 PITCH, K4 SPICE), slots 4..7 are ROW 2 (S1 START, S2 ARTIC, S3 DYNAMICS,
+S4 READ). Every ROW 2 default is neutral (the output equals the 4-morph design). Full definitions and formulas:
+FULL_CONTROL.md section 3 and each algorithm doc 6.1.
 
-| Algo | m0 (K1 DENSITY) | m1 (K2 FORM) | m2 (K3 PITCH) | m3 (K4 SPICE) |
+| Algo | m0 K1 | m1 K2 | m2 K3 | m3 K4 |
 | --- | --- | --- | --- | --- |
-| ACID | DENS 0,16,12,1 | PEDAL 0,12,6,1 | JUMP 0,20,5,1 | ACCNT 0,8,3,1 |
-| EUCLID | HITS 0,16,5,1 | LEN 2,16,16,1 | SPAN 0,24,12,1 | ACCNT 0,8,2,1 |
-| SNAKE | DENS 0,16,10,1 | LEN 1,16,7,1 | RANGE 0,48,12,1 | PATH 1,14,7,1 |
-| STAGE | DENS 0,8,6,1 | TOTAL 8,64,16,4 | RANGE 0,36,12,1 | RATCH 0,8,2,1 |
+| ACID | DENS 0,16,12,1,1 | PEDAL 0,12,6,1,1 | JUMP 0,20,5,1,1 | ACCNT 0,8,3,1,1 |
+| EUCLID | HITS 0,16,5,1,1 | LEN 2,16,16,1,1 | SPAN 0,24,12,1,1 | ACCNT 0,8,2,1,1 |
+| SNAKE | DENS 0,16,10,1,1 | LEN 1,16,7,1,1 | RANGE 0,48,12,1,4 | PATH 1,14,7,1,1 |
+| STAGE | DENS 0,8,6,1,1 | TOTAL 8,64,16,1,4 | RANGE 0,36,12,1,4 | RATCH 0,8,2,1,1 |
+
+| Algo | m4 S1 | m5 S2 | m6 S3 | m7 S4 |
+| --- | --- | --- | --- | --- |
+| ACID | OFFSET 0,15,0,1,1 | SLIDE 0,8,4,1,1 | PUNCH 0,47,40,1,4 | DIR 0,2,0,1,1 |
+| EUCLID | OFFSET 0,15,0,1,1 | RATCH 0,8,4,1,1 | PUNCH 0,47,40,1,4 | CURVE 0,6,0,1,1 |
+| SNAKE | OFFSET 0,15,0,1,1 | GLEN 1,16,16,1,1 | DYN 0,10,10,1,1 | DIR 0,2,0,1,1 |
+| STAGE | OFFSET 0,63,0,1,4 | RDIV 1,4,4,1,1 | DYN 0,10,10,1,1 | DIR 0,2,0,1,1 |
 
 Rules: morph value 0 on knob slot 0 (K1) is shown as `KEYS ONLY` (UI rule, P2-003; no algorithm code: `build` with
 `m[0] == 0` simply yields no hits). The build's parameter order `m[]` is the **morph id** order above (ACID's
-assessment names `typ,den,jmp,acc`: the prototype maps names to ids `1,0,2,3`). Morphs are monotonic and reversible
+assessment names `typ,den,jmp,acc`: the prototype maps names to ids `1,0,2,3`; its ROW 2 ids 4..7 are `off,sl,pun,dir`). Morphs are monotonic and reversible
 (order-based, from the assessments), which is `build()`'s property, not the core's.
 
 **Dice** (core, `sq_dice_layer(ch, L)`): for each seed id `s` in `ALGOS[a].layer[L]`: store old value in `UndoRec`, set
@@ -255,7 +275,7 @@ absent skipped, ONE undo record covering the union. `sq_undo(ch)` swaps every se
 `what & 2`) with the record, then rebuilds; tapping again swaps back (redo). A new dice / pin-clear overwrites the record.
 The record is cleared (`what = 0`) on an algorithm switch and on a preset load.
 (This **refines** ALGORITHM_SET 4.3, which keeps one previous-seed per seed: with that scheme "undo the last dice" after
-dicing NOTES then HITS would revert both. One record per channel undoes exactly the last action. Owner question 46.)
+dicing NOTES then HITS would revert both. One record per channel undoes exactly the last action. Settled: owner decision 46.)
 
 ### 4.2 Every v1 algorithm fits the vtable
 
@@ -273,7 +293,7 @@ dicing NOTES then HITS would revert both. One record per channel undoes exactly 
 | Pins | core overlay (section 9); `step` supplies `vel`/`gate` for non-hits | all |
 | Absent layer | `LayerDesc.n == 0` | EUCLID SHAPE, SNAKE ARTIC |
 | 6 / 4 / 4 / 5 seeds | `n_seed`, `seed_k[]`, `layer[]` | all |
-| Cache sizes (ACID 52, SNAKE 52, STAGE 41, EUCLID 30 B) | `cache_bytes <= 64` | all |
+| Cache sizes (ACID 54, SNAKE 55, STAGE 43, EUCLID 30 B; the ROW 2 morphs OFFSET and DIR read `t`, so ACID adds `off`, `dir`; SNAKE `off`, `dir`, `glen`; STAGE `off`, `dir`; every other ROW 2 morph is baked into the cache by `build()`) | `cache_bytes <= 64` | all |
 
 Nothing in the four assessments needs a feature outside this table. If a future algorithm does (CC lane, per-note
 clock, polyphony), it needs a new ADR (section 15).
@@ -290,7 +310,7 @@ clock, polyphony), it needs a new ADR (section 15).
 | MIDI channel, mute | core, per channel | no |
 
 Because `build` reads only `key/octave/snap`, a host test that varies gate/div/swing must see identical caches.
-Owner questions 43 (swing formula) and 44 (GATE neutral point) are open; both are one table edit.
+Settled by the owner (decisions 43 and 44): swing is doubled, and GATE 50 % is neutral; the screen labels GATE as a share of the algorithm's own gate (P2-003). Both are one table edit.
 
 ## 6. Per-channel state and the main-loop / ISR split
 
@@ -459,7 +479,7 @@ NOTE_OFFs; a NOTE_OFF that cannot be sent stays in the queue and is retried next
 | STOP (button, external Stop), PANIC, preset undo to stopped | `sq_all_off()`: for each channel NOTE_OFF for each `rt.snd[]` entry on the channel byte it was sent with, release the preview notes, then CC123 on each MIDI channel in use (all 16 if unsure is not done; the 4 configured plus the channels of any `snd_chan`), clear `evq`, reset `rt`. Done in one block; if the ring is short it continues next block (`sq_req` PANIC stays set until clean). Same order as `t1_all_off()` in `t1_glue.c` (note-offs first, then CC123). |
 | PLAY | `sq_all_off()` first (the T-1 did the same in `t1_on_start`). |
 | USB host (re)connects or disconnects | PANIC on the 0->1 edge of `usb.config`. |
-| MIDI-channel change, algorithm switch, preset load, mute | **No cut.** Queued events keep their own MIDI channel, so the old note ends on the old channel. (This replaces the "cut on algorithm / channel change" line in sting 6.3a item 3; owner question 47.) |
+| MIDI-channel change, algorithm switch, preset load, mute | **No cut.** Queued events keep their own MIDI channel, so the old note ends on the old channel. (This replaces the "cut on algorithm / channel change" line in sting 6.3a item 3; owner decision 47.) |
 | Mute | New hits stop at once; sounding notes end by their queued offs (no click, no hang). |
 
 ## 9. Step entry: pins on the 16 white keys, and `K1 = 0` (KEYS ONLY)
@@ -496,13 +516,14 @@ applied after `step()`), so morphs and dice never disturb them.
 
 ## 10. Presets, queued loads, undo of a load
 
-- A preset is a `SeqPreset` (356 B). `sq_preset_save()` copies `sq_ch`, `sq_g.s`, BPM. Slot storage (P01..P16 = 5696 B,
+- A preset is a `SeqPreset` (420 B). `sq_preset_save()` copies `sq_ch`, `sq_g.s`, BPM. Slot storage (P01..P16 = 6720 B,
   the autosave, the "undo last load" copy) is E7 (project.c becomes the store); this ADR fixes only the byte layout.
   `sq_preset_load()` **validates and clamps every field** (algo < 4, midi_ch <= 16, morph within `MorphDesc` min/max,
   pin_note <= 96, scale < 16, ...); an invalid `version` or CRC loads the power-on defaults.
 - **Queued to the next loop start (owner decision 34):** "loop start" = the next tick where the global bar counter
-  `sq_bar` (steps since PLAY / restart, `/ 16`) rolls over, i.e. every 16 steps (one bar at 1/16): data constant
-  `SQ_BAR_STEPS = 16` (owner question 45). Procedure: the main loop validates the preset into a pool staging copy,
+  `sq_bar` (192-PPQN ticks since PLAY / restart) reaches a multiple of **768 ticks** (always one 4/4 bar, whatever DIV
+  and the loop lengths are): data constant `SQ_BAR_TICKS = 768` (owner decision 45, replacing the earlier
+  `SQ_BAR_STEPS = 16`). Procedure: the main loop validates the preset into a pool staging copy,
   builds the four caches into the **inactive** buffers `sq_cache[c][cidx^1]` and `sq_gdb[gidx^1]`, then sets
   `sq_load_pending = 1` (last store). At the bar tick `sq_apply_bar_boundary()` (ISR) copies the staged `ChanSave`s and
   `GlobalSave` over the live ones (<= 400 B), flips every `cidx` and `gidx`, clears every `UndoRec`, increments
@@ -518,7 +539,7 @@ Facts (SYSTEM_MAP section 9): RAM `.data+.bss` after the E3 removals 27232 B of 
 
 | Item | Per channel | x4 / total | Where |
 | --- | ---: | ---: | --- |
-| `ChanSave` (live) | 86 | 344 | .bss |
+| `ChanSave` (live) | 102 | 408 | .bss |
 | `UndoRec` | 34 | 136 | .bss |
 | `ChanRT` | 24 | 96 | .bss |
 | Algorithm caches, double buffered (2 x 64) | 128 | 512 | .bss |
@@ -527,18 +548,18 @@ Facts (SYSTEM_MAP section 9): RAM `.data+.bss` after the E3 removals 27232 B of 
 | Transport / clock / requests / counters (`sq_acc`, `sq_now`, `sq_bar`, `sq_entropy_ctr`, flags, `sq_drops`, `sq_epoch`, `sq_sel`) | | 32 | .bss |
 | `sq_calgo[4][2]` | | 8 | .bss |
 | USB-MIDI out ring 64 -> 128 packets (separate `MQO`) | | +256 | .bss |
-| **Core total (.bss)** | **272** | **2193** | |
+| **Core total (.bss)** | **288** | **2257** | |
 | UI state allowance for P2-003 (toasts, knob highlight timers, layer state, redraw signatures) | | 3072 | .bss (cap; P2-003 must fit or amend) |
-| **Total new .bss** | | **5265** | |
-| Preset slots P01..P16 (16 x 356) | | 5696 | .pool / `.noinit` (replaces `proj_slot` 15360 B; E7) |
-| Staging preset + "undo last load" copy | | 712 | .pool |
-| **Total new pool** | | **6408** | |
+| **Total new .bss** | | **5329** | |
+| Preset slots P01..P16 (16 x 420) | | 6720 | .pool / `.noinit` (replaces `proj_slot` 15360 B; E7) |
+| Staging preset + "undo last load" copy | | 840 | .pool |
+| **Total new pool** | | **7560** | |
 
 | Check | Allowed | Used | Result |
 | --- | ---: | ---: | --- |
-| `.bss`, after E3 removals: 46496 - 4096 | 42400 | 5265 | fits, headroom left 41231 (> 8 KB trigger) |
-| `.bss`, if built before the removals: 17984 - 4096 | 13888 | 5265 | fits, headroom left 12719 (> 8 KB trigger) |
-| Pool, today | 25764 | 6408 | fits |
+| `.bss`, after E3 removals: 46496 - 4096 | 42400 | 5329 | fits, headroom left 41167 (> 8 KB trigger) |
+| `.bss`, if built before the removals: 17984 - 4096 | 13888 | 5329 | fits, headroom left 12655 (> 8 KB trigger) |
+| Pool, today | 25764 | 7560 | fits |
 | Stack | n/a | `build` <= 256 B (main loop), `step` <= 64 B (ISR) | each dev task measures |
 
 Removed with R8 (T-1 retirement): `t1_micro_queue` 4096 B and the two `MidiRingBuffer` 2 x 264 B and `t1_sequencer_ram`
@@ -591,7 +612,7 @@ Autosave writing, the throttle and the preset store are E7; this ADR requires on
 | `t1_harmony_eval_style/_chord/_voicing`, `t1_lfsr_*`, `t1_plock_*`, `t1_euclidean_eval_cycle` | **Drop** (delete at R8) | arp/chords/LFSR/p-locks are out of v1; SP1 replaces the LFSR (F16, F19) |
 | `t1_pipeline_tick`, `t1_pipeline_alloc_voice`, `_free_voice`, `_kill_all_voices`, `_invalidate_masks`, `_reset_transport`, `t1_division_ticks`, `t1_calc_swung_len` | **Rewrite** as `sq_tick/sq_step_start/sq_all_off`; the `DIV_TICKS` table replaces `t1_division_ticks`; swing is redefined (section 5) | the 6-track evaluator is the thing being replaced (F9, F10, F14) |
 | `t1_micro_queue_*`, `T1MicroEvent`, `t1_midi_worker_*`, `MidiRingBuffer`, `midi_ring_*`, `t1_timer_*`, `t1_task_table`, FreeRTOS priority comments in torso_t1.h | **Drop** | replaced by `evq[96]` and `sq_emit`; the TRS jack is MIDI IN only, so the UART ring is dead; there is no timer ISR (the clock is `events_block`) |
-| `Pattern`, `Track`, `CycleParams`, `SequencerRAM` | **Drop** | replaced by `SeqPreset` (356 B vs 9348 B) |
+| `Pattern`, `Track`, `CycleParams`, `SequencerRAM` | **Drop** | replaced by `SeqPreset` (420 B vs 9348 B) |
 | `t1_block` (t1_glue.c) | **Rewrite** as `sq_block`; keep its accumulator idea | |
 | `t1_all_off`, `t1_on_start`, `t1_on_stop` | **Rewrite** as `sq_all_off`, `sq_on_start`, `sq_on_stop`; keep the order note-offs then CC123 | model for 8.4 |
 | `t1_default_pattern`, `t1_glue_init`, `t1_set_mode` | **Drop / replace** by `SQ_DEFAULTS` and `sq_boot` | decision 32b: always on |
@@ -642,20 +663,20 @@ Changeable by editing a table row, no algorithm or core code change:
 
 | Table | Change |
 | --- | --- |
-| `AlgoDesc.knob_morph[4]` | any knob to any morph of that algorithm (swap two numbers) |
-| `AlgoDesc.morph[]` | label (<= 6 chars), min, max, default, detent step |
+| `AlgoDesc.knob_morph[8]` | any knob slot (K1..K4, S1..S4) to any morph of that algorithm (swap two numbers) |
+| `AlgoDesc.morph[8]` | label (<= 6 chars), min, max, default, slow step, fast step |
 | `AlgoDesc.layer[5]` | which seed(s) a dice button re-rolls; move a seed to another layer; bind two seeds to one layer; mark a layer absent |
 | `AlgoDesc.sub[5]` | dice sub-labels |
 | `AlgoDesc.seed_k[]`, `SQ_DEFAULTS` | default seeds' k, boot algorithm/MIDI/mute per channel, global defaults |
-| `DIV_TICKS[6]`, `GATE_MUL[10]`, `SQ_BAR_STEPS`, swing formula constants, `D` (L/8), `GAP` | feel constants |
+| `DIV_TICKS[6]`, `GATE_MUL[10]`, `SQ_BAR_TICKS` (768), swing formula constants, `D` (L/8), `GAP` | feel constants |
 | Name order of `ALGOS[]` (`EN_ALGO` cycle order) | reorder |
-| Number of detents for fast/slow knob turns | UI table (P2-003/P2-001), not here |
+| The 40 ms fast-turn threshold | UI table (P2-003), not here (the fast step itself is `MorphDesc.fast`) |
 
 Cannot change without code (and an ADR-0003 amendment, an owner re-lock, and golden regeneration):
 
 | Item | Why |
 | --- | --- |
-| `SQ_NCH`, `SQ_NALGO`, `SQ_NSEED`, `SQ_NLAYER`, `SQ_CACHE_MAX`, struct layouts | the stored preset format and static asserts |
+| `SQ_NCH`, `SQ_NALGO`, `SQ_NMORPH` (8), `SQ_NSEED`, `SQ_NLAYER`, `SQ_CACHE_MAX`, struct layouts | the stored preset format and static asserts |
 | The xorshift generator, salts, shuffle method | define the golden files (SP1) |
 | 16 pin positions; pins keyed by `t % loop_len` | step-entry geometry |
 | Purity contract and `PulseOut` fields | adding a CC lane, polyphony or per-note clock needs a new field |
@@ -688,13 +709,13 @@ Each task cites the section named. None may start before the owner approves this
 
 ## 17. Deviations from earlier documents (all flagged to the owner)
 
-| # | Earlier text | This ADR | Owner question |
+| # | Earlier text | This ADR | Owner decision |
 | --- | --- | --- | --- |
 | a | ALGORITHM_SET 4.3 per-seed previous seed, undo swaps all previous seeds | One `UndoRec` per channel (last dice / dice-all / pin-clear) | 46 |
 | b | sting 6.3a rule 3: algorithm or MIDI-channel change cuts notes | No cut; events carry their MIDI channel; only stop/panic/disconnect cut | 47 |
 | c | ACID "GATE multiplies"; control map default GATE 50 % | `GATE_MUL(x) = x * 2` (percent; 50 % = x1.00): 50 % = the algorithm's own gate | 44 |
 | d | T-1 swing: odd steps shifted by `(swing - 50)` % of a step | pair-ratio swing, `2 * (swing - 50)` % of a step | 43 |
-| e | "preset load at the next loop start" (loop undefined with 4 different loop lengths) | every 16 steps (a bar at 1/16) | 45 |
+| e | "preset load at the next loop start" (loop undefined with 4 different loop lengths) | a fixed bar of 768 ticks, independent of DIV | 45 |
 | f | SNAKE/EUCLID informative output lines | superseded by P2-008 goldens (SP6/SP7 late quantise) | none |
 | g | Assessment: MQ 64 shared ring | separate 128 out ring | none |
 
@@ -703,6 +724,6 @@ Each task cites the section named. None may start before the owner approves this
 - The algorithm work (P2-008, dev tasks 8a-8d) is independent of the scheduler work (6-7): both meet at `PulseOut`.
 - A workflow change after hardware testing (a different knob on a different morph, a different dice grouping) is a
   table edit plus re-lock, never a code change (ADR-0004 addendum).
-- 5265 B of `.bss` and ~6.4 KB of pool buy the whole product; the E9 trigger (8 KB headroom) is not approached.
+- 5329 B of `.bss` and ~7.6 KB of pool buy the whole product; the E9 trigger (8 KB headroom) is not approached.
 - Risks: the slide-as-overlap behaviour on the TB-3 is unverified (question 8); next-step latency of up to one step
   for hit/note/slide changes (question 9); the 0.73 ms block quantisation is inaudible but measurable on a scope.

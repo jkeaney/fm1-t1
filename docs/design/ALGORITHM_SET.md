@@ -1,5 +1,7 @@
 # Algorithm set for v1, the shared layer vocabulary and the knob convention
 
+> Change note (P1-013): the knob convention gains a second row. K1..K4 (ROW 1) are unchanged; ROW 2 is S1 START (`OFFSET`), S2 ARTIC, S3 DYNAMICS, S4 READ, giving 8 morphs per algorithm (section 5.2b, 5.3). Shared primitives SP16 (`dir_map`) and SP17 (`dyn_vel`) are added to section 6. The five-layer dice vocabulary (section 4) is unchanged. Details: [FULL_CONTROL.md](FULL_CONTROL.md).
+
 > **Change note (P1-012, 2026-11-10).** Amended to match [UX_REVIEW.md](UX_REVIEW.md) and
 > [control_map.tsv](control_map.tsv) (owner decisions S1-S7). Changes: (1) the 7 dice inputs are bound to buttons:
 > SCL tap NOTES, SEQ HITS, ENV ACCNT, ARP ARTIC, LFO SHAPE, FX dice-all, EDIT tap undo/redo (4.3). (2) Every dice
@@ -137,7 +139,16 @@ second binding row (for example `ARTIC` long press = SLIDE only), which costs no
 | K4 | SPICE | The expressive extra on top of the pattern (accent, ratchet, reading path). | "K4 for energy." |
 
 Each algorithm keeps its own on-screen label (max 6 chars) and range; the convention fixes the **slot**. Knobs stay
-reversible and monotonic as each assessment specifies. The screen draws knob slots left to right K1..K4.
+reversible and monotonic as each assessment specifies. The screen draws knob slots left to right K1..K4 for ROW 1 and S1..S4 for ROW 2 (both rows always visible, FULL_CONTROL.md 2).
+
+| Knob (ROW 2) | Role name | Always means | Musical test |
+| --- | --- | --- | --- |
+| S1 | START | Where the loop begins (`OFFSET`, a rotation of what is read). | "Slide the whole pattern along the bar." |
+| S2 | ARTIC | How much articulation: slide, ratchet, gate-lane length, ratchet speed. | "More glide / more repeats." |
+| S3 | DYNAMICS | How loud and how different: accent depth, velocity spread. | "Flatter or punchier." |
+| S4 | READ | The order the content is read in: direction, or contour curve. | "Play it backwards / another shape." |
+
+Every ROW 2 default is the neutral value, so the output equals the 4-morph design until a ROW 2 knob is turned.
 
 ### 5.2 Mapping and final parameter table (after the edits in 5.4)
 
@@ -161,13 +172,24 @@ Fit argument per cell (where it is not obvious):
 | EUCLID K2 `LEN` as FORM | Loop length and polymeter. K2 stays `LEN`, not `ROTATE` (question 28). |
 | EUCLID K1 `HITS` as DENSITY | Bjorklund pulse count; every value is a groove, but it is still "how many". |
 
+### 5.2b ROW 2 parameters (P1-013)
+
+| Algorithm | S1 START | S2 ARTIC | S3 DYNAMICS | S4 READ |
+| --- | --- | --- | --- | --- |
+| `ACID` | `OFFSET` 0..15, 0 | `SLIDE` 0..8, 4 | `PUNCH` 0..47, 40 | `DIR` 0..2, 0 |
+| `EUCLID` | `OFFSET` 0..15, 0 | `RATCH` 0..8, 4 | `PUNCH` 0..47, 40 | `CURVE` 0..6, 0 |
+| `SNAKE` | `OFFSET` 0..15, 0 | `GLEN` 1..16, 16 | `DYN` 0..10, 10 | `DIR` 0..2, 0 |
+| `STAGE` | `OFFSET` 0..63, 0 | `RDIV` 1..4, 4 | `DYN` 0..10, 10 | `DIR` 0..2, 0 |
+
+Formulas, restored source parameters and the list of parameters that stay cut: FULL_CONTROL.md section 3.
+
 ### 5.3 Knob step size
 
 | Knob | Rule |
 | --- | --- |
-| STAGE `TOTAL` (57 values) | Step of 4 pulses with a normal turn; step of 1 while the encoder is turned slowly, via the existing accelerator (`KNOB ACCEL`). Every value 8..64 stays reachable (UX_REVIEW.md 5.1). |
+| STAGE `TOTAL` (57 values) | Step of 4 pulses when turned fast (detents under 40 ms apart), 1 when turned slowly (P1-013 rule, FULL_CONTROL.md 5.1). Every value 8..64 stays reachable. |
 | K1 at 0 (all four) | `KEYS ONLY`: no generated hits, pins still play (rank-order `n = 0` plays nothing; `t1_euclidean_bjorklund(steps, 0)` returns 0). Range edit only. |
-| All other morphs (<= 49 values) | One detent = one step of 1. SNAKE `RANGE` 0..48 uses step 1; acceleration allowed. |
+| All other morphs | One detent = one step of 1 when turned slowly. Ranges over 32 values (STAGE `TOTAL` and `RANGE`, SNAKE `RANGE`, `PUNCH`, STAGE `OFFSET`) change by 4 per detent when detents arrive under 40 ms apart (FULL_CONTROL.md 5.1); the menu's KNOB ACCEL no longer affects morphs. |
 
 ### 5.4 Edits the assessments need (table of edits, not applied here)
 
@@ -210,10 +232,13 @@ set; (L) = deferred algorithm. Golden tests per primitive are written once (P2-0
 | SP13 | Seed store | Per layer seed + previous seed (u16 each) and `dice(layer)`, `dice_all()`, `undo()` driven by the layer table of section 4.2 (`layer_seeds[algo][layer] -> list of seed ids`). Default seed = `(0x3A5D * (ch*N + k)) & 0xFFFF`, with `N` and `k` from the algorithm table. | all | The dice/undo code was copied into every assessment. |
 | SP14 | Output scheduler | Emits note-on, note-off at `gate_pct` of the step (global GATE), overlap for slides (ACID, P1-011 6.3a), long hold (STAGE `I-`, ignores global GATE per question 11), and panics (note-off + CC123 on stop). Note-off pairing is per channel; at most one sounding note per channel except slide overlap. | all | Start/stop/CC123 handling from `t1_glue.c` is the model. |
 | SP15 | Parameter table reader | Reads morph name, range, default, knob slot, and `layer_seeds` from data tables (section 10); the algorithm functions take plain scalars (`den`, `len`, ...), never the table. | all | Makes remaps a table edit (ADR-0004 addendum). |
+| SP16 | Direction map (P1-013) | `dir_map(u, n, d)`: `d = 0` FWD `u mod n`; `d = 1` BWD `n - 1 - (u mod n)`; `d = 2` PEND (ping-pong without repeating the ends): `n = 1` gives 0, else `q = u mod (2n - 2)`, result `q` if `q < n` else `2n - 2 - q`. | ACID (n 16), SNAKE pitch lane (n = LEN), STAGE (n = TOTAL) | Direction in sting, snake, ml185 sources (random modes stay cut). |
+| SP17 | Velocity depth (P1-013) | `dyn_vel(v, dyn) = clamp(100 - ((100 - v) * dyn) / 10, 1, 127)`, division truncating toward zero; `dyn = 10` returns `v`, `dyn = 0` returns 100. | SNAKE, STAGE | Velocity lane range in the sources. |
 
 Primitives deliberately not shared: ACID's motif tile + TYPE replacement (ACID only), SNAKE's 14 traversal shapes
 (SNAKE only), STAGE's cumulative-sum stage lookup (STAGE only), ACID's slide probability table (ACID only), ARP's
 hashed chance roll (deferred).
+
 
 ## 7. Implementation order
 

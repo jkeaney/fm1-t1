@@ -83,19 +83,19 @@ B_REC	SCL	tap (release before 0.7 s): enter STEP; hold 0.7 s: clear every pin of
 B_REC	CHAN	tap (release before 0.7 s): enter STEP; hold 0.7 s: clear every pin of the selected channel (undoable with EDIT tap)	STEP	owns	F04 8 / F06 8
 B_REC	GLOB	tap (release before 0.7 s): enter STEP; hold 0.7 s: clear every pin of the selected channel (undoable with EDIT tap)	STEP	owns	F04 8 / F06 8
 B_REC	MENU	press: closes the menu (no other action)	close	page	F29 8
-B_OCTDN	PERF	press: keyboard octave -1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE)	OCT n	owns	F26 8
-B_OCTDN	STEP	press: keyboard octave -1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE)	OCT n	owns	F26 8
+B_OCTDN	PERF	tap (release before HOLD, no knob turned): latch ROW 1 of the knob band (a set, not a toggle); hold and turn a knob: ROW 1 is live while held, then the latched row returns; both OCT held 5 s = UPDATE MODE	ROW 1	owns	F30 9
+B_OCTDN	STEP	tap (release before HOLD, no knob turned): latch ROW 1 of the knob band (a set, not a toggle); hold and turn a knob: ROW 1 is live while held, then the latched row returns; both OCT held 5 s = UPDATE MODE	ROW 1	owns	F30 9
 B_OCTDN	STEP_HELD	press: the held step(s)' pin note -12 semitones (clamped 0..96), auditioned	PIN OCT	owns	F05 7
-B_OCTDN	SCL	press: keyboard octave -1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE)	OCT n	owns	F26 8
-B_OCTDN	CHAN	press: keyboard octave -1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE)	OCT n	owns	F26 8
-B_OCTDN	GLOB	press: keyboard octave -1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE)	OCT n	owns	F26 8
+B_OCTDN	SCL	press: keyboard octave -1 (range -3..+3; both OCT pressed together = 0)	KB OCT n	owns	F35 7
+B_OCTDN	CHAN	inert in this context (the knob band is replaced here, a row switch would be invisible; both held 5 s = UPDATE MODE still works)	-	owns	-
+B_OCTDN	GLOB	inert in this context (the knob band is replaced here, a row switch would be invisible; both held 5 s = UPDATE MODE still works)	-	owns	-
 B_OCTDN	MENU	release: previous value / back (Felucca menu rule)	-	page	F29 8
-B_OCTUP	PERF	press: keyboard octave +1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE)	OCT n	owns	F26 8
-B_OCTUP	STEP	press: keyboard octave +1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE)	OCT n	owns	F26 8
+B_OCTUP	PERF	tap (release before HOLD, no knob turned): latch ROW 2 of the knob band (a set, not a toggle); hold and turn a knob: ROW 2 is live while held, then the latched row returns; both OCT held 5 s = UPDATE MODE	ROW 2	owns	F30 9
+B_OCTUP	STEP	tap (release before HOLD, no knob turned): latch ROW 2 of the knob band (a set, not a toggle); hold and turn a knob: ROW 2 is live while held, then the latched row returns; both OCT held 5 s = UPDATE MODE	ROW 2	owns	F30 9
 B_OCTUP	STEP_HELD	press: the held step(s)' pin note +12 semitones (clamped 0..96), auditioned	PIN OCT	owns	F05 7
-B_OCTUP	SCL	press: keyboard octave +1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE)	OCT n	owns	F26 8
-B_OCTUP	CHAN	press: keyboard octave +1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE)	OCT n	owns	F26 8
-B_OCTUP	GLOB	press: keyboard octave +1 (range -3..+3; both OCT = 0; both held 5 s = UPDATE MODE)	OCT n	owns	F26 8
+B_OCTUP	SCL	press: keyboard octave +1 (range -3..+3; both OCT pressed together = 0)	KB OCT n	owns	F35 7
+B_OCTUP	CHAN	inert in this context (the knob band is replaced here, a row switch would be invisible; both held 5 s = UPDATE MODE still works)	-	owns	-
+B_OCTUP	GLOB	inert in this context (the knob band is replaced here, a row switch would be invisible; both held 5 s = UPDATE MODE still works)	-	owns	-
 B_OCTUP	MENU	release: next value / do it (opens CALIBRATION, INFO, ABOUT rows)	-	page	F29 8
 EN_SELECT	PERF	turn: select channel CH1..CH4 (clamped, no wrap)	CH n	page	F01 9
 EN_SELECT	STEP	turn: select channel CH1..CH4 (clamped, no wrap)	CH n	page	F01 9
@@ -125,31 +125,31 @@ MASTER	SCL	analogue pot: preview-synth and USB-audio volume (song.master_q12); n
 MASTER	CHAN	analogue pot: preview-synth and USB-audio volume (song.master_q12); no MIDI effect	-	device	-
 MASTER	GLOB	analogue pot: preview-synth and USB-audio volume (song.master_q12); no MIDI effect	-	device	-
 MASTER	MENU	analogue pot: preview-synth and USB-audio volume (song.master_q12); no MIDI effect	-	device	-
-EN_K1	PERF	turn: morph K1 DENSITY slot of the selected channel: ACID DENS 0..16 / EUCLID HITS 0..16 / SNAKE DENS 0..16 / STAGE DENS 0..8; 0 = KEYS ONLY (only pins play) (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly)	algo label	owns	F08 9
-EN_K1	STEP	turn: morph K1 DENSITY slot of the selected channel: ACID DENS 0..16 / EUCLID HITS 0..16 / SNAKE DENS 0..16 / STAGE DENS 0..8; 0 = KEYS ONLY (only pins play) (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly)	algo label	owns	F08 9
-EN_K1	STEP_HELD	turn: morph K1 DENSITY slot of the selected channel: ACID DENS 0..16 / EUCLID HITS 0..16 / SNAKE DENS 0..16 / STAGE DENS 0..8; 0 = KEYS ONLY (only pins play) (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly)	algo label	owns	F08 9
+EN_K1	PERF	turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K1 DENSITY: ACID DENS 0..16 / EUCLID HITS 0..16 / SNAKE DENS 0..16 / STAGE DENS 0..8; 0 = KEYS ONLY (only pins play). ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S1 START: OFFSET (ACID 0..15 / EUCLID 0..15 / SNAKE 0..15 / STAGE 0..63). Details FULL_CONTROL.md section 3	algo label	owns	F08 9 / F31-F34 8
+EN_K1	STEP	turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K1 DENSITY: ACID DENS 0..16 / EUCLID HITS 0..16 / SNAKE DENS 0..16 / STAGE DENS 0..8; 0 = KEYS ONLY (only pins play). ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S1 START: OFFSET (ACID 0..15 / EUCLID 0..15 / SNAKE 0..15 / STAGE 0..63). Details FULL_CONTROL.md section 3	algo label	owns	F08 9 / F31-F34 8
+EN_K1	STEP_HELD	turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K1 DENSITY: ACID DENS 0..16 / EUCLID HITS 0..16 / SNAKE DENS 0..16 / STAGE DENS 0..8; 0 = KEYS ONLY (only pins play). ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S1 START: OFFSET (ACID 0..15 / EUCLID 0..15 / SNAKE 0..15 / STAGE 0..63). Details FULL_CONTROL.md section 3	algo label	owns	F08 9 / F31-F34 8
 EN_K1	SCL	turn: KEY (global root) C..B	KEY	owns	F18 7
 EN_K1	CHAN	turn: MIDI OUT channel of CH1: 1..16, OFF	CH1 MID	owns	F02 7
 EN_K1	GLOB	turn: GATE 10..100 % (global gate length)	GATE	owns	F16 8
 EN_K1	MENU	turn: change the selected row's value (K1..K4 equivalent)	value	page	F29 8
-EN_K2	PERF	turn: morph K2 FORM slot of the selected channel: ACID PEDAL 0..12 / EUCLID LEN 2..16 / SNAKE LEN 1..16 / STAGE TOTAL 8..64 (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly)	algo label	owns	F08 9
-EN_K2	STEP	turn: morph K2 FORM slot of the selected channel: ACID PEDAL 0..12 / EUCLID LEN 2..16 / SNAKE LEN 1..16 / STAGE TOTAL 8..64 (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly)	algo label	owns	F08 9
-EN_K2	STEP_HELD	turn: morph K2 FORM slot of the selected channel: ACID PEDAL 0..12 / EUCLID LEN 2..16 / SNAKE LEN 1..16 / STAGE TOTAL 8..64 (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly)	algo label	owns	F08 9
+EN_K2	PERF	turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K2 FORM: ACID PEDAL 0..12 / EUCLID LEN 2..16 / SNAKE LEN 1..16 / STAGE TOTAL 8..64 (step 4 when turned fast, 1 when slow). ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S2 ARTIC: ACID SLIDE 0..8 / EUCLID RATCH 0..8 / SNAKE GLEN 1..16 / STAGE RDIV 1..4. Details FULL_CONTROL.md section 3	algo label	owns	F08 9 / F31-F34 8
+EN_K2	STEP	turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K2 FORM: ACID PEDAL 0..12 / EUCLID LEN 2..16 / SNAKE LEN 1..16 / STAGE TOTAL 8..64 (step 4 when turned fast, 1 when slow). ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S2 ARTIC: ACID SLIDE 0..8 / EUCLID RATCH 0..8 / SNAKE GLEN 1..16 / STAGE RDIV 1..4. Details FULL_CONTROL.md section 3	algo label	owns	F08 9 / F31-F34 8
+EN_K2	STEP_HELD	turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K2 FORM: ACID PEDAL 0..12 / EUCLID LEN 2..16 / SNAKE LEN 1..16 / STAGE TOTAL 8..64 (step 4 when turned fast, 1 when slow). ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S2 ARTIC: ACID SLIDE 0..8 / EUCLID RATCH 0..8 / SNAKE GLEN 1..16 / STAGE RDIV 1..4. Details FULL_CONTROL.md section 3	algo label	owns	F08 9 / F31-F34 8
 EN_K2	SCL	turn: SCALE (global) CHROM..DIM, 16 entries	SCALE	owns	F19 7
 EN_K2	CHAN	turn: MIDI OUT channel of CH2: 1..16, OFF	CH2 MID	owns	F02 7
 EN_K2	GLOB	turn: DIV 1/32, 1/16T, 1/16, 1/8T, 1/8, 1/4 (global step rate)	DIV	owns	F16 8
 EN_K2	MENU	turn: change the selected row's value (K1..K4 equivalent)	value	page	F29 8
-EN_K3	PERF	turn: morph K3 PITCH slot of the selected channel: ACID JUMP 0..20 / EUCLID SPAN 0..24 / SNAKE RANGE 0..48 / STAGE RANGE 0..36 (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly)	algo label	owns	F08 9
-EN_K3	STEP	turn: morph K3 PITCH slot of the selected channel: ACID JUMP 0..20 / EUCLID SPAN 0..24 / SNAKE RANGE 0..48 / STAGE RANGE 0..36 (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly)	algo label	owns	F08 9
+EN_K3	PERF	turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K3 PITCH: ACID JUMP 0..20 / EUCLID SPAN 0..24 / SNAKE RANGE 0..48 / STAGE RANGE 0..36 (step 4 when turned fast on RANGE, 1 when slow). ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S3 DYNAMICS: ACID PUNCH 0..47 / EUCLID PUNCH 0..47 / SNAKE DYN 0..10 / STAGE DYN 0..10. Details FULL_CONTROL.md section 3	algo label	owns	F08 9 / F31-F34 8
+EN_K3	STEP	turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K3 PITCH: ACID JUMP 0..20 / EUCLID SPAN 0..24 / SNAKE RANGE 0..48 / STAGE RANGE 0..36 (step 4 when turned fast on RANGE, 1 when slow). ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S3 DYNAMICS: ACID PUNCH 0..47 / EUCLID PUNCH 0..47 / SNAKE DYN 0..10 / STAGE DYN 0..10. Details FULL_CONTROL.md section 3	algo label	owns	F08 9 / F31-F34 8
 EN_K3	STEP_HELD	turn: NOTE of the held step(s)' pin, one scale degree per detent (snapped, 0..96), auditioned	NOTE	owns	F05 7
 EN_K3	SCL	turn: OCTAVE (global output octave) -2..+2	OCTAVE	owns	F27 7
 EN_K3	CHAN	turn: MIDI OUT channel of CH3: 1..16, OFF	CH3 MID	owns	F02 7
 EN_K3	GLOB	turn: SWING 50..75 % (global)	SWING	owns	F16 8
 EN_K3	MENU	turn: change the selected row's value (K1..K4 equivalent)	value	page	F29 8
-EN_K4	PERF	turn: morph K4 SPICE slot of the selected channel: ACID ACCNT 0..8 / EUCLID ACCNT 0..8 / SNAKE PATH 1..14 / STAGE RATCH 0..8 (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly)	algo label	owns	F08 9
-EN_K4	STEP	turn: morph K4 SPICE slot of the selected channel: ACID ACCNT 0..8 / EUCLID ACCNT 0..8 / SNAKE PATH 1..14 / STAGE RATCH 0..8 (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly)	algo label	owns	F08 9
-EN_K4	STEP_HELD	turn: morph K4 SPICE slot of the selected channel: ACID ACCNT 0..8 / EUCLID ACCNT 0..8 / SNAKE PATH 1..14 / STAGE RATCH 0..8 (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly)	algo label	owns	F08 9
-EN_K4	SCL	turn: morph K4 SPICE slot of the selected channel: ACID ACCNT 0..8 / EUCLID ACCNT 0..8 / SNAKE PATH 1..14 / STAGE RATCH 0..8 (one detent = one step; STAGE TOTAL steps 4, 1 when turned slowly)	algo label	owns	F08 9
+EN_K4	PERF	turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K4 SPICE: ACID ACCNT 0..8 / EUCLID ACCNT 0..8 / SNAKE PATH 1..14 / STAGE RATCH 0..8. ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S4 READ: ACID DIR 0..2 / EUCLID CURVE 0..6 / SNAKE DIR 0..2 / STAGE DIR 0..2. Details FULL_CONTROL.md section 3	algo label	owns	F08 9 / F31-F34 8
+EN_K4	STEP	turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K4 SPICE: ACID ACCNT 0..8 / EUCLID ACCNT 0..8 / SNAKE PATH 1..14 / STAGE RATCH 0..8. ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S4 READ: ACID DIR 0..2 / EUCLID CURVE 0..6 / SNAKE DIR 0..2 / STAGE DIR 0..2. Details FULL_CONTROL.md section 3	algo label	owns	F08 9 / F31-F34 8
+EN_K4	STEP_HELD	turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K4 SPICE: ACID ACCNT 0..8 / EUCLID ACCNT 0..8 / SNAKE PATH 1..14 / STAGE RATCH 0..8. ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S4 READ: ACID DIR 0..2 / EUCLID CURVE 0..6 / SNAKE DIR 0..2 / STAGE DIR 0..2. Details FULL_CONTROL.md section 3	algo label	owns	F08 9 / F31-F34 8
+EN_K4	SCL	turn: the LIVE ROW's fourth function (K4 SPICE of ROW 1 or S4 READ of ROW 2, as for EN_K4 PERF); K1..K3 are KEY, SCALE, OCTAVE in this layer	algo label	owns	F08 9 / F31-F34 8
 EN_K4	CHAN	turn: MIDI OUT channel of CH4: 1..16, OFF	CH4 MID	owns	F02 7
 EN_K4	GLOB	turn: BPM 40..240 (internal clock; shows EXT when slaved)	BPM	owns	F17 8
 EN_K4	MENU	turn: change the selected row's value (K1..K4 equivalent)	value	page	F29 8

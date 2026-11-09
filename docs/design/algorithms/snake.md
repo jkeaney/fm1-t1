@@ -1,5 +1,7 @@
 # Assessment: Snake (polymetric grid sequencer)
 
+> Change note (P1-013, owner decision "Shift"): this algorithm now has **8 morphs** (ROW 1 K1..K4 and ROW 2 S1..S4, see docs/design/FULL_CONTROL.md). Section 6 below is updated: the morph labels and slots follow UX_REVIEW 5.1 (they had not been applied yet), 6.1 lists all 8, 6.3b adds the ROW 2 procedure, 6.4 the RAM, 6.6 the flex points. Every ROW 2 default is neutral, so the base-row output and golden files are unchanged.
+
 Source spec: `docs/snake-algorithms/` (read all of it). Vision: docs/project/VISION.md.
 Use the source's confidence tags ([V]/[I]/⚠) when you rely on a claim, and don't promote ⚠ to fact.
 
@@ -81,8 +83,7 @@ shapes (one shape for all three lanes keeps the display and the mental model to 
 ## 6. Redesign for this sequencer
 
 - **Proposed name on screen (max 6 characters):** `SNAKE`
-- **K1–K4 morphs (with on-screen labels, max 6 characters each):**
-  K1 `PATH`, K2 `LEN`, K3 `DENS`, K4 `RANGE`. (The control map owns which context these knob roles apply in.)
+- **Morphs (on-screen labels, max 6 characters each):** K1 `DENS`, K2 `LEN`, K3 `RANGE`, K4 `PATH` (ROW 1); S1 `OFFSET`, S2 `GLEN`, S3 `DYN`, S4 `DIR` (ROW 2). Full list: docs/design/FULL_CONTROL.md 3.3. (The control map owns which context these knob roles apply in.)
 - **Dice buttons (which layers):** four layer targets `NOTES`, `GATES`, `VEL`, `POLY`, plus dice-all and undo-dice.
   Physical button binding is a control-map table row; this spec only declares the targets.
 - **What we drop from the original, and why:**
@@ -107,16 +108,22 @@ shapes (one shape for all three lanes keeps the display and the mental model to 
   - The Gates-only-trigger question left open by the source (07 §7.6) is decided **[D]**: Gates is the sole trigger;
     the Notes and Velocities lanes are read at the same step on their own counters.
 
+> P1-013: parameters listed above under "must not exist" or "drop" that are now ROW 2 morphs (offset, direction, slide amount, accent depth, ratchet amount, contour curve, gate-lane length, stage divider cap, velocity depth) are no longer forbidden; everything else listed stays cut. See FULL_CONTROL.md 3.1 to 3.4.
+
 ### 6.1 Parameters (data table; ranges and defaults)
 
 This table is the single source for the on-screen labels, ranges and defaults. A remap is an edit to this table.
 
 | Id | Kind | Label | Range | Default | Stored as |
 | --- | --- | --- | --- | --- | --- |
-| `shp` | morph, knob 1 | `PATH` | 1..14 | 7 | u8 |
-| `len` | morph, knob 2 | `LEN` | 1..16 | 7 | u8 |
-| `den` | morph, knob 3 | `DENS` | 1..16 | 10 | u8 |
-| `rng` | morph, knob 4 | `RANGE` | 0..48 | 24 | u8 |
+| `den` | morph, K1 | `DENS` | 0..16 | 10 | u8 |
+| `len` | morph, K2 | `LEN` | 1..16 | 7 | u8 |
+| `rng` | morph, K3 | `RANGE` | 0..48 | 12 | u8 |
+| `shp` | morph, K4 | `PATH` | 1..14 | 7 | u8 |
+| `off` | morph, S1 | `OFFSET` | 0..15 | 0 | u8 |
+| `gl` | morph, S2 | `GLEN` | 1..16 | 16 | u8 |
+| `dyn` | morph, S3 | `DYN` | 0..10 | 10 | u8 |
+| `dir` | morph, S4 | `DIR` | 0..2 (FWD BWD PEND) | 0 | u8 |
 | `s_notes` | dice seed | `NOTES` | 0..65535 | `(0x3A5D * (ch*4 + 1)) & 0xFFFF` | u16 |
 | `s_gates` | dice seed | `GATES` | 0..65535 | `(0x3A5D * (ch*4 + 2)) & 0xFFFF` | u16 |
 | `s_vel` | dice seed | `VEL` | 0..65535 | `(0x3A5D * (ch*4 + 3)) & 0xFFFF` | u16 |
@@ -213,16 +220,30 @@ transcription of this procedure are:
 `- ; 48,95 ; 53,82 ; 43,89 ; 43,122 ; - ; - ; 53,82 ; - ; - ; 43,60 ; 43,95 ; 55,82 ; 43,89 ; - ; 48,60`
 (seeds 14941 / 29882 / 44823 / 59764, `vlen` = 5).
 
+### 6.3b ROW 2 morphs (P1-013, normative; all defaults are neutral, so the procedure above is unchanged at defaults)
+
+Let `u = t + off` (OFFSET `off` 0..15). Playback in 6.3 becomes:
+1. **Gate lane (GLEN `gl` 1..16, default 16).** `g[j] = gate[order[j]]` for `j = 0 .. gl-1` (built with the cache). If
+   `den >= 1` and no `g[j]` is set, `g[0] = 1` (a short lane never goes silent). `hit = g[u % gl]`. With `gl = 16`
+   this is the original `gate[order[t % 16]]`. (`den = 0` is KEYS ONLY: no hits, nothing is forced.) A pin at `t % 16` still forces a hit.
+2. **Pitch lane (DIR `dir` 0 FWD, 1 BWD, 2 PEND).** `cp = order[dir_map(u, len, dir)]` (SP16); the gate and velocity
+   lanes always read forward.
+3. **Velocity lane (DYN `dyn` 0..10, default 10).** `cv = order[u % vlen]`; `velocity = dyn_vel(vel[cv], dyn)` (SP17):
+   `clamp(100 - ((100 - v) * dyn) / 10, 1, 127)`, division truncating toward zero. `dyn = 10` is the original `v`; `dyn = 0`
+   is a flat 100.
+Pins (6.5) are keyed to `t % 16` and ignore OFFSET and DIR. The cache gains `gl`, `off`, `dir` and the `g` bits.
+
 ### 6.4 Channel RAM and CPU
 
 | Item | Bytes |
 | --- | --- |
-| 4 knob values | 4 |
+| 8 morph values (ROW 1 and ROW 2) | 8 |
 | 4 seeds + 4 previous seeds | 16 |
 | Pin mask + 16 pin notes | 18 |
 | Layer scratch (raw 16, rank_g 16, vel 16) | 48 |
 | Playback cache (order 16, note 16, gate_bits 2, len 1, vlen 1) plus `vel` (counted above) | 36 |
-| **Total** | **122 B per channel** (well under 2 KB) |
+| Cache additions (`gl`, `off`, `dir`) | 3 |
+| **Total** | **129 B per channel** (well under 2 KB) |
 
 The shape tables are shared constants (224 B in flash). Scratch can instead be regenerated from the seeds on demand
 (about 50 draws) and not stored, giving about 74 B per channel; an implementation choice, not a design one. CPU: a
@@ -242,6 +263,7 @@ step.
 
 ### 6.6 Flex points (ADR-0004 addendum): what is a table edit, what is not
 
+- ROW 2 (P1-013): which knob slot drives OFFSET, GLEN, DYN, DIR (`knob_morph[8]`), their ranges and defaults, the flat velocity 100 of `dyn = 0`.
 Remappable by editing a table row, no algorithm code change:
 - Which knob drives which morph (K1..K4 <-> PATH/LEN/DENS/RANGE), each morph's label, range, default.
 - Which physical button dices which layer, and the gesture for dice-all and undo-dice.
