@@ -385,15 +385,7 @@ int     sq_preset_load(const SeqPreset *in, uint8_t when);        /* when: 0 now
 
 ## 7. Timing and the scheduler
 
-### 7.4 Clock out (added by FB-001; master when INT, silent when following)
-
-- 192 PPQN / 24 = one `0xF8` every 8 ticks of `sq_block`'s loop. The pulse is emitted at the **tick**, before any note scheduled on the same tick, so a receiver sees the clock first.
-- `0xFA` on a start from step 0, `0xFB` on a continue (a stop followed by PLAY with the playhead kept), `0xFC` on stop. They go out only when `song.g[G_CLOCK] == 0`.
-- Following (`G_CLOCK != 0`, including when the host has gone quiet) sends nothing, so a host that echoes clock cannot loop.
-- The packets are 1-byte realtime messages `CIN 0xF`: `0x0F | status << 8` in `midi_out_event` (usb.c, the same ring, so a full ring drops a pulse, never a note: `sq_drops` counts it). Risk: 24 PPQN x 4 per second at 240 BPM = 96 packets per second, inside the 64-entry ring's drain rate; the hardware-test gate checks it with Ableton and the TB-3.
-- Test: a host test counts 24 `0xF8` per quarter over 4 bars at 90 / 120 / 180 BPM and zero when the source is USB.
-
-## 8. The event path
+### 7.1 Why 192 PPQN
 
 192 is the T-1 resolution and `t1_block()` already derives it from `beat_samples()`: `acc += n * 192; while (acc >= bs)
 { acc -= bs; tick(); }`, which follows the internal BPM and an external MIDI clock (`events_block`'s `seq_n`). It is
@@ -465,6 +457,15 @@ two slots for it.
 **Restart (D#5) and PLAY:** `rt.t = 0`, `rt.grid = now`, `rt.nxt_ok = 0`, `rt.slide_in = 0` for all channels at the same
 tick (immediately at PLAY, at the next grid tick for a restart request). The loop wrap needs no code: `t` is
 free-running and `step()` reduces it.
+
+### 7.4 Clock out (added by FB-001; master when INT, silent when following)
+
+- 192 PPQN / 24 = one `0xF8` every 8 ticks of `sq_block`'s loop. The pulse is emitted at the **tick**, before any note scheduled on the same tick, so a receiver sees the clock first.
+- `0xFA` on a start from step 0, `0xFB` on a continue (a stop followed by PLAY with the playhead kept), `0xFC` on stop. They go out only when `song.g[G_CLOCK] == 0`.
+- Following (`G_CLOCK != 0`, including when the host has gone quiet) sends nothing, so a host that echoes clock cannot loop.
+- The packets are 1-byte realtime messages `CIN 0xF`: `0x0F | status << 8` in `midi_out_event` (usb.c, the same ring, so a full ring drops a pulse, never a note: `sq_drops` counts it). Risk: 24 PPQN x 4 per second at 240 BPM = 96 packets per second, inside the 64-entry ring's drain rate; the hardware-test gate checks it with Ableton and the TB-3.
+- Test: a host test counts 24 `0xF8` per quarter over 4 bars at 90 / 120 / 180 BPM and zero when the source is USB.
+- Following overwrites the tempo: `midi_clock_pulse` writes `song.g[G_BPM]` (clamped 40..240) from the host clock (`midi_clock.c:65`), so the user's internal BPM is not preserved across an EXT session. Whether to keep a separate field is SCREEN_SPEC question 5; clock architecture and timing accuracy are P2-010.
 
 ## 8. The event path
 

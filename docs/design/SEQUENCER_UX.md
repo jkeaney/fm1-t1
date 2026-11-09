@@ -392,11 +392,13 @@ no new MENU row: the existing set-and-forget source (MENU > CLOCK: `INT`, `USB`,
 | --- | --- | --- | --- |
 | INT | source INT | `INT 120` + out-mark | MASTER: 24 pulses per quarter plus Start / Stop / Continue over USB |
 | EXT LIVE | source USB / TRS, a pulse within 500 ms, tempo measured | `EXT 126` (the incoming BPM) | FOLLOW: nothing is sent |
-| EXT SYNC | as EXT LIVE, first quarter note | `EXT --` | FOLLOW |
-| EXT WAIT | source USB / TRS, no pulse for 500 ms (or never) | `120 EXT?` (the internal BPM again) | FOLLOW (the state follows the selected source, never the live pulse) |
+| EXT SYNC | as EXT LIVE, the first 7 pulses (about a 1/16 note) | `EXT --` | FOLLOW |
+| EXT WAIT | source USB / TRS, no pulse for 500 ms (or never) | `126 EXT?` (the last host tempo the firmware holds; it overwrites the BPM) | FOLLOW (the state follows the selected source, never the live pulse) |
 
-Timeout rule: 500 ms, the value the firmware already uses to stop the transport on clock loss. On SET, K1 BPM edits
-the internal BPM while an EXT state shows (the cell mirrors the incoming BPM and flashes `INT n` for 2 s while turned).
+Timeout rule: 500 ms (24 pulses at 120 BPM), the value the firmware already uses to stop the transport on clock loss;
+that check runs only while playing, so the stopped case needs a new derivation (SCREEN_SPEC 6.1). On SET, K1 BPM stays
+ignored while an external clock runs, as locked in `knob_map.tsv` (the cell mirrors the incoming BPM). The firmware
+overwrites `song.g[G_BPM]` with the host tempo (`midi_clock.c:65`); see SCREEN_SPEC question 5 and P2-010.
 
 ## 3. Button modes
 
@@ -1087,7 +1089,7 @@ What the user hears, checked against ADR-0003 section 7 (192 PPQN; jitter at mos
 | 6 | CHAN | `CHn: K1 LENGTH  OCT=+-PAGE  D#4=back` |
 | 7 | SCALE | `SCALE: PRESS A KEY = KEY  HOME=back` |
 | 8 | SET | `SET: GLO hold=SCALE  HOME=back` |
-| 8a | SET, tempo source EXT (added, 2.8) | `EXT: K1 SETS INT BPM  HOME=back` |
+| 8a | SET, tempo source EXT (added, 2.8) | `EXT: K1 OFF, HOST SETS TEMPO` |
 | 9 | SOLO / FILL / ROLL held | `ROLL 3x: let go to stop` (same shape) |
 | 10 | a preset slot pending | `P05: SAVE = save here` (stopped, with the 1.5 s countdown) / `P05 AT BAR  SAVE = save here` (playing: from the last detent until the load lands on the first bar starting >= 1.5 s later) |
 | 11 | just after a dice / reset / clear | `EDIT takes it back` (2 s) |

@@ -3,7 +3,7 @@
 Status: **proposed**, for the owner's human-review gate. Nothing here is approved until the owner writes it in the
 P2-003 log. It makes VISION rule 1 concrete: at every moment the screen shows what the device is **doing** and the
 current role of **every** knob and button. It adds pixels to the locked UX ([SEQUENCER_UX.md](SEQUENCER_UX.md), P1-017
-approved); it changes none of its decisions. Where a locked mock-up cannot be drawn as printed, section 9 lists the
+approved); it changes none of its decisions (SET K1 stays as locked: ignored while an external clock runs). Where a locked mock-up cannot be drawn as printed, section 9 lists the
 finding and the resolution chosen here, and the owner can overrule it.
 
 Inputs: SEQUENCER_UX sections 2, 4, 11; `page_states.tsv`, `button_modes.tsv`, `knob_map.tsv`, `key_map.tsv`,
@@ -53,7 +53,7 @@ Slots are contiguous from x=2 (a 2 px inner margin each side). Text is left-alig
 | Slot | x,y,w,h | Content (AF_S) | Longest string and width |
 | --- | --- | --- | --- |
 | H1 | 2,4,10,12 | transport: `>` playing, `.` stopped, `R` REC armed (T_REC); a lost external clock shows `.` too (6.2) | 1 glyph |
-| H2 | 12,4,56,12 | **tempo source and clock out** (section 6) | `120 EXT?` 50, `EXT 126` 45, `INT 120` 42 + out-mark 9 |
+| H2 | 12,4,56,12 | **tempo source and clock out** (section 6) | `126 EXT?` 50, `EXT 126` 45, `INT 120` 42 + out-mark 9 |
 | H3 | 68,4,28,12 | preset: `P01`, `P05?` pending, `P05>` loading | `P05?` 27 |
 | H4 | 96,4,76,12 | `CH1 ACID M1` channel, algorithm (4 letters), MIDI channel | `CH1 ACID M1` 72 |
 | H5 | 172,4,42,12 | page map `[1][2]. .` (viewed outlined, playing filled) | 38 |
@@ -101,17 +101,32 @@ status lines are table data per page (7).
 | 1 | FX SCL ENV LFO EDIT GLO | the six dice and the two page buttons |
 | 2 | HOME SAVE ARP SEQ PLAY REC | OCT- / OCT+ are labelled in the band tag column BT, not here |
 
-Cell widths are **data per page**, computed as the widest label of the cell (tap label, dice sub-label or hold
-sub-label) plus 3 px and then widened to fill 240. PERF widths (the tightest page; measured): row 1 = 24, 41, 42, 47,
-36, 50; row 2 = 47, 46, 46, 45, 30, 26 (+ separators drawn as a 1 px T_LINE column inside the cell). The hold
-sub-label carries a 5x7 px **hold mark** (a filled down-triangle) in place of the printed `h:`, which saves 9 px
-each and makes row 2 fit (section 9, finding F2). A button whose layer is absent for the algorithm is dim with a
+Cell widths are **data per page**: the widest label of the cell (tap label, dice sub-label or hold sub-label, with
+the hold mark counted) plus a padding of 1 to 3 px, then widened to fill 240. PERF is the tightest page; measured with
+the real `text_w` (AF_S):
+
+| PERF row 1 | FX | SCL | ENV | LFO | EDIT | GLO | sum |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| widest label | `ALL` 20 | `NOTES` 38 | `ACCNT` 39 | `SHAPE` 37 | `UNDO` 33 | mark 6 + `SCALE` 36 = 42 | 209 |
+| cell width (padding 3, spare given to the last two) | 24 | 41 | 42 | 47 | 36 | 50 | 240 |
+
+| PERF row 2 | HOME | SAVE | ARP | SEQ | PLAY | REC | sum |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| widest label | mark 6 + `HLP/MN` 44 = 50 | mark 6 + `UNDO L` 42 = 48 | `GT+SLD` 43 | `ROTATE` 42 | `PLAY` 28 | `REC` 22 | 233 |
+| cell width (padding 1, the spare 1 px on the last) | 51 | 49 | 44 | 43 | 29 | 24 | 240 |
+
+Without the hold mark the printed row needs `h:HLP/MN` 53 + `h:UNDO L` 52 + 43 + 42 + 28 + 22 = 240 of label ink alone
+plus the OCT cells and padding (about 326 px with `h:peek` x2 and 3 px padding, F2). The hold sub-label carries a 5x7 px
+**hold mark** (a filled down-triangle) plus a 1 px gap (6 px) in place of the printed `h:` (9 px): it saves **3 px**
+per hold sub-label, not 9. What makes row 2 fit is moving the OCT cells to the band and cutting the padding to 1 px on
+this row (`233 + 6 x 1 = 239 <= 240`). The cell separator is a 1 px T_LINE column inside the padding. A button whose layer is absent for the algorithm is dim with a
 dash. A button whose tap label differs from the printed word (RST, CANCEL, BACK) is drawn in T_ACCENT.
 
 ### 2.6 Z5 LEGEND and Z6 CUE
 
-- Z5: 11 cells of 20 px at pitch 21 in the physical 3-2-3-2-1 grouping with a 2 px gap between groups:
-  `LEG_X` = 0, 21, 42, 65, 86, 109, 130, 151, 174, 195, 218 (the last cell ends at 238); each cell shows the page's label for that black key (max 6
+- Z5: 11 cells of 20 px at pitch 21 in the physical 3-2-3-2-1 grouping with a 3 px gap between groups (the cells are 20 px wide at a 21 px pitch, so the gap
+  between groups is 1 px of pitch gap plus 2 px = 3 px from one cell's right edge to the next group's left edge):
+  `LEG_X` = 0, 21, 42, 65, 86, 109, 130, 151, 174, 195, 218 (cell 3 ends at 62, cell 4 starts at 65; the last cell ends at 238); each cell shows the page's label for that black key (max 6
   characters); inverted while the key is down; muted-channel cells dim.
 - Z6: one line, 34 characters, priority table SEQUENCER_UX 11.2 (plus the two rows added in section 6.5).
 
@@ -127,7 +142,7 @@ text, never the slot.
 | `B_HOME B_SAVE B_ARP B_SEQ B_PLAY B_REC` | 6 | Z4 row 2 cell 1..6 | |
 | `B_OCTDN B_OCTUP` | 2 | Z3 tag column BT, upper and lower half | tap label on line 1, hold sub-label on line 2 |
 | `EN_K1..EN_K4` | 4 | Z3 BK1..BK4 (label line); PERF also BS1..BS4 for the S row | |
-| `EN_SELECT` | 1 | Z1 the selected cell (inverted) | label `CH n` |
+| `EN_SELECT` | 1 | Z1 the selected cell (inverted); where Z1 is replaced by a banner (NOTE_EDIT, REC) the label `CH n` is the first token of the banner | label `CH n` |
 | `EN_ALGO` | 1 | Z1 the selected cell, line 1 algorithm name; Z0 H4 | label `ALGO` |
 | `EN_PRESET` | 1 | Z0 H3 | label `Pnn` |
 | `KEY_W01..KEY_W16` (16 white) | 16 | Z2 cells 1..16 (the lane IS the legend); on SCALE the Z2 area shows the 27-key picture and each key shows its pitch | `STEP` / `NOTE` / `KEY` / `CLR` |
@@ -139,14 +154,14 @@ Per page (the nine contexts of the tables), the slots that change meaning:
 | Page | Z1 | Z2 | Z3 band | Z4 | Z5 | Z6 |
 | --- | --- | --- | --- | --- | --- | --- |
 | PERF | 4 cells | lane + header | tag `OCT-`/`OCT+` `h:peek`; ROW 1 live (K1..K4) + ROW 2 dim (S1..S4) | dice row + holds | M1..M4 CHN SOL FIL ROL PG- PG+ RST | rows 13/14/15 of 11.2 |
-| NOTE_EDIT | banner replaces cells: `NOTE EDIT STEP 21` | edited cell boxed | tag `OCT-`/`OCT+` (step octave); K1..K4 PITCH GATE VELO RATCH, value + `AUTO`/`*` | dice-this-step labels (ALL NOTE ACCENT PROB UNDO SET / HOME SAVE SLIDE ON/OFF PLAY REC) | as PERF | `STEP n: KNOBS EDIT  HOME=done` |
+| NOTE_EDIT | banner replaces cells: `CH1 NOTE EDIT STEP 21` (`CH n` = the EN_SELECT label) | edited cell boxed | tag `OCT-`/`OCT+` (step octave); K1..K4 PITCH GATE VELO RATCH, value + `AUTO`/`*` | dice-this-step labels (ALL NOTE ACCENT PROB UNDO SET / HOME SAVE SLIDE ON/OFF PLAY REC) | as PERF | `STEP n: KNOBS EDIT  HOME=done` |
 | CHAN | 4 cells | page map cells (4) | tag `-PAGE`/`+PAGE`; K1..K4 LENGTH MIDI SOURCE FOLLOW; status lines: page-source summary, `D#4 = BACK` | as PERF | D#4 reads `BACK` | row 6 |
 | SET | 4 cells | lane as PERF | tag `-`/`-` (inert); K1..K4 BPM SWING GATE DIV; **status lines: tempo source and clock out (6.4)** | `GLO` reads `BACK`, hold `SCALE` | as PERF | row 8 (or 8a, 6.5) |
 | SCALE | 4 cells | 27-key picture, scale tones lit, root boxed | tag `OCT-`/`OCT+` = `OCTAVE -`/`+`; K1..K4 SCALE KEY OCTAVE `-` | as SET | all 27 keys read `KEY` | row 7 |
-| REC | banner `REC CH1 writing to page 2` (T_REC) | write cursor `^` | tag `OCT-`/`OCT+` = `OCT -`/`+`; K1..K4 CURSOR ACC SLIDE OCT; status `KEYS = NOTES (all 27)` | dice labels live (performing while recording is allowed) | `KEYS = NOTES` | row 4 |
-| RESET | the page beneath, banner `RESET` | every resettable cell tagged `RST` | K1..K4 = `RST` over the value being reset | `RST AL`, `RST NT`... (two-line wrap, 9) | white keys `CLR`; D#4 = re-copy | row 2 |
+| REC | banner `CH1 REC writing to page 2` (T_REC; `CH n` = the EN_SELECT label) | write cursor `^` | tag `OCT-`/`OCT+` = `OCT -`/`+`; K1..K4 CURSOR ACC SLIDE OCT; status `KEYS = NOTES (all 27)` | dice labels live (performing while recording is allowed) | `KEYS = NOTES` | row 4 |
+| RESET | the page beneath, banner `RESET`; ALGO / PRESET encoders read `-` (no role) in the Z0 H3 / H4 slots | every resettable cell tagged `RST` | K1..K4 = `RST` over the value being reset; tag column BT: `RST R1` (OCT-) over `RST R2` (OCT+) | `RST AL`, `RST NT`... (two-line wrap, 9) | white keys `CLR`; D#4 = re-copy | row 2 |
 | HELP | the page beneath dimmed | dimmed | dimmed | dimmed | dimmed | 2-line help box over Z3..Z4 (y=108..212, x=8..232) naming the touched control | row 1 |
-| MENU | whole screen: Felucca menu | | | | | own title |
+| MENU | whole screen: Felucca menu. Control labels (control_map): OCT- / OCT+ and the page buttons read `close` (HOME), the SELECT encoder `tab`, the ALGO encoder `row`, K1..K4 the row's value; they are drawn by `ui_menu.c` in its footer line (AF_S, 12 px, y=224..236): `HOME close  SELECT tab  ALGO row`. | | | | | footer line above (the slot is the same Z6 rectangle) |
 
 ## 4. How modifier-held states relabel
 
@@ -188,29 +203,55 @@ the slot of a control is repainted with the held-role text, the page beneath is 
 | Field | Where it lives (ISR writes, main loop reads) | Values |
 | --- | --- | --- |
 | `clk_src` | `song.g[G_CLOCK]` (`INT` 0, `USB` 1, `TRS` 2), set in MENU > CLOCK, set-and-forget | 0, 1, 2 |
-| `clk_live` | derived each block: the last accepted clock pulse is at most `CLK_TIMEOUT_MS` ago | 0 / 1 |
-| `clk_bpm` | measured: `60000000 / (pulse interval in us * 24)`, rounded, valid after 6 pulses (`midi_clock.tempo_valid`) | 20..300, 0 = not measured |
+| `clk_live` | derived: a clock pulse was accepted at most `CLK_TIMEOUT_MS` ago, **whether playing or stopped** (rule below) | 0 / 1 |
+| `clk_known` | **new bit**: set when `midi_clock_pulse` accepts its first 6-pulse interval, cleared whenever the timeout fires or the source changes | 0 / 1 |
+| `bpm` | `song.g[G_BPM]`. **The firmware overwrites it with the host tempo**: `midi_clock_pulse` sets `song.g[G_BPM] = clamp(.., 40, 240)` every 6th pulse (`firmware/src/midi_clock.c:65`) [V]; the accepted 6-pulse interval is 62..375 ms (`midi_clock.c:~54`), which is 241..40 BPM, hence the clamp | 40..240 |
 | `clk_out` | derived: `clk_src == INT` (master: sends clock) | 0 / 1 |
 
-`CLK_TIMEOUT_MS = 500`, the value the firmware already uses to stop the transport when the cable is lost
-(`seq.c`: `fm1_ms - last > 500u`) [V]. 500 ms is 12 clock pulses at 120 BPM and 3.6 beats at 30 BPM, so a slow
-tempo is never mistaken for a stop. It is a constant in the flex table (section 8).
+How the pulses become a tempo, as the firmware does it today [V, `midi_clock.c`]: the first pulse only sets
+`midi_clock.tempo_valid = 1` (a first-pulse flag, not a "tempo known" flag) and stores its time; the interval is closed
+on the 6th pulse after that, so the BPM is first computed on the **7th pulse** and then every 6 pulses (six pulses are a
+quarter of a beat: a 1/16 note; BPM = 15000 / dt). The screen therefore shows `EXT --` for 7 pulses (146 ms at 120 BPM,
+a 1/16 note plus one pulse) after the clock starts, then `EXT <bpm>`. `clk_known` is the
+bit that separates the two; it does not exist yet and is a requirement on the dev task.
+
+`CLK_TIMEOUT_MS = 500`, the value the firmware already uses to stop the transport when the cable is lost:
+`seq.c:1410`, `fm1_ms - last > 500u` [V]. One pulse lasts 60000 / (BPM x 24) ms, so 500 ms is **24 pulses at 120 BPM**
+(a quarter note) and 8 pulses at the firmware's lowest tempo of 40 BPM (62.5 ms per pulse): a slow clock is never
+mistaken for a stop, and the timeout is always at least 8 pulses.
+
+**That check runs only while `song.playing` and `clock_mode`** (the `if (song.playing)` around it in `events_block`), and
+it clears `tempo_valid`. While **stopped** nothing in the firmware measures silence, so the screen cannot say EXT WAIT
+from [V] alone. Requirement on the dev task: `midi_clock_pulse` already stores `last_ms` on every accepted `0xF8`,
+playing or not (`midi_clock.c`, last line); the main loop derives `clk_live = (clk_seen && fm1_ms - last_ms <= 500)` from
+it with one new `clk_seen` bit (set on the first pulse, cleared on a source change, because `last_ms` is 0 at boot). The
+full clock-architecture work is P2-010 (timing accuracy and clock architecture), which will refine what the screen may
+read; this section states only what the screen needs and is to be reconciled with P2-010 when that lands.
+
+It is a constant in the flex table (section 8).
 
 ### 6.2 The four tempo states (slot H2, and the same words on the SET page)
 
+The BPM shown in every state is `song.g[G_BPM]`, because the firmware keeps it equal to the host tempo while a clock runs.
+
 | State | Condition | H2 text | Colour | BPM value the user reads |
 | --- | --- | --- | --- | --- |
-| INT | `clk_src == INT` | `INT 120` + out-mark | T_TEXT | the internal BPM (K1 on SET) |
-| EXT LIVE | `clk_src != INT`, `clk_live`, `clk_bpm > 0` | `EXT 126` as an inverted chip (T_ACCENT fill, T_INK) | accent | the incoming BPM, integer; updates at most 4 times a second, +-1 hysteresis so it does not flicker |
-| EXT SYNC | `clk_src != INT`, `clk_live`, `clk_bpm == 0` (first quarter note) | `EXT --` chip | accent | none yet |
-| EXT WAIT | `clk_src != INT`, not `clk_live` (never started, or silent for `CLK_TIMEOUT_MS`) | `120 EXT?` (the internal BPM, then a dim `EXT?`) | T_TEXT + T_MID | the internal BPM; it **reverts** to this readout when the clock stops, which is the timeout rule |
+| INT | `clk_src == INT` | `INT 120` + out-mark | T_TEXT | `song.g[G_BPM]`, the user's own tempo (K1 on SET) |
+| EXT LIVE | `clk_src != INT`, `clk_live`, `clk_known` | `EXT 126` as an inverted chip (T_ACCENT fill, T_INK) | accent | the incoming BPM (`song.g[G_BPM]`), integer; updates at most 4 times a second, +-1 hysteresis so it does not flicker |
+| EXT SYNC | `clk_src != INT`, `clk_live`, not `clk_known` (the first 7 pulses) | `EXT --` chip | accent | none yet |
+| EXT WAIT | `clk_src != INT`, not `clk_live` (never started, or silent for `CLK_TIMEOUT_MS`; stopped or playing) | `126 EXT?` (the **last tempo the firmware holds**, then a dim `EXT?`; `-- EXT?` when no pulse has ever been measured) | T_TEXT + T_MID | `song.g[G_BPM]` as it stands: the last host tempo, **not** the user's earlier internal tempo (the firmware overwrote that) |
+
+Consequence the owner should know (question 5): because the host tempo overwrites `song.g[G_BPM]`, switching the source
+back to INT starts at the last external tempo, and the tempo the user had dialled before is gone. Keeping it needs a code
+change (a separate external-tempo field, or save / restore around the source switch), which is not decided here.
 
 The out-mark is the 9x9 px glyph "arrow leaving a bar" in T_THEME, drawn at H2 x+46. It is shown only when `clk_out`
-and absent in every EXT state. The internal BPM (`song.g[G_BPM]`) is never overwritten by the external tempo; EXT
-only changes what `beat_samples()` returns [V, fx.c], so leaving EXT restores the user's own tempo.
+and absent in every EXT state.
 
-When the external clock stops while playing the existing rule stops the transport (500 ms), the header glyph H1
-shows `.` and H2 returns to `EXT WAIT`. Start/Stop/Continue from the host move the transport as today.
+When the external clock stops while playing the existing rule stops the transport (500 ms, `seq.c`), the header glyph H1
+shows `.` and H2 becomes `EXT WAIT`. When it stops while the transport is already stopped, H2 becomes `EXT WAIT` through
+the new `clk_live` derivation (6.1); no transport change is involved. Start/Stop/Continue from the host move the
+transport as today.
 
 ### 6.3 Clock out: master and follow
 
@@ -229,24 +270,26 @@ assumed here.)
 
 ### 6.4 SET page rendering
 
-The SET band (Z3) rows in the four states (strings are table data; widths measured, AF_S):
+The SET band (Z3) rows in the four states (strings are table data; widths measured, AF_S). **SET K1 is locked**
+(`knob_map.tsv`: "tempo (internal clock; ignored while an external MIDI clock runs, value shows EXT)"): in every EXT state
+K1 does nothing and its cell is a read-only mirror.
 
 | State | K1 cell | Status line 1 (y=136) | Status line 2 (y=148) |
 | --- | --- | --- | --- |
 | INT | `BPM` / `120` | `TEMPO INT 120` (84)    `OUT MASTER` (72) | `MENU>CLK sets source` (125) |
-| EXT LIVE | `BPM` / `EXT 126` (read-only mirror, T_ACCENT) | `TEMPO EXT 126 USB` (112)    `OUT FOLLOW` (73) | `K1 sets INT BPM` |
-| EXT SYNC | `BPM` / `EXT --` | `TEMPO EXT -- USB` (101)    `OUT FOLLOW` | `waiting for the 1st beat` |
-| EXT WAIT | `BPM` / `120` dim | `TEMPO 120 EXT? USB` (118)    `OUT FOLLOW` | `NO CLOCK FROM USB` (T_ACCENT) |
+| EXT LIVE | `BPM` / `EXT 126` (read-only, T_ACCENT; K1 ignored) | `TEMPO EXT 126 USB` (112)    `OUT FOLLOW` (73) | `K1 off: the host sets tempo` |
+| EXT SYNC | `BPM` / `EXT --` | `TEMPO EXT -- USB` (101)    `OUT FOLLOW` | `waiting for the tempo` |
+| EXT WAIT | `BPM` / `126` dim | `TEMPO 126 EXT? USB` (118)    `OUT FOLLOW` | `NO CLOCK FROM USB` (T_ACCENT) |
 
-Turning K1 while an EXT state shows: the **internal** BPM changes (it is what returns when the source goes back to
-INT) and the K1 cell shows `INT 121` for 2 s, then the EXT value again; the cue strip reads `EXT: K1 SETS INT BPM  HOME=back`
-(31 characters). SWING, GATE and DIV are unaffected by the source.
+Turning K1 in an EXT state changes nothing and shows nothing new; the cue strip (8a) says why. SWING, GATE and DIV are
+unaffected by the source. (Whether K1 should edit an internal BPM during EXT is an owner question, section 11 item 5; it
+would amend a locked decision, so it is not assumed.)
 
 ### 6.5 Cue strip rows added (SEQUENCER_UX 11.2)
 
 | Priority | State | Text |
 | --- | --- | --- |
-| 8a | SET page, any EXT state | `EXT: K1 SETS INT BPM  HOME=back` |
+| 8a | SET page, any EXT state | `EXT: K1 OFF, HOST SETS TEMPO` (28 characters) |
 | 13a | stopped, PERF, `clk_src != INT` and not live | `EXT CLOCK: WAITING FOR USB` (`TRS` when the source is TRS) |
 
 ### 6.6 Main-screen rule
@@ -283,19 +326,19 @@ SET, EXT LIVE (Ableton over USB):
 | lane as PERF (steps stay live)         |
 | ...                                    |
 |  - |BPM    |SWING 50|GATE 50 |DIV 1/16 |   tag inert
-|  - |EXT 126|        |        |         |   K1 value = incoming BPM (read-only mirror)
+|  - |EXT 126|        |        |         |   K1 value = incoming BPM (read-only, K1 ignored)
 | TEMPO EXT 126 USB      OUT FOLLOW       |   status line 1
-| K1 sets INT BPM                         |   status line 2
+| K1 off: the host sets tempo             |   status line 2
 | ALL NOTES ACCNT SHAPE UNDO BACK         |   GLO = BACK
-| EXT: K1 SETS INT BPM  HOME=back        |
+| EXT: K1 OFF, HOST SETS TEMPO           |
 +----------------------------------------+
 ```
 
 SET, EXT WAIT (host stopped sending clock):
 
 ```
-|. 120 EXT?  P01 CH1 ACID M1 [1][2]. . L32|   internal BPM back, EXT? dim, transport stopped
-| TEMPO 120 EXT? USB     OUT FOLLOW       |
+|. 126 EXT?  P01 CH1 ACID M1 [1][2]. . L32|   last host tempo held, EXT? dim, transport stopped
+| TEMPO 126 EXT? USB     OUT FOLLOW       |
 | NO CLOCK FROM USB                       |   (T_ACCENT)
 ```
 
@@ -310,7 +353,8 @@ SET, EXT WAIT (host stopped sending clock):
 | String tables 6.2, 6.4, 6.5 | every tempo / clock-out text, the out-mark, the status lines |
 | `CLK_TIMEOUT_MS` (500) | the EXT to EXT WAIT timeout |
 | BPM readout update rate (4/s) and hysteresis (+-1) | readout stability |
-| The hold mark (2.5) | `h:` text instead of the glyph (needs the row widths reduced by an edit of the label text, see F2) |
+| The hold mark (2.5) | `h:` text instead of the glyph (9 px instead of 6: row 2 no longer fits; needs a label edit, see F2) |
+| Row padding (2.5) | 1 px on PERF row 2, 3 px on row 1 |
 | Theme colour per element | any `T_*` token |
 | Cue strip rows 8a, 13a | text and priority |
 
@@ -324,7 +368,7 @@ decision; each is resolved here and the owner may overrule.
 | Id | Finding | Resolution here |
 | --- | --- | --- |
 | F1 | the printed AF_M (13 px) tap labels do not fit: AF_M `ACCENT` is 58 px, the cell is at most 51 | every label is AF_S (12 px line, 46 px for `ACCENT`) |
-| F2 | PERF row 2 with all eight hold / dice sub-labels needs about 326 px in one 240 px row (`h:HLP/MN` 53, `h:UNDO L` 52, `GT+SLD` 43, `ROTATE` 42, and the OCT cells) | OCT- / OCT+ labels move to the band tag column BT; the printed `h:` prefix becomes a 5 px hold mark (saves 9 px per hold sub-label): row 2 = 47+46+46+45+30+26 = 240. On the other pages row 1 and 2 sub-labels are absent, so `RST AL`, `RST NT` wrap onto two lines |
+| F2 | PERF row 2 with all eight hold / dice sub-labels needs about 326 px in one 240 px row: cells HOME `h:HLP/MN` 53, SAVE `h:UNDO L` 52, ARP `GT+SLD` 43, SEQ `ROTATE` 42, PLAY 28, REC 22, OCT- `h:peek` and OCT+ `h:peek` (each about 31) plus 3 px padding on every cell | OCT- / OCT+ labels move to the band tag column BT, and the printed `h:` (9 px) becomes a 5x7 px hold mark plus a 1 px gap (6 px, saving 3 px per hold sub-label). Row 2 is then 50+48+43+42+28+22 = 233 px of label plus 1 px padding per cell (6) = 239 <= 240 (table in 2.5). On the other pages row 1 and 2 sub-labels are absent, so `RST AL`, `RST NT` wrap onto two lines |
 | F3 | black-key label `RESTRT` is 42 px; the legend pitch is 21 px (PERFORMANCE_DESIGN 6 expected P2-003 to check this) | labels over 20 px are cut to what fits plus the ellipsis glyph in the legend and shown in full by HELP; the locked labels in `key_map.tsv` are unchanged. Owner may prefer a taller legend (it would cost the cue strip or band 12 px) |
 | F4 | header text of the locked mock-up is 202 px with `120`; adding the source word and out-mark needs the slot widths of 2.1 | measured: all six slots fit in 238 px |
 | F5 | lane glyphs `x2` fit a 15 px cell (AF_S 12 px); the velocity bar uses the other 32 px | as 2.3 |
@@ -354,3 +398,8 @@ slot widths of this spec** (otherwise a longer label silently breaks a row).
    behaviour: PLAY waits). The screen says so (`EXT CLOCK: WAITING FOR USB`). Alternative: fall back to internal after the
    timeout. Not chosen, because a sequencer that silently switches tempo master mid-set is worse than a labelled wait.
 4. **Hold mark** (F2). Accept the glyph in place of `h:` on the PERF button sub-labels?
+5. **Tempo while following.** Today the host tempo overwrites `song.g[G_BPM]` (`midi_clock.c:65`), so the user's own
+   tempo is lost when the source goes to EXT, and K1 is locked as ignored in EXT. Do you want (a) as is (simple, the
+   tempo after leaving EXT is the last host tempo), or (b) a separate external-tempo field so INT BPM survives, and
+   optionally K1 editing INT BPM during EXT (this would amend the locked K1 text in `knob_map.tsv`)? Recommended: (b) for
+   the field, but keep K1 inert in EXT. Related clock work: P2-010.

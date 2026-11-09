@@ -3,7 +3,7 @@ id: P2-003
 title: Screen spec: always-on labels and state
 phase: P2
 type: task
-status: todo
+status: review
 priority: 2
 executor: sonnet
 depends_on: [P2-001, P1-013, P1-014, P1-017]
@@ -67,3 +67,18 @@ Required fixes (numbered, for the next executor):
 
 Not at fault: the FB-001 clock-out master/follow rule is coherent with the ADR 5 row (INT only emits; follow silent) and 96 packets/s at 240 BPM is right; RAM impact (~8 B) is plausible but unchecked against ADR 11.2.
 Awaiting owner: nothing yet; fix the above first. No Approved line written.
+
+### 2026-11-10 executor (sonnet), rework after review
+Fixed all six findings:
+1. ADR-0003: restored `### 7.1 Why 192 PPQN`, removed the stray `## 8`, 7.4 now follows 7.3 (headings 7.1, 7.2, 7.3, 7.4, one `## 8`). Added a line to 7.4 on the tempo overwrite and a pointer to P2-010.
+2. SCREEN_SPEC 6.1/6.2 rewritten from the firmware: `midi_clock_pulse` overwrites `song.g[G_BPM]` clamped 40..240 (`midi_clock.c:65`); `tempo_valid` is a first-pulse flag, BPM first computed on the 7th pulse (new `clk_known` bit required); EXT WAIT shows the last host tempo (`126 EXT?`), not the internal one. The lost-internal-BPM consequence is owner question 5 (separate field), related clock work pointed to P2-010. SEQUENCER_UX 2.8 / 11.2 aligned.
+3. Timeout: 500 ms = 24 pulses at 120 BPM, 8 pulses at 40 BPM; `seq.c:1410` runs only while playing; the stopped case needs a new `clk_live` derivation from `midi_clock.last_ms` (stored on every 0xF8) plus a `clk_seen` bit, stated as a dev-task requirement.
+4. PERF row 2: recomputed with a probe on the real `text_w` (HOME 6+44, SAVE 6+42, ARP 43, SEQ 42, PLAY 28, REC 22 = 233; padding 1 px x 6 = 239 <= 240; cells 51/49/44/43/29/24); mark saves 3 px (5+1 vs 9), not 9; row 1 table (sum 240) and the old 326 px breakdown stated.
+5. Locked SET K1 restored: ignored while an external clock runs; cue 8a now `EXT: K1 OFF, HOST SETS TEMPO`; "K1 sets INT BPM" removed everywhere; owner question 5 raises the alternative.
+6. Added MENU control labels (footer line), RESET `RST R1`/`RST R2` and `-` encoders, `CH n` in the NOTE_EDIT and REC banners, legend group gap 3 px.
+Verification:
+  - `grep -c 'x,y,w,h\|x=' docs/design/SCREEN_SPEC.md` -> 7
+  - `python3 tools/check_sequencer_ux.py` -> `pages=9 ... scored=69 exceptions=3` / `OK`
+  - `python3 tools/check_control_map.py` -> `rows tsv=441 md=441` / `OK`
+  - `python3 tools/backlog.py check` -> `40 items, 0 errors`
+Owner approval still pending (no Approved line).
