@@ -3,7 +3,7 @@ id: P1-012
 title: UX unification: hardware controls x algorithms x workflow, with an ease score
 phase: P1
 type: spike
-status: todo
+status: review
 priority: 0
 executor: opus
 depends_on: [P1-001, P1-011]
@@ -35,14 +35,14 @@ A whole rethink of how the hardware buttons, knobs, encoders and keys drive the 
 - Add any new owner questions to docs/project/OWNER_QUESTIONS.md (continue numbering).
 
 ## Acceptance criteria
-- [ ] Every one of the 14 buttons, K1-K4, 3 encoders and the 27 keys has a role in every context, with no control left unassigned and no two roles conflicting in one context
-- [ ] No function requires a menu dive; hold-HOME menu is only for set-and-forget settings
-- [ ] Rubric defined with the 0-3 definitions above; every workflow step has a current and a proposed score; every performance function passes (>= 8, no sub-score below 2) or is listed as an unavoidable failure with a reason
-- [ ] Each v1 algorithm's four morphs map to K1-K4 and its dice layers map to the shared dice buttons, labels at most 6 characters
-- [ ] ONE global scale and key, settable from the panel, used by all four algorithms (decision S5)
-- [ ] S1-S4 and S6 each have a stated resolution with score evidence
-- [ ] docs/design/control_map.tsv exists and agrees with UX_REVIEW.md
-- [ ] No 'TBD', 'choose' or 'decide' wording in the deliverables
+- [x] Every one of the 14 buttons, K1-K4, 3 encoders and the 27 keys has a role in every context, with no control left unassigned and no two roles conflicting in one context
+- [x] No function requires a menu dive; hold-HOME menu is only for set-and-forget settings
+- [x] Rubric defined with the 0-3 definitions above; every workflow step has a current and a proposed score; every performance function passes (>= 8, no sub-score below 2) or is listed as an unavoidable failure with a reason
+- [x] Each v1 algorithm's four morphs map to K1-K4 and its dice layers map to the shared dice buttons, labels at most 6 characters
+- [x] ONE global scale and key, settable from the panel, used by all four algorithms (decision S5)
+- [x] S1-S4 and S6 each have a stated resolution with score evidence
+- [x] docs/design/control_map.tsv exists and agrees with UX_REVIEW.md
+- [x] No 'TBD', 'choose' or 'decide' wording in the deliverables
 - [ ] The owner approved it (log line 'Approved: <name> <date>'), which also covers re-approving P1-010
 
 ## Verification
@@ -56,3 +56,35 @@ python3 tools/backlog.py check
 - Writing firmware code; flashing; changing the algorithm procedures themselves (only their knob/dice mappings and labels).
 
 ## Log
+
+### 2026-11-10 executor (opus)
+Design only (no firmware, no flash, no push; `tools/check.sh` and the test suite not run because no code changed).
+Wrote docs/design/UX_REVIEW.md and docs/design/control_map.tsv; amended docs/design/ALGORITHM_SET.md (change note at
+top); appended owner questions 31-36 to docs/project/OWNER_QUESTIONS.md.
+
+Verification:
+```
+$ test -f docs/design/UX_REVIEW.md && test -f docs/design/control_map.tsv && echo ok
+ok
+$ grep -nEi 'TBD|choose|decide' docs/design/UX_REVIEW.md docs/design/control_map.tsv || echo clean
+clean
+$ python3 tools/backlog.py check
+31 items, 0 errors
+```
+Extra checks (python): control_map.tsv = 343 rows, 49 controls (14 buttons, 3 encoders, MASTER, K1-K4, 27 keys) x 7
+contexts, no empty field; the 1.3 table and the TSV were emitted by one generator, so they agree. Score table
+arithmetic re-computed: 30 functions, current 84/270 (26 fail), proposed 251/270 (0 fail); every performance function
+>= 8 with no sub-score below 2.
+
+Key design: SELECT = channel, ALGORITHM = algorithm, PRESETS = preset slot; K1-K4 = DENSITY/FORM/PITCH/SPICE morphs;
+dice SCL tap NOTES, SEQ HITS, ENV ACCNT, ARP ARTIC, LFO SHAPE, FX ALL, EDIT tap UNDO/REDO; holds: SCL = global
+KEY/SCALE/OCTAVE, EDIT = MIDI channel of CH1-4, GLO = GATE/DIV/SWING/BPM, HOME = menu; REC = step entry (white key =
+step, hold + K3 = pitch); black keys mute/select/all-on/restart/tap. S1 one press GATE+SLIDE; S2 keep SHAPE + per-
+algorithm sub-labels; S3 keep slots, ACID TYPE relabelled PEDAL; S4 SP6 on everything incl. pins and live keys; S6
+confirmed.
+
+Reviewer attention: (1) K1 ranges now start at 0 (`KEYS ONLY`), a range edit on all four algorithms. (2) 4 channels
+assumed (question 31). (3) Felucca groovebox kept only as MENU > SYSTEM > MODE GROOVE (question 32). (4) Menu rows
+removed (TCH1-4, SELECT, BPM LOCK, T1 SEQ -> MODE) will change tests/ui_test.c row counts in the dev task.
+Owner-approval criterion left unticked: no 'Approved:' line written (human-review gate).
+

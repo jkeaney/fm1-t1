@@ -34,6 +34,12 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 28 | P1-009 t1 | Should ROTATE be a knob (replacing LEN) rather than a dice layer? | P1-010 |
 | 29 | P1-009 t1 | Is a root-anchored contour (never below the root, base 36, ceiling 73) right for a TB-3 bass, or centred on the root? | first hardware test |
 | 30 | P1-009 t1 | Should EUCLID be the fourth v1 algorithm (recommended), or only a shared Euclidean placement source inside another algorithm? | P1-010 |
+| 31 | P1-012 UX | The control map assumes **4 channels** (SELECT CH1-4, black keys F#3-C#4 mute, D#4-A#4 select, EDIT layer K1-K4 = their MIDI channels). The T-1 had 6 tracks. Is 4 right for v1? Recommend 4 (one per knob on the CHAN layer); 6 would need a second CHAN row and moves the select keys (a table edit). | P1-012 review |
+| 32 | P1-012 UX | Keep Felucca's groovebox reachable as a set-and-forget legacy mode (MENU > SYSTEM > MODE `SEQ`/`GROOVE`, default `SEQ`), or remove it? Recommend keep for v1 (no code removed, the sequencer is the default). | P1-012 review |
+| 33 | P1-012 UX | FX, ENV, LFO, ARP, SEQ are printed with synth names but act as dice buttons (labels on screen). Acceptable, or do you want a printed overlay/sticker set for the button block? Recommend screen labels only for v1, sticker as an optional extra. | P1-012 review |
+| 34 | P1-012 UX | A preset load (PRESETS turn) is queued to the next loop start (immediate when stopped), and SAVE held 0.7 s undoes it. Acceptable? | P1-012 review |
+| 35 | P1-012 UX | K1 at 0 = `KEYS ONLY` (only typed steps play) is how "enter steps instead of an algorithm" works. Acceptable, or should there be a fifth ALGORITHM choice `STEPS`? Recommend K1 = 0 (no new algorithm). | P1-012 review |
+| 36 | P1-012 UX | Felucca's LFO-held MOMENTARY (knob moves snap back on release) is dropped in SEQ mode because LFO is now the SHAPE dice. Bring back a momentary-morph gesture after the first hardware test? | first hardware test |
 
 ## Decisions (owner, 2026-11-09)
 | # | Decision |

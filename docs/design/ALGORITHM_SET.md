@@ -1,6 +1,16 @@
 # Algorithm set for v1, the shared layer vocabulary and the knob convention
 
-Task P1-010. Status: **DRAFT FOR OWNER REVIEW. Not approved.** Every owner-question answer in section 8 is a
+> **Change note (P1-012, 2026-11-10).** Amended to match [UX_REVIEW.md](UX_REVIEW.md) and
+> [control_map.tsv](control_map.tsv) (owner decisions S1-S7). Changes: (1) the 7 dice inputs are bound to buttons:
+> SCL tap NOTES, SEQ HITS, ENV ACCNT, ARP ARTIC, LFO SHAPE, FX dice-all, EDIT tap undo/redo (4.3). (2) Every dice
+> button shows a second-line sub-label with the algorithm's own layer name (4.4). (3) K1 ranges start at 0
+> (`KEYS ONLY`: only pins play); ACID K2 `TYPE` is relabelled `PEDAL` (5.2). (4) S1: ACID ARTIC dices GATE and SLIDE in
+> one press, no separate slide gesture in v1 (N1 resolved). (5) S4: SP6 snap also applies to pins and live keys. (6)
+> S6 confirmed: MINPEN, key C, SNAKE RANGE 12. (7) S7: per-algorithm morphs and seeds are kept per channel when the
+> algorithm changes (N2 resolved). (8) Global OCTAVE (-2..+2) joins KEY and SCALE in SP9. Approval of P1-012 re-approves
+> this document.
+
+Task P1-010, amended by P1-012. Status: **FOR OWNER REVIEW together with P1-012. Not approved.** Every owner-question answer in section 8 is a
 **recommendation awaiting the owner**. Nothing here is locked until the owner writes "Approved: <name> <date>" in the
 P1-010 log (this file) and later "Design locked" per ADR-0004.
 
@@ -18,10 +28,11 @@ Source assessments call them sting, t1, snake, ml185.
 | --- | --- | --- |
 | 1 | v1 ships **4 algorithms**: ACID, EUCLID, SNAKE, STAGE. Deferred: ARP, RHYTHM, MELODY. | 2, 3 |
 | 2 | **5 shared layers** (dice buttons): NOTES, HITS, ACCNT, ARTIC, SHAPE. Every v1 algorithm maps onto them; unmapped layer = dimmed, inert. | 4 |
-| 3 | **Knob convention:** K1 = DENSITY, K2 = FORM, K3 = PITCH, K4 = SPICE. Four of the algorithms need small reorder edits (not EUCLID). | 5 |
+| 3 | **Knob convention:** K1 = DENSITY, K2 = FORM, K3 = PITCH, K4 = SPICE. Four of the algorithms need small reorder edits (not EUCLID). K1 = 0 means `KEYS ONLY` (P1-012). | 5 |
 | 4 | Implementation order: shared primitives, then ACID, EUCLID, SNAKE, STAGE. | 7 |
 | 5 | 15 shared primitives are specified once; no algorithm re-specifies them. | 6 |
-| 6 | Owner decision 2 (SLIDE is a "sixth dice layer") conflicts with the 5-layer limit. Resolution: SLIDE keeps its own seed and its own undo, and is dice-grouped with GATE under `ARTIC`. **Owner must confirm** (question N1, section 9). | 4.3, 9 |
+| 6 | SLIDE keeps its own seed and its own undo, and is dice-grouped with GATE under `ARTIC` (one ARP press). Resolved as S1 in UX_REVIEW.md 5.3 by score (one press 9; a slide-only hold 7 fails). | 4.3, 9 |
+| 7 | Physical binding of the 7 dice inputs and every other control: UX_REVIEW.md section 1 and control_map.tsv. | 4.3 |
 
 ## 2. The v1 list
 
@@ -98,10 +109,10 @@ HITS, ALT -> NOTES, VEL -> ACCNT, ROLL -> ARTIC. So adding the deferred three ne
 | Dice layer L | Replace the seed(s) bound to L with the low 16 bits of the audio sample counter at the press (EUCLID ROT: forced to 1 if 0). Store the old seed as the "previous" seed. | A layer bound to 2 seeds (ACID `ARTIC`) re-rolls both with two different counter reads (second read XOR 0x5A5A) and stores both previous seeds. |
 | Dice all | Dice every layer present for the active algorithm in the order NOTES, HITS, ACCNT, ARTIC, SHAPE. Skips absent layers. | ACID 6 seeds, EUCLID 4, SNAKE 4, STAGE 5. |
 | Undo dice | Recall each seed's previous seed once (one level). A second undo does nothing (previous == current). | Per seed, so undoing ACID `ARTIC` restores GATE and SLIDE together. Undo of a dice-all restores all layers. |
-| Physical buttons | Not decided here. P2-001 must supply 5 layer inputs + dice-all + undo (7 inputs). | n/a |
+| Physical buttons | NOTES = SCL tap (acts on release; SCL hold = scale layer), HITS = SEQ, ACCNT = ENV, ARTIC = ARP, SHAPE = LFO, dice-all = FX, undo = EDIT tap (acts on release; a second tap redoes: undo swaps each seed with its previous seed). Dice buttons without a hold act on press. Source: UX_REVIEW.md 1.1, 5.2. | all |
 
-Conflict with owner decision 2 ("ACID gets slide as a sixth dice layer"): ACID has six **seeds**, but they sit on five
-**buttons**. SLIDE has its own seed, its own previous seed and its own probability table, exactly as P1-011 specifies;
+Owner decision 2 ("ACID gets slide as a sixth dice layer") is met as a sixth **seed** on five **buttons** (S1, resolved
+in P1-012). SLIDE has its own seed, its own previous seed and its own probability table, exactly as P1-011 specifies;
 only the button is shared with GATE. If the owner wants SLIDE alone on its own gesture, the table-only fix is a
 second binding row (for example `ARTIC` long press = SLIDE only), which costs no algorithm change (section 10).
 
@@ -110,6 +121,7 @@ second binding row (for example `ARTIC` long press = SLIDE only), which costs no
 | Case | Behaviour (normative) |
 | --- | --- |
 | Algorithm lacks layer L (EUCLID `SHAPE`; SNAKE `ARTIC`) | The button label is drawn dimmed with a dash after it (`SHAPE -`). Pressing it changes nothing: no seed changes, no undo entry, no sound change. A 0.5 s toast reads `NO SHAPE HERE`. LED unchanged. Dice-all and undo skip it. |
+| Sub-label (P1-012, S2) | Under every dice button's shared name the screen draws the algorithm's own layer name, max 6 characters: ACID `NOTES HITS ACCNT GT+SLD OCTAVE`; EUCLID `NOTES ROTATE ACCNT RATCH -`; SNAKE `NOTES GATES VELO - DRIFT`; STAGE `NOTES RESTS VELO RT+HLD LONG`. A sub-label equal to the main label is drawn once. |
 | Why not hide or remap it | Rule 1: a control keeps its position and meaning; a missing layer is honest and learnable. Never remap a button to a different layer per algorithm. |
 | Switching algorithm while a layer is dimmed | The label un-dims when the new algorithm has the layer. The layer table is the only thing read (`layer_present[algo][layer]`). |
 
@@ -131,16 +143,16 @@ reversible and monotonic as each assessment specifies. The screen draws knob slo
 
 | Algorithm | K1 DENSITY | K2 FORM | K3 PITCH | K4 SPICE |
 | --- | --- | --- | --- | --- |
-| `ACID` | `DENS` 1..16, default 12 | `TYPE` 0..12, default 6 | `JUMP` 0..20, default 5 | `ACCNT` 0..8, default 3 |
-| `EUCLID` | `HITS` 1..16, default 5 | `LEN` 2..16, default 16 | `SPAN` 0..24, default 12 | `ACCNT` 0..8, default 2 |
-| `SNAKE` | `DENS` 1..16, default 10 | `LEN` 1..16, default 7 | `RANGE` 0..48, default **12** (was 24) | `PATH` 1..14, default 7 |
-| `STAGE` | `DENS` 1..8, default 6 | `TOTAL` 8..64, default 16 | `RANGE` 0..36, default 12 | `RATCH` 0..8, default 2 |
+| `ACID` | `DENS` 0..16, default 12 | `PEDAL` (was `TYPE`) 0..12, default 6 | `JUMP` 0..20, default 5 | `ACCNT` 0..8, default 3 |
+| `EUCLID` | `HITS` 0..16, default 5 | `LEN` 2..16, default 16 | `SPAN` 0..24, default 12 | `ACCNT` 0..8, default 2 |
+| `SNAKE` | `DENS` 0..16, default 10 | `LEN` 1..16, default 7 | `RANGE` 0..48, default **12** (was 24) | `PATH` 1..14, default 7 |
+| `STAGE` | `DENS` 0..8, default 6 | `TOTAL` 8..64, default 16 | `RANGE` 0..36, default 12 | `RATCH` 0..8, default 2 |
 
 Fit argument per cell (where it is not obvious):
 
 | Cell | Why it fits |
 | --- | --- |
-| ACID K2 `TYPE` as FORM | ACID is fixed at 16 steps, so FORM cannot be a length. TYPE sets how much of the line is the repeated root versus the raw motif, which is the loop's character (0 = raw motif, 12 = hammering acid). |
+| ACID K2 `PEDAL` (was `TYPE`) as FORM | ACID is fixed at 16 steps, so FORM cannot be a length. PEDAL sets how much of the line is the repeated root versus the raw motif, which is the loop's character (0 = raw motif, 12 = hammering acid). |
 | ACID K3 `JUMP` as PITCH | Octave-jump probability is the only pitch-width control ACID has (register reach). |
 | SNAKE K2 `LEN` as FORM | Pitch-lane loop length against the fixed 16-step rhythm: how the loop is built (polymeter). |
 | SNAKE K4 `PATH` as SPICE | The most dramatic stepped change per detent (re-orders melody and rhythm at once), the "twist" control. |
@@ -153,7 +165,8 @@ Fit argument per cell (where it is not obvious):
 
 | Knob | Rule |
 | --- | --- |
-| STAGE `TOTAL` (57 values) | Coarse mode: step of 4 pulses with a normal turn; fine (step of 1) while the encoder is turned slowly, via the existing accelerator (`KNOB ACCEL`). The control-map spec (P2-001) owns the exact gesture; this doc only requires that every value 8..64 stays reachable. |
+| STAGE `TOTAL` (57 values) | Step of 4 pulses with a normal turn; step of 1 while the encoder is turned slowly, via the existing accelerator (`KNOB ACCEL`). Every value 8..64 stays reachable (UX_REVIEW.md 5.1). |
+| K1 at 0 (all four) | `KEYS ONLY`: no generated hits, pins still play (rank-order `n = 0` plays nothing; `t1_euclidean_bjorklund(steps, 0)` returns 0). Range edit only. |
 | All other morphs (<= 49 values) | One detent = one step of 1. SNAKE `RANGE` 0..48 uses step 1; acceleration allowed. |
 
 ### 5.4 Edits the assessments need (table of edits, not applied here)
@@ -187,10 +200,10 @@ set; (L) = deferred algorithm. Golden tests per primitive are written once (P2-0
 | SP3 | Seeded accent count | "The first `a` cells in an accent-seed order get velocity 120, the rest 80". Reuses SP2 over the **hit** cells (ACID: hit steps; EUCLID: hit ordinals). | ACID ACCNT, EUCLID ACCNT | Fold ACID and EUCLID accents into one function with a `cell_set` argument. |
 | SP4 | Velocity lane | `vel[L]` random 50..127 from a seed, read as `vel[t % lane_len]`; `lane_len` fixed (STAGE: 8 stages) or diced (SNAKE POLY 3..12). | SNAKE VEL+POLY, STAGE VEL, (L: ARP, RHYTHM, MELODY) | SP3 vs SP4 is the one deliberate split: two-level accent (count knob) vs continuous lane (dice only). |
 | SP5 | Retrigger-in-step | Given a base step, `count` (2..4), spacing in ticks and velocity slope, emit repeat events. Selection "first `n` eligible firing cells in a seeded order" is SP2 again. EUCLID adds the pace curve (accelerating or decelerating, `t1_pace_curve_q15`); STAGE re-fires every `div` pulses inside a stage. | EUCLID RATCH, STAGE RATCH/MODE, (L: ARP, RHYTHM) | One emitter, two parameter sets. |
-| SP6 | Scale quantise | `quantise(pitch_class_or_semitone)`: **nearest scale tone by circular pitch-class distance, ties to the lower**; scale and root from the single global control; `pitch_orig` is kept so a scale change re-snaps reversibly. Table `T1_SCALE_MASKS` (F1 fixed, F2 residue: delete stale `T1_SCALE_NAMES`). | all | Replaces `t1_harmony_quantize` "snap down" (changes behaviour; question 16). |
+| SP6 | Scale quantise | `quantise(pitch_class_or_semitone)`: **nearest scale tone by circular pitch-class distance, ties to the lower**, applied at output to generated notes, pins and live keys (S4, P1-012); scale and root from the single global control; `pitch_orig` is kept so a scale change re-snaps reversibly. Table `T1_SCALE_MASKS` (F1 fixed, F2 residue: delete stale `T1_SCALE_NAMES`). | all | Replaces `t1_harmony_quantize` "snap down" (changes behaviour; question 16). |
 | SP7 | Span mapping | `p = r * rng / 255` for a raw 0..255 value then SP6 (late quantise), so scale size does not change the span. | SNAKE RANGE, STAGE RANGE | One function, two ranges (0..48, 0..36). |
 | SP8 | Pins | `pin_mask` u16 + `pin_note[16]` (offset 0..96 semitones from base 36), set from the white keys. A pin overrides the generated note and always sounds; it does not move the generator's state. A pin on a step at or past the loop length is silent until the length rises. | all | ACID `pin_pitch` is unified to this (5.4). |
-| SP9 | Note mapper | `midi = clamp(36 + root + transpose + semitone, 0, 127)`. Base note 36 for every algorithm. `root`, `transpose`, `gate`, `div`, `swing` are the **global** settings (owner decisions 3 and 4); an algorithm owns none. | all | Base 36 was repeated in 5 assessments. |
+| SP9 | Note mapper | `midi = clamp(36 + root + 12*octave + semitone, 0, 127)` (`octave` = global OCTAVE -2..+2, P1-012; it is the global transpose). Base note 36 for every algorithm. `root`, `transpose`, `gate`, `div`, `swing` are the **global** settings (owner decisions 3 and 4); an algorithm owns none. | all | Base 36 was repeated in 5 assessments. |
 | SP10 | Contour (pitch shapes) | Mode `SHAPES` (v1): the 6 phrase shapes SINE, TRI, SAW U, SAW D, ARCH, INV A + seeded jitter +-2, anchored on the root, via `t1_harmony_eval_phrase` after F3 is fixed. Mode `WALK` (LATER): LEAP/SPAN reflected walk starting on the root. | EUCLID (SHAPES), (L: MELODY WALK) | The two contour ideas of EUCLID and MELODY are one primitive with a mode flag. |
 | SP11 | Bjorklund + rotate | `t1_euclidean_bjorklund`, `t1_euclidean_rotate` reused unchanged (cap the `groups[]` array at 16 entries; do not change output). Rotation `R = r16 mod LEN`. | EUCLID | n/a (single user; kept shared so a later placement option reuses it). |
 | SP12 | Step clock | `t` = step index derived from the clock, `t mod len`; muting keeps phase (T1 F10 fixed). Lane index is per step `t`, not per sounding note (question 23). Changes commit at the next step boundary; STAGE commits at the next pulse. | all | Repeated in 5 assessments. |
@@ -258,9 +271,9 @@ New questions raised by this task (append to OWNER_QUESTIONS.md after review):
 
 | # | Question | Recommendation |
 | --- | --- | --- |
-| N1 | Owner decision 2 says SLIDE is "a sixth dice layer". With a 5-layer limit it shares the `ARTIC` button with GATE. Accept, or give SLIDE its own gesture (for example `ARTIC` long press)? | Accept for v1: pressing `ARTIC` until a good slide and gate pattern appears is two layers in one press. Split by a second table row if hardware says otherwise. |
-| N2 | When the user switches a channel's algorithm, do the old morph values and seeds survive (state kept per algorithm) or reset to the new algorithm's defaults? | Reset to the defaults of the new algorithm (a deterministic, fast start); pins are kept (they are note data, not generator state). Engine ADR (P2-004) decides the storage. |
-| N3 | Which of the 14 buttons carry the 7 dice inputs (5 layers, dice-all, undo)? | Not a P1-010 question; it is P2-001's job. This doc only requires 7 inputs, none behind a menu. |
+| N1 | SLIDE shares the `ARTIC` button with GATE. | **Resolved (S1, P1-012):** one press dices both; no separate gesture in v1. |
+| N2 | Algorithm switch: keep or reset morphs and seeds? | **Resolved (owner S7):** kept per algorithm per channel; switching back restores them. Pins are kept. Storage is all four algorithms per channel (~700 B per channel, `.pool`). |
+| N3 | Which buttons carry the 7 dice inputs? | **Resolved (P1-012):** section 4.3 and UX_REVIEW.md 1.1. |
 
 ## 9. Conflicts and hand-offs
 
@@ -269,7 +282,7 @@ New questions raised by this task (append to OWNER_QUESTIONS.md after review):
 | Owner decision 2 vs 5-layer limit | See 4.3 and N1. | Owner |
 | Quantiser behaviour change | `t1_harmony_quantize` snap-down becomes nearest-ties-lower; EUCLID goldens are generated from the new behaviour. Reviewer check: the existing `tests/torso_phase2_test.c` snap assertions (lines 212-224: A# in A P-MIN -> A, C# and D# in C major -> down) still hold under the new rule (all are ties or nearer-below). It does change today's T-1 pipeline output (`torso_t1_pipeline.c` 262, 323) whenever the nearer scale tone is above, e.g. B in C P-MIN now goes up to C. | P2-008 (prototype), dev task for SP6 |
 | F3 (ARCH and INV A broken) | Must be fixed before EUCLID's SPAN is correct (t1 7.3). | EUCLID dev task, first step |
-| Seven dice inputs | P2-001 must give 5 layer buttons + dice-all + undo within the existing 14 buttons / layer system. | P2-001 |
+| Seven dice inputs | Bound in P1-012 (4.3); P2-001 copies control_map.tsv into the firmware table. | P2-001 |
 | Absent-layer display | Dimmed label rule in 4.4. | P2-003 (screen spec) |
 | Per-algorithm state storage | Active-only (~260 B) vs all four (~700 B) per channel, in `.pool`. | P2-004 |
 | Slide behaviour on TB-3 | Question 8. | First hardware test |
@@ -290,6 +303,8 @@ What can be changed by editing a table row, with no algorithm code change:
 | Constants (SP9, 6) | Base note 36, velocities 120/80, `gate_pct`, ratchet odds, slide odds | Retune. |
 | Default scale (question 4) | Scale id, root | Change default from minor pentatonic to anything. |
 | Dice actions (4.3) | Order of dice-all, second-seed XOR constant | Reorder, retune. |
+| `control_map.tsv` (P1-012) | control x context -> action, label | Any physical binding, including a slide-only gesture, moving UNDO, re-placing channel keys. |
+| Dice sub-labels (4.4) | text per algorithm and layer | Rename. |
 
 What cannot be changed without code:
 
