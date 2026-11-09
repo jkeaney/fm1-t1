@@ -1,5 +1,7 @@
 # UX review: hardware controls x algorithms x workflow, with an ease score
 
+> P2-009: the chord row of the CONTROL tab is removed (owner decision 39). CONTROL tab is 4 rows; 28 menu rows in total (SYSTEM_MAP section 7).
+
 Task P1-012 (owner directive 2026-11-10). Status: **for owner review** (gate `human-review`; approval also re-approves
 P1-010). Design only: no firmware is changed by this document.
 
@@ -170,7 +172,7 @@ The KEYS legend (HOME tap on PERF) replaces the sequence band with the 27-key ma
 ### 1.5 The menu (hold HOME): set-and-forget only
 
 Kept: DISPLAY tab (COLOR, STYLE, LARGE, ANIM, LEDS, SCREEN OFF, SCOPE, HOME view), CONTROL tab (HOLD, ACCEL, SCALE
-LEDS, STEP PREVIEW, CHORD ENTRY), AUDIO tab (SPEAKER EQ, USB LEVEL, CLICK, CLICK LEVEL, COUNT-IN, TUNE), MIDI tab (MIDI
+LEDS, STEP PREVIEW), AUDIO tab (SPEAKER EQ, USB LEVEL, CLICK, CLICK LEVEL, COUNT-IN, TUNE), MIDI tab (MIDI
 IN routing, AUTO SELECT, SCREEN WAKE, LEARN CLEAR), SYSTEM tab (USB SERIAL,
 RESTORE LAST, HELP, CALIBRATION, INFO, ABOUT).
 

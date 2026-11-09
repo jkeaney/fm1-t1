@@ -1,5 +1,7 @@
 # Control map v1: every control, every context, one gesture
 
+> P2-009: the chord row of the CONTROL tab is removed (owner decision 39). CONTROL tab is 4 rows; 28 menu rows in total (SYSTEM_MAP section 7).
+
 Task P2-001. Status: consolidation of the owner-approved P1-012 design (approved 2026-11-10, with P1-010; owner
 decisions 31-36 in [OWNER_QUESTIONS.md](../project/OWNER_QUESTIONS.md)). **This file does not redesign anything.** The
 reasoning, ease scores and rejected alternatives stay in [UX_REVIEW.md](UX_REVIEW.md); the exact machine-readable table
@@ -129,7 +131,7 @@ header shows `P03>` until then (decision 34).
 ALGORITHM = tab, PRESETS = row, K1-K4 = value, HOME tap closes (Felucca menu navigation, unchanged).
 
 - **DISPLAY:** COLOR, STYLE, LARGE, ANIM, LEDS, SCREEN OFF, SCOPE, HOME view.
-- **CONTROL:** HOLD (the 0.3-0.6 s tap/hold threshold), ACCEL, SCALE LEDS, STEP PREVIEW, CHORD ENTRY.
+- **CONTROL:** HOLD (the 0.3-0.6 s tap/hold threshold), ACCEL, SCALE LEDS, STEP PREVIEW.
 - **AUDIO:** SPEAKER EQ, USB LEVEL, CLICK, CLICK LEVEL, COUNT-IN, TUNE.
 - **MIDI:** MIDI IN routing, AUTO SELECT, SCREEN WAKE, LEARN CLEAR.
 - **SYSTEM:** USB SERIAL,
