@@ -3,6 +3,8 @@
 Task P1-013 (owner decision 2026-11-10, sixth round, "Shift"). Status: **for owner review** (gate `human-review`;
 approval also re-approves ADR-0003 / P2-004 and unblocks P2-003, P2-007, P2-008). Design only: no firmware.
 
+> Change note (P1-014, performance-first; for owner review): the knob rows themselves (sections 2, 3, 5.1 step rule, 5.2) are **unchanged**. Superseded by [PERFORMANCE_DESIGN.md](PERFORMANCE_DESIGN.md): (1) the contexts `STEP`, `SCL`, `CHAN`, `GLOB` of section 1.3 are replaced by `SET` (tap or hold SEQ: row 1 `GATE DIV SWING BPM`, row 2 `SCALE OCTAVE MIDI LENGTH`, with OCT- / OCT+ picking the SET row) and `RESET` (hold UNDO); there is no STEP mode. (2) In a held step (`STEP_HELD`) OCT- / OCT+ now pick one of two step-band rows instead of pinning +-12 semitones (the pin octave is the `OCT` cell of row 2). (3) The keyboard octave (F35, hold SCL + OCT) is **retired** because the white keys are always steps and there are no live notes. (4) Section 5.1's last bullet ("no per-morph reset in v1", owner question 49) is replaced: hold UNDO and turn the knob resets that one morph; hold UNDO and tap OCT- / OCT+ resets a row; hold UNDO and tap FX resets the whole algorithm. Every reset is undoable. (5) The ease scores of section 4 gain the L sub-score in UX_REVIEW 3.3 / PERFORMANCE_DESIGN 7.2 (F30-F34 are 12 and 11 of 12 there).
+
 > Change note (P1-013): this file is new. It supersedes the 4-morph cap and the "no shift page" stance of
 > UX_REVIEW.md (P1-012). The edits it forces are applied consistently to [control_map.tsv](control_map.tsv),
 > [CONTROL_MAP.md](CONTROL_MAP.md), [UX_REVIEW.md](UX_REVIEW.md), [ALGORITHM_SET.md](ALGORITHM_SET.md), section 6 of
@@ -316,9 +318,7 @@ Totals over all 36 functions F00..F35 (as in UX_REVIEW 3.2; recomputed by script
   knob) for a deliberate sweep; every value is reachable slowly.
 - A knob turn takes effect at the next step (the next-step commit of CONTROL_MAP section 0); the cell shows the value
   in the same frame.
-- There is no per-morph "reset to default" gesture in v1 (a hold-a-knob gesture would collide with the layer
-  holds); the defaults are the neutral values, and a preset load or algorithm switch restores each algorithm's own
-  stored values (5.2). Owner question 49.
+- **Per-morph reset (P1-014, owner question 49):** hold UNDO (ARP) and turn the knob: that one morph returns to its default; hold UNDO and tap OCT- / OCT+: a row; hold UNDO and tap FX: the whole algorithm (morphs and factory seeds). A tap of UNDO afterwards takes the reset back. The defaults are the neutral values, and a preset load or algorithm switch restores each algorithm's own stored values (5.2).
 
 ### 5.2 Morph values are kept per algorithm (decision S7)
 

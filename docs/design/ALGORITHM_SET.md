@@ -1,10 +1,12 @@
 # Algorithm set for v1, the shared layer vocabulary and the knob convention
 
+> Change note (P1-014, performance-first design; for owner review): the **dice buttons moved** so that the top button row is the six dice in layer order: `FX` ALL, `SCL` NOTES, `ENV` HITS, `LFO` ACCNT, `EDIT` ARTIC, `GLO` SHAPE, all acting **on press** (no hold role). UNDO is `ARP` tap; a hold of UNDO opens the RESET layer (one morph, a row, the algorithm, or one layer, back to defaults and the factory seeds taken from `AlgoDesc.seed_k[]`). The layer vocabulary, the 4.2 seed matrix, the 4.4 absent-layer rule and the sub-labels are unchanged; only the button positions in 4.3 changed. The layer order `NOTES HITS ACCNT ARTIC SHAPE` is now also the physical order. The R1-R4 requirements (pattern length, pages, per-step properties) are reserved at the control level only; P1-016 integrates their algorithm side. See [PERFORMANCE_DESIGN.md](PERFORMANCE_DESIGN.md) sections 2 and 4.
+
 > Change note (P1-013): the knob convention gains a second row. K1..K4 (ROW 1) are unchanged; ROW 2 is S1 START (`OFFSET`), S2 ARTIC, S3 DYNAMICS, S4 READ, giving 8 morphs per algorithm (section 5.2b, 5.3). Shared primitives SP16 (`dir_map`) and SP17 (`dyn_vel`) are added to section 6. The five-layer dice vocabulary (section 4) is unchanged. Details: [FULL_CONTROL.md](FULL_CONTROL.md).
 
 > **Change note (P1-012, 2026-11-10).** Amended to match [UX_REVIEW.md](UX_REVIEW.md) and
 > [control_map.tsv](control_map.tsv) (owner decisions S1-S7). Changes: (1) the 7 dice inputs are bound to buttons:
-> SCL tap NOTES, SEQ HITS, ENV ACCNT, ARP ARTIC, LFO SHAPE, FX dice-all, EDIT tap undo/redo (4.3). (2) Every dice
+> (P1-014 positions: top row FX ALL, SCL NOTES, ENV HITS, LFO ACCNT, EDIT ARTIC, GLO SHAPE; ARP tap undo/redo, see the change note above; the P1-012 positions were SCL tap NOTES, SEQ HITS, ENV ACCNT, ARP ARTIC, LFO SHAPE, FX dice-all, EDIT tap undo/redo) (4.3). (2) Every dice
 > button shows a second-line sub-label with the algorithm's own layer name (4.4). (3) K1 ranges start at 0
 > (`KEYS ONLY`: only pins play); ACID K2 `TYPE` is relabelled `PEDAL` (5.2). (4) S1: ACID ARTIC dices GATE and SLIDE in
 > one press, no separate slide gesture in v1 (N1 resolved). (5) S4: SP6 snap also applies to pins and live keys. (6)
@@ -111,7 +113,7 @@ HITS, ALT -> NOTES, VEL -> ACCNT, ROLL -> ARTIC. So adding the deferred three ne
 | Dice layer L | Replace the seed(s) bound to L with the low 16 bits of the audio sample counter at the press (EUCLID ROT: forced to 1 if 0). Store the old seed as the "previous" seed. | A layer bound to 2 seeds (ACID `ARTIC`) re-rolls both with two different counter reads (second read XOR 0x5A5A) and stores both previous seeds. |
 | Dice all | Dice every layer present for the active algorithm in the order NOTES, HITS, ACCNT, ARTIC, SHAPE. Skips absent layers. | ACID 6 seeds, EUCLID 4, SNAKE 4, STAGE 5. |
 | Undo dice | Recall each seed's previous seed once (one level). A second undo does nothing (previous == current). | Per seed, so undoing ACID `ARTIC` restores GATE and SLIDE together. Undo of a dice-all restores all layers. |
-| Physical buttons | NOTES = SCL tap (acts on release; SCL hold = scale layer), HITS = SEQ, ACCNT = ENV, ARTIC = ARP, SHAPE = LFO, dice-all = FX, undo = EDIT tap (acts on release; a second tap redoes: undo swaps each seed with its previous seed). Dice buttons without a hold act on press. Source: UX_REVIEW.md 1.1, 5.2. | all |
+| Physical buttons (P1-014) | NOTES = SCL, HITS = ENV, ACCNT = LFO, ARTIC = EDIT, SHAPE = GLO, dice-all = FX: the top row, left to right, all on press. Undo = ARP tap (a second tap redoes: undo swaps each seed with its previous seed; it also covers pin edits and resets). Reset = hold ARP, then FX (whole algorithm), a dice button (that layer's seeds), a knob (one morph), OCT- / OCT+ (a row). Source: PERFORMANCE_DESIGN.md 2 and 4.1. (Before P1-014: NOTES = SCL tap, HITS = SEQ, ACCNT = ENV, ARTIC = ARP, SHAPE = LFO, undo = EDIT tap.) |
 
 Owner decision 2 ("ACID gets slide as a sixth dice layer") is met as a sixth **seed** on five **buttons** (S1, resolved
 in P1-012). SLIDE has its own seed, its own previous seed and its own probability table, exactly as P1-011 specifies;
