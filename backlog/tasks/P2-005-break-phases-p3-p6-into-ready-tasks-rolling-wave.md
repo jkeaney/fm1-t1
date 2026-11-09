@@ -5,8 +5,8 @@ phase: P2
 type: task
 status: todo
 priority: 1
-executor: opus
-depends_on: [P2-001, P2-002, P2-003, P2-004, P2-006]
+executor: haiku
+depends_on: [P2-001, P2-002, P2-003, P2-004, P2-006, P2-007, P2-008]
 gate: human-review
 ---
 ## Goal
@@ -14,7 +14,8 @@ Turn epics E3–E6 into Haiku-executable tasks, using the approved maps, spec an
 
 ## Read first
 - docs/project/PROCESS.md (Definition of Ready, model routing)
-- docs/design/*.md
+- docs/project/decisions/ADR-0004-design-lock.md
+- docs/design/*.md, docs/design/scenarios/, docs/design/algorithms/
 - docs/project/decisions/ADR-0003-sequencer-core.md
 - backlog/tasks/E3-*.md … E6-*.md
 - backlog/_templates/task.md
@@ -26,6 +27,8 @@ Turn epics E3–E6 into Haiku-executable tasks, using the approved maps, spec an
 - [ ] `python3 tools/backlog.py check` reports 0 errors
 - [ ] Every P3 removal task names exact files to delete, the felucca.c include lines to drop and the test lines to remove, and ends with tools/check.sh
 - [ ] Every task with executor haiku names exact files, commands and expected output
+- [ ] Every dev task cites, in Read first, a locked spec section plus a golden file or scenario step, and its criteria reproduce those artefacts (ADR-0004)
+- [ ] No dev task contains 'TBD', 'choose' or 'decide'; any gap found is filed as a BUG/FB against the design, not guessed
 - [ ] The owner approved it (log line)
 
 ## Verification

@@ -40,11 +40,18 @@ its log ("Approved: <name> <date>"). The reviewer subagent can't pass a human ga
 - **Haiku-executed tasks name exact files, exact commands and the expected output.** A task that needs judgement
   across many files, or design taste, is `executor: sonnet` or `opus`, or is split.
 
+## Design lock (ADR-0004)
+
+No development task is ready until the design it implements is **locked**: fully specified (no choices left),
+prototyped with golden outputs, validated by scripted scenarios, and signed off by the owner ("Design locked:" in
+the log). Dev tasks cite the spec, golden file or scenario step they implement. An open question in a dev task means
+stop and file a BUG/FB; never guess. Design tasks run on Haiku too, so the owner's `human-review` gate is the quality
+check and briefs must be explicit.
+
 ## Definition of Done
 
 - Every acceptance criterion is met, and the verification commands pass, with their output pasted into the task log.
-- `tools/check.sh` passes once it exists (P0-003). Until then: `./build.sh` succeeds and `sh tests/run_tests.sh`
-  shows no new failures.
+- `tools/check.sh` prints `CHECK PASS` (build, RAM headroom, host tests, backlog check; logs in build/check/).
 - RAM headroom of at least 4 KB, reported by the build.
 - Docs touched by the change are updated: CLAUDE.md for architecture and commands, T1_ISSUES.md for fixed issues.
 - One commit per task: `<id>: <title>`. Firmware never goes onto a device without the owner's OK.

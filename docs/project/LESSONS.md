@@ -15,3 +15,4 @@ Orchestrator-maintained. Add a line whenever a cycle stalls, bounces or surprise
 ## Technical
 - Spaced repo path breaks `import.meta.url.pathname`; use `fileURLToPath`.
 - Wall-clock benchmarks are gated behind `T1_BENCH=1`.
+- **Owner decision 2026-11-09: ALL work runs on Haiku**, including P1/P2 design and E3–E8 epics (executor fields changed to haiku). Compensation: briefs must be narrow and explicit; design tasks keep their human-review gates as the quality check; split any task that is too big for Haiku before dispatching it; the reviewer verifies against the vision, not just the checklist.

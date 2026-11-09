@@ -5,7 +5,7 @@ phase: P2
 type: task
 status: todo
 priority: 1
-executor: opus
+executor: haiku
 depends_on: [P1-001, P1-010]
 gate: human-review
 ---

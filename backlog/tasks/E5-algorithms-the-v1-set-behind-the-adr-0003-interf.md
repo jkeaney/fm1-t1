@@ -5,7 +5,7 @@ phase: P5
 type: epic
 status: todo
 priority: 3
-executor: opus
+executor: haiku
 depends_on: [P2-005]
 gate: none
 ---
