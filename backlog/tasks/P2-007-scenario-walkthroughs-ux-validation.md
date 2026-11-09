@@ -6,14 +6,14 @@ type: task
 status: todo
 priority: 1
 executor: sonnet
-depends_on: [P2-001, P2-003, P1-013, P1-014, P1-016]
+depends_on: [P2-001, P2-003, P1-013, P1-014, P1-017]
 gate: human-review
 ---
 ## Goal
 Script the target workflow as step-by-step scenarios so the control map and screen spec are proven complete before development (ADR-0004).
 
 ## Read first
-- docs/design/PATTERN_AND_STEPS.md (P1-016: pattern length, pages, per-step performance, keybed expression)
+- docs/design/SEQUENCER_UX.md and the TSV tables page_states.tsv / button_modes.tsv / knob_map.tsv (P1-017: the locked sequencer functionality and UX; every page needs a screen spec)
 - docs/design/PERFORMANCE_DESIGN.md (P1-014: performance-first controls; supersedes anything it changes in FULL_CONTROL.md)
 - docs/design/FULL_CONTROL.md (P1-013: shift row, up to 8 morphs per algorithm, live two-row labels)
 - docs/project/decisions/ADR-0004-design-lock.md

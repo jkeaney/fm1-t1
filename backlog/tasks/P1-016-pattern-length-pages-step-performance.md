@@ -3,7 +3,7 @@ id: P1-016
 title: Pattern length per channel, paged keyboard steps, per-step performance and keybed expression: integrate into the design
 phase: P1
 type: spike
-status: todo
+status: dropped
 priority: 0
 executor: sonnet
 depends_on: [P1-014, P1-015]
@@ -45,3 +45,6 @@ python3 tools/backlog.py check
 - Firmware code; flashing.
 
 ## Log
+
+### 2026-11-10 orchestrator
+Superseded by P1-017 (Opus sequencer + UX lock) after the owner's tenth-round rethink. Dropped.

@@ -169,3 +169,17 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | --- | --- |
 | 53 | The project that reads force from the FM-1 keybed is Velo (charlesvestal/fm1-velocity, GPL-3.0) and its shipped successor CTL-1 (charlesvestal/fm1-ctl, MPL-2.0; also used by MONK-1 and Scintilla). It gives velocity and polyphonic aftertouch via the ADC, not MPE; Felucca MPE is MPE input only. Is Velo the project you meant? |
 | 54 | Force sensing covers F3-C5 only (20 keys), is uneven across a chord, and Velo's author parked it (CTL-1 ships it, with caveats: edge presses read soft, LEDs disturb readings). Recommendation: v1 uses tap-count and hold gestures (certain, all 27 keys); force is a later optional port. Agree? See docs/design/KEYBED_EXPRESSION_REFERENCE.md. |
+
+## Decisions (owner, 2026-11-10, tenth round): rethink of the sequencer UX
+| # | Decision |
+| --- | --- |
+| 55 | B2 approved as the BUTTON LAYOUT (printed-word fit). |
+| 57 | Screen labels plus hold-HOME help; no overlay strip. |
+| 60 | Move the four most-performed morphs to ROW 1 (knob table edit, done in P1-017). |
+| 61,62 | HOME acts on release; MUTATE stays removed. |
+| 56,63,64 | RETHINK (not accepted as designed): the device must be easy and never need deep learning or controls. The sequencer model is now: dial an algorithm in, then control the steps that were set: turn steps on/off, morph a step; set the first 16 steps, then duplicate them into the second 16 and change those, and so on up to 64 steps; hold a step to open a NOTE EDIT page where the knobs change pitch etc. |
+| 58 | NO scenes and NO tap tempo. Tempo is set on the global settings page. Spend the effort on easily entering and sequencing up to 64 steps from a 16-step pattern. |
+| 59 | Pattern length and its gestures need a whole rethink (as above). |
+| 53,54 | Keybed force sensing (Velo / CTL-1) IS wanted in v1 ('this is it'): the next design pass must make excellent use of velocity and polyphonic aftertouch. |
+| Process | Framework for the next pass: every state is a page; each button has a mode (press, hold ...); each state has a screen; each screen shows what the knobs control; input, processing and output all aligned and mapped; held to a high bar of usability, understanding, UX, performance, fun and musical output. An Opus UX-designer / technical-architect pass (P1-017) reviews this feedback and LOCKS the sequencer functionality and UX. P1-016 is superseded by P1-017. |
+| Push | Approved. |

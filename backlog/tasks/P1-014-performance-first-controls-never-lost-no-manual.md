@@ -3,7 +3,7 @@ id: P1-014
 title: Performance-first control design: every control accounted for, fun to play, never lost, no manual
 phase: P1
 type: spike
-status: review
+status: done
 priority: 0
 executor: sonnet
 depends_on: [P1-013]
@@ -45,7 +45,7 @@ Owner challenge (2026-11-10, eighth round): design the device for PERFORMANCE. A
 - [x] A 60-second performance script that uses only the documented gestures
 - [x] control_map.tsv and CONTROL_MAP.md updated; check_control_map.py prints OK; ADR-0003 updated if state changes, RAM budget re-added with the 4 KB floor respected
 - [x] No 'TBD', 'choose' or 'decide' wording
-- [ ] The owner approved it (log line 'Approved: <name> <date>')
+- [x] The owner approved it (log line 'Approved: <name> <date>')
 
 ## Verification
 ```sh
@@ -153,3 +153,6 @@ First minute of a first-time user (honest "playable without a manual" verdict: m
 
 Owner decisions (exactly): (a) approve scheme B2 (Q55); (b) white keys always steps, stray-pin risk (Q56); (c) accept the printed-word overrides (OCT, EDIT, stretches) with screen labels + HELP (Q57); (d) volatile scenes, tap tempo removed (Q58); (e) R1-R3 gestures (Q59); (f) ROW 2 as setup or an explicit performance waiver (Q60); (g) HOME on release (Q61); (h) MUTATE gone (Q62); (i) REC unquantised (Q63); (j) one step at a time (Q64); plus the new notes: a REC take overwrites (undo = last note), and a legato-roll threshold for the hold+key gesture.
 Recommended approval statement: "Approved: <name> <date>: scheme B2 as designed; ROW 2 morphs accepted as a performance waiver at 10/12; hold+key pitch gesture gets a 250 ms hold threshold; a REC take is protected (SAVE/scene first, or whole-take undo) before P1-016 lands; hardware-test the printed-word stretches (FX, ENV, ARP, LFO, EDIT) with a first-time user before P2."
+
+### 2026-11-10 owner
+Approved: James Keaney 2026-11-10 WITH CHANGES. Approved: scheme B2 as the button layout (printed-word fit, 1A); screen labels plus hold-HOME help, no overlay strip (2A); HOME acts on release and MUTATE removed (6A); push (9A). Changed: the four most-performed ROW 2 morphs move to ROW 1 (3B, applied in P1-017 when it re-locks the knob table). SUPERSEDED by P1-017 (Opus sequencer + UX lock): pitch/step entry (4: step-centric editing with a note-edit page), pattern length and pages (7: 16 -> 64 steps by duplicating and editing pages), scenes and tap tempo (5: dropped; tempo on the global settings page), keybed force sensing (8B: in v1). The owner's framework for P1-017: every state is a page, each button has a mode (press/hold ...), each state has a screen, each screen shows what the knobs control; input to processing to output all aligned and mapped; high bar on usability, understanding, UX, performance, fun and musical output; never any deep learning.
