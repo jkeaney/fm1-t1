@@ -27,3 +27,15 @@ the executor stops and files a BUG/FB instead of guessing.
 - Extra design-validation tasks (P2-007, P2-008) before P2-005 planning.
 - P2-005 must refuse to create a dev task that lacks a spec citation.
 - Design changes after lock go through a new ADR or an amended spec plus owner re-lock, never a dev task.
+
+## Addendum: flexible by design (owner directive, 2026-11-09)
+Designs must hold top-tier user-facing UX principles (VISION rules 1-4: no menu diving, screen always shows what
+each knob/button does now, perform live) AND stay cheap to change after hardware testing:
+- **Data-driven UI.** The control map (control × context → action, label), screen layouts and per-algorithm
+  parameter tables (names, ranges, defaults, which knob/button drives which layer) live in data tables, not
+  scattered logic. Changing a workflow = editing a table row, not rewriting code.
+- **Algorithms expose a uniform interface** (ADR-0003): layers, morph targets and dice targets are declared as
+  data, so remapping a knob to a different layer, or adding a dice button, is a table change.
+- **Change path.** A producer-driven workflow change is: edit the spec table, re-run scenarios/protos, owner
+  re-locks, then a small Haiku task updates the table. No design change may require touching algorithm code.
+- Each design doc ends with a "Flex points" list: what can be re-mapped by table edit, and what cannot.

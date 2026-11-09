@@ -27,6 +27,7 @@ Fix the data model and interfaces that P4–P6 build on: channels, steps, the al
 - [ ] Every v1 algorithm in ALGORITHM_SET fits the vtable (a short mapping table)
 - [ ] The RAM budget sums to at most the headroom freed by SYSTEM_MAP plus the current headroom, minus 4 KB
 - [ ] The owner approved it (log line)
+- [ ] The algorithm interface declares layers, morph targets and dice targets as data tables so remapping a knob/button needs no algorithm code change; 'Flex points' section included
 
 ## Verification
 ```sh

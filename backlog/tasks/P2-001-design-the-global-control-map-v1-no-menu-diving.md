@@ -26,6 +26,8 @@ Assign every button, knob, encoder and key to the vision: channel select, algori
 - [ ] Every control from CONTROL_INVENTORY has a row (or 'unused, reserved')
 - [ ] No gesture needs more than one held modifier
 - [ ] The owner approved it (log line)
+- [ ] Control map is a machine-readable table (docs/design/control_map.tsv or similar) that firmware can load as a const table; a 'Flex points' section lists what is re-mappable by editing a row
+- [ ] Every row meets VISION rule 1: reachable without menu diving, with its on-screen label
 
 ## Verification
 ```sh

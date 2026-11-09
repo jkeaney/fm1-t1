@@ -25,6 +25,8 @@ VISION rule 1, made concrete: every screen always shows what the device is doing
 - [ ] Every control in CONTROL_MAP has a defined on-screen label location for each mode
 - [ ] The zone rectangles tile 240x240 without overlap (listed as x,y,w,h)
 - [ ] The owner approved it (log line)
+- [ ] Screen layouts are specified as data (regions, label slots, state fields) so a label or layout change is a table edit; a 'Flex points' section lists them
+- [ ] Every knob/button role shown on screen for each context (VISION rule 1)
 
 ## Verification
 ```sh

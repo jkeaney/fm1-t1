@@ -17,3 +17,4 @@ Orchestrator-maintained. Add a line whenever a cycle stalls, bounces or surprise
 - Wall-clock benchmarks are gated behind `T1_BENCH=1`.
 - **Owner decision 2026-11-09: ALL work runs on Haiku**, including P1/P2 design and E3–E8 epics (executor fields changed to haiku). Compensation: briefs must be narrow and explicit; design tasks keep their human-review gates as the quality check; split any task that is too big for Haiku before dispatching it; the reviewer verifies against the vision, not just the checklist.
 - **Owner decision 2026-11-09 (supersedes the Haiku-only line above): planning and design tasks (P1, P2) run on Sonnet; development tasks (P0, P3+) run on Haiku.** Orchestrator dispatches by the task's executor field.
+- **Design must be flexible (ADR-0004 addendum):** control map, screens and algorithm layer/morph/dice mappings are data tables so producer-driven workflow changes after testing are table edits, not code changes.

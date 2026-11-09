@@ -31,6 +31,7 @@ Prove each v1 algorithm in a seeded host prototype and check in its golden outpu
 - [ ] Music-theory checks (scale, range) pass; theory beats the fixture
 - [ ] SPEC.md has no 'TBD'
 - [ ] Design locked: owner line in the log
+- [ ] Each SPEC.md declares its layers, morph and dice mappings as a table, and the prototype reads that table (remapping = table edit)
 
 ## Verification
 ```sh
