@@ -3,7 +3,7 @@ id: P1-014
 title: Performance-first control design: every control accounted for, fun to play, never lost, no manual
 phase: P1
 type: spike
-status: review
+status: todo
 priority: 0
 executor: sonnet
 depends_on: [P1-013]
@@ -98,3 +98,12 @@ Material findings the owner must weigh (design is internally consistent, but the
 7. FULL_CONTROL.md sections 1.4, 2 and F35 still describe hold SCL keyboard octave and the old layers; covered only by its change note.
 
 Owner decisions (exactly): (a) approve scheme B at all, or the printed-word-compatible variant (REC, ARP, GLO, ENV, LFO placement); (b) accept no pitch playing on the keys, or add hold-step-key + white key = scale degree; (c) accept screen labels + HELP, or an overlay strip (Q57); (d) accept stray-pin risk (Q56); (e) volatile scenes and TAP removed (Q58); (f) R1-R3 gestures, per-step editing as setup class (Q59). Honest view: the scheme is the best of the three offered and strong on the screen side (cue strip, escape, first-run, reset), but "playable without a manual" is only partly met: five dice, UNDO, REC and the ROW switch rely on labels that contradict the printing, so first contact needs the on-screen button picture and the HOME help; pitch entry is slow. Treat it as a good base to hardware-test, not as proven.
+
+### 2026-11-10 orchestrator: sent back for ONE revision pass (before the owner sees it)
+The reviewer's findings (full list in its log above) show the design does not yet meet 'playable without a manual' honestly. Required in the revision, then it goes to the owner:
+1. Honest L scores: the dice, ARP=UNDO and ROW 2 knobs were scored L3 on 'position + cue strip' but the cue strip names only FX, ARP and OCT+; rescore honestly (those are L2), and fix every function that then falls under the pass rule.
+2. Respect the PRINTED words (docs/controls.jpg, panel.c): add a variant B2 of the winning scheme that gives every button a role consistent with the word printed on it wherever the word names something this sequencer can do (for example REC = record/step entry, PLAY = play, SAVE = save, HOME = home, SCL = scale/key, GLO = global feel such as swing/gate/tempo, FX = performance effects such as fill/roll, LFO = modulation/shape, ENV = accent/envelope-like dynamics, ARP = articulation/arpeggio-like movement, SEQ = the sequence/pattern, EDIT = edit selected step, OCT-/OCT+). Score B vs B2 on L and pick honestly. Where a printed word must be overridden, say why and what screen cue compensates. REC=MUTATE specifically must be justified or replaced.
+3. Pitch entry: white keys cannot play or audition a pitch, which breaks the TB-3 workflow step 3 in VISION. Specify a fast pitch-entry gesture (for example hold a step key and press another white key = that scale degree/note, or an audition behaviour) and score it; keep an audition path so the producer can hear a note.
+4. HOME: resolve the conflict between the HELP window and the 0.7 s hold that opens the menu.
+5. Fill the undefined states the reviewer listed, and add to the confusing-states list.
+6. Keep the owner-numbered questions (55-59) consistent; do not renumber others. Update all affected documents, re-run python3 tools/check_control_map.py (OK), keep ADR-0003 RAM re-added. Do not write an Approved line.
