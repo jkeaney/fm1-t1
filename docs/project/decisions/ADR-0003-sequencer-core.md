@@ -521,10 +521,10 @@ static void sq_eval(uint8_t c, uint32_t t, PulseOut *o)
 past `loop_len` is silent until the loop grows (owner questions 10/18). Pins never move a generator's state (they are
 applied after `step()`), so morphs and dice never disturb them.
 
-- **Enter** (STEP mode, CONTROL_MAP W4): `sq_pin_set(ch, pos, semi)`. The UI chooses `semi`: the note generated at that
+- **Enter** (a white-key press; P1-014 removed STEP mode, CONTROL_MAP W4): `sq_pin_set(ch, pos, semi)`. The UI chooses `semi`: the note generated at that
   position (`step(pos)` converted back with `semi = note - 36 - key - 12 * octave`, clamped 0..96) or 0 (the root) when
   that step is silent. `pin_note` writes before `pin_mask`.
-- **Edit:** K3 = one scale degree per detent (the UI walks the scale table), OCT-/OCT+ = +-12; both clamp 0..96.
+- **Edit (P1-014):** hold a step key; K1 `NOTE` = one scale degree per detent (the UI walks the scale table), OCT+ then K4 `OCT` = +-12 per detent; both clamp 0..96.
 - **Clear:** `sq_pin_clear` removes one; `sq_pin_clear_all` is recorded in `UndoRec.what bit1`, so an UNDO (ARP) tap undoes it (P1-014: UNDO moved from EDIT to ARP).
 - **K1 = 0:** `m[0] == 0` means the algorithm's `build()` produces no `PO_HIT`; pins still play because the overlay
   forces `PO_HIT`. No fifth algorithm (owner decision 35). Because `step()` still fills `vel`/`gate`, pins sound at the
@@ -594,7 +594,7 @@ Facts (SYSTEM_MAP section 9): RAM `.data+.bss` after the E3 removals 27232 B of 
 | **Total new .bss** | **6953** | |
 | Pool: 16 presets + staging + undo-load copy + scenes A, B (about 1120 B each at the upper bound = 20 copies) | about 22400 | .pool |
 
-Checks (SYSTEM_MAP section 9: headroom 46496 B after the removals, 17984 B before; floor 4096; E9 trigger 8192): after the removals 46496 - 6953 = **39543 B** left; before them 17984 - 6953 = **11031 B** left (above the 8 KB trigger). Pool today 25764 - 22400 = **3364 B** left, so the removals (R6) must precede preset storage (E7), or P1-016 must shrink the step record; after the removals 217975 - 22400 = 195575 B. Scenes are volatile (owner question 56).
+Checks (SYSTEM_MAP section 9: headroom 46496 B after the removals, 17984 B before; floor 4096; E9 trigger 8192): after the removals 46496 - 6953 = **39543 B** left; before them 17984 - 6953 = **11031 B** left (above the 8 KB trigger). Pool today 25764 - 22400 = **3364 B** left, so the removals (R6) must precede preset storage (E7), or P1-016 must shrink the step record; after the removals 217975 - 22400 = 195575 B. Scenes are volatile (owner question 58).
 
 Removed with R8 (T-1 retirement): `t1_micro_queue` 4096 B and the two `MidiRingBuffer` 2 x 264 B and `t1_sequencer_ram`
 9348 B + the T-1 `.pool` buffers (13980 B total per SYSTEM_MAP; all in the pool, `.bss` impact 36 B). CPU: per tick

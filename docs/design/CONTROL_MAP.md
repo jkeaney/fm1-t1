@@ -181,7 +181,7 @@ The per-control reset, scene and mutate state is in ADR-0003 (section 11) and PE
 
 ## Open owner questions from this consolidation
 
-None from this consolidation. Questions from the performance-first pass are 53 onward in OWNER_QUESTIONS.md.
+None from this consolidation. Questions from the performance-first pass are 55 to 59 in OWNER_QUESTIONS.md.
 
 ## Appendix A. Every (control, context) row, verbatim from control_map.tsv
 

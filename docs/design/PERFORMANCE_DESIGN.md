@@ -20,7 +20,7 @@ marks on the black keys. Nothing says "dice", "morph", "mute" or "scene". So **t
 the screen must**, and the screen must mirror the panel so that "where" does half the teaching. Three printed words
 already match the job (SELECT, ALGORITHM, PRESETS) and four more are close enough once the screen labels them (PLAY,
 SAVE, HOME, KNOB 1-4). Every other printed word (FX, SCL, ENV, LFO, EDIT, GLO, ARP, SEQ, REC, OCT) is a synth word that we
-override on screen. That is the largest learnability risk in every scheme and is carried to the owner as question 55.
+override on screen. That is the largest learnability risk in every scheme and is carried to the owner as question 57.
 
 ## 0. The scheme in one paragraph
 
@@ -129,7 +129,7 @@ on screen is drawn as the same 2 x 6 block, so the position of a dice cell on sc
 - **Clear:** tap a pinned key; hold UNDO and press the key (clears that step's record); hold UNDO and press REC (clears all). UNDO tap restores.
 - `K1 = 0` (`KEYS ONLY`) plays only the pins (owner decision 35).
 - **Stopped vs playing.** Stopped: a press sounds the step once on the selected channel (audition, MIDI + preview). Playing: same, and the record takes effect at the next pass of that step.
-- **Why white keys are never live notes.** The product is a sequencer (VISION rule 2); the approved PERF keys played live notes that were then lost, so a first press had no visible result (F26 L2). Now a press always writes a step the screen shows. **Cost:** a hand brushing a white key sets a pin. Rescue: the pin is outlined on the lane, UNDO tap removes it, tapping it again removes it. Owner question 54.
+- **Why white keys are never live notes.** The product is a sequencer (VISION rule 2); the approved PERF keys played live notes that were then lost, so a first press had no visible result (F26 L2). Now a press always writes a step the screen shows. **Cost:** a hand brushing a white key sets a pin. Rescue: the pin is outlined on the lane, UNDO tap removes it, tapping it again removes it. Owner question 56.
 
 ### 3.2 Black keys: performance moves
 
@@ -218,7 +218,7 @@ A 12 px line at the very bottom of the main screen (AF_S, at most 34 characters,
 | 4 | PAGE held | `PAGE: press a key = pattern ends` |
 | 5 | MUTATE held | `MUTATE: let go to snap back` |
 | 6 | SOLO / FILL / ROLL held | `SOLO CH2: let go to restore` (same shape) |
-| 7 | SET page, row 2 | `SET: any key sets the KEY  HOME=back` |
+| 7 | SET page, row 2 | `SET: press a key = KEY  HOME=back` |
 | 8 | SET page, row 1 | `SET: OCT-/OCT+ = row  HOME=back` |
 | 9 | A preset or scene is queued | `LOADS AT NEXT BAR  SAVE hold=undo` |
 | 10 | Just after any dice / reset | `UNDO takes it back` (2 s) |
@@ -246,7 +246,7 @@ Rules: **any other control also counts as dismissing** (the strip clears and the
 
 - **Escape: tap `HOME`.** From SET, RESET, a held step, the first-run strip and the MENU it returns to the main screen. In PERF it shows the help line for 3 s (so pressing it never feels dead). Layers are momentary anyway; the escape exists for the one latched page (SET) and the MENU.
 - **Undo is reachable everywhere except the MENU:** `ARP` tap works in PERF, a held step, SET and RESET (it does one thing in every context: take back the last dice, dice-all, pin or step edit, or reset; again = redo). One record per channel (owner decision 46).
-- **What does this do (touch-to-learn):** **hold HOME, then press or turn any control**: the cue strip and a toast explain that control (`K3 PITCH: how wide the pitches range`), the control itself does nothing, and releasing HOME returns to normal. A press of HOME alone for 0.7 s still opens the MENU (the menu opens only if no control was touched). Scored (F46): V3 I1 O3 L2 = 9, a setup function that passes and **earns its place** for two reasons: it is the only route to a plain-words explanation of the physical controls whose printing contradicts their role (FX, SCL, ENV, LFO, EDIT, GLO, ARP, SEQ, REC, OCT), and the cue strip advertises it on the HOME tap. Cost: a 49-entry one-line help table (about 1.5 KB flash) and no RAM beyond a 1-B "help held" bit.
+- **What does this do (touch-to-learn):** **hold HOME, then press or turn any control**: the cue strip and a toast explain that control (`K3 PITCH: how wide pitches range`), the control itself does nothing, and releasing HOME returns to normal. A press of HOME alone for 0.7 s still opens the MENU (the menu opens only if no control was touched). Scored (F46): V3 I1 O3 L2 = 9, a setup function that passes and **earns its place** for two reasons: it is the only route to a plain-words explanation of the physical controls whose printing contradicts their role (FX, SCL, ENV, LFO, EDIT, GLO, ARP, SEQ, REC, OCT), and the cue strip advertises it on the HOME tap. Cost: a 49-entry one-line help table (about 1.5 KB flash) and no RAM beyond a 1-B "help held" bit.
 - **Why not hold-any-control-to-learn:** the dice, mutes and keys act on press, so a "touch" would already have changed the music. Hold HOME is the only form that changes nothing.
 
 ### 5.4 Naming and iconography rules
@@ -404,7 +404,7 @@ Totals over the 53 functions: approved 386 of 636; **the approved scheme fails 2
 
 - **Dice F09-F14: L2 to L3.** Same V/I/O. The six dice are one block in the order of the layer list, the screen draws the same block, and the cue strip names the most recent one; the approved scheme scattered them over both rows and put NOTES on the same button as the SCALE layer.
 - **F20 mute and F28 restart: 10 to 12.** V2 to V3 because the black-key legend is now on the main screen, not behind a HOME tap; L2 to L3 because the legend is always there.
-- **F31-F34 (ROW 2): 10 to 11.** The approved scheme left L at 2 (printed `OCT+` means octave). The cue strip names `OCT+ = ROW 2` on every playing screen and first-run step 2 teaches the knobs; this is the weakest L3 of the whole scheme and is carried to question 55.
+- **F31-F34 (ROW 2): 10 to 11.** The approved scheme left L at 2 (printed `OCT+` means octave). The cue strip names `OCT+ = ROW 2` on every playing screen and first-run step 2 teaches the knobs; this is the weakest L3 of the whole scheme and is carried to question 57.
 - **F36-F41, F49: new moves** all at 11-12.
 - **F04, F26: white keys always steps.** The approved path needed REC first; now a press is a step and is heard.
 - **F43-F45 resets and F46 HELP: 9** (input 1 is the price of a hold plus a control; no latch is possible without a second hold), setup class, pass.
@@ -533,4 +533,4 @@ ISR cost: SOLO and ROLL are one flag read per step start; FILL, MUTATE and RESET
 
 ## 11. Owner questions raised by this design
 
-53 to 57 in [OWNER_QUESTIONS.md](../project/OWNER_QUESTIONS.md): (53) approve moving the dice to the top row in layer order and `ARP` = UNDO, `SEQ` = SET; (54) white keys always steps, with no live notes, accepting the stray-pin risk; (55) the printed panel words (FX SCL ENV LFO EDIT GLO ARP SEQ REC OCT) contradict the on-screen roles, so L is capped at 2-3: accept screen labels plus HELP, or a removable overlay strip; (56) scenes are volatile (lost at power-off) and there are two of them: persist them with the preset slots (about 15 KB more pool, an E7 decision) and/or more than two, and tap tempo is given up as a key; (57) the R1-R3 gestures and what P1-016 must fix (length range, per-step performance scored as step editing).
+55 to 59 in [OWNER_QUESTIONS.md](../project/OWNER_QUESTIONS.md) (53-54 belong to P1-015): (55) approve moving the dice to the top row in layer order and `ARP` = UNDO, `SEQ` = SET; (56) white keys always steps, with no live notes, accepting the stray-pin risk; (57) the printed panel words (FX SCL ENV LFO EDIT GLO ARP SEQ REC OCT) contradict the on-screen roles, so L is capped at 2-3: accept screen labels plus HELP, or a removable overlay strip; (58) scenes are volatile (lost at power-off) and there are two of them: persist them with the preset slots (about 15 KB more pool, an E7 decision) and/or more than two, and tap tempo is given up as a key; (59) the R1-R3 gestures and what P1-016 must fix (length range, per-step performance scored as step editing).

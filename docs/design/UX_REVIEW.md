@@ -179,23 +179,23 @@ preset P01; keyboard OCT 0. The preview synth plays the selected channel; MASTER
 | W | Workflow | Steps (controls pressed) | Function ids |
 | --- | --- | --- | --- |
 | W1 | Select channel 1 | 1. Turn SELECT until the header cell `1` is inverted, (black keys no longer select, P1-014). | F01, F21 |
-| W2 | Set its MIDI channel (TB-3 = 2) | 1. Hold EDIT (the CHAN layer opens after HOLD). 2. Turn K1 until `CH1 MID` reads `2`. 3. Let go of EDIT. The next note goes out on MIDI channel 2. | F02 |
+| W2 | Set its MIDI channel (TB-3 = 2) | (P1-014) 1. Tap SEQ (the SET page opens), tap OCT+ (row 2). 2. Turn K3 until `MIDI` reads `2`. 3. Tap HOME. The next note goes out on MIDI channel 2. | F02 |
 | W3 | Pick an algorithm | 1. Turn ALGORITHM: `ACID > EUCLID > SNAKE > STAGE`. The new algorithm plays from the next step with its own stored morphs and seeds (S7). | F03 |
 | W4 | Enter steps on the 16 white keys | (P1-014) 1. Turn K1 fully down (`KEYS ONLY`) if only typed steps should play. 2. Tap white key n: step n is pinned and sounds (no STEP mode). 3. Hold the key and turn K1 `NOTE`; OCT+ then K4 `OCT` for the octave; K2 `ACC`, K3 `SLIDE`, K4 `RATCH` per step. 4. Tap a pinned key to clear; hold UNDO + REC clears all. | F04, F05, F06, F42 |
 | W5 | Dial a sequence in with the knobs | 1. Press PLAY. 2. Turn K1 (density), K2 (form), K3 (pitch width), K4 (spice). For the second row, tap OCT+ (the band fills ROW 2) and turn the same four knobs: S1 start (`OFFSET`), S2 articulation, S3 dynamics, S4 read order; tap OCT- to go back (or hold OCT+ while turning for a momentary ROW 2). Each detent is heard from the next step and its cell shows the value. | F07, F25 |
 | W6 | Morph live | Same controls as W5 while playing. Every morph is monotonic and reversible: turning back restores the exact pattern. | F08 |
 | W7 | Dice each layer | (P1-014) Top row, left to right: FX = all, SCL = NOTES, ENV = HITS, LFO = ACCNT, EDIT = ARTIC, GLO = SHAPE, all on press. ARP tap = undo / redo. | F09-F15 |
-| W8 | Tune the algorithm | The algorithm's own parameters are the four morphs (W5). The global feel it reads: 1. Tap GLO. 2. Turn K1 GATE, K2 DIV, K3 SWING. 3. Tap GLO (or HOME) to go back. | F16 |
-| W9 | Set the global scale and key (S5) | 1. Hold SCL. 2. Press any key (white or black) for KEY, **or** turn K1 (KEY); turn K2 (SCALE); turn K3 (OCTAVE). 3. Let go of SCL. Every channel re-snaps from the next step; the header shows `KEY SCALE` on every screen. | F18, F19, F27 |
-| W10 | Mute / switch channels | Mute: press F#3 / G#3 / A#3 / C#4 for CH1-4 (toggle); C#5 unmutes all. Switch: SELECT or D#4 / F#4 / G#4 / A#4. Restart all from step 1: D#5. | F20, F21, F28 |
+| W8 | Tune the algorithm | The algorithm's own parameters are the four morphs (W5). The global feel it reads: (P1-014) 1. Tap SEQ (SET page, row 1). 2. Turn K1 GATE, K2 DIV, K3 SWING, K4 BPM. 3. Tap HOME (or SEQ) to go back. | F16 |
+| W9 | Set the global scale and key (S5) | (P1-014) 1. Tap SEQ, tap OCT+ (SET row 2). 2. Press any key for the KEY; turn K1 (SCALE), K2 (OCTAVE). 3. Tap HOME. Every channel re-snaps from the next step; the header shows `KEY SCALE` on every screen. | F18, F19, F27 |
+| W10 | Mute / switch channels | (P1-014) Mute: tap F#3 / G#3 / A#3 / C#4 for CH1-4 (toggle). Switch: turn SELECT (black keys no longer select; there is no `ALL ON`). Restart all from step 1: tap F#5. | F20, F21, F28 |
 | W11 | Save / load | Save: tap SAVE (`SAVED P01`). Save to another slot: turn PRESETS to an empty slot (`P05 EMPTY`), tap SAVE. Load: turn PRESETS to a filled slot; it loads at the next loop start (immediately when stopped), the header shows `P03>` until then. Undo a load: hold SAVE 0.7 s (again: redo). | F22, F23, F24 |
-| W12 | Tempo | Tap GLO, turn K4 (BPM); or tap F#5 in time (TAP). | F17 |
+| W12 | Tempo | (P1-014) Tap SEQ, turn K4 (BPM); the TAP key is given up for PAGE. | F17 |
 | W13 | Transport | PLAY starts / stops every channel. | F25 |
-| W14 | Audition notes | Play the white keys in PERF (snapped to the global scale); to shift the keyboard octave hold SCL and press OCT- / OCT+ (`KB OCT n`). | F26 |
+| W14 | Audition notes | (P1-014) There are no live notes: a white key press pins and sounds step n (the generated note, or the root); change its pitch with hold + K1 `NOTE`. Reviewer flag: arbitrary pitches cannot be played to audition them (PERFORMANCE_DESIGN review log). | F26 |
 | W15 | Set-and-forget settings | Hold HOME 0.7 s; ALGORITHM = tab, PRESETS = row, K1-K4 = value; HOME tap closes. | F29 |
 
-The reference workflow (VISION) is therefore: SELECT to `1` -> hold EDIT, K1 to `2` -> ALGORITHM to `ACID` -> PLAY ->
-K1-K4 and the dice buttons. That is 4 gestures to sound on the TB-3, all on the main screen except the EDIT hold.
+The reference workflow (VISION) is therefore: SELECT to `1` -> tap SEQ, OCT+, K3 to `2`, HOME -> ALGORITHM to `ACID` -> PLAY ->
+K1-K4 and the dice buttons. That is 5 gestures to sound on the TB-3, all on the main screen except the SET page (tap SEQ, OCT+).
 
 ## 3. Ease score
 
@@ -357,7 +357,7 @@ Main label (always the shared name) / sub-label (the algorithm's own layer, max 
 | t1.md 6, 6.1 | `hit` range 0..16 (0 = keys only). Sub-labels `ROTATE` (HITS), `RATCH` (ARTIC); SHAPE absent. |
 | snake.md 6, 6.1 | Slots K1 `DENS` 0..16, K2 `LEN`, K3 `RANGE` default 12, K4 `PATH`. Sub-labels `GATES`, `VELO`, `DRIFT`; ARTIC absent. |
 | ml185.md 6, 6.1 | Slots K1 `DENS` 0..8, K2 `TOTAL`, K3 `RANGE`, K4 `RATCH`. Sub-labels `RESTS`, `VELO`, `RT+HLD`, `LONG`. |
-| all four 6.5 | Step entry gesture is now specified: REC tap, white key = step, hold + K3 = pitch by scale degree, hold + OCT = octave (this document W4). Pins are snapped at output (S4). |
+| all four 6.5 | Step entry gesture is now specified (P1-014): white key = step (no REC tap), hold + K1 = pitch by scale degree, OCT+ then K4 = octave (this document W4). Pins are snapped at output (S4). |
 
 ## 6. Global scale and key (S5)
 
