@@ -3,7 +3,7 @@ id: P0-003
 title: Add tools/check.sh: one command for build + tests + backlog
 phase: P0
 type: task
-status: review
+status: done
 priority: 1
 executor: haiku
 depends_on: [P0-002]
@@ -49,3 +49,20 @@ Commands and decisive output:
 - Local git config not touched.
 
 All three acceptance criteria verified and ticked.
+
+### 2026-11-09 review (sonnet)
+
+Verdict: PASS (gate none). Full suite not rerun, per LESSONS.md; executor's CHECK PASS and breakage log accepted.
+
+Checks run by reviewer:
+- `tools/check.sh` exists, mode `-rwxr-xr-x`, SPDX header present, `sh -n` clean.
+- Stages in order: build, ram (headroom >= 4096), tests, backlog. Each failure path calls `fail <stage>`, which prints `CHECK FAIL: <stage>` and exits 1. Pass path prints `CHECK PASS` and exits 0.
+- RAM parse against the existing log `build/check/build.log:27` (`RAM .data+.bss 55744 B of 73728`) gives used=55744, total=73728, PASS. Simulated used=70000 under `sh` gives `CHECK FAIL: ram`. Note the script must run under `sh`, not zsh: zsh does not word-split `$line`.
+- `build/check/tests.log` ends with ALL HOST TESTS PASSED; `build/check/backlog.log` says `29 items, 0 errors`; `python3 tools/backlog.py check` exits 0.
+- CLAUDE.md Commands line (`sh tools/check.sh ...`) matches the script's behaviour. Accurate.
+- PROCESS.md:54 reads `tools/check.sh` prints `CHECK PASS` (orchestrator edit, expected).
+- Scope: commit 190b428 touched only CLAUDE.md, tools/check.sh and the task file. No firmware or test changes.
+
+Non-blocking nit (not a fail): tools/check.sh regex uses `[0-9]*`, which can match empty digits. Harmless, because the build line always has digits. Optional fix: `[0-9][0-9]*`.
+
+Note: `backlog/BACKLOG.md` was stale in the committed tree (P1 rows still showed haiku). Regenerating the index picks up the sonnet executors from the committed task files, plus this task's status change.
