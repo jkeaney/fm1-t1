@@ -6,13 +6,14 @@ type: task
 status: todo
 priority: 1
 executor: sonnet
-depends_on: [P1-001, P1-010]
+depends_on: [P1-001, P1-010, P1-012]
 gate: human-review
 ---
 ## Goal
 Assign every button, knob, encoder and key to the vision: channel select, algorithm select, step entry, morph, dice, transport, mute. Every musical function one gesture away, with on-screen labels.
 
 ## Read first
+- docs/design/UX_REVIEW.md and docs/design/control_map.tsv (P1-012: the owner-directed hardware/UX rethink; build on it, do not redo it)
 - docs/project/OWNER_QUESTIONS.md (owner decisions: scale, GATE/DIV/SWING are global; ACID has slide)
 - docs/design/CONTROL_INVENTORY.md
 - docs/design/ALGORITHM_SET.md

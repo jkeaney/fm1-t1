@@ -51,3 +51,6 @@ Findings for the owner (judgement, not defects):
 - Some K2/K4 fits are stretches (ACID TYPE as FORM, SNAKE PATH as SPICE).
 - Snap change, SNAKE RANGE 24->12, pentatonic default scale are recommendations only.
 Awaiting owner: approve N1, SHAPE naming, snap rule, default scale, and the 4-algorithm set.
+
+### 2026-11-10 orchestrator
+Owner response: NOT approved as-is (approve with changes). A whole rethink of hardware buttons and knobs comes first: task P1-012 (Opus) amends ALGORITHM_SET.md. P1-010 is re-approved together with P1-012. Do not write an Approved line yet.

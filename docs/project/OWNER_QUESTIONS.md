@@ -43,3 +43,17 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 3 | Scale is ONE control, used by every algorithm; global by default (not per-channel). |
 | 4 | GATE, DIV, SWING (and scale) are GLOBAL performance settings on the panel, not per channel. A channel still has only its MIDI channel and algorithm. |
 | 5 | Branch t1-hardware-bringup pushed to origin (jkeaney/fm1-t1). |
+
+## Decisions (owner, 2026-11-10)
+| # | Decision |
+| --- | --- |
+| P1-010 | Algorithm set NOT approved as-is: approve with changes. A whole rethink of the hardware buttons and knobs is needed first (task P1-012, Opus), and P1-010 is re-approved together with it. |
+| S1 | Slide on the ARTIC button, decided inside the UX review (P1-012), not separately. |
+| S2 | SHAPE button naming/scope: decided inside P1-012. |
+| S3 | Knob fit (ACID TYPE on K2, SNAKE PATH on K4): decided inside P1-012. Every knob must align to the hardware. |
+| S4 | Scale snap rule: decided inside P1-012 (UX review). |
+| S5 | Each algorithm adheres to ONE global scale and key that can be set on the device (a panel control, not a menu dive). Goes in the UX review. |
+| S6 | Defaults (minor pentatonic, SNAKE RANGE 12): confirm during the UX review. |
+| S7 | Per-algorithm morph values and seeds are KEPT when a channel switches algorithm (switching back restores). |
+| P | Push approved and done. |
+| F | Flash approved (P0-005), run with the owner. |
