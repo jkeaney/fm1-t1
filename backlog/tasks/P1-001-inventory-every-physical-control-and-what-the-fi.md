@@ -5,7 +5,7 @@ phase: P1
 type: task
 status: todo
 priority: 1
-executor: haiku
+executor: sonnet
 depends_on: [P0-001]
 gate: none
 ---

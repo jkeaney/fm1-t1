@@ -45,8 +45,8 @@ its log ("Approved: <name> <date>"). The reviewer subagent can't pass a human ga
 No development task is ready until the design it implements is **locked**: fully specified (no choices left),
 prototyped with golden outputs, validated by scripted scenarios, and signed off by the owner ("Design locked:" in
 the log). Dev tasks cite the spec, golden file or scenario step they implement. An open question in a dev task means
-stop and file a BUG/FB; never guess. Design tasks run on Haiku too, so the owner's `human-review` gate is the quality
-check and briefs must be explicit.
+stop and file a BUG/FB; never guess. Design tasks run on Sonnet and dev tasks on Haiku; the owner's `human-review` gate
+is the quality check on design.
 
 ## Definition of Done
 
@@ -102,9 +102,10 @@ the next task.
 
 ## Model routing
 
+Owner directive (2026-11-09): **planning and design run on Sonnet; development runs on Haiku.**
+
 | Work | Executor |
 | --- | --- |
-| Exact edits with named files, commands and expected output; inventories from named sources; test fixes | `haiku` |
-| Reading across many files, writing analysis, porting with judgement | `sonnet` |
-| Product and UX design, architecture, breaking down the next phase | `opus`, plus a `human-review` gate |
+| Planning, design, analysis, assessments, inventories, breakdown (P1, P2) | `sonnet`, plus a `human-review` gate where it locks a design |
+| Development against a locked design: exact edits, tests, tooling (P0, P3+) | `haiku` |
 | Flashing, listening, approving | `human` |

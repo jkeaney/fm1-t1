@@ -5,7 +5,7 @@ phase: P1
 type: spike
 status: todo
 priority: 2
-executor: haiku
+executor: sonnet
 depends_on: [P0-001]
 gate: none
 ---
