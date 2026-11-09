@@ -21,3 +21,4 @@ Orchestrator-maintained. Add a line whenever a cycle stalls, bounces or surprise
 - **Owner decisions 2026-11-09 recorded in docs/project/OWNER_QUESTIONS.md** (flash skipped, slide in v1, scale/GATE/DIV/SWING global). Design tasks must read it.
 - **Memory trigger (owner 2026-11-10):** if RAM/flash runs short, re-prioritise groovebox clean-up (E9). Reviewers: report RAM headroom from the build line on every dev task; under 8 KB headroom means file a BUG and tell the orchestrator.
 - **Owner decision 32b (2026-11-10):** groovebox is fully out of the v1 UI; boot straight into the sequencer and work immediately. Supersedes 'legacy menu mode'.
+- **Stray files from unquoted arrows:** agents running shell snippets with an unquoted arrow (e.g. usb->ota in a grep/echo) create junk files named after the right-hand side (firmware/src/ota, firmware/src/usb). Quote the pattern; orchestrator deletes strays after each task. Check git status for untracked files at every close.
