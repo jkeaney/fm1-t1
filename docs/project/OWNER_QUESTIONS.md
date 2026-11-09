@@ -11,7 +11,7 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 ## Decisions (owner, 2026-11-09)
 | # | Decision |
 | --- | --- |
-| 1 | P0-005 flash SKIPPED (task dropped). Hardware testing happens later, on the designed build. |
+| 1 | P0-005 flash: owner will flash in the morning (2026-11-10). Task restored to todo, human-run. |
 | 2 | ACID gets slide as a sixth dice layer in v1 (task P1-011). |
 | 3 | Scale is ONE control, used by every algorithm; global by default (not per-channel). |
 | 4 | GATE, DIV, SWING (and scale) are GLOBAL performance settings on the panel, not per channel. A channel still has only its MIDI channel and algorithm. |
