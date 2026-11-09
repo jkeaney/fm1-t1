@@ -88,3 +88,19 @@ assumed (question 31). (3) Felucca groovebox kept only as MENU > SYSTEM > MODE G
 removed (TCH1-4, SELECT, BPM LOCK, T1 SEQ -> MODE) will change tests/ui_test.c row counts in the dev task.
 Owner-approval criterion left unticked: no 'Approved:' line written (human-review gate).
 
+
+### 2026-11-10 review (sonnet)
+Verdict: **PASS on content; gate human-review, so left at `review`. Awaiting owner: approve P1-012 (also re-approves P1-010) and answer the decisions below.** No Approved line written.
+
+Checked independently:
+- TSV script: 343 rows, 49 controls x 7 contexts, all 14 buttons, K1-K4 (as EN_K1..4), 3 encoders, MASTER, 27 keys present; no duplicate (control, context); no empty fields; no TBD/choose/decide (one stale "decide" in ALGORITHM_SET Q22 fixed). Labels over 6 chars exist only for non-knob, non-dice cells (HOME, PLAY/STOP, `+sub` markers); knob and sub-labels are all <= 6.
+- Physical names match panel.c B_NAME/E_NAME and CONTROL_INVENTORY.md (ALGORITHM was the track selector; now algorithm).
+- Score arithmetic: all 60 V/I/O totals re-added correctly; sums 84 and 251 correct as submitted; pass rule applied mechanically correctly.
+- Workflow W1-W15 and the VISION TB-3 workflow are executable with the stated controls.
+Fixes made by reviewer:
+- Score inflation: F20 (mute) and F26 (audition) had visual 3, yet the black/white-key roles are only labelled on the KEYS legend (the same reason F28 was given 2). Both now 2/3/3 = 8 (still pass); proposed total 251 -> 249/270; TSV score column updated; R9 text said the channel strip shows each channel's key, which section 1.4 does not say, changed to "KEYS legend".
+- ALGORITHM_SET toast text aligned to UX_REVIEW (`NO SHAPE IN EUCLID`); Q22 "decide" reworded.
+Residual concerns for the owner (not blockers):
+- Dice on printed FX/ENV/LFO/ARP/SEQ/SCL: mnemonics are decent for SCL=NOTES, SEQ=HITS, ENV=ACCNT, weaker for ARP=ARTIC and LFO=SHAPE; learnable only because the 2x6 on-screen button picture labels each. Visual 3 on that band is plausible (240/6 = 40 px cells) but unproven until a mock-up (P2-003). SCL and EDIT taps act on release and must be under 0.4 s or they open a layer instead.
+- Lost in SEQ mode (kept only in MENU > SYSTEM > MODE GROOVE, Q32): Felucca ARP, SEQ tools (EUCLID/RANDOM/COOK), SCL CHORD/VOICING, GLO SONG and SOLO, FX performance effects, ENV/LFO sound editing, LFO-held MOMENTARY (Q36). Consistent with VISION rule 2 but UX_REVIEW does not list them all; Q32 should state this.
+- Q31-Q36 are well formed; none is blocking for the doc itself.

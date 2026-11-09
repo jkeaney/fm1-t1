@@ -254,20 +254,20 @@ Current = CONTROL_INVENTORY.md, T1 mode. V/I/O = visual / input / output.
 | F17 | Tempo | S | SELECT turn (BPM) | 2/3/3 = 8 | GLO tap + K4, or F#5 TAP | 3/2/3 = 8 | 0 | yes |
 | F18 | Set global key | S | per track HARMONY K2 ROOT, not global | 1/1/2 = 4 | hold SCL + any key or K1 | 3/1/3 = 7 | +3 | yes |
 | F19 | Set global scale | S | per track HARMONY shift K2 SCALE | 1/1/2 = 4 | hold SCL + K2 | 3/1/3 = 7 | +3 | yes |
-| F20 | Mute channel | P | black keys 1-6, unlabelled | 1/3/2 = 6 | black F#3..C#4; C#5 all on | 3/3/3 = 9 | +3 | yes |
+| F20 | Mute channel | P | black keys 1-6, unlabelled | 1/3/2 = 6 | black F#3..C#4; C#5 all on | 2/3/3 = 8 | +2 | yes |
 | F21 | Switch channel | P | white keys 1-6, unlabelled | 1/3/2 = 6 | SELECT or black D#4..A#4 | 3/3/3 = 9 | +3 | yes |
 | F22 | Save | S | T-1 flash save not wired | 0/0/0 = 0 | SAVE tap | 3/3/3 = 9 | +9 | yes |
 | F23 | Load | S | not wired | 0/0/0 = 0 | PRESETS turn (queued to loop start) | 3/3/1 = 7 | +7 | yes |
 | F24 | Undo a load | S | not wired | 0/0/0 = 0 | hold SAVE 0.7 s | 3/2/3 = 8 | +8 | yes |
 | F25 | Start / stop | P | PLAY | 3/3/3 = 9 | PLAY | 3/3/3 = 9 | 0 | yes |
-| F26 | Audition notes on keys | S | keys silent in T1 mode (song.grid 2) | 0/0/0 = 0 | white keys in PERF, OCT-/OCT+ | 3/3/3 = 9 | +9 | yes |
+| F26 | Audition notes on keys | S | keys silent in T1 mode (song.grid 2) | 0/0/0 = 0 | white keys in PERF, OCT-/OCT+ | 2/3/3 = 8 | +8 | yes |
 | F27 | Global output octave | S | per track HARMONY K1 PITCH | 1/1/2 = 4 | hold SCL + K3 | 3/1/3 = 7 | +3 | yes |
 | F28 | Restart all from step 1 | P | GLO + PLAY in Felucca only; none in T1 mode | 0/0/0 = 0 | black D#5 | 2/3/3 = 8 | +8 | yes |
 | F29 | Set-and-forget settings | S | hold HOME 0.7 s | 3/2/3 = 8 | hold HOME 0.7 s | 3/2/3 = 8 | 0 | yes |
 
-Totals: current 84 / 270, proposed 251 / 270. Current: 26 of 30 functions fail. Proposed: 30 of 30 pass.
-Performance functions proposed: F01 F03 F08-F15 F20 F21 F25 = 9 each; F28 = 8 (V2: its label is on the KEYS legend,
-not on the main screen); none has a sub-score below 2.
+Totals: current 84 / 270, proposed 249 / 270. Current: 26 of 30 functions fail. Proposed: 30 of 30 pass.
+Performance functions proposed: F01 F03 F08-F15 F21 F25 = 9 each; F20 and F28 = 8 (V2: the black-key labels are on the
+KEYS legend, not on the main screen; reviewer correction, they had been scored V3); none has a sub-score below 2.
 
 ## 4. Redesign iterations
 

@@ -120,7 +120,7 @@ second binding row (for example `ARTIC` long press = SLIDE only), which costs no
 
 | Case | Behaviour (normative) |
 | --- | --- |
-| Algorithm lacks layer L (EUCLID `SHAPE`; SNAKE `ARTIC`) | The button label is drawn dimmed with a dash after it (`SHAPE -`). Pressing it changes nothing: no seed changes, no undo entry, no sound change. A 0.5 s toast reads `NO SHAPE HERE`. LED unchanged. Dice-all and undo skip it. |
+| Algorithm lacks layer L (EUCLID `SHAPE`; SNAKE `ARTIC`) | The button label is drawn dimmed with a dash after it (`SHAPE -`). Pressing it changes nothing: no seed changes, no undo entry, no sound change. A 0.5 s toast reads `NO SHAPE IN EUCLID`. LED unchanged. Dice-all and undo skip it. |
 | Sub-label (P1-012, S2) | Under every dice button's shared name the screen draws the algorithm's own layer name, max 6 characters: ACID `NOTES HITS ACCNT GT+SLD OCTAVE`; EUCLID `NOTES ROTATE ACCNT RATCH -`; SNAKE `NOTES GATES VELO - DRIFT`; STAGE `NOTES RESTS VELO RT+HLD LONG`. A sub-label equal to the main label is drawn once. |
 | Why not hide or remap it | Rule 1: a control keeps its position and meaning; a missing layer is honest and learnable. Never remap a button to a different layer per algorithm. |
 | Switching algorithm while a layer is dimmed | The label un-dims when the new algorithm has the layer. The layer table is the only thing read (`layer_present[algo][layer]`). |
@@ -257,7 +257,7 @@ table already answers it. "Hardware" means it cannot be answered without the dev
 | 19 | NUDGE in the global vocabulary | No for v1. | v1 already needs 7 dice inputs (5 layers + all + undo); adding NUDGE adds modifier gestures. Revisit after hardware. | Recommend LATER |
 | 20 | Drum voice a v1 goal? Lift groove-template order? | No drum-voice goal; RHYTHM stays LATER. Groove-template order stays a LATER `order_source` flag on SP2. | v1 is judged by the TB-3 line (VISION). A new order source changes golden files. | Recommend no |
 | 21 | Rework Euclidean into v1? Groove-template as second density source? | Yes to EUCLID in v1 (algorithm 2 of the order). No to the second density source in v1. | Only placement-by-spacing algorithm; code exists and runs. | Recommend yes / no |
-| 22 | Contour walk as a NOTES option for SNAKE/STAGE? | Yes, post-v1, as primitive SP10 mode `WALK`; not in v1. | No free morph slot on SNAKE/STAGE (K2, K3 taken by the convention); decide after the hardware answer to question 5. | Recommend LATER |
+| 22 | Contour walk as a NOTES option for SNAKE/STAGE? | Yes, post-v1, as primitive SP10 mode `WALK`; not in v1. | No free morph slot on SNAKE/STAGE (K2, K3 taken by the convention); revisit after the hardware answer to question 5. | Recommend LATER |
 | 23 | Note lanes advance per note or per step | **Per step (`t`)**, shared primitive SP12. | Consistent across all four algorithms, simpler, keeps golden files. Per-note clock waits for MELODY. | Recommend per step |
 | 24 | Typed step consumes a contour note? | No (pins never move generator state, SP8). In v1 the only contour user is EUCLID, where pins do not consume a hit ordinal. | Typed notes are additions; the tune stays in order. | Recommend no |
 | 25 | SNAKE + LEAP instead of MELODY? | No for v1. | Conditional on question 22 being yes now; recommendation for 22 is LATER. | Recommend no |
