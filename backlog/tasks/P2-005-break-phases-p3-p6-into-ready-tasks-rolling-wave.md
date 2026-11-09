@@ -6,7 +6,7 @@ type: task
 status: todo
 priority: 1
 executor: sonnet
-depends_on: [P2-001, P2-002, P2-003, P2-004, P2-006, P2-007, P2-008]
+depends_on: [P2-001, P2-002, P2-003, P2-004, P2-006, P2-007, P2-008, P2-009]
 gate: human-review
 ---
 ## Goal
@@ -30,6 +30,9 @@ Turn epics E3–E6 into Haiku-executable tasks, using the approved maps, spec an
 - [ ] Every dev task cites, in Read first, a locked spec section plus a golden file or scenario step, and its criteria reproduce those artefacts (ADR-0004)
 - [ ] No dev task contains 'TBD', 'choose' or 'decide'; any gap found is filed as a BUG/FB against the design, not guessed
 - [ ] The owner approved it (log line)
+- [ ] The first dev task in the removal chain links the real T-1/sequencer sources into the host tests (owner decision 42), before any removal
+- [ ] Hardware-test gated tasks exist, with a TB-3 checklist (docs/project/HARDWARE_TEST.md) covering steps, notes, slides, accents, morph and dice, for the owner's TB-3 session (owner decision P0-005 note)
+- [ ] Every dev task's review step reports RAM headroom from the build line (memory trigger, E9)
 
 ## Verification
 ```sh

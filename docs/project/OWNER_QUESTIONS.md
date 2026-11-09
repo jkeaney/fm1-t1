@@ -97,3 +97,16 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | # | Decision |
 | --- | --- |
 | 32 (superseded) | The groovebox is NOT kept as a legacy menu mode: it is completely out of the UI in v1 (device boots straight to the sequencer, no MODE row). Groovebox-only subsystems are REMOVE in v1; v2 (E9) is the clean-up of what v1 could not safely remove. docs/design/SYSTEM_MAP.md follows this; CONTROL_MAP / UX_REVIEW still mention `MODE SEQ/GROOVE` and need a one-line update. |
+
+## Decisions (owner, 2026-11-10, fifth round)
+| # | Decision |
+| --- | --- |
+| P2-002 | SYSTEM_MAP approved. |
+| 37 | Remove the web editor in v1 (update path stays). |
+| 38 | Keep the CDC console and USB audio in v1. |
+| 39 | Drop CHORD ENTRY and chord.c (CONTROL-tab 4 rows); CONTROL_MAP/UX_REVIEW/TSV edited by task P2-009. |
+| 40 | ANALOG preset 0 is the fixed boot preview patch; TUNE stays in the AUDIO tab. |
+| 41 | Keep MIDI learn. |
+| 42 | Add a prerequisite dev task: host tests link the real T-1/sequencer sources (P2-005 must create it first in the removal chain). |
+| P0-005 | Listen test deferred. The owner will connect the TB-3 once the work here is done to test the sequencer interface: control of steps, notes, slides, accents etc. P2-005 must plan hardware-test gated tasks with a TB-3 checklist covering exactly those (steps, notes, slides, accents, morph, dice). |
+| Push | Approved. |

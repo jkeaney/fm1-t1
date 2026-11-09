@@ -3,7 +3,7 @@ id: P2-002
 title: Decide keep / adapt / remove for every subsystem (system map)
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P1-002, P2-001]
@@ -25,7 +25,7 @@ Define the 'clean house' target: only UI, system, algorithms and setup that driv
 - [x] Every SYSTEM_INVENTORY row has a decision
 - [x] The platform-core list is all KEEP; the update loader and installer path are KEEP (ADAPT only strips groovebox code; loader/ota/installer untouched)
 - [x] The removal order never removes something that a KEEP item still depends on (16 edges verified, section 5)
-- [ ] The owner approved it (log line)
+- [x] The owner approved it (log line)
 - [x] SYSTEM_MAP has a 'v2' column (redefined by the coordinator update: v2 = clean-up of what v1 could not safely remove): each subsystem is KEEP, ADAPT, REMOVE (in v1) or v2-REMOVE (kept in v1 as the legacy groovebox mode per owner decision 32, removed in v2 epic E9)
 
 ## Verification
@@ -48,3 +48,6 @@ grep -cE 'KEEP|ADAPT|REMOVE' docs/design/SYSTEM_MAP.md
 - Not run: build, full tests, flashing (design-only). Sizes are cited from the inventory, not re-measured.
 - Owner questions 37-42 added to docs/project/OWNER_QUESTIONS.md: editor removal, console/USB audio, CHORD ENTRY row, preview patch/TUNE, MIDI learn, host tests linking the T-1.
 - Owner approval: NOT given. Awaiting human-review.
+
+### 2026-11-10 owner
+Approved: James Keaney 2026-11-10 (answers to questions 37-42 recorded in docs/project/OWNER_QUESTIONS.md).
