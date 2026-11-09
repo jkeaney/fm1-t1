@@ -26,6 +26,7 @@ Define the 'clean house' target: only UI, system, algorithms and setup that driv
 - [ ] The platform-core list is all KEEP; the update loader and installer path are KEEP
 - [ ] The removal order never removes something that a KEEP item still depends on
 - [ ] The owner approved it (log line)
+- [ ] SYSTEM_MAP has a 'v2' column: each subsystem is KEEP, ADAPT, REMOVE (in v1) or v2-REMOVE (kept in v1 as the legacy groovebox mode per owner decision 32, removed in v2 epic E9)
 
 ## Verification
 ```sh

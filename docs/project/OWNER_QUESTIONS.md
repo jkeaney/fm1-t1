@@ -63,3 +63,16 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | S7 | Per-algorithm morph values and seeds are KEPT when a channel switches algorithm (switching back restores). |
 | P | Push approved and done. |
 | F | Flash approved (P0-005), run with the owner. |
+
+## Decisions (owner, 2026-11-10, second round)
+| # | Decision |
+| --- | --- |
+| P1-010 / P1-012 | APPROVED together (4 algorithms ACID/EUCLID/SNAKE/STAGE; new control scheme, 249/270). |
+| 31 | 4 channels for v1. |
+| 32 | Keep Felucca groovebox as a legacy menu mode in v1; PLAN a v2 cleaned-up firmware (epic E9) that removes it and other unused subsystems. |
+| 33 | Screen labels only for the dice buttons; no stickers. |
+| 34 | Preset load queued to next loop start; SAVE hold 0.7 s undoes. |
+| 35 | K1 at 0 = KEYS ONLY (no fifth algorithm). |
+| 36 | Momentary-morph gesture: revisit after the first hardware test. |
+| P0-005 | Listen test on the TB-3 deferred (device is flashed with FM-1_900); task stays open. |
+| Push | Approved. |

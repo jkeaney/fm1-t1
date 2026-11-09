@@ -3,7 +3,7 @@ id: P1-010
 title: Choose the v1 algorithm set and the shared layer/morph model
 phase: P1
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P1-011, P1-003, P1-004, P1-005, P1-006, P1-007, P1-008, P1-009]
@@ -23,7 +23,7 @@ One coherent algorithm menu for channels: which algorithms ship in v1, the layer
 ## Acceptance criteria
 - [x] Every INCLUDE recommendation from the assessments is either in the v1 list or explicitly deferred with a reason
 - [x] The layer vocabulary has at most 5 layers, and every v1 algorithm maps onto it
-- [ ] The owner approved it (log line 'Approved: <name> <date>')
+- [x] The owner approved it (log line 'Approved: <name> <date>')
 
 ## Verification
 ```sh
@@ -54,3 +54,6 @@ Awaiting owner: approve N1, SHAPE naming, snap rule, default scale, and the 4-al
 
 ### 2026-11-10 orchestrator
 Owner response: NOT approved as-is (approve with changes). A whole rethink of hardware buttons and knobs comes first: task P1-012 (Opus) amends ALGORITHM_SET.md. P1-010 is re-approved together with P1-012. Do not write an Approved line yet.
+
+### 2026-11-10 owner
+Approved: James Keaney 2026-11-10 (P1-010 and P1-012 approved together; answers to the open points recorded in docs/project/OWNER_QUESTIONS.md).

@@ -21,6 +21,7 @@ P0 Foundation ─▶ P1 Mapping & assessment ─▶ P2 Design (gated) ─▶ P3 
 | **P6 Performance UX** | Morph knobs, per-layer dice buttons, mute/switch, always-on labels, LEDs | The whole reference workflow runs without opening the menu | epic E6 |
 | **P7 Storage** | Save and load sequences to a safe flash region | Power-cycle keeps sequences; the flash map is reviewed | epic E7 |
 | **P8 Release** | Hardening, a user guide drawn from the screen spec, a release package | Release checklist passes | epic E8 |
+| **P9 v2 clean-up** | Sequencer-only firmware: remove the legacy groovebox and every subsystem marked 'v2 REMOVE' in the system map | Owner approves the removal list; check.sh green; flash and RAM freed reported | epic E9 |
 
 ## Already done (before this process existed)
 

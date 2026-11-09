@@ -3,7 +3,7 @@ id: P1-012
 title: UX unification: hardware controls x algorithms x workflow, with an ease score
 phase: P1
 type: spike
-status: review
+status: done
 priority: 0
 executor: opus
 depends_on: [P1-001, P1-011]
@@ -43,7 +43,7 @@ A whole rethink of how the hardware buttons, knobs, encoders and keys drive the 
 - [x] S1-S4 and S6 each have a stated resolution with score evidence
 - [x] docs/design/control_map.tsv exists and agrees with UX_REVIEW.md
 - [x] No 'TBD', 'choose' or 'decide' wording in the deliverables
-- [ ] The owner approved it (log line 'Approved: <name> <date>'), which also covers re-approving P1-010
+- [x] The owner approved it (log line 'Approved: <name> <date>'), which also covers re-approving P1-010
 
 ## Verification
 ```sh
@@ -104,3 +104,6 @@ Residual concerns for the owner (not blockers):
 - Dice on printed FX/ENV/LFO/ARP/SEQ/SCL: mnemonics are decent for SCL=NOTES, SEQ=HITS, ENV=ACCNT, weaker for ARP=ARTIC and LFO=SHAPE; learnable only because the 2x6 on-screen button picture labels each. Visual 3 on that band is plausible (240/6 = 40 px cells) but unproven until a mock-up (P2-003). SCL and EDIT taps act on release and must be under 0.4 s or they open a layer instead.
 - Lost in SEQ mode (kept only in MENU > SYSTEM > MODE GROOVE, Q32): Felucca ARP, SEQ tools (EUCLID/RANDOM/COOK), SCL CHORD/VOICING, GLO SONG and SOLO, FX performance effects, ENV/LFO sound editing, LFO-held MOMENTARY (Q36). Consistent with VISION rule 2 but UX_REVIEW does not list them all; Q32 should state this.
 - Q31-Q36 are well formed; none is blocking for the doc itself.
+
+### 2026-11-10 owner
+Approved: James Keaney 2026-11-10 (P1-010 and P1-012 approved together; answers to the open points recorded in docs/project/OWNER_QUESTIONS.md).
