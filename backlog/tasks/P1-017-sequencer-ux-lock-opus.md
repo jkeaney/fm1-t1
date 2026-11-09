@@ -3,7 +3,7 @@ id: P1-017
 title: Sequencer functionality and UX lock: step-centric editing, 64-step pages, force-sensing keys, page/state/mode framework
 phase: P1
 type: spike
-status: review
+status: done
 priority: 0
 executor: opus
 depends_on: [P1-014, P1-015]
@@ -443,3 +443,5 @@ Owner rulings applied: Q65-70 accepted; Q71 keep bar-aligned load; Q72 accept re
 - Wording: 'generator block' replaces 'generator positions' in ADR-0003:25, question 66 and SEQUENCER_UX.
 Verification: check_sequencer_ux.py OK (69 scored, 3 exceptions); check_control_map.py OK (441 rows); backlog.py check 0 errors;
 the TBD/choose/decide grep is clean. Final "Approved:" line left to the owner; CLAUDE.md untouched.
+
+- Approved: owner 2026-11-10 (rulings 65-73 given; restated L rule, MIDI 1-4 defaults with first-run prompt)
