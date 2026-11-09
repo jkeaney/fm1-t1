@@ -319,7 +319,7 @@ Counts: 19 issues: 3 fixed (F1, F4, F18), 2 partial (F2, F13), 14 open. The 14 o
 - **Euclid, rotation, swing, division maths, pace warp, velocity slope:** verified correct (12 Euclid patterns match an independent reference up to rotation).
 - **LFSR looping:** full period (65,535) and exact repeat over `loop_period` passes (verified for rates 0 and 3).
 - **[TEMP] revert/commit:** behave as designed; memory layout is statically asserted.
-- **Unit tests:** four of five suites pass; Phase 3 passes apart from the timing test (F18).
+- **Unit tests:** all suites pass on the host, including the Phase 3 timing test (F18 FIXED; wall-clock benchmarks are enforced only with `T1_BENCH=1`).
 
 ## Appendix: quirks seen in the third-party devices studied (not project issues)
 

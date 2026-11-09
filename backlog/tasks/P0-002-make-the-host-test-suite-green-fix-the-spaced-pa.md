@@ -3,7 +3,7 @@ id: P0-002
 title: Make the host test suite green: fix the spaced-path web test and gate wall-clock benchmarks
 phase: P0
 type: task
-status: todo
+status: review
 priority: 0
 executor: haiku
 depends_on: [P0-001]
@@ -95,3 +95,12 @@ Checklist for the next executor:
 - [ ] No other change is needed. Re-verify with `grep -n "F18" docs/T1_ISSUES.md` and `sh tests/run_tests.sh` if time allows.
 
 Criteria and verification otherwise confirmed by the reviewer. Gate: none.
+
+### 2026-11-09 executor (haiku-5.5) — review fix
+
+Reviewer finding: docs/T1_ISSUES.md line 322 said "four of five suites pass; Phase 3 passes apart from the timing test (F18)", which contradicts F18 FIXED. Changed that single sentence to:
+"all suites pass on the host, including the Phase 3 timing test (F18 FIXED; wall-clock benchmarks are enforced only with `T1_BENCH=1`)."
+
+Verification (per task owner instruction, no full test rerun):
+$ grep -n "Unit tests:" docs/T1_ISSUES.md
+322:- **Unit tests:** all suites pass on the host, including the Phase 3 timing test (F18 FIXED; wall-clock benchmarks are enforced only with `T1_BENCH=1`).
