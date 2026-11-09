@@ -3,7 +3,7 @@ id: P0-004
 title: Hardware test routine: MIDI listener tool and test checklist
 phase: P0
 type: task
-status: review
+status: done
 priority: 1
 executor: haiku
 depends_on: [P0-001]
@@ -62,3 +62,11 @@ Not run: no firmware change, no host suite, no hardware. The smoke checklist ite
 Not verified: the SUMMARY line on a live FM-1 (no device connected here). Reviewer: the listener's SUMMARY is only written on normal exit; Ctrl-C prints the console summary only.
 Acceptance criteria 1-3 ticked on the evidence above.
 Final commit subject: `P0-004: Hardware test routine: MIDI listener tool and test checklist`
+
+### 2026-11-09 review (sonnet)
+Verdict: PASS, gate none. Set to done.
+- Re-ran: `--help` exit 0 and lists --port/--seconds/--out (and --list); no-device run exits 2 with the 'no FM-1 MIDI port found' message, no traceback; `backlog.py check` clean. No firmware change, host suite not run.
+- Finding fixed by reviewer: the SUMMARY line was not written to the log on Ctrl-C (the KeyboardInterrupt handler sat outside the log write). tools/fm1_midi_listen.py now catches Ctrl-C inside the loop, writes `# stopped early (Ctrl-C)` and the SUMMARY to the log, then exits 0. Tested with a real SIGINT (Python subprocess, `--port IAC`, `--seconds 60`): exit 0, log holds header, stop marker and SUMMARY. Commit: `P0-004: fix SUMMARY on Ctrl-C` (hash in git log).
+- Docstring fix: the "ambiguous" exit-2 case was documented but not implemented (first match is used); now reads "or the port cannot be opened".
+- HARDWARE_TEST.md checked against CLAUDE.md: USB-C MIDI host/device, 3.5 mm jack MIDI IN only, TB-3 on channel 2, bridge `tools/fm1_bridge.py` with `--clock`, port hints (JIANT FM / FM-1 / Felucca, Update excluded), `fm1_install.py --info --port "JIANT"`. Accurate. Checklist items are `- [ ]`; Filing feedback names backlog/_templates/feedback.md.
+- Not verified: live SUMMARY counts from a real FM-1 (no device here). Those are the owner's hardware-session checks, not a gate on this tool task.
