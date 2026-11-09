@@ -3,7 +3,7 @@ id: P1-015
 title: Identify the open-source keybed-expression (MPE-like) reference and what the FM-1 keybed can sense
 phase: P1
 type: spike
-status: todo
+status: review
 priority: 0
 executor: sonnet
 depends_on: [P0-001]
@@ -21,10 +21,10 @@ Owner requirement R4: perform a key and get expression (ratchet, slide, mute ...
 - docs/design/KEYBED_EXPRESSION_REFERENCE.md: (1) which project(s) do this, with URLs, licence (GPL compatible?), commit/file references, and a verdict on how sure you are; if no project does, say so plainly and list the closest; (2) how it works: what the hardware senses (velocity by two-contact timing? pressure? per-key analog? a held-time gesture?), the scan method, resolution and latency, and the exact MIDI it emits (per-note channel/MPE zone, pitch bend, pressure, CC74); (3) what the FM-1 keybed can and cannot sense, evidence for each claim tagged [V] verified in source, [I] inferred, or unconfirmed; (4) candidate performative gestures this enables for a sequencer step/key (ratchet, slide, mute, accent, probability, pitch bend), each with the input needed, feasibility (certain/likely/unlikely) and cost in CPU/RAM if known; (5) a recommendation for which gestures the design should rely on and a fallback if the hardware can only do velocity/hold-time; (6) owner questions.
 
 ## Acceptance criteria
-- [ ] Every claim about hardware capability cites a source file/URL and is tagged [V]/[I]/unconfirmed
-- [ ] The answer to 'which project unlocked MPE-like expression from the keybed' is stated, or 'not found' with the list of repos/pages checked
-- [ ] At least 4 candidate gestures are assessed for feasibility
-- [ ] Nothing was cloned into or executed from the repo directory; no code run from downloaded sources
+- [x] Every claim about hardware capability cites a source file/URL and is tagged [V]/[I]/unconfirmed
+- [x] The answer to 'which project unlocked MPE-like expression from the keybed' is stated, or 'not found' with the list of repos/pages checked
+- [x] At least 4 candidate gestures are assessed for feasibility
+- [x] Nothing was cloned into or executed from the repo directory; no code run from downloaded sources
 
 ## Verification
 ```sh
@@ -35,3 +35,9 @@ test -f docs/design/KEYBED_EXPRESSION_REFERENCE.md && grep -c '\[V\]\|\[I\]' doc
 - Writing firmware; flashing.
 
 ## Log
+
+### 2026-11-10 executor (sonnet)
+- Searched web (synthtopia, matrixsynth, zeli.app, awesome-fm-1 list); cloned read-only into /tmp/p1015_*: fm1_open, FM-1-RE, fm1-fomni, awesome-fm-1, fm1-velocity, fm1-monk, scintilla-fm1, mvave-fm1-mpe. Nothing run, nothing cloned in the repo.
+- Found: Velo (charlesvestal/fm1-velocity) reads velocity + poly aftertouch via ADC; no true MPE exists. Details in docs/design/KEYBED_EXPRESSION_REFERENCE.md.
+- Verification: `test -f docs/design/KEYBED_EXPRESSION_REFERENCE.md && grep -c '\[V\]\|\[I\]' ...` printed 16.
+- Limits: Elektronauts thread and FM1 Open app sources not read in depth; Scintilla sensing code not read.

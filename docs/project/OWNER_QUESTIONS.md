@@ -153,3 +153,9 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | R2 | Viewing a channel, the 16 white keys align to its steps. The pattern is PAGINATED by its step length (page 1 = steps 1-16, page 2 = 17-32 ...), with a way to swap pages; the screen always shows the page and the playhead. |
 | R3 | Selecting a step has performative functionality: per-step ratchet, slide, mute, accent, probability etc. |
 | R4 | Use the keybed for expression: reference the open-source project that unlocked MPE-like capability from the FM-1 keybed, so playing a key gives performative options (ratchet, slide, mute ...). The project has not been identified yet (a first web search did not find it): task P1-015 identifies it and the keybed hardware capability; owner to confirm which project. |
+
+## P1-015 findings (2026-11-10): keybed expression (R4)
+| # | Question |
+| --- | --- |
+| 53 | The project that reads force from the FM-1 keybed is Velo (charlesvestal/fm1-velocity, GPL-3.0; also used by MONK-1 and Scintilla). It gives velocity and polyphonic aftertouch via the ADC, not MPE; Felucca MPE is MPE input only. Is Velo the project you meant? |
+| 54 | Force sensing covers F3-C5 only (20 keys), is uneven across a chord, and its author parked it. Recommendation: v1 uses tap-count and hold gestures (certain, all 27 keys); force is a later optional port. Agree? See docs/design/KEYBED_EXPRESSION_REFERENCE.md. |
