@@ -76,3 +76,8 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 36 | Momentary-morph gesture: revisit after the first hardware test. |
 | P0-005 | Listen test on the TB-3 deferred (device is flashed with FM-1_900); task stays open. |
 | Push | Approved. |
+
+## Decision (owner, 2026-11-10, third round)
+| # | Decision |
+| --- | --- |
+| Mem | If we run out of RAM or flash, re-prioritise the groovebox clean-up (epic E9) ahead of the remaining feature work. Trigger: `tools/check.sh` fails its ram stage, or headroom falls under 8 KB (the hard floor is 4 KB), or flash/pool no longer fits. The orchestrator then files a high-severity BUG, raises E9 to priority 0, and plans the removal before continuing. |

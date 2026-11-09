@@ -18,6 +18,9 @@ After v1 ships (the sequencer is the default, the Felucca groovebox kept as a le
 - After removal: re-run tools/check.sh after every removal step, report flash and RAM freed, update ui_test.c row counts, update CLAUDE.md architecture, re-baseline golden files.
 - Re-open the free-slot decisions: 6 channels (owner question 31), the momentary-morph gesture (36), unused menu rows.
 
+## Re-prioritisation trigger (owner, 2026-11-10)
+If the build runs out of RAM or flash (check.sh ram stage fails, RAM headroom under 8 KB against the 4 KB hard floor, or the pool/flash no longer fits), pull this epic forward: set priority 0, break it down with a planning task, and do the removals before more feature work. Check headroom in the build line on every dev task review.
+
 ## Breakdown
 Broken into tasks by a planning task at the end of P8 (rolling wave). Until then, this is a placeholder.
 
