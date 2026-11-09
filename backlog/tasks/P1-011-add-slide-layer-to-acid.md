@@ -3,7 +3,7 @@ id: P1-011
 title: Add a slide dice layer to the ACID design
 phase: P1
 type: task
-status: todo
+status: review
 priority: 1
 executor: sonnet
 depends_on: [P1-003]
@@ -23,10 +23,10 @@ Owner decision: ACID gets slide (TB-3 portamento) as a sixth dice layer in v1, w
 - Section 2/6/7 updated; scale wording changed to use the single global scale (no ACID-private scale snap controls)
 
 ## Acceptance criteria
-- [ ] Section 6 lists 6 dice layers including SLIDE; still at most 4 knob morphs; labels at most 6 chars
-- [ ] The slide MIDI emission rule is fully specified, with a worked 8-step example showing note-on/off order
-- [ ] No TBD/choose/decide wording; any ⚠ reliance listed in section 7
-- [ ] Scale and GATE/DIV/SWING are described as global settings
+- [x] Section 6 lists 6 dice layers including SLIDE; still at most 4 knob morphs; labels at most 6 chars
+- [x] The slide MIDI emission rule is fully specified, with a worked 8-step example showing note-on/off order
+- [x] No TBD/choose/decide wording; any ⚠ reliance listed in section 7
+- [x] Scale and GATE/DIV/SWING are described as global settings
 
 ## Verification
 ```sh
@@ -38,3 +38,10 @@ grep -n 'SLIDE' docs/design/algorithms/sting.md
 - Other algorithms; code.
 
 ## Log
+
+### 2026-11-09 executor (sonnet)
+Design only. Verification: section-heading loop printed nothing; `grep -n SLIDE docs/design/algorithms/sting.md` shows 14 hits (layer table, params row `s_slide`, salt, 6.3 procedure, 6.3a emission, section 7 row 9). `grep -nE 'TBD|choos|decid'` on sting.md prints nothing wrong (no TBD/choose/decide left).
+Changes: sting.md sections 1,2,3,4,5,6 (6.1 params, 6.2 salt, 6.3 SLIDE layer, new 6.3a MIDI emission with worked 8-step example, 6.4 RAM 220 -> 254 B, 6.6), 7 (new row 9), 8. Default-seed formula now `ch*6+k`. Scale/GATE/DIV/SWING reworded as global (owner decisions 3, 4).
+Design: SLIDE has own seed/salt, fixed probability table `ps`, undo (previous seed), no knob; slide = overlapping note-on before previous note-off by D = max(L/8, 1 block); same-note overlap becomes a tie; no CC; one-step-ahead commit of the next step.
+Note: the source (sting) has no slide output (only "Slide" modulation dials), so 6.3a is entirely [D]; TB-3 glide on overlap is an unverified assumption (section 7 row 9).
+Owner questions added to docs/project/OWNER_QUESTIONS.md as #7 (no slide-off control), #8 (confirm overlap glides on TB-3, CC65 fallback), #9 (one-step dice latency).

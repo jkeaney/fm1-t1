@@ -10,6 +10,9 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 4 | P1-004 snake | The global scale control: what is its default value, and is "off" (chromatic) a setting? SNAKE's random pitches sound arbitrary on chromatic; recommend a minor-pentatonic default or a non-chromatic first scale. | P2-001 |
 | 5 | P1-004 snake | Is a uniformly random pitch lane acceptable as a bass? Fallbacks: lower default RANGE (12) or scale-weighted pitches. | P1-010 |
 | 6 | P1-004 snake | Should the dropped Custom modulation lanes return post-v1 as a CC lane? | P1-010 |
+| 7 | P1-011 slide | SLIDE has no amount control (fixed ~16% of steps, only dice changes it) because the 4 knobs are taken. Acceptable, or give it a shifted-knob/button gesture to turn slide off? Recommend acceptable for v1; dice until none. | P1-010 |
+| 8 | P1-011 slide | Slide is sent as overlapping notes (no CC). Confirm on the TB-3 that this glides (hardware test); if not, we try CC65. | first hardware test |
+| 9 | P1-011 slide | A dice or knob change now takes effect one step later (next-step commit, up to ~125 ms at 120 BPM). Acceptable? | P1-010 |
 
 ## Decisions (owner, 2026-11-09)
 | # | Decision |
