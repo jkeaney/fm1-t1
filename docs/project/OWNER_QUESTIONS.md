@@ -16,6 +16,10 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 10 | P1-005 ml185 | STAGE loops can be 8..64 pulses but the 16 white keys reach only pulses 0..15. Acceptable (long loops come from the generator), or should step entry get a page/shift to reach pulses 16..63? | P1-010 / P2-003 |
 | 11 | P1-005 ml185 | STAGE long holds (mode I-) ignore the global GATE so a long note stays long when GATE is shortened. Acceptable? (A table edit if not.) | P1-010 |
 | 12 | P1-005 ml185 | Are STAGE's defaults (TOTAL 16, DENS 6, RATCH 2, RANGE 12, base C2) good on a TB-3, and is a rhythm-first 8-pitch riff generator (no accent or slide lane) enough? | first hardware test |
+| 13 | P1-006 steparp | ARP is recommended LATER (its rhythm half duplicates SNAKE/STAGE; only CHORD, ORDER, OCT are new). If v1 needs a harmonic algorithm, promote it as a fourth algorithm on the shared rank-order/ratchet primitives, or offer CHORD/ORDER as a pitch option for other algorithms instead? | P1-010 |
+| 14 | P1-006 steparp | Is a 2..4-note chord pool enough for a TB-3 bass, or does it want a root-on-downbeat bias? | first hardware test (only if promoted) |
+| 15 | P1-006 steparp | Chord snap on sparse scales turns major into minor in minor pentatonic. Acceptable? (Relates to #2 and #4.) | P2-001 |
+| 16 | P1-006 steparp | Chord-tone snap direction: at or below (as inferred in the source) or nearest? | P2-001 |
 
 ## Decisions (owner, 2026-11-09)
 | # | Decision |

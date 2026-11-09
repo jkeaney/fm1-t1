@@ -3,7 +3,7 @@ id: P1-006
 title: Assess the steparp algorithm family against the vision
 phase: P1
 type: spike
-status: review
+status: done
 priority: 2
 executor: sonnet
 depends_on: [P0-001]
@@ -54,3 +54,6 @@ Owner questions:
 2. Is a 2..4-note chord pool enough for a TB-3 bass, or does it want a root-on-downbeat bias?
 3. Chord snap on sparse scales turns major into minor in minor pentatonic. Acceptable? (Depends on global scale snap rule, existing questions 2 and 4.)
 4. Chord snap direction (at or below, as inferred in the source) vs nearest: preference?
+
+### 2026-11-09 review (sonnet)
+Verdict: PASS (gate none). Re-ran both Verification commands (no missing headers; single verdict LATER in section 8, mention in preview only). Checked: 8 sections, section 5 has 5 rows scored 0-3 with reasons, 4 morphs (OCT, DENS, RATCH, CHANCE; all labels <= 6 chars), 5 dice layers, section 7 lists every claim tagged unconfirmed with a [D] treatment, no TBD/choose/decide, spec complete enough to promote despite LATER. Re-derived the worked example with a throwaway Python model (xorshift, shuffle, snap, pool, ratchet): channels 0 and 4 match exactly (note lists, firing masks, ratcheted steps and hit counts); channel 4 playback and the 4-loop drift also check out. Overlap claims verified against snake.md (GATES, VEL) and ml185.md (RESTS, VEL, RATCH): correct. LATER rationale is consistent with VISION (TB-3 bass workflow; chord pool repetitive as bass; v1 already has ACID, SNAKE, STAGE). Musical sense OK (chord tones snapped into the scale, sparse-scale caveat disclosed). Owner questions 13-16 appended to OWNER_QUESTIONS.md (executor's four, numbered and deduped against 2 and 4). Minor nit, left: dice layer RATCH and knob RATCH share a label, harmless since they are different control roles.
