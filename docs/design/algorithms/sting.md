@@ -72,7 +72,7 @@ GATE setting scales it), swing and direction (shared channel concerns), jitter (
 | --- | --- | --- |
 | Quick to a usable sequence (rule 5) | 3 | Selecting ACID plays a full, defaulted, TB-3-sensible 16-step line immediately: defaults TYPE 6, DENS 12, JUMP 5, ACCNT 3 and fixed per-channel starting seeds; zero required settings besides the channel's MIDI channel. |
 | Performable with 4 knobs + dice buttons, no menus (rules 1, 4) | 3 | Four knobs map one-to-one to four morphs that are each audible, monotonic and reversible; five orthogonal dice layers plus dice-all map directly to buttons; nothing needs a menu. |
-| Monophonic bassline/lead use (the TB-3 workflow) | 3 | Native fit: one note per step, 16 steps, accent and gate-length lanes mirror the TB-3's own accent/gate model; the whole range is C1 to about C6. Slide is not generated (a possible post-v1 extra). |
+| Monophonic bassline/lead use (the TB-3 workflow) | 3 | Native fit: one note per step, 16 steps, accent and gate-length lanes mirror the TB-3's own accent/gate model; the range is MIDI 24 up to about 82 (base 36, octave -1..+2, root up to 11). Slide is not generated (a possible post-v1 extra). |
 | Distinct from the other families (adds something new) | 2 | Adds "urn" non-repeating motif pitch sets and the random-to-acid morph that no other family has; but a rest/hit mask and accents overlap with the Euclidean/steps families, and the algorithm is only a 16-step single loop. (Cross-family comparison is not assessed here; score is on the source spec alone.) |
 | Fits the FM-1 budget (RAM < 2 KB per channel, ISR cost small) | 3 | About 190 bytes per channel (section 6), generation is a few hundred integer ops on the main loop, and the ISR only reads a precomputed 16-step cache. |
 
@@ -124,13 +124,13 @@ This table is the single source for the on-screen labels, ranges and defaults. A
 | `p_*` (x5) | previous seed for undo-dice | n/a | 0..65535 | equal to the seed (nothing to undo) | u16 each |
 | `pin_mask`, `pin_pitch[16]` | step-entry overrides (6.5) | n/a | mask 0..65535; pitch 0..11 | 0, 0 | u16 + 16 x u8 |
 
-`ch` is the 0-based channel index. Seeds are never 0 after mixing (see 6.2). When the user dices a layer the new seed
+`ch` is the 0-based channel index. A seed of 0 is legal; the mixed state `x` is forced non-zero (see 6.2). When the user dices a layer the new seed
 is the low 16 bits of the audio sample counter at the press (the only non-deterministic moment; it is stored, so
 playback afterwards is fully deterministic).
 
 ### 6.2 Random primitives (normative, needed for golden files)
 
-- State: 32-bit `x`. `init(seed16, salt)`: `x = ((seed16 << 16) | seed16) ^ salt; if x == 0: x = 1; draw 4 values and discard.`
+- State: unsigned 32-bit `x` (all shifts logical, arithmetic wraps mod 2^32; all `/` and `%` below are unsigned integer, truncating). `init(seed16, salt)`: `x = ((seed16 << 16) | seed16) ^ salt; if x == 0: x = 1; draw 4 values and discard.`
 - Salts: NOTES `0x5A17C3E1`, HITS `0x2C9E6B07`, OCT `0x71D4A5F3`, GATE `0x3B8F1D29`, ACCNT `0x68E2B94D`.
 - `next()`: xorshift32: `x ^= x << 13; x ^= x >> 17; x ^= x << 5; return x`.
 - `rnd(n)` (n >= 1) = `(next() >> 8) % n`.
@@ -166,7 +166,7 @@ classes are intervals above Root **[D]**.
 **OCT layer** (stream: `init(s_oct, SALT_OCT)`), for `i = 0..15` in order, three draws each:
 1. `u1[i] = rnd(100)`; `u2[i] = rnd(100)`; `dir[i] = rnd(3) - 1`.
 **JUMP morph:** `base_p = [10,11,12,13,15,16,17,18,20,21,22,23,25,26,27,28]` (`10 + floor(20*i/16)`, from 04 §4.1 [V
-structure]). `p_eff = min(100, base_p[i] * jmp / 5)`; `n = (u1[i] < p_eff) + (u2[i] < p_eff)`;
+structure]). `p_eff = min(100, (base_p[i] * jmp) / 5)` (integer division); `n = (u1[i] < p_eff) + (u2[i] < p_eff)`;
 `octave[i] = max(-1, dir[i] * n)` **[D]** (clamped at -1: MIDI 24 is the lowest sensible bass note, source allows -2).
 
 **GATE layer** (stream: `init(s_gate, SALT_GATE)`)
@@ -261,6 +261,7 @@ Other open questions for the owner or other specs (not source ⚠):
   TYPE cap 12 and defaults (TYPE 6, DENS 12, JUMP 5, ACCNT 3) are starting values to tune on the device. Because they
   are table values (6.6) the retune is a table edit.
 - Slide (TB-3 portamento) is not generated; whether acid without slide is acceptable is an owner question.
+- **Dependence on shared channel settings.** Gate scaling, DIV (step length), SWING and SCL are referenced as "shared" but VISION rule 3 gives a channel only a MIDI channel, and no such spec exists yet. Until those specs lock, the reference implementation uses the defaults: gate_pct unscaled, step = one 1/16 note, no swing, Scale off (pitch = pitch_orig), root 0, transpose 0.
 - Owner re-lock needed (ADR-0004) after the reference implementation and golden files exist; none exist yet.
 
 ## 8. Recommendation
