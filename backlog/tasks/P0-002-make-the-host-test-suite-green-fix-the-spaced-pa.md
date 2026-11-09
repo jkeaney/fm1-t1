@@ -3,7 +3,7 @@ id: P0-002
 title: Make the host test suite green: fix the spaced-path web test and gate wall-clock benchmarks
 phase: P0
 type: task
-status: review
+status: done
 priority: 0
 executor: haiku
 depends_on: [P0-001]
@@ -104,3 +104,11 @@ Reviewer finding: docs/T1_ISSUES.md line 322 said "four of five suites pass; Pha
 Verification (per task owner instruction, no full test rerun):
 $ grep -n "Unit tests:" docs/T1_ISSUES.md
 322:- **Unit tests:** all suites pass on the host, including the Phase 3 timing test (F18 FIXED; wall-clock benchmarks are enforced only with `T1_BENCH=1`).
+
+### 2026-11-09 review (sonnet) — re-review
+
+Verdict: PASS (gate none, set done).
+
+- docs/T1_ISSUES.md:322 now reads "all suites pass on the host, including the Phase 3 timing test (F18 FIXED; wall-clock benchmarks are enforced only with `T1_BENCH=1`)." This matches F18 (heading "FIXED", row FIXED at line 40, Status fix at line 297 describing the T1_BENCH gate) and the Counts line (3 fixed incl. F18). The stale "four of five" phrase is gone; no other occurrence remains.
+- Commit 90f987f touched only the task file and docs/T1_ISSUES.md (one line). No firmware, test or web change since the full-suite pass already confirmed.
+- Acceptance criteria and Verification unchanged from the earlier review, which passed on a full run (ALL HOST TESTS PASSED, exit 0).
