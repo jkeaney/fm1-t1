@@ -120,3 +120,14 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | # | Decision |
 | --- | --- |
 | Shift | Every algorithm needs FULL control. A SHIFT for the knobs is approved: it doubles the usable knobs (K1-K4 plus a shift row of 4 = up to 8 morphs per algorithm), and the screen instructs the change live (both rows of labels always visible; the active row and the shift state are unmistakable). This supersedes the 4-morph cap and the 'no shift page' stance. Easy access is the requirement: the shift must score >= 8 on the ease rubric with no sub-score below 2. Task P1-013. |
+
+## Decisions (owner, 2026-11-10, seventh round): ADR-0003 questions
+| # | Decision |
+| --- | --- |
+| 43 | Swing doubled: odd steps start 2*(swing-50)% of a step late. |
+| 44 | GATE 50% is neutral (x1.0 of each algorithm's own gate); the screen labels it as a share of the algorithm's gate, not of a step (P2-003 must do this). |
+| 45 | Queued preset load takes effect on a fixed 768-tick bar. |
+| 46 | One undo record per channel; tap again = redo. |
+| 47 | Algorithm or MIDI-channel change does not cut sounding notes; only stop, panic and USB reconnect do. |
+| Push | Approved. |
+(ADR-0003 itself is approved together with P1-013.)
