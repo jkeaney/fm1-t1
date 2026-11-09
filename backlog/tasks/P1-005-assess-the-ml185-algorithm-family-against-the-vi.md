@@ -3,7 +3,7 @@ id: P1-005
 title: Assess the ml185 algorithm family against the vision
 phase: P1
 type: spike
-status: review
+status: done
 priority: 2
 executor: sonnet
 depends_on: [P0-001]
@@ -55,3 +55,12 @@ Owner questions (new, for OWNER_QUESTIONS.md):
 3. TOTAL has 57 values on a relative knob; confirm the control map gives a coarse step (4) or acceleration.
 4. Include STAGE in v1 as the third algorithm (recommended), or defer (LATER) to keep v1 to ACID + SNAKE + T-1 set?
 5. Hardware: are defaults (TOTAL 16, DENS 6, RATCH 2, RANGE 12) good on a TB-3? Mode I behaviour is inferred, not verified.
+
+### 2026-11-09 review (sonnet)
+Verdict: PASS (gate none).
+- Verification greps rerun: all 8 sections present, exactly one verdict (INCLUDE in v1).
+- Template: section 5 has 5 scored rows with reasons; 4 morphs, 5 dice layers, all labels <= 6 chars; section 7 lists every [I]/warning claim with a treatment.
+- Re-derived 6.2/6.3 in a throwaway script: TOTAL gives sum(L)=tot and L in 1..8 for every tot 8..64 (6 seeds), each +1 adds exactly one pulse to one stage (monotonic); the 03 3.3 worked example gives 1 1 1 1 0 1 1 1 1 1 1 1 1 1; the informative check (seeds, L, modes, divs, notes, velocities, 16-step line) matches exactly. RAM table sums to 193 B.
+- Key-entry limit (16 white keys vs TOTAL > 16): handled sensibly in 6.5 (pins keyed by pulse position, first bar only, survive TOTAL; silent beyond tot) and raised as an owner question. No TBD/choose/decide wording.
+- Fixed: the doc referenced "owner question 1 in the task log"; added the three real questions as OWNER_QUESTIONS #10-12 (pin reach, I- vs GATE, TB-3 defaults).
+- Minor, not blocking: the first-bar-only pins mean white keys cannot edit a 64-pulse loop; owner question 10 covers it.
