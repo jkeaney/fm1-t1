@@ -8,7 +8,7 @@ ROW 1 / ROW 2 assignment of [FULL_CONTROL.md](FULL_CONTROL.md) section 3 (re-loc
 
 > **Revision 1 (2026-11-10, after the independent Opus review; for owner review).** Six fixes, applied to this
 > document, the five TSVs, CONTROL_MAP, PERFORMANCE_DESIGN, ADR-0003, ALGORITHM_SET and the four algorithm docs:
-> (1) **page sources**: each page stores which page's generator positions it reads (2 bits per page, `pg_src`), a new
+> (1) **page sources**: each page stores which generator block it reads (2 bits per page, `pg_src`), a new
 > page inherits the source of the page before, so adding a page is an exact copy in every case (1.3, 1.4, 9.1, 9.2);
 > (2) **the L rule is restated openly** (8.1): a hold is L2 only when it is named permanently on the page where it
 > starts, so PERF now carries hold sub-labels (`h:RST`, `h:SCALE`, `h:HLP/MENU`, `h:UNDO L`) and the lane header names
@@ -19,12 +19,12 @@ ROW 1 / ROW 2 assignment of [FULL_CONTROL.md](FULL_CONTROL.md) section 3 (re-loc
 > home, hold + touch = HELP, release after 0.7 s with nothing touched = MENU; the first draft's HOME-tap HELP page and
 > its double-HOME dead end are gone; HELP fails the bar on input (I1) and is listed as exception E2 (owner decisions 57 / 61);
 > (6) the partial last page, the STAGE `TOTAL` cue, the DRIVE sensing mode and its cost, default MIDI channels
-> (CH1 = MIDI 2 for the TB-3), the NOTE EDIT undo rule and the U28 disclosure. RAM is re-added (6819 B, 9.4).
+> (owner ruling: CH1..CH4 = MIDI 1..4 plus a first-run MIDI CHANNEL prompt), the NOTE EDIT undo rule and the U28 disclosure. RAM is re-added (6819 B, 9.4).
 
 > **Revision 2 (2026-11-10, after the second review; for owner review).** Six fixes: (1) **source labels tell the
 > truth**: CHAN `K3 SOURCE` offers only the generator blocks that earlier pages actually play, each labelled by the
 > first page that plays it, plus `OWN`; a block no earlier page plays any more is shown by its positions (`17-32`);
-> the heard-span cue counts every unheard block, not only the highest (1.4, W3); (2) **a pending preset waits**: while
+> the heard-span cue counts every unheard shown step, not only the highest block (1.4, W3); (2) **a pending preset waits**: while
 > playing, it lands on the first bar that starts at least `SQ_LOAD_SETTLE` 1.5 s after the last detent, so a SAVE tap
 > always has at least 1.5 s (4.1, U57 / U68 / U69, W7, 11.1, 11.2); (3) the E1 text matches U57 (11); (4) the count
 > under the P1-014 letter is **43 of 69** (U18 step octave falls with the other step-hold rows; under the restated
@@ -173,7 +173,7 @@ generated(p) = step(cache, g(p))  // each algorithm reduces g by its own loop (A
 ```
 
 - **A new page inherits the source of the page before**: `src(k) = src(k-1)`. So the new page reads exactly the
-  generator positions the page before reads, and with the copied edits it is an exact duplicate, whatever that page's
+  generator block the page before reads, and with the copied edits it is an exact duplicate, whatever that page's
   source was. Page 2 added after page 1 reads page 1 (`src = 0`, shown `P1`): "page 2 starts as a duplicate".
 - **OWN** (`src(k) = k`) lets the algorithm continue past the page: STAGE with `TOTAL` 32 plays pulses 17-32 on an
   OWN page 2; a EUCLID `LEN` 12 or a SNAKE pitch lane of 7 keeps drifting across the page. Page 4 added after an OWN
@@ -199,12 +199,14 @@ generated(p) = step(cache, g(p))  // each algorithm reduces g by its own loop (A
   steps every pass (VISION rule 4). Consequence, stated plainly: SNAKE's long polymeter cycles (for example 112 steps)
   are cut to the channel length (at most 64); owner question 70.
 - **Heard span cue (STAGE `TOTAL`, EUCLID `LEN`, SNAKE lanes):** the algorithm's own loop of `T` positions covers the
-  blocks `0..ceil(T/16)-1` (at most 4). A block is **heard** when at least one shown page reads it; every other block
-  of the loop is **unheard**, whether it lies above or between the heard ones. *Heard* = the positions of the loop
-  that fall in heard blocks. When any block is unheard, the knob cell reads `TOTAL 48 (32 heard)` and the turn toasts
+  blocks `0..ceil(T/16)-1` (at most 4). A position `q` of the loop (`q < T`) is **heard** when some *shown* step
+  `p < LENGTH` has `g(p) = q`, so a partial last page counts only the steps it shows (`LENGTH 20` shows 4 steps of
+  page 2, not 16); every other position is **unheard**, whether it lies above or between the heard ones. *Heard* = the
+  number of heard positions (the count is per step, the toast span is the first run of unheard positions). When any block is unheard, the knob cell reads `TOTAL 48 (32 heard)` and the turn toasts
   the first unheard span, `17-32 NOT HEARD: D#4 K3 = OWN` (with two unheard blocks: `17-32 +1 NOT HEARD`). Examples:
   `TOTAL` 32 on one page -> `(16 heard)`, `17-32 NOT HEARD`; `TOTAL` 48 with pages 1-2 on block 0 and page 3 OWN
-  (block 2) -> `(32 heard)`, `17-32 NOT HEARD` (the gap, not the top, is reported). So the user is never left
+  (block 2) -> `(32 heard)`, `17-32 NOT HEARD` (the gap, not the top, is reported); `LENGTH 20` (page 2 OWN, 4 steps
+  shown) with `TOTAL` 32 -> `TOTAL 32 (20 heard)`, `21-32 NOT HEARD`. So the user is never left
   wondering why a turn changed little or where part of the loop went.
 
 ### 1.5 Playhead, view and FOLLOW
@@ -255,7 +257,7 @@ for the six dice buttons and the hold role, prefixed `h:`, for the buttons that 
 
 ```
 +----------------------------------------+
-|> 120 P01  CH1 ACID M2  [1][2]. .  L32  |  header: play state, BPM, preset, channel, algorithm, MIDI, page map, LENGTH
+|> 120 P01  CH1 ACID M1  [1][2]. .  L32  |  header: play state, BPM, preset, channel, algorithm, MIDI, page map, LENGTH
 | [1 ACID] 2 EUCL m  3 SNAK m  4 STAG m  |  channel band: selected inverted, m = muted, activity dot
 | PG 1/2  FOLLOW  hold=EDIT        >P2   |  lane header: viewed page / pages, FOLLOW, the white-key hold, playhead page
 | #  .  #' #  .  #! .  #~ #  .  #  .  #x2 . |  16 lane cells = white keys 1..16 (# on, . off, ' edited, ! ~ x2 glyphs)
@@ -274,7 +276,7 @@ for the six dice buttons and the hold role, prefixed `h:`, for the buttons that 
 
 ```
 +----------------------------------------+
-|> 120 P01  CH1 ACID M2  [1][2]. .  L32  |
+|> 120 P01  CH1 ACID M1  [1][2]. .  L32  |
 | NOTE EDIT  STEP 21  (page 2, key 5)    |  banner replaces the channel band
 | #  .  #' #  [#]' .  #! .  #~ #  .  #   |  lane: the edited step boxed
 | PITCH G2 *|GATE AUTO|VELO 120*|RATCH AUTO|  K1..K4: set values bright with *, AUTO dim (generated value under it)
@@ -290,10 +292,10 @@ for the six dice buttons and the hold role, prefixed `h:`, for the buttons that 
 
 ```
 +----------------------------------------+
-|> 120 P01  CH1 ACID M2  [1][2]. .  L32  |
-| CHANNEL 1   ACID   MIDI 2              |
+|> 120 P01  CH1 ACID M1  [1][2]. .  L32  |
+| CHANNEL 1   ACID   MIDI 1              |
 | pages: [1 OWN][2 P1][3 hidden][  ]      |  page map, large: viewed outlined, playing filled
-| LENGTH 32 |MIDI 2  |SOURCE P1 |FOLLOW ON |  K1..K4 (one row)
+| LENGTH 32 |MIDI 1  |SOURCE P1 |FOLLOW ON |  K1..K4 (one row)
 | -PAGE (OCT-)        +PAGE (OCT+)        |
 | ALL NOTES ACCNT SHAPE UNDO SET          |  buttons keep PERF roles
 | HOME SAVE ARTIC HITS PLAY REC           |
@@ -306,7 +308,7 @@ for the six dice buttons and the hold role, prefixed `h:`, for the buttons that 
 
 ```
 +----------------------------------------+   +----------------------------------------+
-|> 120 P01  CH1 ACID M2  [1][2]. .  L32  |   |> 120 P01  CH1 ACID M2  [1][2]. .  L32  |
+|> 120 P01  CH1 ACID M1  [1][2]. .  L32  |   |> 120 P01  CH1 ACID M1  [1][2]. .  L32  |
 | SET (all channels)                     |   | SCALE (all channels)  C MINPEN  OCT 0  |
 | lane as PERF (steps stay live)         |   | 27-key picture, scale tones lit, root  |
 | BPM 120 |SWING 50|GATE 50 |DIV 1/16    |   |   boxed                                |
@@ -321,7 +323,7 @@ for the six dice buttons and the hold role, prefixed `h:`, for the buttons that 
 
 ```
 +----------------------------------------+
-|> 120 P01  CH1 ACID M2  [1][2]. .  L32  |
+|> 120 P01  CH1 ACID M1  [1][2]. .  L32  |
 | REC  CH1  writing to page 2            |  red banner, REC LED lit
 | #  .  #  #  ^  .  #  .  ...            |  ^ = write cursor (stopped) or the playhead (playing)
 | CURSOR 5|ACC OFF |SLIDE OFF|OCT 0      |  one row; force on: last written velocity shown 'v 96'
@@ -418,7 +420,7 @@ ARP articulation = slide, LFO movement = chance, SCL notes = a new note, FX all 
 | --- | --- | --- | --- | --- | --- |
 | PERF | live row, column 1 | column 2 | column 3 | column 4 | ROW 1 / ROW 2 by OCT- / OCT+ (4.2) |
 | NOTE_EDIT | `PITCH` scale degree per detent, sounds | `GATE` 10..100 %, TIE | `VELO` 1..127 (`ACC` >= 100) | `RATCH` 1x..4x | one row; each starts at AUTO |
-| CHAN | `LENGTH` 1..64 | `MIDI` 1..16, OFF (defaults CH1..CH4 = 2..5) | `SOURCE` of the viewed page: the blocks earlier pages play, labelled `Pm` by the first page `m` that plays each, then `OWN` (1.4) | `FOLLOW` ON / OFF | one row |
+| CHAN | `LENGTH` 1..64 | `MIDI` 1..16, OFF (defaults CH1..CH4 = 1..4) | `SOURCE` of the viewed page: the blocks earlier pages play, labelled `Pm` by the first page `m` that plays each, then `OWN` (1.4) | `FOLLOW` ON / OFF | one row |
 | SET | `BPM` 40..240 | `SWING` 50..75 % | `GATE` 10..100 % (50 neutral) | `DIV` 1/32..1/4 | one row |
 | SCALE | `SCALE` 16 scales | `KEY` C..B | `OCTAVE` -2..+2 | `-` (inert by design) | one row |
 | REC | `CURSOR` | `ACC` OFF / ON | `SLIDE` OFF / ON | `OCT` -2..+2 | one row |
@@ -489,7 +491,7 @@ preview synth plays CH1 (ADR-0003). API names are ADR-0003 section 6 plus the ad
 
 | Id | Input | Processing | Output: MIDI and timing | Output: screen |
 | --- | --- | --- | --- | --- |
-| U01 | power on | `sq_boot()`: defaults (ADR-0003 12: CH1 ACID MIDI 2, CH2-CH4 MIDI 3-5 muted), LENGTH 16 x4, edits empty, every `pg_src` 0, FOLLOW on | nothing until PLAY | PERF, header `M2`, first-run strip `PRESS PLAY  CH1 = MIDI 2 (D#4)` |
+| U01 | power on | `sq_boot()`: defaults (ADR-0003 12: CH1 ACID MIDI 1, CH2-CH4 MIDI 2-4 muted), LENGTH 16 x4, edits empty, every `pg_src` 0, FOLLOW on | nothing until PLAY | PERF, header `M1`, first-run strip `D#4 K2: MIDI CHANNEL` |
 | U02 | SELECT turn | `sq_select(ch)` | none | channel cell inverted, lane / knobs / header show ch |
 | U03 | ALGORITHM turn | `sq_set_algo(ch,a)` keeps `st[]` and edits; rebuild | new AUTO steps from the next step; no note cut (decision 47) | header algorithm name, knob labels, dice sub-labels |
 | U04 | K1..K4 turn (ROW 1) | `sq_morph_turn(ch,knob,d)` via `knob_morph[]`, `sq_rebuild` | next step | cell value same frame; lane cells update |
@@ -519,12 +521,12 @@ preview synth plays CH1 (ADR-0003). API names are ADR-0003 section 6 plus the ad
 | U32 | EDIT hold, D#4 | `sq_page_copy(ch,page-1 -> page)` (page 1: clear) | next pass | page redrawn |
 | U33 | (look) | - | - | corner ticks and glyphs (1.2) |
 | U34 | PG- / PG+ tap | `view_page[ch]` +-1, FOLLOW off | none | lane shows the page, `PG 2/4`, toast `FOLLOW OFF` |
-| U35 | PG+ on the last page, PG+ | `sq_page_add(ch)`: partial last page -> LENGTH to its end; else LENGTH 64 -> nothing (toast `64 STEPS = MAX`, no prompt); else a hidden next page -> shown as stored; else copy the page before (16 edits + `src`), LENGTH = 16 x pages | none audible (a copy reads the same generator positions with the same edits) | the prompt of 1.3, ghost cell, then the page in view, `L48` |
+| U35 | PG+ on the last page, PG+ | `sq_page_add(ch)`: partial last page -> LENGTH to its end; else LENGTH 64 -> nothing (toast `64 STEPS = MAX`, no prompt); else a hidden next page -> shown as stored; else copy the page before (16 edits + `src`), LENGTH = 16 x pages | none audible (a copy reads the same generator block with the same edits) | the prompt of 1.3, ghost cell, then the page in view, `L48` |
 | U36 | D#4, K1 | `sq_set_length(ch,L)` | the loop ends at L from the next step | `LENGTH 24`, page map |
 | U37 | D#4, K3 | the UI steps through the offered list of 1.4 (distinct `src(j)`, `j < page`, labelled by the first page that plays each; then OWN; plus the current value while no earlier page plays it); `sq_set_source(ch,page,src)` writes the 2-bit `pg_src` field of the viewed page | from the next pass of that page | `SOURCE P1` / `SOURCE P2` / `SOURCE OWN` / dim `SOURCE 17-32`; heard-span cue on the algorithm's loop knob (1.4); ACID toast `ACID REPEATS EVERY 16` |
 | U38 | D#4, K4 | UI FOLLOW | none | `FOLLOW ON` |
 | U39 | (look) | - | - | header page map, `PG n/m`, `>P3`, `L32` |
-| U40 | D#4, K2 | `sq_set_midi(ch,m)` | notes after it go to the new channel; sounding notes end on the old one (decision 47) | `MIDI 2`, header `M2` |
+| U40 | D#4, K2 | `sq_set_midi(ch,m)` | notes after it go to the new channel; sounding notes end on the old one (decision 47) | `MIDI 2`, header `M2` (example: the TB-3) |
 | U41 | GLO, K1 | `song.g[G_BPM]` | `beat_samples()` changes at once | `BPM 128`, header |
 | U42-U44 | GLO, K2 / K3 / K4 | `sq_global_set()` (swing / gate / div) | next step | the cell |
 | U45 | GLO hold, K1 | SCALE, `sq_global_set()` | next step: every pitch re-snapped | `SCALE DORIAN`, scale tones lit |
@@ -548,7 +550,7 @@ preview synth plays CH1 (ADR-0003). API names are ADR-0003 section 6 plus the ad
 | U62 | HOME held; touch or turn a control | HELP while HOME is down; table lookup of the control's help line on the page beneath; the control does not act; release -> back | none (PLAY still plays) | strip `HOME: touch=HELP  let go=MENU` from 0.25 s, then the help box |
 | U63 | HOME hold 0.7 s, nothing touched | MENU on release | none | menu |
 | U64 | HOME tap | back to PERF (on PERF: cancel a prompt) | none | PERF; on PERF toast `HOME  hold: HELP / MENU` |
-| U65 | first power-on | strip steps 11.3; bit in `ui_prefs2` | - | strip text |
+| U65 | first power-on | strip steps 11.3 (step 1 `D#4 K2: MIDI CHANNEL` is a prompt for U40, not a new gesture); bit in `ui_prefs2` | - | strip text |
 | U66 | NOTE_EDIT K1 / REC keys | audition path | each detent / key sounds | value |
 | U67 | REC key with force | velocity = calibrated landing force | written note at that velocity | `v 96` |
 
@@ -650,15 +652,17 @@ Fail of G3 or G4: no force at all in v1. The owner signs the gate in the task lo
 
 ## 7. Workflows (gesture by gesture)
 
-Power-on state (ADR-0003 12): CH1 ACID **MIDI 2** unmuted; CH2 EUCLID MIDI 3, CH3 SNAKE MIDI 4, CH4 STAGE MIDI 5,
-all muted; ROW 1; LENGTH 16; FOLLOW on. The default MIDI channel of a channel is its number plus one, so CH1 reaches a
-TB-3 at its factory channel 2 with no setup. (The T-1's six tracks are gone: v1 has four channels, decision 31.)
+Power-on state (ADR-0003 12): CH1 ACID **MIDI 1** unmuted; CH2 EUCLID MIDI 2, CH3 SNAKE MIDI 3, CH4 STAGE MIDI 4,
+all muted; ROW 1; LENGTH 16; FOLLOW on. The default MIDI channel of a channel is its number (owner ruling 73), so the
+channels line up with the numbers on the screen; a TB-3 at its factory channel 2 needs one visible step, which the
+first run prompts for. (The T-1's six tracks are gone: v1 has four channels, decision 31.)
 Changing a channel's MIDI channel is 2 gestures from PERF: tap `D#4` (CHAN), turn `K2`.
 
-**W1. First run to a playing TB-3 bassline (1 gesture to sound; every function at most 2).**
-1. press `PLAY`: the ACID line plays on the TB-3 (header `M2`; first-run strip moves on to `TURN K1 TO MORPH IT`).
+**W1. First run to a playing TB-3 bassline (3 gestures to sound the first time: `D#4`, `K2`, `PLAY`; every function at most 2).**
+1. first-run strip `D#4 K2: MIDI CHANNEL`: tap `D#4` (CHAN), turn `K2` to 2 (the TB-3's factory channel; header `M2`), the strip moves on to `PRESS PLAY` as soon as K2 turns; tap `HOME` to return to PERF, where the strip shows it. (A synth already on channel 1 skips this: PLAY also advances the strip.)
+1b. press `PLAY`: the ACID line plays on the TB-3 (first-run strip moves on to `TURN K1 TO MORPH IT`).
 2. turn `K2` (SLIDE) and `K1` (DENS) to taste; press `SCL` until the notes please; `EDIT` takes a roll back.
-3. only if the synth listens on another channel: tap black `D#4` (CHAN), turn `K2` to its channel, tap `HOME`.
+3. a different synth channel later: tap black `D#4` (CHAN), turn `K2` to its channel, tap `HOME`.
 
 **W2. Dial in an algorithm (one gesture per function).** turn `ALGORITHM` to EUCLID -> `K1 HITS` 5 -> `K2 OFFSET`
 to rotate -> `SEQ` (dice HITS = new rotation) -> `ENV` (new accents) -> `OCT+` then `S1 LEN` 12 for a 12-step cycle
@@ -669,7 +673,7 @@ to rotate -> `SEQ` (dice HITS = new rotation) -> `ENV` (new accents) -> `OCT+` t
    identical.
 2. tap white keys 13 and 15 (steps 29, 31) ON; tap key 4 OFF: page 2 now differs.
 3. hold key 16 (step 32): NOTE_EDIT; `OCT+` (an octave up), `ENV` (accent), `K4` to 2x; `HOME`.
-4. `PG+`, `PG+`: page 3 = copy of page 2 (with its changes; it reads page 1's generator positions, like page 2);
+4. `PG+`, `PG+`: page 3 = copy of page 2 (with its changes; it reads page 1's generator block, like page 2);
    `D#4`, `K3` to `OWN` (K3 offers only `P1` and `OWN` here, because pages 1 and 2 both play block 0; the algorithm
    continues on page 3: on STAGE with `TOTAL` 48 it plays pulses 33-48, and the STAGE `TOTAL` cell now reads
    `TOTAL 48 (32 heard)` with toast `17-32 NOT HEARD`, because no page plays pulses 17-32; on ACID the toast says
@@ -800,7 +804,7 @@ asks for per-step performance. Without U28 the count is 65 of 68 passing.
 | U62 | Ask what a control does | S | 2 | 3/1/3/2 = 9 | EXC E2 | hold HOME, touch the control (owner decisions 57 / 61) |
 | U63 | Menu | S | 1 | 3/2/3/3 = 11 | pass | hold HOME 0.7 s touching nothing, release (printed) |
 | U64 | Escape to PERF | S | 1 | 3/3/3/3 = 12 | pass | HOME tap |
-| U65 | First-run guidance | S | 0 | 3/3/3/3 = 12 | pass | strip on first power-on |
+| U65 | First-run guidance (incl. step 1 MIDI CHANNEL prompt; adds no gesture, the gesture is U40) | S | 0 | 3/3/3/3 = 12 | pass | strip on first power-on; the prompt is visible text naming the exact controls (L3), the user need not know that CHAN exists (I stays 3 because the gesture is named) |
 | U66 | Hear a pitch before keeping it | S | 2 | 3/2/3/2 = 10 | pass | hold key, K1 (each detent sounds); or REC |
 | U67 | Velocity by force in REC | S | 2 | 3/2/3/2 = 10 | pass | REC, play harder |
 | U68 | Cue a preset while playing | S | 1 | 3/3/1/3 = 10 | EXC E1 | PRESETS turn (lands on the first 768-tick bar starting >= 1.5 s after the last detent) |
@@ -1029,7 +1033,7 @@ What the user hears, checked against ADR-0003 section 7 (192 PPQN; jitter at mos
 
 | # | Confusing state | Rescuing cue |
 | --- | --- | --- |
-| 1 | PLAY pressed, nothing heard (muted, MIDI OFF, K1 = 0, the synth on another channel) | CH1 defaults to MIDI 2 (the TB-3's factory channel), shown `M2` in the header; first-run step 1 says `PRESS PLAY  CH1 = MIDI 2 (D#4)`; channel cell `m` / `OFF`, K1 cell `KEYS ONLY`; strip `CH1 MUTED: F#3` or `MIDI OFF: D#4 K2`. The device cannot see the synth's channel, so the header always shows the MIDI channel it sends on |
+| 1 | PLAY pressed, nothing heard (muted, MIDI OFF, K1 = 0, the synth on another channel) | CH1 defaults to MIDI 1 (channels match their numbers), shown `M1` in the header; first-run step 1 says `D#4 K2: MIDI CHANNEL`; channel cell `m` / `OFF`, K1 cell `KEYS ONLY`; strip `CH1 MUTED: F#3` or `MIDI OFF: D#4 K2`. The device cannot see the synth's channel, so the header always shows the MIDI channel it sends on |
 | 2 | Held a step and the knobs changed meaning | NOTE_EDIT banner `STEP 21`, every cell relabelled, strip `STEP 21: KNOBS EDIT  HOME=done` |
 | 3 | Let go of the step key and the page stayed | the banner stays, HOME is labelled `HOME` (not HELP); strip says `HOME=done` |
 | 4 | Tapped a key and a step vanished | it was ON: the cell is hollow with a slash (forced OFF); tap again restores; EDIT takes it back |
@@ -1050,7 +1054,7 @@ What the user hears, checked against ADR-0003 section 7 (192 PPQN; jitter at mos
 | 19 | Pressed REC and keys play notes | REC banner and LED; strip `REC: PLAY KEYS TO WRITE  REC=done` |
 | 20 | In SCALE, pressing keys changes the key | banner `SCALE`, strip `SCALE: PRESS A KEY = KEY  HOME=back` |
 | 21 | A slide does nothing | the next step is silent (OFF or chance): the `~` glyph is drawn dim; HELP on ARP in NOTE EDIT says `glides into the next step if it plays` |
-| 23 | Turned STAGE `TOTAL` past 16 and little changed, or part of a long loop never plays | cell `TOTAL 32 (16 heard)` / `TOTAL 48 (32 heard)`, toast naming the first unheard span `17-32 NOT HEARD: D#4 K3 = OWN`; every unheard block is counted, also a gap between heard ones (1.4) |
+| 23 | Turned STAGE `TOTAL` past 16 and little changed, or part of a long loop never plays | cell `TOTAL 32 (16 heard)` / `TOTAL 48 (32 heard)`, toast naming the first unheard span `17-32 NOT HEARD: D#4 K3 = OWN`; every unheard shown position is counted, also a gap between heard ones and a partial last page (`LENGTH 20`, `TOTAL 32`: `21-32 NOT HEARD`) (1.4) |
 | 24 | Turned PRESETS and the header shows `P05?` | strip `P05: SAVE = save here` and the settle countdown (playing: then the bar countdown); let go = it loads (stopped after 1.5 s; playing on the first bar 1.5 s or more later); SAVE in that time = save here; turn back = cancel |
 | 25 | PG+ on LENGTH 20 did not add page 3 | strip `SHOW ALL OF PAGE 2 (L32)? PG+ = yes`: a partial page is completed first (1.3) |
 | 22 | The dice button does nothing (absent layer) | dim `SHAPE -`, toast `NO SHAPE IN EUCLID` (ALGORITHM_SET 4.4) |
@@ -1079,22 +1083,23 @@ What the user hears, checked against ADR-0003 section 7 (192 PPQN; jitter at mos
 
 | Step | Strip | Advances when |
 | --- | --- | --- |
-| 1 | `PRESS PLAY  CH1 = MIDI 2 (D#4)` | PLAY |
-| 2 | `TURN K1 TO MORPH IT` | any knob |
-| 3 | `PRESS FX: NEW PATTERN  EDIT=undo` | any dice button |
-| 4 | `TAP A WHITE KEY: STEP ON/OFF` | a white key tap |
-| 5 | `HOLD A WHITE KEY: EDIT THAT NOTE` | NOTE_EDIT opens (then `HOME=done` when it closes) |
-| 6 | `PG+ TWICE: ADD PAGE 2 (A COPY)` | a page added, or any other control 3 times |
+| 1 | `D#4 K2: MIDI CHANNEL` | K2 turned on the CHAN page (the MIDI channel changed), or PLAY (the synth already listens on 1) |
+| 2 | `PRESS PLAY` | PLAY |
+| 3 | `TURN K1 TO MORPH IT` | any knob |
+| 4 | `PRESS FX: NEW PATTERN  EDIT=undo` | any dice button |
+| 5 | `TAP A WHITE KEY: STEP ON/OFF` | a white key tap |
+| 6 | `HOLD A WHITE KEY: EDIT THAT NOTE` | NOTE_EDIT opens (then `HOME=done` when it closes) |
+| 7 | `PG+ TWICE: ADD PAGE 2 (A COPY)` | a page added, or any other control 3 times |
 
 ### 11.4 The first minute (walkthrough, no manual)
 
-0 s power-on: PERF, strip `PRESS PLAY  CH1 = MIDI 2 (D#4)`. 2 s PLAY: an acid line plays on CH1 and the TB-3. 6 s K1 turned: denser; strip moves on.
+0 s power-on: PERF, strip `D#4 K2: MIDI CHANNEL`. 4 s D#4, K2 to 2 (the TB-3's channel), HOME. 6 s PLAY: an acid line plays on CH1 and the TB-3. 10 s K1 turned: denser; strip moves on.
 12 s FX: a new pattern; EDIT once: the old one is back. 20 s taps key 3: a step appears (the cell fills; while
 stopped it would sound at once). 26 s holds key 5: the screen says `NOTE EDIT STEP 5`, the knobs say PITCH GATE VELO
 RATCH; turns K1: each detent sounds; presses ARP: `SLIDE ON`, hears the glide on the next pass; HOME: back.
 40 s PG+ twice: page 2, a copy, nothing changes in the sound; taps two keys: the second bar answers the first.
 55 s holds HOME and touches SEQ: the strip explains HITS; lets go: back on PERF. At no point was a manual or a menu
-needed, and the TB-3 played from the first PLAY because CH1 sends on MIDI 2.
+needed, and the TB-3 played from the first PLAY because the first-run strip led the MIDI channel step in two gestures.
 
 ## 12. Flex points (ADR-0004)
 
@@ -1128,7 +1133,7 @@ When the owner approves this document, the following are locked for the dev task
 2. Pages: up to 4 x 16 per channel, LENGTH 1..64 per channel, a new page is an exact copy of the page before (edits
    and source), the three PG+ prompts (copy, show hidden, complete a partial page) and `64 STEPS = MAX`, page sources
    (K3 offers only the blocks earlier pages play, labelled by the first page that plays each, plus `OWN`) and
-   `g(p) = 16 x src(k) + p % 16`, the heard-span cue counting every unheard block, the loop reset (1.3, 1.4); FOLLOW (1.5); extend / shrink / hide /
+   `g(p) = 16 x src(k) + p % 16`, the heard-span cue counting every unheard shown position, the loop reset (1.3, 1.4); FOLLOW (1.5); extend / shrink / hide /
    commit (1.6).
 3. Nine pages and three overlays with their entry, exit, screen content and cue (section 2, page_states.tsv); HOME
    as the one escape (tap = home; on PERF it only cancels a prompt); HOME hold + touch = HELP, release after 0.7 s
@@ -1139,7 +1144,7 @@ When the owner approves this document, the following are locked for the dev task
 5. NOTE_EDIT: K1 PITCH, K2 GATE, K3 VELO, K4 RATCH, OCT- / OCT+ octave, FX dice step, SCL dice pitch, SEQ on/off,
    ENV accent, ARP slide, LFO chance 100/50, EDIT tap undo of the last step change (the visit, or a later tap on
    another key: the last change wins), hold another key = move.
-6. CHAN (D#4): LENGTH, MIDI (defaults CH1..CH4 = 2..5), SOURCE, FOLLOW, OCT = to the page boundary below / above.
+6. CHAN (D#4): LENGTH, MIDI (defaults CH1..CH4 = 1..4; first-run step 1 prompts for it), SOURCE, FOLLOW, OCT = to the page boundary below / above.
    Presets: PRESETS turn = pending slot `Pnn?` (stopped: loads after 1.5 s; playing: on the first bar starting at
    least 1.5 s after the last detent); SAVE tap while
    pending = save there; SAVE hold = undo the last load (state and slot). SET (GLO tap): BPM, SWING, GATE, DIV. SCALE (GLO
@@ -1159,7 +1164,7 @@ When the owner approves this document, the following are locked for the dev task
 65. NOTE EDIT chance has two levels (100 / 50 %) on LFO so it stays one press. Accept, or move PROB to a knob with
     four levels (it would push RATCH onto ARP / LFO presses, and a 4-step press cycle fails the 2-gesture rule)?
 66. A new page is an exact copy of **the page before it** (A, A', A''): its edits and its source (the page whose
-    generator positions it reads; `OWN` lets the algorithm continue). Confirm.
+    generator block it reads; `OWN` lets the algorithm continue). Confirm.
 67. A step's SLIDE means "this note glides into the next step" (TB-303 rule; after the last step, into step 1 across
     the loop end; no glide if that step is silent). Confirm on the TB-3 (with question 8).
 68. Force sensing ships behind the HT-FORCE gate with `FORCE OFF` until it passes, in Velo's DRIVE mode (+~2.2 ms on
@@ -1178,6 +1183,5 @@ When the owner approves this document, the following are locked for the dev task
     page where it starts (the new `h:` sub-labels on PERF) and opens a labelled page; otherwise L1 as in P1-014.
     Accept? Under the P1-014 letter 23 setup functions fall to 9 and 43 of 69 pass (8.5); under the restated rule 66
     of 69 pass with three listed exceptions.
-73. Default MIDI channels: CH1..CH4 send on MIDI 2, 3, 4, 5 (channel number plus one), so CH1 reaches a TB-3 at its
-    factory channel with no setup, and any channel is changed in 2 gestures (`D#4`, `K2`). Accept, or keep 1..4 and
-    make step 1 of the first run `D#4 K2: MIDI CHANNEL`?
+73. Default MIDI channels: CH1..CH4 send on MIDI 1..4 (owner ruling 2026-11-10: the 2-5 default was REJECTED), and
+    step 1 of the first run is `D#4 K2: MIDI CHANNEL`, so the TB-3 (factory channel 2) is two visible gestures away. ANSWERED.

@@ -429,3 +429,17 @@ Non-blocking notes (for the owner or the implementing task; none changes a locke
 Awaiting owner: read SEQUENCER_UX.md (the revision-2 note at the top, 1.3-1.4, 4.1 PRESETS, 8.2-8.5, 9.1, 10, 13), answer
 questions 65-73 (especially 71 E1, 72 the restated L rule, 73 the default MIDI channels plus the VISION.md edit), then add
 `Approved: <name> <date>`.
+
+### 2026-11-10 executor (claude-sonnet-5-5): owner rulings pass (docs only)
+Owner rulings applied: Q65-70 accepted; Q71 keep bar-aligned load; Q72 accept restated L rule; Q73 REJECTED the 2-5 default.
+- Q73: defaults stay CH1..CH4 = MIDI 1..4. VISION.md restored byte-for-byte to its pre-P1-017 text (no CH1 = MIDI 2 claim).
+  First-run step 1 is now `D#4 K2: MIDI CHANNEL` (SEQUENCER_UX 11.3, 11.4, W1, U01, U40, confusion audit row 1, page_states FIRST_RUN,
+  knob_map CHAN K2); PLAY also advances it (a synth already on 1). It adds no gesture (the gesture is U40, 2 gestures), so
+  U65 stays 12/12 and no other score changes; the TB-3 first sound is now 3 gestures (D#4, K2, PLAY), each function still <= 2.
+  Also fixed: ADR-0003 section 12 defaults table and change note, PERFORMANCE_DESIGN 6.2 example, SEQUENCER_UX mocks (M1) and question 73.
+- OWNER_QUESTIONS: decisions 65-73 recorded in the tenth-round decisions table; the misplaced row 74 moved there (as decision 74).
+- Cue fix (SEQUENCER_UX 1.4, U-table, confusion row 23): heard positions are counted from the SHOWN steps (p < LENGTH);
+  LENGTH 20 with TOTAL 32 shows `TOTAL 32 (20 heard)`, `21-32 NOT HEARD`.
+- Wording: 'generator block' replaces 'generator positions' in ADR-0003:25, question 66 and SEQUENCER_UX.
+Verification: check_sequencer_ux.py OK (69 scored, 3 exceptions); check_control_map.py OK (441 rows); backlog.py check 0 errors;
+the TBD/choose/decide grep is clean. Final "Approved:" line left to the owner; CLAUDE.md untouched.

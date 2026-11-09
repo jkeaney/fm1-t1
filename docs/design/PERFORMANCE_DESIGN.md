@@ -363,7 +363,7 @@ Rules: **any other control also counts as dismissing** (the strip clears and the
 
 ### 6.2 A 60-second live performance, gesture by gesture (TB-3 on MIDI channel 2)
 
-Starting at power-on, first-run dismissed. CH1 ACID (MIDI 2, set earlier from SET) unmuted, CH2 EUCLID (MIDI 3) muted. Only documented gestures. `t` is seconds.
+Starting at power-on, first-run dismissed. CH1 ACID (MIDI 2, set earlier from CHAN: D#4, K2) unmuted, CH2 EUCLID (MIDI 2 by default, muted). Only documented gestures. `t` is seconds.
 
 | t | Gesture | Controls | What happens |
 | --- | --- | --- | --- |

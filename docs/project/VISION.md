@@ -15,11 +15,8 @@ raise it as feedback (see [PROCESS.md](PROCESS.md)), don't silently pick one.
    sampling, effects authoring and sound design are out of scope unless they serve previewing.
 3. **Channels drive MIDI.**
    - The sequencer has channels, and each channel sends MIDI out.
-   - A channel's settings are its MIDI output channel, its algorithm and its pattern length (1..64 steps, shown as up
-     to 4 pages of 16; owner R1, P1-017).
-   - A channel's sequence is dialled in with an algorithm, then its steps are owned on the 16 white keys: turned on
-     or off, and edited one by one (pitch, octave, gate, velocity, ratchet, slide, chance). Edits survive every dice
-     and morph. See ../design/SEQUENCER_UX.md.
+   - A channel's only setting is its MIDI output channel.
+   - A channel's sequence comes from steps entered on the 16 white keys, or from an algorithm.
 4. **Algorithms are dialled in and performed.**
    - Each channel picks an algorithm.
    - The knobs **morph** it continuously.
@@ -32,8 +29,7 @@ raise it as feedback (see [PROCESS.md](PROCESS.md)), don't silently pick one.
 
 A producer has one synth, a Roland TB-3, connected:
 
-1. Select **channel 1**. It sends on MIDI channel 2 by default, the TB-3's factory channel, so there is no setup; a
-   synth on another channel is set in 2 gestures (CHAN, K2; P1-017, owner question 73).
+1. Select **channel 1** and set its MIDI channel (the TB-3 default is 2). That's the only setup.
 2. Choose an **algorithm** for channel 1.
 3. Either enter steps on the 16 white keys, **or** dial a sequence in with the knobs and dice buttons.
 4. Press PLAY and **perform**: morph with the knobs, dice the layers, and mute or switch channels, all without
