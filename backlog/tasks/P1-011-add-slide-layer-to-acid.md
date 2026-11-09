@@ -3,7 +3,7 @@ id: P1-011
 title: Add a slide dice layer to the ACID design
 phase: P1
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P1-003]
@@ -45,3 +45,8 @@ Changes: sting.md sections 1,2,3,4,5,6 (6.1 params, 6.2 salt, 6.3 SLIDE layer, n
 Design: SLIDE has own seed/salt, fixed probability table `ps`, undo (previous seed), no knob; slide = overlapping note-on before previous note-off by D = max(L/8, 1 block); same-note overlap becomes a tie; no CC; one-step-ahead commit of the next step.
 Note: the source (sting) has no slide output (only "Slide" modulation dials), so 6.3a is entirely [D]; TB-3 glide on overlap is an unverified assumption (section 7 row 9).
 Owner questions added to docs/project/OWNER_QUESTIONS.md as #7 (no slide-off control), #8 (confirm overlap glides on TB-3, CC65 fallback), #9 (one-step dice latency).
+
+### 2026-11-09 review (sonnet)
+Verdict: PASS (gate none -> done). Section loop prints nothing; 6 layers incl SLIDE, 4 morphs, labels <= 6 chars; no TBD/choose/decide; scale/GATE/DIV/SWING global. Re-derived the 8-step event table: 6 note-ons, 6 note-offs, times all correct, tie adds neither, on-before-off on slide pairs, every note has an off before the end. Other algorithms' seeds (snake ch*4) are independent, nothing else references the old formula. TB-3 glide assumption flagged (section 7 row 9, OWNER_QUESTIONS #8).
+Fixed directly in sting.md: RAM was understated (overlap needs two sounding notes and two pending offs: 254 -> 258 B; stale "190 B" in section 5, "106 B" -> 114 B, cache "64 bytes" -> 48); stop/panic rule now says every sounding note (up to two during overlap) plus CC123; clarified the seed row in 6.4.
+Latency: next-step commit makes a dice/knob change audible up to 2 steps later (1 extra step, ~125 ms at 120 BPM 1/16). Borderline for rule 1 on knobs; the screen still updates at once. Added a mitigation to 6.3a (snapshot only hit/note/slide of i+1, read vel/gate live) in case owner rejects it (OWNER_QUESTIONS #9).

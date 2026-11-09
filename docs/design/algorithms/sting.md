@@ -78,7 +78,7 @@ and direction (global SWING; direction dropped), jitter (see 6).
 | Performable with 4 knobs + dice buttons, no menus (rules 1, 4) | 3 | Four knobs map one-to-one to four morphs that are each audible, monotonic and reversible; six orthogonal dice layers plus dice-all map directly to buttons; nothing needs a menu. |
 | Monophonic bassline/lead use (the TB-3 workflow) | 3 | Native fit: one note per step, 16 steps, accent and gate-length lanes mirror the TB-3's own accent/gate model; the range is MIDI 24 up to about 82 (base 36, octave -1..+2, root up to 11). SLIDE (a sixth dice layer) generates TB-3 slides as overlapping notes (6.3a). |
 | Distinct from the other families (adds something new) | 2 | Adds "urn" non-repeating motif pitch sets and the random-to-acid morph that no other family has; but a rest/hit mask and accents overlap with the Euclidean/steps families, and the algorithm is only a 16-step single loop. (Cross-family comparison is not assessed here; score is on the source spec alone.) |
-| Fits the FM-1 budget (RAM < 2 KB per channel, ISR cost small) | 3 | About 190 bytes per channel (section 6), generation is a few hundred integer ops on the main loop, and the ISR only reads a precomputed 16-step cache. |
+| Fits the FM-1 budget (RAM < 2 KB per channel, ISR cost small) | 3 | About 258 bytes per channel (6.4), generation is a few hundred integer ops on the main loop, and the ISR only reads a precomputed 16-step cache. |
 
 ## 6. Redesign for this sequencer
 
@@ -211,6 +211,7 @@ private `next` snapshot, and step `i+1` is later played from that snapshot, neve
 change therefore takes effect from the step after next at the latest (at most one extra step of latency, 125 ms at 120 BPM and
 1/16). At transport start and after a loop wrap the snapshot for step 0 is taken at `t_0` (ps[0] = 0 means step 0 has no
 slide-in, so this is consistent). This is what makes every pair decision below self-consistent.
+If the owner rejects this latency (OWNER_QUESTIONS #9), the mitigation is to snapshot only the pairing fields (hit, note, slide) of step `i+1` and read vel and gate from the live cache at `t_{i+1}`, so ACCNT and GATE changes and dice act one step sooner; a pairing already committed is never withdrawn, so no note is left without an off.
 
 For each step `i` that plays (`hit == 1`), let `slideout = next.hit && next.slide && (i < 15)` (the step after it glides in)
 and let `slidein` = the decision made one step earlier for this step (false for step 0 and after a stop).
@@ -226,7 +227,7 @@ Let `legato_in` mean `slidein` and the previous note still sounding.
      becomes the sounder and schedules the off (rule 2 applies again to it).
    - Else: note-off(`note_i`) at `t_i + g_i`.
 3. A sounding note is never left without a scheduled off: stop, panic, a channel or algorithm change and a MIDI-channel
-   change send note-off for the sounding note (and CC123 on that channel) at once, and clear `legato_in`.
+   change send note-off for every sounding note (up to two during an overlap) and CC123 on that channel at once, and clear `legato_in`.
 4. Order within one tick: for a slide pair, note-on(`i`) is always sent before note-off(`i-1`) because `D >= 1` block;
    for a non-slide pair note-off(`i-1`) always precedes note-on(`i`) (rule 2 cap).
 5. Chains: runs of consecutive effective flags each overlap with the previous note; a run of N glides leaves one
@@ -276,24 +277,24 @@ and 41 glide.)
   `root` = SCL root 0..11, `transpose` = SCL TRN. Pins (6.5) replace `pitch[i]`.
 - `velocity = vel[i]`; `length = gate_pct(gate[i])` of one step.
 Cache stored per channel (hit mask u16 separate): `note[16]` (u8),
-`vel[16]` (u8), `gate[16]` (u8): 64 bytes. Cache is recomputed on any seed, knob, scale, root or pin change, and
-swapped in one go (`fm1_irq_off/on` around a 64-byte copy, or double-buffered).
+`vel[16]` (u8), `gate[16]` (u8): 48 bytes (the hit mask and the effective-slide mask are separate u16s). Cache is recomputed on any seed, knob, scale, root or pin change, and
+swapped in one go (`fm1_irq_off/on` around a 52-byte copy, or double-buffered).
 
 ### 6.4 Channel RAM and CPU
 
 | Item | Bytes |
 | --- | --- |
 | 4 knob values | 4 |
-| 5 seeds + 5 previous seeds (SLIDE seeds counted in the slide row) | 20 |
+| 5 seeds + 5 previous seeds (NOTES, HITS, OCT, GATE, ACCNT; the SLIDE pair is in the slide row) | 20 |
 | Pin mask + 16 pin pitches | 18 |
 | Layer scratch (base_pitch 16, ord_type 16, ord_hit/rank 16, u1/u2/dir 48, gate 16, ord_acc 16) | 128 |
 | Playback cache (note, vel, gate) | 48 |
 | Hit mask | 2 |
-| Slide: 1 seed + 1 previous seed (in the 6 seeds above, +4 B), `u[16]` scratch, effective-slide mask u16 | 4 + 16 + 2 |
-| ISR playback state: `next` snapshot (hit, note, vel, gate, slide) 5, sounding note 1, pending-off time 4, `slidein` 1, padding 1 | 12 |
-| **Total** | **254 B per channel** (well under 2 KB) |
+| Slide: seed + previous seed 4, `u[16]` scratch 16, effective-slide mask u16 2 | 22 |
+| ISR playback state: `next` snapshot (hit, note, vel, gate, slide) 5, `slidein` 1, up to two sounding notes (old, new; both exist during the overlap `D`) 2, two pending-off times 8 | 16 |
+| **Total** | **258 B per channel** (well under 2 KB) |
 
-Scratch layers can instead be regenerated from seeds on demand (about 100 draws each) and not stored, giving 106 B
+Scratch layers can instead be regenerated from seeds on demand (about 100 draws each) and not stored, giving 114 B
 per channel; this is an implementation choice, not a design one. CPU: a full recompute is under 400 integer ops
 (about 116 xorshift draws, 16 snap lookups), run from the main loop; the ISR only reads the cache.
 
@@ -360,7 +361,7 @@ Other open questions for the owner or other specs (not source ⚠):
 **INCLUDE in v1.** ACID is the most direct match to the reference workflow (a TB-3 acid bassline dialled in with
 four knobs and six dice layers): it reaches a convincing 16-step line instantly from defaults, its lanes are
 already independent so the layer-dice model costs nothing, and every morph can be made monotonic and reversible by
-fixing a seeded priority order and letting the knob set how much to apply. The cost is about 254 bytes per channel
+fixing a seeded priority order and letting the knob set how much to apply. The cost is about 258 bytes per channel
 and a few hundred integer ops on the main loop, comfortably within budget. The redesign deliberately removes
 everything ⚠ or free-running (Classic, jitter, CakeWalk, Poly Reset, Gate dial) and replaces the unconfirmed
 Type/Density/Accent semantics with rules defined here, so no design point depends on an unverified claim about the
