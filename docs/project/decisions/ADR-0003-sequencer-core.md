@@ -382,7 +382,7 @@ they call `t1_on_start()/t1_on_stop()` today.
    (section 9). If the algorithm has `AF_PAIRING` and `rt.nxt_ok`, `out.flags.HIT/SLIDE_IN` and `out.note` are replaced by
    the snapshot taken one step earlier (`vel`, `gate`, `rep`, `hold` stay live: a dice of ACCNT or GATE is heard on the
    next step; a hit/note/slide change on the one after: owner question 9, ALGORITHM_SET question-9 mitigation).
-3. `out1 = eval(c, t+1)`; if `AF_PAIRING`: `rt.nxt = out1; rt.nxt_ok = 1`.
+3. `out1 = eval(c, t+1)`; if `AF_PAIRING`: `rt.nxt = out1; rt.nxt.pad = algo id + 1; rt.nxt_ok = 1`. In step 2 the snapshot is used only if `rt.nxt_ok && rt.nxt.pad == algo id + 1` of the cache being read, so a snapshot taken by another algorithm (algorithm switch between two steps) is ignored; no main-loop write to `ChanRT` is needed.
 4. If `muted` or `!(out.flags & PO_HIT)`: if `rt.open` (a previous step left the sounding note without an off, expecting a tie) emit its NOTE_OFF now (`rt.snd[0]` on `rt.snd_chan[0]`) and clear `rt.open`; `rt.slide_in = 0`; skip to step 8. (Muting keeps phase: `t` and `grid` still
    advance. Owner/T1 F10.)
 5. `slideout = AF_PAIRING && (out1.flags & PO_HIT) && (out1.flags & PO_SLIDE_IN) && ((t + 1) % loop_len != 0)`.
@@ -399,7 +399,7 @@ they call `t1_on_start()/t1_on_stop()` today.
      a non-slide pair is always off-before-on).
    - `rep > 1`: SP5 returns up to 3 `(offset, length, vel)` repeats inside `[S, S1 - 1]` (cell width `S1 - S`, which swing shortens for an odd step, so a repeat can never run into the next step); each is its own on/off pair
      (spacing at least 3 ticks, otherwise `rep` is reduced).
-8. `rt.slide_in = slideout; sq_set_algo clears `nxt_ok` (the snapshot belongs to the old algorithm); rt.t = t + 1; rt.grid = G + L; rt.act++` (if a note was scheduled).
+8. `rt.slide_in = slideout; rt.t = t + 1; rt.grid = G + L; rt.act++` (if a note was scheduled).
 
 Ordering rule at one tick: `sq_dispatch` emits **all NOTE_OFFs due, then all NOTE_ONs due**. A slide pair never ties on
 the same tick (the off is at `S + D`, `D >= 1`); a normal pair never does either (off capped at `S1 - 1`). Ratchet
