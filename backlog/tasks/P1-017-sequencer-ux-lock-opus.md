@@ -3,7 +3,7 @@ id: P1-017
 title: Sequencer functionality and UX lock: step-centric editing, 64-step pages, force-sensing keys, page/state/mode framework
 phase: P1
 type: spike
-status: review
+status: todo
 priority: 0
 executor: opus
 depends_on: [P1-014, P1-015]
@@ -281,3 +281,53 @@ extra). Owner approval (human-review gate) also open.
 
 New owner questions: 72 (accept the restated L rule), 73 (default MIDI channels 2..5). 66, 67, 68, 71 reworded to
 match. Reviewer: check the 8.5 count, the 9.2 slide pairing at the wrap with chance (pass+1), and 1.3's partial-page rule.
+
+### 2026-11-10 review (sonnet), revision 1 (commit d9f9aec)
+
+Verdict: **send back for a short pass; not lockable yet.** The six required fixes are in and mostly right. Two new
+design defects remain in locked behaviour, plus some honesty and consistency items. Status set to `todo`. No Approved line
+(owner gate).
+
+Re-run: `check_sequencer_ux.py` OK (9 pages, 254/95/307/441 rows, 69 scored, 3 exceptions); `check_control_map.py` OK
+(441 = 441); TBD/choose/decide grep clean; `backlog.py check` 38 items, 0 errors. I re-parsed table 8.2 myself: 69 rows,
+21 P and 48 S, sum 736, 66 pass, failures U15 / U62 / U68, so the arithmetic is as claimed. I compiled the 9.1 structs
+(/tmp/p1017r2/s.c): StepEdit 4, ChanSave 344, UndoRec 92 and SeqPreset 1388 all pass. RAM re-adds to 6819, leaving
+39677 after the removals and 11165 before them; pool 24984; all correct. HOME is verified in SEQUENCER_UX 2.6/2.7/3 and
+button_modes.tsv:110-127. It follows decisions 57 and 61 exactly: tap = home, which on PERF only cancels a prompt; hold
++ touch = HELP, which exists only while HOME is held; release after 0.7 s with nothing touched = MENU. The HELP dead end
+is gone. Slides at the wrap (9.2:888-893) are correct: `n` wraps to 0, and `hit(n)` takes n's chance draw with pass+1.
+The partial-page rule (1.3 table) is correct. W3 steps 4-5 are now an exact copy. Stale scenes, tap tempo and MUTATE
+text survives only in history-marked sections and in the ADR body under its superseding change note (plus the item
+below). CLAUDE.md rule 3 is left for the owner, as intended.
+
+Required fixes:
+- [ ] 1. **The page-source label `Pj` does not mean what it says.** `src(k) = j` reads generator block j (positions 16j..16j+15),
+  not "what page j plays". SEQUENCER_UX.md:168 says a page reading `P2` "changes ... exactly as that page's generated
+  layer does". That is false when page 2 is not OWN. W3 hits it: page 3 starts at `P1`, and turning K3 toward `OWN`
+  passes `P2`, which plays block 16-31. On STAGE TOTAL 48 that is pulses 17-32, which no page plays, labelled as page 2.
+  Fix: K3 offers only the blocks earlier pages actually play (the distinct `src(j)`, j < k) plus `OWN`, each labelled by
+  the page that plays it. Alternatively, label the value by its block (`FROM 17`). Then correct 1.4:168, CHAN K3 in 4.1,
+  knob_map.tsv and the U37 trace. Also, the heard-span cue (1.4:176) checks only the highest block. W3's
+  own result (TOTAL 48: page 3 OWN, pages 1 and 2 at `P1`) leaves pulses 17-32 unheard, and no cue shows. Make the cue
+  count the unheard blocks.
+- [ ] 2. **Save to another slot races the bar while playing.** A playing pending slot loads "at the next 768-tick bar"
+  (4.1:403, U57/U68 trace). Turning PRESETS on beat 4 leaves less than one beat to tap SAVE before the work is replaced.
+  SAVE hold recovers, but a retry races again. Fix: while playing, a pending slot lands on the first bar that starts at
+  least `SQ_LOAD_SETTLE` after the last detent. Update 4.1, the U57/U68 and U69 traces, W7, 11.1 #18/#24, 11.2 row 10,
+  the ADR change note, and score U69 for the playing case.
+- [ ] 3. **E1 text is stale.** 8.3:781 says "Stopped loads are immediate (U57, 12)". U57 is now 3/3/2/3 = 11 with
+  the 1.5 s settle.
+- [ ] 4. **8.5 under the P1-014 letter.** U18 (step octave) is reached only through the step hold, exactly like U17,
+  but it is listed as "not affected" (8.5:820). By the letter it is L1 = 9, so the count is **43 of 69, 26 failing**. Fix
+  8.5 and owner question 72. Also, U69 L3 is generous: the pending-slot window is not printed, so L2 (10, still a pass)
+  is the honest score.
+- [ ] 5. **ChanRT field order.** 9.1:873 and the ADR change note say to replace `uint32 t` with `p`, `pass`, `tie`.
+  Done literally in place, the struct is 28 B (compiled), so the `_Static_assert(== 24)` fails. Give the order:
+  `uint32 grid; uint16 pass; uint8 p, tie;` and then the rest unchanged.
+- [ ] 6. **Small gaps and stale text.** PG+ on page 4 at LENGTH 64 is undefined: add a toast (`64 STEPS = MAX`) to 1.3
+  and key_map.tsv. page_states.tsv:13 MOVE_HELD still says "scene and page keys inert". TIE is closed at the wrap
+  (9.2:886, 10:963) while a slide crosses it. Either let TIE cross the loop end on the same terms (cut by STOP or a LENGTH change) or
+  say why it does not.
+
+For the owner (not for the executor): VISION.md:35 still says "set its MIDI channel (the TB-3 default is 2)", but CH1
+now defaults to MIDI 2 (question 73). CLAUDE.md rule 3 wording is proposed in the revision-1 log.
