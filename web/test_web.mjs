@@ -14,6 +14,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import { logicalImage, productOf } from "./fm1pkg.js";
 import { Updater, pack7, unpack7 } from "./fm1ota.js";
@@ -22,7 +23,7 @@ let failed = 0;
 const ok = (cond, what) => { console.log(`${what.padEnd(64)} ${cond ? "ok" : "FAIL"}`); if (!cond) failed++; };
 const eq = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
 const py = (code, ...args) => execFileSync("python3", ["-c", code, ...args], { maxBuffer: 1 << 26 });
-const HERE = new URL(".", import.meta.url).pathname;
+const HERE = fileURLToPath(new URL(".", import.meta.url));
 /* what lives outside web/, each overridable (a web-only checkout passes them, or the checks skip):
    FELUCCA_DESC  the firmware's parameter / protocol table (tests/descdump.c -> build/host/desc.json)
    FELUCCA_TOOLS the firmware's tools (tools/fm1_sample_upload.py, the sample format's reference)
