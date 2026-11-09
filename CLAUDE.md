@@ -14,8 +14,8 @@ Product rules, in priority order. Every design decision is judged against these:
    always shows what the device is doing and what each knob and button does right now, with on-screen labels for
    the current knob and button roles. MENU is only for set-and-forget settings.
 2. **It is a sequencer, not a synth.** The built-in synth engines exist only to preview sequences.
-3. **Channels.** Each sequencer channel sends MIDI out, and its only setting is its MIDI channel. Each channel picks
-   an **algorithm** to drive its sequence. You either enter steps on the 16 white keys or dial a sequence in with the
+3. **Channels.** Each sequencer channel sends MIDI out; its settings are its MIDI channel, its **algorithm** and its
+   pattern length (1..64 steps, up to 4 pages of 16). The algorithm drives its sequence. You either enter steps on the 16 white keys or dial a sequence in with the
    knobs and buttons, then perform it live. The knobs **morph** the pattern, and buttons **dice** (re-roll) individual
    layers of the algorithm.
 4. **Target workflow:** one synth (for example a Roland TB-3) → select channel 1 → set its MIDI channel → choose an
@@ -29,6 +29,7 @@ be improved into this workflow.
 
 All work goes through the backlog. Don't patch firmware outside a task.
 
+- **Handoff (read first after a context reset):** docs/project/HANDOFF.md
 - **Vision:** docs/project/VISION.md
 - **Process:** docs/project/PROCESS.md (lifecycle, Definition of Ready and Done, gates, bugs and feedback, model
   routing)
