@@ -13,7 +13,7 @@ P0 Foundation ─▶ P1 Mapping & assessment ─▶ P2 Design (gated) ─▶ P3 
 | Phase | Goal | Exit gate | Status |
 | --- | --- | --- | --- |
 | **P0 Foundation** | Work committed, one green check command, a hardware test routine, the fixed bassline build flashed | `tools/check.sh` passes; owner has heard the fixed build on the TB-3 | tasks defined |
-| **P1 Mapping & assessment** | Know what we have: every control, every firmware subsystem, every catalogue algorithm assessed against the vision | Inventories and 7 assessments reviewed; the algorithm shortlist approved by the owner | tasks defined |
+| **P1 Mapping, assessment and UX design** | Know what we have (controls, subsystems, 7 algorithm families), choose the v1 algorithms, then design the controls and sequencer UX: P1-010 algorithm set, P1-012 UX unification, P1-013 shift row, P1-014 performance-first scheme, P1-015 keybed force reference, P1-017 sequencer UX lock | Inventories and assessments reviewed; algorithm set approved; sequencer UX locked and approved by the owner (P1-017) | P1-017 in review loop |
 | **P2 Design** | Decide what we build: global control map, keep/adapt/remove system map, screen spec, sequencer core architecture and algorithm interface, T-1 bug triage | Owner approves CONTROL_MAP, SYSTEM_MAP, SCREEN_SPEC and ADR-0003; P3–P6 broken into tasks | tasks defined |
 | **P3 Clean house** | Remove what SYSTEM_MAP marks REMOVE (synth editing, sampling, song chain, editor protocol …), keeping the build and tests green after each removal | The firmware holds only UI, system, algorithms and setup; RAM and flash freed is reported | epic E3 |
 | **P4 Sequencer core** | Channels (MIDI channel only), 16-step entry, transport, MIDI out per channel, preview synth, the new main screen | The reference workflow up to "press PLAY" works on hardware with steps | epic E4 |
@@ -22,6 +22,8 @@ P0 Foundation ─▶ P1 Mapping & assessment ─▶ P2 Design (gated) ─▶ P3 
 | **P7 Storage** | Save and load sequences to a safe flash region | Power-cycle keeps sequences; the flash map is reviewed | epic E7 |
 | **P8 Release** | Hardening, a user guide drawn from the screen spec, a release package | Release checklist passes | epic E8 |
 | **P9 v2 clean-up** | Sequencer-only firmware: remove the legacy groovebox and every subsystem marked 'v2 REMOVE' in the system map | Owner approves the removal list; check.sh green; flash and RAM freed reported | epic E9 |
+
+Current state and next steps: docs/project/HANDOFF.md.
 
 ## Already done (before this process existed)
 
