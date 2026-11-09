@@ -377,3 +377,55 @@ ChanRT 24 (grid 0 pass 4 p 6 tie 7 nxt 8 open 21) literal 28
 I re-parsed table 8.2 with a script: 69 rows, 21 P, sum 734, 66 pass (U15, U62 and U68 fail). With L1 applied
 to the 23 listed rows, 43 pass. No firmware changed, so check.sh and the 20-minute suite were not run.
 Still unticked: "all pass the high-bar rule" (66 of 69, with exceptions E1-E3 listed) and owner approval.
+
+### 2026-11-10 review (sonnet), revision 2 (commit 8d5fd34)
+
+Verdict: **lockable. Left at `review` for the owner gate (human-review).** No Approved line.
+
+I re-ran everything myself. `check_sequencer_ux.py` OK (9 pages, 254/95/307/441 rows, 69 scored, 3 exceptions).
+`check_control_map.py` OK (441 = 441). The TBD/choose/decide grep is clean. `backlog.py check` gives 38 items and 0
+errors. I re-parsed table 8.2 with my own script: 69 rows, 21 P, every V/I/O/L re-adds, sum 734, **66 pass** (U15 / U62 /
+U68 fail and are listed). The 23 rows of 8.5 are all S at 3/2/3/2, so L1 gives 9 and **43 of 69** pass. The ChanRT order
+compiles on my side (/tmp/p1017rv/s.c, PulseOut 6 B from ADR-0003:82-89): size 24, grid@0 pass@4 p@6 tie@7 nxt@8 open@21.
+
+The six required fixes from 5b6e56b:
+1. Page sources: done and consistent. SEQUENCER_UX 1.4:173-186 (K3 offers the distinct src(j), j<k, labelled by the first
+   page that plays each, then OWN; an orphaned block is shown as dim `17-32` until turned away), 4.1 CHAN row, U37,
+   W3 step 4 (offers P1/OWN; cue `TOTAL 48 (32 heard)`, `17-32 NOT HEARD`; PG- + K3 OWN hears all 48), 11.1 #23 and 13.2.
+   The same rule appears in knob_map.tsv, control_map.tsv:358, ml185.md, ALGORITHM_SET and the ADR note. The gap-counting
+   cue (1.4:200-208) counts every unheard block, including a gap between heard ones. I traced W3 steps 4-5 by hand and the
+   labels hold (page 4 inherits block 2, shown `P3`). RESET's `SOURCE P1` default is always offerable because page 1 always
+   plays block 0.
+2. Pending slot: the deadline is the last detent + 1.5 s, and the load lands on the first bar starting at or after it. The
+   text is consistent in 4.1, U57/U68, U69, W7, 11.1 #18/#24, 11.2 row 10, 13.6, all five PRESET rows in knob_map and
+   control_map, CONTROL_MAP.md:66, the ADR note plus its section-10 addendum, and owner question 71. The main loop stages
+   only after the deadline, so the ISR does not change. That is sound.
+3. E1 text (8.3) now matches U57 (3/3/2/3 = 11).
+4. Scores are honest. U18 is 3/2/3/2 (L2) and appears in the 8.5 L1 list. U69 is L2 = 10. 8.5 and owner question 72 both
+   say 43 of 69, 23 rows, 26 failing. I challenged the other scores: U41-U44 L3 (GLO "global"), U54 L3 (REC) and U58/U63 L3
+   (holds printed on the docs/controls.jpg "Hold" card) are defensible. No other inflation found.
+5. ChanRT is correct (see above). It is written out in 9.1 and in the ADR note, and 13.9 locks the order.
+6. PG+ at 64 is in 1.3, U35, the 4.3 key table, key_map.tsv x4, control_map.tsv x4 and CONTROL_MAP x4. TIE crosses the loop
+   end on the slide's terms (1.1, 9.2, 10 TIE row, LENGTH-shrunk row, 13.10, ADR note); it ends at most one loop later
+   with STOP or a LENGTH change, and the off-at-next-sounding-start needs no lookahead. page_states MOVE_HELD now says every
+   other key keeps its role. No other TSV row contradicts this.
+
+Flagged by the executor, checked: (a) the `17-32` orphan rule is well-defined, never silent, and costs no storage (the
+labels are derived; pg_src is unchanged). (b) MOVE_HELD keeping the other key roles is consistent across page_states,
+key_map and SEQUENCER_UX 2:352.
+
+Non-blocking notes (for the owner or the implementing task; none changes a locked behaviour):
+- SEQUENCER_UX.md:202-204: "heard" is decided per block, so a **partial** last page under-reports the unheard part. For
+  example, LENGTH 20 with page 2 OWN and STAGE TOTAL 32 shows no cue, but pulses 21-32 never play. The page map does show
+  the partial page. Suggested fix (in the dev task or a later edit): count the shown positions (`g(p)` for p < LENGTH),
+  not whole blocks.
+- ADR-0003:25 and OWNER_QUESTIONS.md:70 (question 66) still describe pg_src as "the page whose generator positions it
+  reads". The stored meaning is the same (block j = page j's own positions), and the ADR note goes on to state the K3
+  label rule, but the wording should say "generator block" as 9.1 now does.
+- Scope: VISION.md:35-36 was edited, and VISION.md is outside the Deliverable. My last review left that line for the owner.
+  The new text states the CH1 = MIDI 2 default before owner question 73 is answered. The owner should accept or revert
+  it together with question 73.
+
+Awaiting owner: read SEQUENCER_UX.md (the revision-2 note at the top, 1.3-1.4, 4.1 PRESETS, 8.2-8.5, 9.1, 10, 13), answer
+questions 65-73 (especially 71 E1, 72 the restated L rule, 73 the default MIDI channels plus the VISION.md edit), then add
+`Approved: <name> <date>`.
