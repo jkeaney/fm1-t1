@@ -22,7 +22,7 @@ in that log and, per ADR-0004, "Design locked" later.
 > single-pin `pin_mask` / `pin_note[16]` layout of section 3 is an upper-bound placeholder for P1-016's per-step record (reserve 64 steps x 3 B x 4 channels
 > = 768 B live + 768 B undo, already inside the 11.1 totals); P1-016 integrates it. The RAM floor holds (11.1). The pin-edit gestures of section 9 (K3 NOTE, OCT- / OCT+ = +-12) are superseded by the held-step band of PERFORMANCE_DESIGN 3.1 (two rows of four properties); P1-016 integrates them. Key labels in this ADR that say `EDIT-tap` or `D#5` follow the P1-014 control map (UNDO = EDIT tap after the P1-014 revision, restart = F#5).
 
-> Change note (P1-017, sequencer UX lock; for owner review): [SEQUENCER_UX.md](../../design/SEQUENCER_UX.md) replaces the pin model and the R1-R4 reserve with a **per-step edit layer** and **pages**. Section 9.1 of SEQUENCER_UX is the normative struct block and supersedes the matching structs of section 3 below: `StepEdit` 4 B (PITCH unsnapped + set bit, VELO, GATE / TIE, RATCH, ON, SLIDE, PROB, OCT; every field AUTO or set), `ChanSave` 102 -> **344 B** (`pin_mask` / `pin_note[16]` removed; `len` 1..64, `pg_flow`, `pg_used`, `StepEdit ed[64]` added), `UndoRec` 48 -> **92 B** (one page of edits, morphs, len / page bits; the pin fields removed), `SeqPreset` 420 -> **1388 B** (version 2), `ChanRT` stays 24 B (`uint32_t t` -> `uint8_t p` 0..len-1, `uint16_t pass`, `uint8_t tie`). `PulseOut.note` becomes ALWAYS valid like `vel` / `gate` (EUCLID evaluates its contour at non-hit positions). `step()` is called with the **generator position** `g(p)` (COPY page: `p % 16`; FLOW page and page 1: `p`) instead of the free-running `t`; the loop resets at `len`. Section 9's pin overlay is replaced by the resolution of SEQUENCER_UX 9.2; swing parity is by `p`; a SLIDE edit means "glide into the next sounding step" and feeds the existing slide pairing; TIE holds until the next sounding step or the loop point (a `tie` flag in `ChanRT`, closed at the wrap and by `sq_all_off`). New main-loop API: `sq_step_toggle(ch,p,vel)`, `sq_step_set(ch,p,field,value)`, `sq_step_clear(ch,p)`, `sq_step_dice(ch,p,what)`, `sq_note_edit_begin(ch,p)` (UndoRec snapshot), `sq_page_add(ch)`, `sq_page_copy(ch,page)`, `sq_page_clear(ch,page)`, `sq_set_length(ch,len)`, `sq_set_source(ch,page,flow)`; removed: `sq_pin_set / sq_pin_clear / sq_pin_clear_all / sq_pin_pitch` and the scene API `sq_scene` (scenes are dropped, owner decision 58). The undo of a preset load applies at the next step. The 4.1 `knob_morph[]` tables change (3B re-lock): ACID `{0,5,2,3,4,1,6,7}`, EUCLID `{0,4,5,3,1,2,6,7}`, SNAKE unchanged, STAGE `{0,1,7,3,4,5,6,2}`. RAM re-added in section 11.2.
+> Change note (P1-017, sequencer UX lock; for owner review): [SEQUENCER_UX.md](../../design/SEQUENCER_UX.md) replaces the pin model and the R1-R4 reserve with a **per-step edit layer** and **pages**. Section 9.1 of SEQUENCER_UX is the normative struct block and supersedes the matching structs of section 3 below: `StepEdit` 4 B (PITCH unsnapped + set bit, VELO, GATE / TIE, RATCH, ON, SLIDE, PROB, OCT; every field AUTO or set), `ChanSave` 102 -> **344 B** (`pin_mask` / `pin_note[16]` removed; `len` 1..64, `pg_src` (2 bits per page: the page whose generator positions it reads), `pg_used`, `StepEdit ed[64]` added), `UndoRec` 48 -> **92 B** (one page of edits, morphs, len / page bits; the pin fields removed), `SeqPreset` 420 -> **1388 B** (version 2), `ChanRT` stays 24 B (`uint32_t t` -> `uint8_t p` 0..len-1, `uint16_t pass`, `uint8_t tie`). `PulseOut.note` becomes ALWAYS valid like `vel` / `gate` (EUCLID evaluates its contour at non-hit positions). `step()` is called with the **generator position** `g(p) = 16 * src(k) + p % 16` (page `k = p / 16`; `src(0) = 0`; a new page inherits `src` of the page before, so a copy is exact; `src(k) = k` is OWN) instead of the free-running `t`; the loop resets at `len`. Section 9's pin overlay is replaced by the resolution of SEQUENCER_UX 9.2; swing parity is by `p`; a SLIDE edit means "glide into the next step" (step `p+1`, after the last step step 0; no glide if that step does not sound) and feeds the existing slide pairing, **across the loop end too** (revision 1: 7.3 step 5's `(t + 1) % loop_len != 0` term is replaced by the next position `n = (p + 1 >= len) ? 0 : p + 1`; the pairing is cancelled only by STOP and by a LENGTH change inside the step); TIE holds until the next sounding step or the loop point (a `tie` flag in `ChanRT`, closed at the wrap and by `sq_all_off`). New main-loop API: `sq_step_toggle(ch,p,vel)`, `sq_step_set(ch,p,field,value)`, `sq_step_clear(ch,p)`, `sq_step_dice(ch,p,what)`, `sq_note_edit_begin(ch,p)` (UndoRec snapshot), `sq_page_add(ch)`, `sq_page_copy(ch,page)`, `sq_page_clear(ch,page)`, `sq_set_length(ch,len)`, `sq_set_source(ch,page,src)`; removed: `sq_pin_set / sq_pin_clear / sq_pin_clear_all / sq_pin_pitch` and the scene API `sq_scene` (scenes are dropped, owner decision 58). The undo of a preset load applies at the next step and restores the previous header slot; a PRESETS turn makes the slot **pending** (stopped: loads after `SQ_LOAD_SETTLE` 1.5 s; playing: at the bar) and a SAVE tap while pending saves into that slot instead (section 10). Power-on MIDI channels change to CH1..CH4 = 2..5 (section 12). The 4.1 `knob_morph[]` tables change (3B re-lock): ACID `{0,5,2,3,4,1,6,7}`, EUCLID `{0,4,5,3,1,2,6,7}`, SNAKE unchanged, STAGE `{0,1,7,3,4,5,6,2}`. RAM re-added in section 11.2.
 
 Inputs: [VISION](../VISION.md), [ADR-0004](ADR-0004-design-lock.md) (and its flexibility addendum),
 [OWNER_QUESTIONS](../OWNER_QUESTIONS.md) (all owner decisions), [ALGORITHM_SET](../../design/ALGORITHM_SET.md)
@@ -430,6 +430,7 @@ they call `t1_on_start()/t1_on_stop()` today.
 4. If `muted` or `!(out.flags & PO_HIT)`: if `rt.open` (a previous step left the sounding note without an off, expecting a tie) emit its NOTE_OFF now (`rt.snd[0]` on `rt.snd_chan[0]`) and clear `rt.open`; `rt.slide_in = 0`; skip to step 8. (Muting keeps phase: `t` and `grid` still
    advance. Owner/T1 F10.)
 5. `slideout = AF_PAIRING && (out1.flags & PO_HIT) && (out1.flags & PO_SLIDE_IN) && ((t + 1) % loop_len != 0)`.
+   **P1-017 revision 1:** replaced by SEQUENCER_UX 9.2: `out1` is the resolved next step `n = (p + 1 >= len) ? 0 : p + 1` (edits included; a SLIDE edit on `p` counts as the flag), and the loop-end term is dropped, so a slide crosses from the last step into step 0. A LENGTH change inside step `p` cancels a pending pairing (the off falls back to `p`'s own gate end, or is sent at once if that has passed); STOP sends every off as before.
    `tie = rt.slide_in && rt.snd[0] && out.note == (rt.snd[0] - 1)`. If `rt.open` and not `tie` (a mute, a note change or an algorithm switch happened since the tie was announced), emit the NOTE_OFF of `rt.snd[0]` now, before step 6. `rt.open = 0` after this line.
 6. **Note-on.** If `tie`: schedule nothing (the sounding note continues, `vel` ignored). Else schedule NOTE_ON(`out.note`,
    `out.vel`) at `S` (also at `S` for `rep > 1`, then SP5 repeats). If `rt.slide_in` and not tie the previous note's
@@ -615,12 +616,13 @@ Checks (SYSTEM_MAP section 9: headroom 46496 B after the removals, 17984 B befor
 | REC state + sounding-note table (P1-014) | +31 |
 | NOTE_EDIT / page UI state (edited step, open flag, `view_page[4]`, FOLLOW, ADD prompt, open page, HELP control) | +10 |
 | `sq_perf`, saved FILL morph, FILL / ROLL force levels | +4 |
-| Force sensing: 20 keys x 8 B, 20 floors x 2 B, MASTER cache 2 B | +202 |
+| Pending preset slot + settle deadline (revision 1) | +3 |
+| Force sensing: 20 keys x 8 B, 20 floors x 2 B, 20 H3 offsets x 2 B (revision 1), MASTER cache 2 B | +242 |
 | 11.1 reserve (768 + 768), scenes, MUTATE, held-step pitch | 0 (dropped) |
-| **Total new .bss** | **6776** |
+| **Total new .bss** | **6819** |
 
-Checks: after the E3 removals 46496 - 6776 = **39720 B** headroom; built before them 17984 - 6776 = **11208 B**
-(above the 8192 B E9 trigger, 7112 B above the 4096 B floor). Pool: 16 slots x 1388 + staging + undo-load copy
+Checks: after the E3 removals 46496 - 6819 = **39677 B** headroom; built before them 17984 - 6819 = **11165 B**
+(2973 B above the 8192 B E9 trigger, 7069 B above the 4096 B floor). Pool: 16 slots x 1388 + staging + undo-load copy
 (2 x 1388) = **24984 B**; today's 25764 B free would leave 780 B, so **the R6 fx-bus removal (SYSTEM_MAP section 6)
 is a prerequisite of preset storage (E7)**; until then `SQ_NSLOT = 8` (13880 B). After the removals 192991 B stay free.
 Static-assert plan: `StepEdit` 4, `ChanSave` 344, `UndoRec` 92, `SeqPreset` 1388, `ChanRT` 24, and
@@ -654,10 +656,10 @@ The device boots straight into the sequencer: no mode, no `PREF_T1`, no `MODE` r
 
 | Item | Value |
 | --- | --- |
-| CH1 | ACID, MIDI channel 1, unmuted |
-| CH2 / CH3 / CH4 | EUCLID MIDI 2 / SNAKE MIDI 3 / STAGE MIDI 4, all muted |
+| CH1 | ACID, MIDI channel **2** (the TB-3 factory channel), unmuted (P1-017 revision 1; was 1) |
+| CH2 / CH3 / CH4 | EUCLID MIDI 3 / SNAKE MIDI 4 / STAGE MIDI 5, all muted (channel number plus one; change: D#4, K2) |
 | every `AlgoState` | morphs = `MorphDesc.def`; seeds per section 3.1 for each channel and algorithm |
-| pins | none |
+| pins | none (P1-017: every `StepEdit` AUTO, every `pg_src` 0, `len` 16) |
 | Global | KEY C (0), SCALE MINPEN (10), OCTAVE 0, GATE 50, DIV 1/16 (2), SWING 50, BPM 120 |
 | UI state | selected channel CH1, preset P01 label, keyboard OCT 0 |
 | Preview | ANALOG preset 0 |

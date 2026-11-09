@@ -67,12 +67,14 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 63 | P1-014 revision | REC writes chromatic, unquantised pitches (a note outside the scale is allowed) and, while playing, writes to the step nearest the playhead. Accept, or snap pitches to the global scale and to the next step? | first hardware test |
 | 64 | P1-014 revision | The hold + press pitch gesture edits ONE step at a time (the first version let all held keys receive one edit). Accept dropping multi-select? | P1-014 review |
 | 65 | P1-017 sequencer UX lock | NOTE EDIT chance has two levels (100 / 50 %) on LFO so it stays one press. Accept, or a four-level PROB on a knob (pushes RATCH onto button presses; a 4-press cycle fails the 2-gesture rule)? | P1-017 review |
-| 66 | P1-017 | A new page copies the page BEFORE it (A, A', A''), not always page 1. Confirm. | P1-017 review |
-| 67 | P1-017 | A step's SLIDE means 'this note glides into the next sounding step' (TB-303 convention). Confirm on the TB-3 (with question 8). | first hardware test |
-| 68 | P1-017 | Force sensing ships behind the HT-FORCE hardware gate, FORCE OFF until it passes; v1 set = hard-tap accent, pressure ROLL / FILL, REC velocity, each with a fallback. Accept this set? | P1-017 review |
+| 66 | P1-017 | A new page is an exact copy of the page BEFORE it (A, A', A''): its edits and its source (the page whose generator positions it reads; OWN lets the algorithm continue). Confirm. | P1-017 review |
+| 67 | P1-017 | A step's SLIDE means 'this note glides into the next step' (TB-303 rule; after the last step into step 1, across the loop end; no glide if that step is silent). Confirm on the TB-3 (with question 8). | first hardware test |
+| 68 | P1-017 | Force sensing ships behind the HT-FORCE hardware gate, FORCE OFF until it passes, in Velo's DRIVE mode (+~2.2 ms on a REC note); v1 set = hard-tap accent (scored 9, kept as optional extra E3), pressure ROLL / FILL, REC velocity, each with a fallback. Accept this set? | P1-017 review |
 | 69 | P1-017 | Scale, key and octave on a SCALE page opened by HOLDING GLO (SET stays on the tap), not by holding SCL (which would delay the NOTES dice to the release). Accept? | P1-017 review |
 | 70 | P1-017 | SNAKE's long polymeter cycles are cut at the channel length (max 64 steps) so the lane always shows what plays. Accept? | P1-017 review |
-| 71 | P1-017 | Exception E1: a preset turned while playing lands on the bar (decision 34; O1 by the letter of the rubric). Keep, or load at the next step after a 300 ms settle (SQ_LOAD_AT = STEP, scores 11)? | P1-017 review |
+| 71 | P1-017 | Exception E1: a preset turned while playing lands on the bar (decision 34; O1 by the letter of the rubric). Keep (recommended by the reviewer and the revision), or load at the next step after a settle (SQ_LOAD_AT = STEP, scores 11)? | P1-017 review |
+| 72 | P1-017 revision | The L rule is restated (SEQUENCER_UX 8.1): a role reached through a hold scores L2 when the hold is named permanently on the page where it starts (new `h:` sub-labels on PERF) and opens a labelled page; otherwise L1 as in P1-014. Accept? Under the P1-014 letter 22 setup functions fall to 9 (44 of 69 pass); under the restated rule 66 of 69 pass with three listed exceptions (E1 preset on the bar, E2 HOME-held HELP per decisions 57/61, E3 hard-tap accent). | P1-017 review |
+| 73 | P1-017 revision | Default MIDI channels CH1..CH4 = 2, 3, 4, 5 (channel number plus one), so CH1 reaches a TB-3 at its factory channel with no setup; any channel changes in 2 gestures (D#4, K2). Accept, or keep 1..4 and make first-run step 1 'D#4 K2: MIDI CHANNEL'? | P1-017 review |
 
 ## Decisions (owner, 2026-11-09)
 | # | Decision |

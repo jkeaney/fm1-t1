@@ -3,7 +3,7 @@ id: P1-017
 title: Sequencer functionality and UX lock: step-centric editing, 64-step pages, force-sensing keys, page/state/mode framework
 phase: P1
 type: spike
-status: todo
+status: review
 priority: 0
 executor: opus
 depends_on: [P1-014, P1-015]
@@ -55,7 +55,7 @@ You are the UX designer and technical architect for this instrument. The owner h
 - [x] No scenes, no tap tempo; tempo on the SET page; freed controls reassigned
 - [x] Force-sensing gestures specified with fallbacks, LED handling, costs and a hardware-test gate
 - [x] State/page, button-mode, knob-map and key-map tables exist as TSVs; tools/check_sequencer_ux.py prints OK; tools/check_control_map.py prints OK
-- [ ] Every function traced input -> processing -> output and scored; all pass the high-bar rule honestly; two editing models compared
+- [ ] Every function traced input -> processing -> output and scored; all pass the high-bar rule honestly; two editing models compared (revision 1: traced, scored and compared; 66 of 69 pass, three listed exceptions E1-E3, so not ticked)
 - [x] RAM/pool budget re-added; 4 KB floor respected; prerequisites named
 - [x] ADR-0003 and algorithm docs consistent with the locked spec
 - [x] No 'TBD', 'choose' or 'decide' wording; a 'Locked' section lists what is locked
@@ -226,3 +226,58 @@ The independent Opus review found the spec close but not lockable. Required fixe
 5. HOME: the owner DECIDED (decisions 57 and 61): HOME tap = home, hold and touch a control = HELP, release after 0.7 s with nothing touched = MENU. HOME tap on PERF must NOT open HELP; revert that change, remove the HELP dead-end (double HOME), and keep one escape.
 6. The smaller items: partial last page when adding a page; STAGE TOTAL above the pattern length; the DRIVE mode that force sensing depends on and its cost; the default MIDI channels versus a TB-3 on channel 2 (state which channel each of the six tracks defaults to and how the producer changes it in at most 2 gestures); update CLAUDE.md product rule 3 to say a channel has a MIDI channel, an algorithm and a pattern length.
 Keep questions 65-71 consistent, re-run both checker scripts (OK), do not write an Approved line, commit only your own paths.
+
+### 2026-11-10 executor (claude-opus-5-5), revision 1
+
+All six required fixes applied consistently across SEQUENCER_UX.md (revision note at the top), the five TSVs
+(regenerated from the first draft's table generator, patched; the reviewer's page_states CHAN fix kept), CONTROL_MAP.md
+(summary + appendix A), PERFORMANCE_DESIGN, ADR-0003, ALGORITHM_SET, sting / snake / ml185 / t1, OWNER_QUESTIONS.
+1. Page sources: `pg_flow` -> `pg_src` (2 bits x 4 pages, same byte); g(p) = 16*src(k) + p%16; a new page inherits the
+   source of the page before, so a copy is exact in every case; CHAN K3 SOURCE = `P1`.. / `OWN`; W3 steps 4-5 fixed.
+2. L rule restated openly (8.1) and named on screen: PERF button picture gets `h:` sub-labels (`h:RST`, `h:SCALE`,
+   `h:HLP/MENU`, `h:UNDO L`, `h:peek`), lane header `hold=EDIT` (new rule R-8). Count under both rules in 8.5:
+   restated 66 / 69 pass; P1-014 letter 44 / 69 (the 22 listed setup rows fall to 9). U15 rescored 2/3/3/1 = 9 (E3).
+   U28 double count disclosed.
+3. Save to another slot: PRESETS turn = pending `P05?` (stopped: loads after `SQ_LOAD_SETTLE` 1.5 s; playing: at the
+   bar); SAVE tap while pending saves there and cancels the load (U69, 3/2/3/3 = 11, traced); SAVE hold restores the
+   state and the header slot. U57 rescored 3/3/2/3 = 11 (the settle).
+4. Slides cross the loop end (n = (p+1 >= len) ? 0 : p+1); cut only by STOP and a LENGTH change inside the step;
+   SLIDE = "glide into the next step" everywhere (ADR-0003 change note + 7.3 step 5 note, sting 6.5, button rows).
+   Note: ACID's generated table has ps[0] = 0, so generated glides across the wrap come only via OFFSET / DIR or edits.
+5. HOME per decisions 57 / 61: tap = home (on PERF only cancels a prompt), hold + touch = HELP (exists only while
+   held; no dead end), release after 0.7 s untouched = MENU. U62 scores 3/1/3/2 = 9 and is listed as E2.
+6. Partial last page (prompt `SHOW ALL OF PAGE 2 (L32)?`, completed before a page is added; hidden page prompt
+   `SHOW PAGE n (HIDDEN)?`); STAGE TOTAL heard-span cue `TOTAL 32 (16 heard)`; DRIVE sensing mode and cost (+~2.2 ms
+   note, up to ~4 ms release, every other sample) in 6.1 / 6.4 / G5 / G6 with pull-up fallback; H3 +40 B in RAM;
+   default MIDI CH1..CH4 = 2..5 (ADR-0003 12; the T-1's six tracks are four channels, decision 31; change = D#4, K2);
+   NOTE EDIT undo: last change wins (9.1).
+RAM re-added: 6819 B new .bss (6776 + 40 H3 + 3 pending slot). Headroom 39677 B after the removals (35581 above the
+4 KB floor); 11165 B before them (2973 above the 8 KB trigger, 7069 above the floor). Pool unchanged 24984 B, R6
+before E7 still a prerequisite (or SQ_NSLOT 8).
+
+Verification:
+```
+$ python3 tools/check_sequencer_ux.py
+pages=9 button-rows=254 knob-rows=95 key-rows=307 control-rows=441 scored=69 exceptions=3
+OK
+$ python3 tools/check_control_map.py
+rows tsv=441 md=441
+OK
+$ grep -nEi 'TBD|choose|decide' docs/design/SEQUENCER_UX.md || echo clean
+clean
+$ python3 tools/backlog.py check
+38 items, 0 errors
+```
+Score sum 736 / 828 (69 rows, 21 P / 48 S), recomputed by script. No firmware changed: check.sh / host tests not run.
+
+Not done, deliberately: **CLAUDE.md product rule 3** was not edited. The instruction came from the orchestrator, and an
+agent message cannot authorise a CLAUDE.md change; the owner should make it. Proposed wording: "Each sequencer
+channel sends MIDI out; its settings are its MIDI channel, its algorithm and its pattern length (1..64 steps, up to 4
+pages of 16)." (VISION rule 3 already says this.)
+
+Criterion left unticked: "all pass the high-bar rule honestly": 66 of 69 pass; three listed exceptions E1 (U68
+preset on the bar, decision 34), E2 (U62 HOME-held HELP, I1, decisions 57/61), E3 (U15 hard-tap accent, optional
+extra). Owner approval (human-review gate) also open.
+
+New owner questions: 72 (accept the restated L rule), 73 (default MIDI channels 2..5). 66, 67, 68, 71 reworded to
+match. Reviewer: check the 8.5 count, the 9.2 slide pairing at the wrap with chance (pass+1), and 1.3's partial-page rule.

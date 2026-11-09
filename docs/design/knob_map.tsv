@@ -24,7 +24,7 @@ PERF	SNAKE	S2	GLEN	turn: morph GLEN of the selected channel (ROW 2 (live after O
 PERF	SNAKE	S3	DYN	turn: morph DYN of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	dyn 0..10 def 10
 PERF	SNAKE	S4	DIR	turn: morph DIR of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	dir FWD BWD PEND
 PERF	STAGE	K1	DENS	turn: morph DENS of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	den 0..8 def 6; 0 = KEYS ONLY
-PERF	STAGE	K2	TOTAL	turn: morph TOTAL of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	tot 8..64 def 16 fast 4
+PERF	STAGE	K2	TOTAL	turn: morph TOTAL of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	tot 8..64 def 16 fast 4; cell adds (n heard) when the pages read fewer pulses than TOTAL
 PERF	STAGE	K3	DIR	turn: morph DIR of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	dir FWD BWD PEND (was S4)
 PERF	STAGE	K4	RATCH	turn: morph RATCH of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	rat 0..8 def 2
 PERF	STAGE	S1	OFFSET	turn: morph OFFSET of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	off 0..63 def 0 fast 4
@@ -36,8 +36,8 @@ NOTE_EDIT	*	K2	GATE	note length of the edited step, x global GATE; top value TIE
 NOTE_EDIT	*	K3	VELO	velocity of the edited step; value reads ACC at >= ACC_THR 100 (TB-3 accent)	AUTO, 1..127, step 1 fast 8
 NOTE_EDIT	*	K4	RATCH	repeats inside the step (SP5 spacing)	AUTO, 1x 2x 3x 4x
 CHAN	*	K1	LENGTH	pattern length of the selected channel; crossing into a new page fills it (copy of the page before, or the stored page); shrinking hides, never deletes	1..64, default 16, step 1 fast 4
-CHAN	*	K2	MIDI	MIDI output channel of the selected channel	1..16, OFF; defaults CH1..CH4 = 1..4
-CHAN	*	K3	SOURCE	generator source of the VIEWED page: COPY = reads page 1 positions (a duplicate), FLOW = reads its own positions (the algorithm continues); page 1 shows -	COPY FLOW; default COPY
+CHAN	*	K2	MIDI	MIDI output channel of the selected channel	1..16, OFF; defaults CH1..CH4 = MIDI 2..5 (CH1 = 2 = the TB-3 default)
+CHAN	*	K3	SOURCE	generator source of the VIEWED page k: P1..P(k-1) = reads the generator positions of that earlier page (a duplicate of it), OWN = reads its own positions (the algorithm continues past it); page 1 is always OWN (cell dim); a new page inherits the source of the page before, so a copy is exact	P1..P(k-1), OWN; a new page: the source of the page before; page 1: OWN fixed
 CHAN	*	K4	FOLLOW	the lane view follows the playhead page while playing	ON OFF; default ON (PG- / PG+ set OFF)
 SET	*	K1	BPM	tempo (internal clock; ignored while an external MIDI clock runs, value shows EXT)	40..240, default 120, step 1 fast 5
 SET	*	K2	SWING	odd steps late by 2*(swing-50) % of a step (decision 43); parity by pattern position	50..75 %, default 50
@@ -51,14 +51,14 @@ REC	*	K1	CURSOR	move the write cursor one step per detent (stopped: the step sou
 REC	*	K2	ACC	written notes get ACCENT (velocity 120) when ON; with force sensing the landing force sets the velocity and ACC forces 120	OFF ON
 REC	*	K3	SLIDE	written notes get SLIDE when ON	OFF ON
 REC	*	K4	OCT	REC keyboard octave (also OCT- / OCT+)	-2..+2, default 0
-RESET	*	K1	RST	turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE COPY / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes	-
-RESET	*	K2	RST	turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE COPY / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes	-
-RESET	*	K3	RST	turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE COPY / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes	-
-RESET	*	K4	RST	turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE COPY / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes	-
-HELP	*	K1	?	turn: explain this knob on PERF (both rows); nothing changes	-
-HELP	*	K2	?	turn: explain this knob on PERF (both rows); nothing changes	-
-HELP	*	K3	?	turn: explain this knob on PERF (both rows); nothing changes	-
-HELP	*	K4	?	turn: explain this knob on PERF (both rows); nothing changes	-
+RESET	*	K1	RST	turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE P1 (reads page 1) / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes	-
+RESET	*	K2	RST	turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE P1 (reads page 1) / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes	-
+RESET	*	K3	RST	turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE P1 (reads page 1) / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes	-
+RESET	*	K4	RST	turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE P1 (reads page 1) / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes	-
+HELP	*	K1	?	turn (HOME held): explain this knob on the page beneath (PERF: both rows); nothing changes	-
+HELP	*	K2	?	turn (HOME held): explain this knob on the page beneath (PERF: both rows); nothing changes	-
+HELP	*	K3	?	turn (HOME held): explain this knob on the page beneath (PERF: both rows); nothing changes	-
+HELP	*	K4	?	turn (HOME held): explain this knob on the page beneath (PERF: both rows); nothing changes	-
 MENU	*	K1	value	turn: change the selected row's value (Felucca menu rule)	row range
 MENU	*	K2	value	turn: change the selected row's value (Felucca menu rule)	row range
 MENU	*	K3	value	turn: change the selected row's value (Felucca menu rule)	row range
@@ -69,19 +69,19 @@ PERF	*	K3	morph	turn: the live row (ROW 1 or ROW 2) morph in this column of the 
 PERF	*	K4	morph	turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above)	per algorithm
 PERF	*	SELECT	CH n	turn: select channel CH1..CH4 (clamped, no wrap)	CH1..CH4
 PERF	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	4 algorithms
-PERF	*	PRESET	Pnn	turn: preset slot P01..P16; playing: the last slot turned to loads at the next 768-tick bar (header Pnn>); stopped: at once	P01..P16
+PERF	*	PRESET	Pnn	turn: choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: at the next 768-tick bar (header Pnn>); SAVE tap while pending saves there instead (no load); turning back to the current slot cancels	P01..P16
 NOTE_EDIT	*	SELECT	CH n	turn: select channel CH1..CH4; closes NOTE EDIT (the edited step belongs to the old channel)	CH1..CH4
 NOTE_EDIT	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	4 algorithms
-NOTE_EDIT	*	PRESET	Pnn	turn: preset slot P01..P16; playing: the last slot turned to loads at the next 768-tick bar (header Pnn>); stopped: at once	P01..P16
+NOTE_EDIT	*	PRESET	Pnn	turn: choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: at the next 768-tick bar (header Pnn>); SAVE tap while pending saves there instead (no load); turning back to the current slot cancels	P01..P16
 CHAN	*	SELECT	CH n	turn: select channel CH1..CH4 (clamped, no wrap)	CH1..CH4
 CHAN	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	4 algorithms
-CHAN	*	PRESET	Pnn	turn: preset slot P01..P16; playing: the last slot turned to loads at the next 768-tick bar (header Pnn>); stopped: at once	P01..P16
+CHAN	*	PRESET	Pnn	turn: choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: at the next 768-tick bar (header Pnn>); SAVE tap while pending saves there instead (no load); turning back to the current slot cancels	P01..P16
 SET	*	SELECT	CH n	turn: select channel CH1..CH4 (clamped, no wrap)	CH1..CH4
 SET	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	4 algorithms
-SET	*	PRESET	Pnn	turn: preset slot P01..P16; playing: the last slot turned to loads at the next 768-tick bar (header Pnn>); stopped: at once	P01..P16
+SET	*	PRESET	Pnn	turn: choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: at the next 768-tick bar (header Pnn>); SAVE tap while pending saves there instead (no load); turning back to the current slot cancels	P01..P16
 SCALE	*	SELECT	CH n	turn: select channel CH1..CH4 (clamped, no wrap)	CH1..CH4
 SCALE	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	4 algorithms
-SCALE	*	PRESET	Pnn	turn: preset slot P01..P16; playing: the last slot turned to loads at the next 768-tick bar (header Pnn>); stopped: at once	P01..P16
+SCALE	*	PRESET	Pnn	turn: choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: at the next 768-tick bar (header Pnn>); SAVE tap while pending saves there instead (no load); turning back to the current slot cancels	P01..P16
 REC	*	SELECT	CH n	turn: select channel; the cursor goes to step 1	CH1..CH4
 REC	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	4 algorithms
 REC	*	PRESET	-	turn: inert in REC (toast REC: tap REC to finish)	P01..P16

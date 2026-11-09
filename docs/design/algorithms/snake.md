@@ -261,7 +261,7 @@ step.
 - The key-entry gesture itself (which key, which mode) belongs to the channel/step-entry spec and must cite this
   section.
 
-- **P1-017 (supersedes the pin bullets above; SEQUENCER_UX 1, 9.2):** pins become the per-step edit layer, keyed to the step (gate position) as before. SNAKE's lanes (pitch `LEN`, gate `GLEN`, velocity `POLY`) run on the generator position: COPY pages repeat page 1, FLOW pages let the lanes drift, and the whole polymeter restarts at the channel LENGTH, so its longest cycle is now at most 64 steps (owner question 70). The pitch lane already has a value for every step, so a step turned ON by hand plays its lane pitch.
+- **P1-017 (supersedes the pin bullets above; SEQUENCER_UX 1, 9.2):** pins become the per-step edit layer, keyed to the step (gate position) as before. SNAKE's lanes (pitch `LEN`, gate `GLEN`, velocity `POLY`) run on the generator position: a page reading an earlier page (`P1`..) repeats it, an `OWN` page lets the lanes drift (a new page inherits the source of the page before, revision 1), and the whole polymeter restarts at the channel LENGTH, so its longest cycle is now at most 64 steps (owner question 70). The pitch lane already has a value for every step, so a step turned ON by hand plays its lane pitch.
 
 ### 6.6 Flex points (ADR-0004 addendum): what is a table edit, what is not
 

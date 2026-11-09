@@ -13,8 +13,8 @@ REC	B_FX	tap	press: DICE ALL layers present in the algorithm (generated layer on
 REC	B_FX	hold	no hold role: acted once on press	ALL	dice buttons act on press (B2)
 RESET	B_FX	tap	press: from PERF/CHAN/SET/SCALE: the whole algorithm to factory (8 morphs + every seed; edits kept); from NOTE_EDIT: every edit of the edited step to AUTO; RESET closes; EDIT tap undoes	RST AL	hold EDIT then touch = back to default (one rule)
 RESET	B_FX	hold	no hold role: acted once on press	RST AL	one shot
-HELP	B_FX	tap	explain this control (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
-HELP	B_FX	hold	as tap (explain); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_FX	tap	explain this control on the page beneath (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_FX	hold	as tap (explain while HOME stays down); nothing else happens	?	HELP: touch to learn, nothing acts
 MENU	B_FX	tap	press: closes the menu (no other action)	close	Felucca menu rule (unchanged)
 MENU	B_FX	hold	as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	Felucca menu rule (unchanged)
 PERF	B_SCL	tap	press: dice the NOTES layer (new pitches in the scale; edited pitches kept); algorithm sub-label under it	NOTES	printed SCL = scale: the pitch layer
@@ -31,8 +31,8 @@ REC	B_SCL	tap	press: dice the NOTES layer (new pitches in the scale; edited pitc
 REC	B_SCL	hold	no hold role: acted once on press	NOTES	dice buttons act on press (B2)
 RESET	B_SCL	tap	press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (NOTE); RESET closes; EDIT tap undoes	RST NT	hold EDIT then touch = back to default (one rule)
 RESET	B_SCL	hold	no hold role: acted once on press	RST NT	one shot
-HELP	B_SCL	tap	explain this control (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
-HELP	B_SCL	hold	as tap (explain); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_SCL	tap	explain this control on the page beneath (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_SCL	hold	as tap (explain while HOME stays down); nothing else happens	?	HELP: touch to learn, nothing acts
 MENU	B_SCL	tap	press: closes the menu (no other action)	close	Felucca menu rule (unchanged)
 MENU	B_SCL	hold	as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	Felucca menu rule (unchanged)
 PERF	B_ENV	tap	press: dice the ACCNT layer (which generated steps are loud; VELO edits kept); algorithm sub-label under it	ACCNT	printed ENV = envelope: the accent layer
@@ -49,8 +49,8 @@ REC	B_ENV	tap	press: dice the ACCNT layer (which generated steps are loud; VELO 
 REC	B_ENV	hold	no hold role: acted once on press	ACCNT	dice buttons act on press (B2)
 RESET	B_ENV	tap	press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (ACCENT); RESET closes; EDIT tap undoes	RST AC	hold EDIT then touch = back to default (one rule)
 RESET	B_ENV	hold	no hold role: acted once on press	RST AC	one shot
-HELP	B_ENV	tap	explain this control (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
-HELP	B_ENV	hold	as tap (explain); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_ENV	tap	explain this control on the page beneath (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_ENV	hold	as tap (explain while HOME stays down); nothing else happens	?	HELP: touch to learn, nothing acts
 MENU	B_ENV	tap	press: closes the menu (no other action)	close	Felucca menu rule (unchanged)
 MENU	B_ENV	hold	as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	Felucca menu rule (unchanged)
 PERF	B_LFO	tap	press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent; algorithm sub-label under it	SHAPE	printed LFO = movement: shape and chance
@@ -67,34 +67,34 @@ REC	B_LFO	tap	press: dice the SHAPE layer (register jumps, slot lengths, drift);
 REC	B_LFO	hold	no hold role: acted once on press	SHAPE	dice buttons act on press (B2)
 RESET	B_LFO	tap	press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (PROB); RESET closes; EDIT tap undoes	RST SH	hold EDIT then touch = back to default (one rule)
 RESET	B_LFO	hold	no hold role: acted once on press	RST SH	one shot
-HELP	B_LFO	tap	explain this control (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
-HELP	B_LFO	hold	as tap (explain); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_LFO	tap	explain this control on the page beneath (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_LFO	hold	as tap (explain while HOME stays down); nothing else happens	?	HELP: touch to learn, nothing acts
 MENU	B_LFO	tap	press: closes the menu (no other action)	close	Felucca menu rule (unchanged)
 MENU	B_LFO	hold	as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	Felucca menu rule (unchanged)
 PERF	B_EDIT	tap	UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel	UNDO	EDIT = take back, everywhere
-PERF	B_EDIT	hold	0.4 s: open RESET (latched, one shot): the next control touched goes back to its default	RESET	hold = open the page of that button
+PERF	B_EDIT	hold	0.4 s: open RESET (latched, one shot): the next control touched goes back to its default	RESET	hold = open the page of that button; named on PERF by the sub-label h:RST
 NOTE_EDIT	B_EDIT	tap	UNDO: the edited step back to how it was when this NOTE EDIT visit began; again = redo	UNDO	EDIT = take back, everywhere
 NOTE_EDIT	B_EDIT	hold	0.4 s: open RESET over NOTE_EDIT (next touch puts that property of the step back to AUTO)	RESET	hold = open the page of that button
 CHAN	B_EDIT	tap	UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel	UNDO	EDIT = take back, everywhere
-CHAN	B_EDIT	hold	0.4 s: open RESET (latched, one shot): the next control touched goes back to its default	RESET	hold = open the page of that button
+CHAN	B_EDIT	hold	0.4 s: open RESET (latched, one shot): the next control touched goes back to its default	RESET	hold = open the page of that button; named on PERF by the sub-label h:RST
 SET	B_EDIT	tap	UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel	UNDO	EDIT = take back, everywhere
-SET	B_EDIT	hold	0.4 s: open RESET (latched, one shot): the next control touched goes back to its default	RESET	hold = open the page of that button
+SET	B_EDIT	hold	0.4 s: open RESET (latched, one shot): the next control touched goes back to its default	RESET	hold = open the page of that button; named on PERF by the sub-label h:RST
 SCALE	B_EDIT	tap	UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel	UNDO	EDIT = take back, everywhere
-SCALE	B_EDIT	hold	0.4 s: open RESET (latched, one shot): the next control touched goes back to its default	RESET	hold = open the page of that button
+SCALE	B_EDIT	hold	0.4 s: open RESET (latched, one shot): the next control touched goes back to its default	RESET	hold = open the page of that button; named on PERF by the sub-label h:RST
 REC	B_EDIT	tap	UNDO the last written note (the cursor steps back); again = redo	UNDO	EDIT = take back, everywhere
 REC	B_EDIT	hold	inert in REC (toast LEAVE REC FIRST)	UNDO	one latched page at a time
 RESET	B_EDIT	tap	cancel RESET (nothing reset), back to the page beneath	CANCEL	the button that opened it closes it
 RESET	B_EDIT	hold	inert (already in RESET)	CANCEL	one modifier at a time
-HELP	B_EDIT	tap	explain this control (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
-HELP	B_EDIT	hold	as tap (explain); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_EDIT	tap	explain this control on the page beneath (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_EDIT	hold	as tap (explain while HOME stays down); nothing else happens	?	HELP: touch to learn, nothing acts
 MENU	B_EDIT	tap	press: closes the menu (no other action)	close	Felucca menu rule (unchanged)
 MENU	B_EDIT	hold	as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	Felucca menu rule (unchanged)
 PERF	B_GLO	tap	open SET (latched): BPM SWING GATE DIV	SET	printed GLO = global
-PERF	B_GLO	hold	0.4 s: open SCALE (latched): SCALE KEY OCTAVE; any key = KEY	SCALE	hold = the second global page (sub-label on the GLO cell)
+PERF	B_GLO	hold	0.4 s: open SCALE (latched): SCALE KEY OCTAVE; any key = KEY	SCALE	hold = the second global page (named on PERF by the sub-label h:SCALE)
 NOTE_EDIT	B_GLO	tap	open SET (latched): BPM SWING GATE DIV (closes NOTE EDIT)	SET	printed GLO = global
-NOTE_EDIT	B_GLO	hold	0.4 s: open SCALE (latched): SCALE KEY OCTAVE; any key = KEY	SCALE	hold = the second global page (sub-label on the GLO cell)
+NOTE_EDIT	B_GLO	hold	0.4 s: open SCALE (latched): SCALE KEY OCTAVE; any key = KEY	SCALE	hold = the second global page (named on PERF by the sub-label h:SCALE)
 CHAN	B_GLO	tap	open SET (latched): BPM SWING GATE DIV	SET	printed GLO = global
-CHAN	B_GLO	hold	0.4 s: open SCALE (latched): SCALE KEY OCTAVE; any key = KEY	SCALE	hold = the second global page (sub-label on the GLO cell)
+CHAN	B_GLO	hold	0.4 s: open SCALE (latched): SCALE KEY OCTAVE; any key = KEY	SCALE	hold = the second global page (named on PERF by the sub-label h:SCALE)
 SET	B_GLO	tap	close SET, back to PERF	BACK	the button that opened it closes it
 SET	B_GLO	hold	0.4 s: switch to SCALE	SCALE	hold = the second global page
 SCALE	B_GLO	tap	close SCALE, back to PERF	BACK	the button that opened it closes it
@@ -103,49 +103,49 @@ REC	B_GLO	tap	inert in REC (toast REC: tap REC to finish)	-	one latched page at 
 REC	B_GLO	hold	inert in REC	-	one latched page at a time
 RESET	B_GLO	tap	inert (nothing to reset; toast NOTHING TO RESET)	-	RESET touches values only
 RESET	B_GLO	hold	inert	-	RESET touches values only
-HELP	B_GLO	tap	explain this control (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
-HELP	B_GLO	hold	as tap (explain); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_GLO	tap	explain this control on the page beneath (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_GLO	hold	as tap (explain while HOME stays down); nothing else happens	?	HELP: touch to learn, nothing acts
 MENU	B_GLO	tap	press: closes the menu (no other action)	close	Felucca menu rule (unchanged)
 MENU	B_GLO	hold	as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	Felucca menu rule (unchanged)
-PERF	B_HOME	tap	release under 0.7 s: open HELP (already home, so HOME explains)	HELP	HOME on the home page = help
-PERF	B_HOME	hold	held 0.7 s, acts on release: open MENU	MENU	printed: HOME hold = Menu
-NOTE_EDIT	B_HOME	tap	release under 0.7 s: back to PERF (leaves NOTE_EDIT)	HOME	one escape
-NOTE_EDIT	B_HOME	hold	held 0.7 s, acts on release: open MENU	MENU	printed: HOME hold = Menu
-CHAN	B_HOME	tap	release under 0.7 s: back to PERF (leaves CHAN)	HOME	one escape
-CHAN	B_HOME	hold	held 0.7 s, acts on release: open MENU	MENU	printed: HOME hold = Menu
-SET	B_HOME	tap	release under 0.7 s: back to PERF (leaves SET)	HOME	one escape
-SET	B_HOME	hold	held 0.7 s, acts on release: open MENU	MENU	printed: HOME hold = Menu
-SCALE	B_HOME	tap	release under 0.7 s: back to PERF (leaves SCALE)	HOME	one escape
-SCALE	B_HOME	hold	held 0.7 s, acts on release: open MENU	MENU	printed: HOME hold = Menu
-REC	B_HOME	tap	release under 0.7 s: back to PERF (leaves REC)	HOME	one escape
-REC	B_HOME	hold	held 0.7 s, acts on release: open MENU	MENU	printed: HOME hold = Menu
-RESET	B_HOME	tap	cancel RESET and go to PERF	HOME	one escape
-RESET	B_HOME	hold	held 0.7 s, acts on release: open MENU	MENU	printed: HOME hold = Menu
-HELP	B_HOME	tap	release under 0.7 s: close HELP, back to PERF	BACK	the button that opened it closes it
-HELP	B_HOME	hold	held 0.7 s, acts on release: open MENU	MENU	printed: HOME hold = Menu
+PERF	B_HOME	tap	release under 0.7 s, nothing touched: already home, so it only cancels a pending prompt (ADD PAGE, a pending preset slot) or skips the first-run strip; toast HOME  hold: HELP / MENU; it never opens a page	HOME	one escape (decision 61: tap = home)
+PERF	B_HOME	hold	hold (acts on release; owner decisions 57 / 61): from 0.25 s the strip reads HOME: touch=HELP  let go=MENU; touch or turn any control while HOME is down = HELP for that control (it does not act); release after 0.7 s with nothing touched = MENU	HLP/MN	printed: HOME hold = Menu; HELP while held (decision 57); named on PERF by the sub-label h:HLP/MENU
+NOTE_EDIT	B_HOME	tap	release under 0.7 s, nothing touched: back to PERF (leaves NOTE_EDIT)	HOME	one escape (decision 61: tap = home)
+NOTE_EDIT	B_HOME	hold	hold (acts on release; owner decisions 57 / 61): from 0.25 s the strip reads HOME: touch=HELP  let go=MENU; touch or turn any control while HOME is down = HELP for that control (it does not act); release after 0.7 s with nothing touched = MENU	HLP/MN	printed: HOME hold = Menu; HELP while held (decision 57)
+CHAN	B_HOME	tap	release under 0.7 s, nothing touched: back to PERF (leaves CHAN)	HOME	one escape (decision 61: tap = home)
+CHAN	B_HOME	hold	hold (acts on release; owner decisions 57 / 61): from 0.25 s the strip reads HOME: touch=HELP  let go=MENU; touch or turn any control while HOME is down = HELP for that control (it does not act); release after 0.7 s with nothing touched = MENU	HLP/MN	printed: HOME hold = Menu; HELP while held (decision 57)
+SET	B_HOME	tap	release under 0.7 s, nothing touched: back to PERF (leaves SET)	HOME	one escape (decision 61: tap = home)
+SET	B_HOME	hold	hold (acts on release; owner decisions 57 / 61): from 0.25 s the strip reads HOME: touch=HELP  let go=MENU; touch or turn any control while HOME is down = HELP for that control (it does not act); release after 0.7 s with nothing touched = MENU	HLP/MN	printed: HOME hold = Menu; HELP while held (decision 57)
+SCALE	B_HOME	tap	release under 0.7 s, nothing touched: back to PERF (leaves SCALE)	HOME	one escape (decision 61: tap = home)
+SCALE	B_HOME	hold	hold (acts on release; owner decisions 57 / 61): from 0.25 s the strip reads HOME: touch=HELP  let go=MENU; touch or turn any control while HOME is down = HELP for that control (it does not act); release after 0.7 s with nothing touched = MENU	HLP/MN	printed: HOME hold = Menu; HELP while held (decision 57)
+REC	B_HOME	tap	release under 0.7 s, nothing touched: back to PERF (leaves REC)	HOME	one escape (decision 61: tap = home)
+REC	B_HOME	hold	hold (acts on release; owner decisions 57 / 61): from 0.25 s the strip reads HOME: touch=HELP  let go=MENU; touch or turn any control while HOME is down = HELP for that control (it does not act); release after 0.7 s with nothing touched = MENU	HLP/MN	printed: HOME hold = Menu; HELP while held (decision 57)
+RESET	B_HOME	tap	cancel RESET and go to PERF	HOME	one escape (decision 61: tap = home)
+RESET	B_HOME	hold	hold (acts on release; owner decisions 57 / 61): from 0.25 s the strip reads HOME: touch=HELP  let go=MENU; touch or turn any control while HOME is down = HELP for that control (it does not act); release after 0.7 s with nothing touched = MENU	HLP/MN	printed: HOME hold = Menu; HELP while held (decision 57)
+HELP	B_HOME	tap	release HOME (a control was touched): HELP closes, back to the page HOME was held on; no MENU	BACK	HELP lives only while HOME is held, so there is no HELP page to get stuck in
+HELP	B_HOME	hold	keep HOME down: touch or turn more controls to explain them	HELP	decision 57: hold HOME + touch = HELP
 MENU	B_HOME	tap	tap or hold 0.7 s: close the menu	BACK	Felucca menu rule (unchanged)
 MENU	B_HOME	hold	as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	BACK	Felucca menu rule (unchanged)
-PERF	B_SAVE	tap	release under 0.7 s: save the whole device state to the preset slot in the header	SAVE	printed SAVE
-PERF	B_SAVE	hold	0.7 s: undo the last preset load, applied at the next step (again = redo)	UNDO L	printed: SAVE hold = undo the last load
-NOTE_EDIT	B_SAVE	tap	release under 0.7 s: save the whole device state to the preset slot in the header	SAVE	printed SAVE
-NOTE_EDIT	B_SAVE	hold	0.7 s: undo the last preset load, applied at the next step (again = redo)	UNDO L	printed: SAVE hold = undo the last load
-CHAN	B_SAVE	tap	release under 0.7 s: save the whole device state to the preset slot in the header	SAVE	printed SAVE
-CHAN	B_SAVE	hold	0.7 s: undo the last preset load, applied at the next step (again = redo)	UNDO L	printed: SAVE hold = undo the last load
-SET	B_SAVE	tap	release under 0.7 s: save the whole device state to the preset slot in the header	SAVE	printed SAVE
-SET	B_SAVE	hold	0.7 s: undo the last preset load, applied at the next step (again = redo)	UNDO L	printed: SAVE hold = undo the last load
-SCALE	B_SAVE	tap	release under 0.7 s: save the whole device state to the preset slot in the header	SAVE	printed SAVE
-SCALE	B_SAVE	hold	0.7 s: undo the last preset load, applied at the next step (again = redo)	UNDO L	printed: SAVE hold = undo the last load
-REC	B_SAVE	tap	release under 0.7 s: save the whole device state to the preset slot in the header	SAVE	printed SAVE
-REC	B_SAVE	hold	0.7 s: undo the last preset load, applied at the next step (again = redo)	UNDO L	printed: SAVE hold = undo the last load
+PERF	B_SAVE	tap	release under 0.7 s: save the whole device state to the slot in the header; while a slot is pending (header Pnn?), save to the PENDING slot instead and cancel its load (the header becomes Pnn)	SAVE	printed SAVE; a turned PRESETS slot is where SAVE writes
+PERF	B_SAVE	hold	0.7 s: undo the last preset load (the state AND the header slot go back), applied at the next step; again = redo; while a slot is pending: cancel it instead	UNDO L	printed: SAVE hold = undo the last load; named on PERF by the sub-label h:UNDO L
+NOTE_EDIT	B_SAVE	tap	release under 0.7 s: save the whole device state to the slot in the header; while a slot is pending (header Pnn?), save to the PENDING slot instead and cancel its load (the header becomes Pnn)	SAVE	printed SAVE; a turned PRESETS slot is where SAVE writes
+NOTE_EDIT	B_SAVE	hold	0.7 s: undo the last preset load (the state AND the header slot go back), applied at the next step; again = redo; while a slot is pending: cancel it instead	UNDO L	printed: SAVE hold = undo the last load; named on PERF by the sub-label h:UNDO L
+CHAN	B_SAVE	tap	release under 0.7 s: save the whole device state to the slot in the header; while a slot is pending (header Pnn?), save to the PENDING slot instead and cancel its load (the header becomes Pnn)	SAVE	printed SAVE; a turned PRESETS slot is where SAVE writes
+CHAN	B_SAVE	hold	0.7 s: undo the last preset load (the state AND the header slot go back), applied at the next step; again = redo; while a slot is pending: cancel it instead	UNDO L	printed: SAVE hold = undo the last load; named on PERF by the sub-label h:UNDO L
+SET	B_SAVE	tap	release under 0.7 s: save the whole device state to the slot in the header; while a slot is pending (header Pnn?), save to the PENDING slot instead and cancel its load (the header becomes Pnn)	SAVE	printed SAVE; a turned PRESETS slot is where SAVE writes
+SET	B_SAVE	hold	0.7 s: undo the last preset load (the state AND the header slot go back), applied at the next step; again = redo; while a slot is pending: cancel it instead	UNDO L	printed: SAVE hold = undo the last load; named on PERF by the sub-label h:UNDO L
+SCALE	B_SAVE	tap	release under 0.7 s: save the whole device state to the slot in the header; while a slot is pending (header Pnn?), save to the PENDING slot instead and cancel its load (the header becomes Pnn)	SAVE	printed SAVE; a turned PRESETS slot is where SAVE writes
+SCALE	B_SAVE	hold	0.7 s: undo the last preset load (the state AND the header slot go back), applied at the next step; again = redo; while a slot is pending: cancel it instead	UNDO L	printed: SAVE hold = undo the last load; named on PERF by the sub-label h:UNDO L
+REC	B_SAVE	tap	release under 0.7 s: save the whole device state to the slot in the header; while a slot is pending (header Pnn?), save to the PENDING slot instead and cancel its load (the header becomes Pnn)	SAVE	printed SAVE; a turned PRESETS slot is where SAVE writes
+REC	B_SAVE	hold	0.7 s: undo the last preset load (the state AND the header slot go back), applied at the next step; again = redo; while a slot is pending: cancel it instead	UNDO L	printed: SAVE hold = undo the last load; named on PERF by the sub-label h:UNDO L
 RESET	B_SAVE	tap	inert (toast NOTHING TO RESET)	-	RESET touches values only
 RESET	B_SAVE	hold	inert	-	RESET touches values only
-HELP	B_SAVE	tap	explain this control (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
-HELP	B_SAVE	hold	as tap (explain); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_SAVE	tap	explain this control on the page beneath (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_SAVE	hold	as tap (explain while HOME stays down); nothing else happens	?	HELP: touch to learn, nothing acts
 MENU	B_SAVE	tap	press: closes the menu (no other action)	close	Felucca menu rule (unchanged)
 MENU	B_SAVE	hold	as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	Felucca menu rule (unchanged)
 PERF	B_ARP	tap	press: dice the ARTIC layer (gate, slide, ratchet as the algorithm has them; edits kept); dim if absent; algorithm sub-label under it	ARTIC	printed ARP = repeating figures: the articulation layer
 PERF	B_ARP	hold	no hold role: acted once on press	ARTIC	dice buttons act on press (B2)
-NOTE_EDIT	B_ARP	tap	press: toggle SLIDE on the edited step: this note glides into the next sounding step (TB-303 convention); EDIT tap undoes	SLIDE	printed ARP = repeating figures: the articulation layer (NOTE EDIT: the same layer, for this one step)
+NOTE_EDIT	B_ARP	tap	press: toggle SLIDE on the edited step: this note glides into the next step (step 1 after the last step; TB-303 rule; no glide if that step is silent); EDIT tap undoes	SLIDE	printed ARP = repeating figures: the articulation layer (NOTE EDIT: the same layer, for this one step)
 NOTE_EDIT	B_ARP	hold	no hold role: acted once on press	SLIDE	dice buttons act on press (B2)
 CHAN	B_ARP	tap	press: dice the ARTIC layer (gate, slide, ratchet as the algorithm has them; edits kept); dim if absent; algorithm sub-label under it	ARTIC	printed ARP = repeating figures: the articulation layer
 CHAN	B_ARP	hold	no hold role: acted once on press	ARTIC	dice buttons act on press (B2)
@@ -157,8 +157,8 @@ REC	B_ARP	tap	press: dice the ARTIC layer (gate, slide, ratchet as the algorithm
 REC	B_ARP	hold	no hold role: acted once on press	ARTIC	dice buttons act on press (B2)
 RESET	B_ARP	tap	press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (SLIDE); RESET closes; EDIT tap undoes	RST AR	hold EDIT then touch = back to default (one rule)
 RESET	B_ARP	hold	no hold role: acted once on press	RST AR	one shot
-HELP	B_ARP	tap	explain this control (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
-HELP	B_ARP	hold	as tap (explain); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_ARP	tap	explain this control on the page beneath (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_ARP	hold	as tap (explain while HOME stays down); nothing else happens	?	HELP: touch to learn, nothing acts
 MENU	B_ARP	tap	press: closes the menu (no other action)	close	Felucca menu rule (unchanged)
 MENU	B_ARP	hold	as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	Felucca menu rule (unchanged)
 PERF	B_SEQ	tap	press: dice the HITS layer (where the generated steps fall; ON/OFF edits kept); algorithm sub-label under it	HITS	printed SEQ = steps: which steps play
@@ -175,8 +175,8 @@ REC	B_SEQ	tap	press: dice the HITS layer (where the generated steps fall; ON/OFF
 REC	B_SEQ	hold	no hold role: acted once on press	HITS	dice buttons act on press (B2)
 RESET	B_SEQ	tap	press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (ON/OFF); RESET closes; EDIT tap undoes	RST HT	hold EDIT then touch = back to default (one rule)
 RESET	B_SEQ	hold	no hold role: acted once on press	RST HT	one shot
-HELP	B_SEQ	tap	explain this control (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
-HELP	B_SEQ	hold	as tap (explain); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_SEQ	tap	explain this control on the page beneath (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_SEQ	hold	as tap (explain while HOME stays down); nothing else happens	?	HELP: touch to learn, nothing acts
 MENU	B_SEQ	tap	press: closes the menu (no other action)	close	Felucca menu rule (unchanged)
 MENU	B_SEQ	hold	as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	Felucca menu rule (unchanged)
 PERF	B_PLAY	tap	press: start / stop all channels (stop sends every note-off then CC123)	PLAY	printed PLAY/STOP
@@ -211,16 +211,16 @@ REC	B_REC	tap	press: leave REC, back to PERF	DONE	the button that opened it clos
 REC	B_REC	hold	no hold role: acted once on press	DONE	act on press
 RESET	B_REC	tap	press: clear every edit on the viewed page of the selected channel (it becomes pure generator); RESET closes; EDIT tap undoes	RST PG	hold EDIT then touch = back to default
 RESET	B_REC	hold	no hold role: acted once on press	RST PG	act on press
-HELP	B_REC	tap	explain this control (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
-HELP	B_REC	hold	as tap (explain); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_REC	tap	explain this control on the page beneath (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_REC	hold	as tap (explain while HOME stays down); nothing else happens	?	HELP: touch to learn, nothing acts
 MENU	B_REC	tap	press: closes the menu (no other action)	close	Felucca menu rule (unchanged)
 MENU	B_REC	hold	as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	Felucca menu rule (unchanged)
 PERF	B_OCTDN	tap	release: latch ROW 1 of the knob band	ROW 1	two rows of four, the row buttons beside the knobs (decision 48)
-PERF	B_OCTDN	hold	hold and turn a knob: ROW 1 live while held (momentary peek; the tap is the main route)	ROW 1	hold = momentary
+PERF	B_OCTDN	hold	hold and turn a knob: ROW 1 live while held (momentary peek; the tap is the main route; sub-label h:peek; unscored)	ROW 1	hold = momentary
 PERF	B_OCTDN	hold-both	both OCT held 5 s = UPDATE MODE; both at power-on = CALIBRATION (hidden maintenance, unchanged)	UPDATE	stock maintenance gesture
 NOTE_EDIT	B_OCTDN	tap	release: the edited step one octave down (OCT -2..+2), auditioned	OCT-	printed OCT = octave
 NOTE_EDIT	B_OCTDN	hold	as tap (no hold role on this page)	OCT-	printed OCT = octave
-CHAN	B_OCTDN	tap	release: LENGTH -16 (hide the last page; nothing is lost)	-PAGE	minus / plus a page
+CHAN	B_OCTDN	tap	release: LENGTH to the page boundary below (20 -> 16, 48 -> 32; at 16 or less inert, toast ONE PAGE: K1 = SHORTER); the hidden steps keep their edits	-PAGE	minus / plus a page
 CHAN	B_OCTDN	hold	as tap (no hold role on this page)	-PAGE	minus / plus a page
 SET	B_OCTDN	tap	inert on SET (one row of four; toast ONE ROW HERE)	-	nothing hidden
 SET	B_OCTDN	hold	inert	-	nothing hidden
@@ -230,16 +230,16 @@ REC	B_OCTDN	tap	release: the REC keyboard octave -1 (same value as K4 OCT)	OCT-	
 REC	B_OCTDN	hold	as tap (no hold role on this page)	OCT-	printed OCT = octave
 RESET	B_OCTDN	tap	from PERF: reset the four morphs of ROW 1; from NOTE_EDIT: the step octave to AUTO; elsewhere inert; RESET closes; EDIT tap undoes	RST R1	hold EDIT then touch = back to default
 RESET	B_OCTDN	hold	as tap	RST R1	one shot
-HELP	B_OCTDN	tap	explain this control (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
-HELP	B_OCTDN	hold	as tap (explain); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_OCTDN	tap	explain this control on the page beneath (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_OCTDN	hold	as tap (explain while HOME stays down); nothing else happens	?	HELP: touch to learn, nothing acts
 MENU	B_OCTDN	tap	release: previous value / back (Felucca menu rule)	-	Felucca menu rule (unchanged)
 MENU	B_OCTDN	hold	as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	-	Felucca menu rule (unchanged)
 PERF	B_OCTUP	tap	release: latch ROW 2 of the knob band	ROW 2	two rows of four, the row buttons beside the knobs (decision 48)
-PERF	B_OCTUP	hold	hold and turn a knob: ROW 2 live while held (momentary peek; the tap is the main route)	ROW 2	hold = momentary
+PERF	B_OCTUP	hold	hold and turn a knob: ROW 2 live while held (momentary peek; the tap is the main route; sub-label h:peek; unscored)	ROW 2	hold = momentary
 PERF	B_OCTUP	hold-both	both OCT held 5 s = UPDATE MODE; both at power-on = CALIBRATION (hidden maintenance, unchanged)	UPDATE	stock maintenance gesture
 NOTE_EDIT	B_OCTUP	tap	release: the edited step one octave up (OCT -2..+2), auditioned	OCT+	printed OCT = octave
 NOTE_EDIT	B_OCTUP	hold	as tap (no hold role on this page)	OCT+	printed OCT = octave
-CHAN	B_OCTUP	tap	release: LENGTH +16 (add a page: a copy of the page before it, or the stored page if one was hidden)	+PAGE	minus / plus a page
+CHAN	B_OCTUP	tap	release: LENGTH to the page boundary above (20 -> 32, 32 -> 48, max 64): a partial page is completed, a new page is a copy of the page before it (edits and source), a hidden page comes back as stored	+PAGE	minus / plus a page
 CHAN	B_OCTUP	hold	as tap (no hold role on this page)	+PAGE	minus / plus a page
 SET	B_OCTUP	tap	inert on SET (one row of four; toast ONE ROW HERE)	-	nothing hidden
 SET	B_OCTUP	hold	inert	-	nothing hidden
@@ -249,7 +249,7 @@ REC	B_OCTUP	tap	release: the REC keyboard octave +1 (same value as K4 OCT)	OCT+	
 REC	B_OCTUP	hold	as tap (no hold role on this page)	OCT+	printed OCT = octave
 RESET	B_OCTUP	tap	from PERF: reset the four morphs of ROW 2; from NOTE_EDIT: the step octave to AUTO; elsewhere inert; RESET closes; EDIT tap undoes	RST R2	hold EDIT then touch = back to default
 RESET	B_OCTUP	hold	as tap	RST R2	one shot
-HELP	B_OCTUP	tap	explain this control (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
-HELP	B_OCTUP	hold	as tap (explain); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_OCTUP	tap	explain this control on the page beneath (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
+HELP	B_OCTUP	hold	as tap (explain while HOME stays down); nothing else happens	?	HELP: touch to learn, nothing acts
 MENU	B_OCTUP	tap	release: next value / do it (opens CALIBRATION, INFO, ABOUT rows)	-	Felucca menu rule (unchanged)
 MENU	B_OCTUP	hold	as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	-	Felucca menu rule (unchanged)
