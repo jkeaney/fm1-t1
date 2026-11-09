@@ -284,7 +284,7 @@ way and rejected; each line gives the score that settled it.
 | R6 | F23 load | load on PRESETS detent immediately | 3/3/3 = 9 | queue to the loop start | 3/3/1 = 7 | An immediate load cuts the bar mid-phrase and one stray detent replaces the live state. Setup rule allows the 1. |
 | R7 | F04 entry | piano-roll entry (keys = notes, cursor advances) | 2/2/3 = 7 | white key = step (TR style) | 8 | VISION names the 16 white keys as steps; the lane under the keys is the visual cue. |
 | R8 | F17 tempo | SELECT = tempo (today) | 8 | GLO K4 or TAP | 8 | Same score; SELECT's printing is "select", which F01 needs at 9. |
-| R9 | F01 / F21 | white keys 1-4 select, black keys mute (T1 today) | 1/3/2 = 6 | SELECT + black D#4..A#4 | 9 | White keys are reserved for steps (rule 3); the channel strip shows each channel's key. |
+| R9 | F01 / F21 | white keys 1-4 select, black keys mute (T1 today) | 1/3/2 = 6 | SELECT + black D#4..A#4 | 9 | White keys are reserved for steps (rule 3); the KEYS legend shows each channel's key. |
 | R10 | F13 SHAPE label | label `SHAPE` alone | 2/3/3 = 8 | `SHAPE` + algorithm sub-label | 9 | See S2 (5.3). |
 | R11 | F08 ACID K2 | label `TYPE` | 2/3/3 = 8 | label `PEDAL` | 9 | See S3 (5.3). |
 
