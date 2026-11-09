@@ -3,7 +3,7 @@ id: P1-009
 title: Assess the t1 algorithm family against the vision
 phase: P1
 type: spike
-status: review
+status: done
 priority: 2
 executor: sonnet
 depends_on: [P0-001]
@@ -53,3 +53,12 @@ Summary: reuse unchanged = t1_euclidean_bjorklund, _rotate, t1_harmony_quantize,
 No code, tests, flashing or push (docs-only task, so no check.sh).
 
 Owner questions: 26 LEN max 16 vs 32/64; 27 RATCH as fixed-odds dice vs knob; 28 ROTATE knob instead of LEN; 29 root-anchored vs centred contour; 30 EUCLID as 4th v1 algorithm vs shared placement source. Existing relevant: 16 (snap direction), 22, 24, 6.
+
+### 2026-11-09 review (sonnet)
+Verdict: PASS (gate none).
+- Verification greps re-run: no missing sections; single verdict line `INCLUDE in v1`. 8 sections, section 5 rows scored 0-3 with reasons, 4 morphs (HITS LEN SPAN ACCNT), 4 dice layers, all labels <= 6 chars, no TBD/choose/decide.
+- Code check: the named functions exist in firmware/src/torso_t1_algo.c with the stated signatures (bjorklund :25, rotate :99, quantize :248, T1_SCALE_MASKS :223, eval_phrase :326). Ratchet takes CycleParams as stated, so the scalar-signature redesign note is correct.
+- Worked example re-derived with a host probe on the real sources: E(5,16) = x..x..x..x..x...; SINE span 12 H=5 gives 0,11,7,-7,-11; P-MIN quantise gives 36,46,43,36,36; ROT R=2 moves hits to 14,1,4,7,10 with ordinals 0,1,2,3,4 (step 14 plays old step 0 note), as claimed. E(5,12) polymeter example correct; popcount == HITS for 1..16.
+- 6.8 defect mapping spot-checked against docs/T1_ISSUES.md: F1, F2 (AEOL duplicates MINOR confirmed: 0x05AD twice), F3, F5, F9, F11 (delay_ticks, random_rate, active_mask_hi), F13 (quadratic pace), F16/F19, F12/F17 all correct.
+- Owner questions 26-30 do not clash (previous max 25; the repeated 1-5 are the separate Decisions table). ADR-0003 absent is expected (P2-004).
+- Only change is docs; scope respected. No edits needed.
