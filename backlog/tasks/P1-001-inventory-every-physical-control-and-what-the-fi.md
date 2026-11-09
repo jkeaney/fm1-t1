@@ -3,7 +3,7 @@ id: P1-001
 title: Inventory every physical control and what the firmware does with it today
 phase: P1
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P0-001]
@@ -62,3 +62,15 @@ Findings worth the reviewer's eye (all [code]-verified unless the doc marks [unc
 - ui_leds() has no T1-specific branch; T1 LED feedback is unconfirmed on hardware.
 - First draft cited several ui_input.c lines wrongly; all citations were re-checked against grep -n afterwards, but the
   reviewer should spot-check a few.
+
+### 2026-11-09 review (sonnet)
+Verdict: PASS (gate none). Verification commands re-run: no missing B_*; MI_ count 43 (>=36). Spot-checked 20+ citations
+against source, all correct: ui_input.c 1510-1519 (T1 hand-over, HOME hold = menu), 1583-1597 (HOME hold/tap), 1689-1700
+(PLAY), 1708-1718 (OCT), 1559-1566 (FX+PRESET/EDIT, GLO+SELECT), 1617-1622 (SAVE), 1767-1768 (ALGO = track), 1497-1508
+(MOMENTARY); ui_t1.c 53-99 (PLAY, TEMP, SHIFT, SEQ next, OCT- prev, SELECT BPM, key loop); panel.c 9-11, 60-66, 76-81;
+ui_leds 393-466 has no t1_mode branch; torso_t1_ui.c K4 cycle 265-272 and chord voices 443-456. The three
+TORSO_T1_GUIDE section 2 claims hold: REC not referenced in ui_t1.c; t1_ui_set_edit_step has no caller anywhere;
+OCT+ is SHIFT. All 37 MI_* rows listed, per-tab counts match menu_items.c, each classified. Completeness: 14 buttons,
+K1-K4, 3 encoders, 27 keys per song.grid, hold-HOME menu, LEDs all covered. No firmware changed.
+Nits (not fixed, immaterial): torso_t1_ui.c edit_step block is 181-206 not 171-206; ui_t1.c:91 is a NUM_TRACKS use, not
+its definition.
