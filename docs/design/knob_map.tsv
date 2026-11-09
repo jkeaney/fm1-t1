@@ -1,0 +1,96 @@
+page	context	knob	label	action	range_default
+PERF	ACID	K1	DENS	turn: morph DENS of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	den 0..16 def 12; 0 = KEYS ONLY
+PERF	ACID	K2	SLIDE	turn: morph SLIDE of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	sl 0..8 def 4 (was S2)
+PERF	ACID	K3	JUMP	turn: morph JUMP of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	jmp 0..20 def 5
+PERF	ACID	K4	ACCNT	turn: morph ACCNT of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	acc 0..8 def 3
+PERF	ACID	S1	OFFSET	turn: morph OFFSET of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	off 0..15 def 0
+PERF	ACID	S2	PEDAL	turn: morph PEDAL of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	typ 0..12 def 6 (was K2)
+PERF	ACID	S3	PUNCH	turn: morph PUNCH of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	pun 0..47 def 40 fast 4
+PERF	ACID	S4	DIR	turn: morph DIR of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	dir FWD BWD PEND
+PERF	EUCLID	K1	HITS	turn: morph HITS of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	hit 0..16 def 5; 0 = KEYS ONLY
+PERF	EUCLID	K2	OFFSET	turn: morph OFFSET of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	off 0..15 def 0 (rotation; was S1)
+PERF	EUCLID	K3	RATCH	turn: morph RATCH of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	rat 0..8 def 4 (was S2)
+PERF	EUCLID	K4	ACCNT	turn: morph ACCNT of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	acc 0..8 def 2
+PERF	EUCLID	S1	LEN	turn: morph LEN of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	len 2..16 def 16 (was K2)
+PERF	EUCLID	S2	SPAN	turn: morph SPAN of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	spn 0..24 def 12 (was K3)
+PERF	EUCLID	S3	PUNCH	turn: morph PUNCH of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	pun 0..47 def 40 fast 4
+PERF	EUCLID	S4	CURVE	turn: morph CURVE of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	crv AUTO SINE TRI SAW+ SAW- ARCH INV
+PERF	SNAKE	K1	DENS	turn: morph DENS of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	den 0..16 def 10; 0 = KEYS ONLY
+PERF	SNAKE	K2	LEN	turn: morph LEN of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	len 1..16 def 7
+PERF	SNAKE	K3	RANGE	turn: morph RANGE of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	rng 0..48 def 12 fast 4
+PERF	SNAKE	K4	PATH	turn: morph PATH of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	shp 1..14 def 7
+PERF	SNAKE	S1	OFFSET	turn: morph OFFSET of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	off 0..15 def 0
+PERF	SNAKE	S2	GLEN	turn: morph GLEN of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	gl 1..16 def 16
+PERF	SNAKE	S3	DYN	turn: morph DYN of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	dyn 0..10 def 10
+PERF	SNAKE	S4	DIR	turn: morph DIR of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	dir FWD BWD PEND
+PERF	STAGE	K1	DENS	turn: morph DENS of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	den 0..8 def 6; 0 = KEYS ONLY
+PERF	STAGE	K2	TOTAL	turn: morph TOTAL of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	tot 8..64 def 16 fast 4
+PERF	STAGE	K3	DIR	turn: morph DIR of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	dir FWD BWD PEND (was S4)
+PERF	STAGE	K4	RATCH	turn: morph RATCH of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	rat 0..8 def 2
+PERF	STAGE	S1	OFFSET	turn: morph OFFSET of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	off 0..63 def 0 fast 4
+PERF	STAGE	S2	RDIV	turn: morph RDIV of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	rdiv 1..4 def 4
+PERF	STAGE	S3	DYN	turn: morph DYN of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	dyn 0..10 def 10
+PERF	STAGE	S4	RANGE	turn: morph RANGE of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	rng 0..36 def 12 fast 4 (was K3)
+NOTE_EDIT	*	K1	PITCH	one scale degree per detent from the current note; every detent sounds the note (MIDI + preview); the first detent turns AUTO into a set pitch	AUTO, then 0..96 semitones above 36+key (stored unsnapped, played snapped)
+NOTE_EDIT	*	K2	GATE	note length of the edited step, x global GATE; top value TIE (holds into the next step)	AUTO, 10..100 % in 10 % steps, TIE
+NOTE_EDIT	*	K3	VELO	velocity of the edited step; value reads ACC at >= ACC_THR 100 (TB-3 accent)	AUTO, 1..127, step 1 fast 8
+NOTE_EDIT	*	K4	RATCH	repeats inside the step (SP5 spacing)	AUTO, 1x 2x 3x 4x
+CHAN	*	K1	LENGTH	pattern length of the selected channel; crossing into a new page fills it (copy of the page before, or the stored page); shrinking hides, never deletes	1..64, default 16, step 1 fast 4
+CHAN	*	K2	MIDI	MIDI output channel of the selected channel	1..16, OFF; defaults CH1..CH4 = 1..4
+CHAN	*	K3	SOURCE	generator source of the VIEWED page: COPY = reads page 1 positions (a duplicate), FLOW = reads its own positions (the algorithm continues); page 1 shows -	COPY FLOW; default COPY
+CHAN	*	K4	FOLLOW	the lane view follows the playhead page while playing	ON OFF; default ON (PG- / PG+ set OFF)
+SET	*	K1	BPM	tempo (internal clock; ignored while an external MIDI clock runs, value shows EXT)	40..240, default 120, step 1 fast 5
+SET	*	K2	SWING	odd steps late by 2*(swing-50) % of a step (decision 43); parity by pattern position	50..75 %, default 50
+SET	*	K3	GATE	global gate, x the step gate (50 % neutral = x1.0, decision 44)	10..100 %, default 50
+SET	*	K4	DIV	step length	1/32 1/16T 1/16 1/8T 1/8 1/4; default 1/16
+SCALE	*	K1	SCALE	global scale (every algorithm and every edited pitch snaps to it)	16 scales, T1_SCALE_MASKS order; default MINPEN
+SCALE	*	K2	KEY	global key (also: press any key)	C..B, default C
+SCALE	*	K3	OCTAVE	global output octave (also OCT- / OCT+)	-2..+2, default 0
+SCALE	*	K4	-	inert by design: nothing global is left; the cell is drawn dim with -	-
+REC	*	K1	CURSOR	move the write cursor one step per detent (stopped: the step sounds)	1..LENGTH, wraps
+REC	*	K2	ACC	written notes get ACCENT (velocity 120) when ON; with force sensing the landing force sets the velocity and ACC forces 120	OFF ON
+REC	*	K3	SLIDE	written notes get SLIDE when ON	OFF ON
+REC	*	K4	OCT	REC keyboard octave (also OCT- / OCT+)	-2..+2, default 0
+RESET	*	K1	RST	turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE COPY / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes	-
+RESET	*	K2	RST	turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE COPY / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes	-
+RESET	*	K3	RST	turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE COPY / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes	-
+RESET	*	K4	RST	turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE COPY / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes	-
+HELP	*	K1	?	turn: explain this knob on PERF (both rows); nothing changes	-
+HELP	*	K2	?	turn: explain this knob on PERF (both rows); nothing changes	-
+HELP	*	K3	?	turn: explain this knob on PERF (both rows); nothing changes	-
+HELP	*	K4	?	turn: explain this knob on PERF (both rows); nothing changes	-
+MENU	*	K1	value	turn: change the selected row's value (Felucca menu rule)	row range
+MENU	*	K2	value	turn: change the selected row's value (Felucca menu rule)	row range
+MENU	*	K3	value	turn: change the selected row's value (Felucca menu rule)	row range
+MENU	*	K4	value	turn: change the selected row's value (Felucca menu rule)	row range
+PERF	*	K1	morph	turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above)	per algorithm
+PERF	*	K2	morph	turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above)	per algorithm
+PERF	*	K3	morph	turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above)	per algorithm
+PERF	*	K4	morph	turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above)	per algorithm
+PERF	*	SELECT	CH n	turn: select channel CH1..CH4 (clamped, no wrap)	CH1..CH4
+PERF	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	4 algorithms
+PERF	*	PRESET	Pnn	turn: preset slot P01..P16; playing: the last slot turned to loads at the next 768-tick bar (header Pnn>); stopped: at once	P01..P16
+NOTE_EDIT	*	SELECT	CH n	turn: select channel CH1..CH4; closes NOTE EDIT (the edited step belongs to the old channel)	CH1..CH4
+NOTE_EDIT	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	4 algorithms
+NOTE_EDIT	*	PRESET	Pnn	turn: preset slot P01..P16; playing: the last slot turned to loads at the next 768-tick bar (header Pnn>); stopped: at once	P01..P16
+CHAN	*	SELECT	CH n	turn: select channel CH1..CH4 (clamped, no wrap)	CH1..CH4
+CHAN	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	4 algorithms
+CHAN	*	PRESET	Pnn	turn: preset slot P01..P16; playing: the last slot turned to loads at the next 768-tick bar (header Pnn>); stopped: at once	P01..P16
+SET	*	SELECT	CH n	turn: select channel CH1..CH4 (clamped, no wrap)	CH1..CH4
+SET	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	4 algorithms
+SET	*	PRESET	Pnn	turn: preset slot P01..P16; playing: the last slot turned to loads at the next 768-tick bar (header Pnn>); stopped: at once	P01..P16
+SCALE	*	SELECT	CH n	turn: select channel CH1..CH4 (clamped, no wrap)	CH1..CH4
+SCALE	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	4 algorithms
+SCALE	*	PRESET	Pnn	turn: preset slot P01..P16; playing: the last slot turned to loads at the next 768-tick bar (header Pnn>); stopped: at once	P01..P16
+REC	*	SELECT	CH n	turn: select channel; the cursor goes to step 1	CH1..CH4
+REC	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	4 algorithms
+REC	*	PRESET	-	turn: inert in REC (toast REC: tap REC to finish)	P01..P16
+RESET	*	SELECT	CH n	turn: select channel CH1..CH4 (clamped, no wrap)	CH1..CH4
+RESET	*	ALGO	-	turn: inert (toast NOTHING TO RESET)	4 algorithms
+RESET	*	PRESET	-	turn: inert (toast NOTHING TO RESET)	P01..P16
+HELP	*	SELECT	?	turn: explain SELECT	CH1..CH4
+HELP	*	ALGO	?	turn: explain ALGORITHM	4 algorithms
+HELP	*	PRESET	?	turn: explain PRESETS	P01..P16
+MENU	*	SELECT	CH n	turn: select channel CH1..CH4	CH1..CH4
+MENU	*	ALGO	tab	turn: next / previous menu tab	4 algorithms
+MENU	*	PRESET	row	turn: next / previous menu row	P01..P16

@@ -3,6 +3,8 @@
 Task P1-013 (owner decision 2026-11-10, sixth round, "Shift"). Status: **for owner review** (gate `human-review`;
 approval also re-approves ADR-0003 / P2-004 and unblocks P2-003, P2-007, P2-008). Design only: no firmware.
 
+> Change note (P1-017, 3B re-lock; for owner review): owner decision 60 moves the most-performed morphs onto ROW 1. Only the slot assignment changes (`AlgoDesc.knob_morph[]`); morph ids, ranges, defaults and formulas in the section 3 tables are unchanged and their `Slot` column now reads as the **morph id** (K1..S4 = ids 0..7 of P1-013). New rows: ACID K2 `SLIDE` / S2 `PEDAL`; EUCLID K2 `OFFSET`, K3 `RATCH`, S1 `LEN`, S2 `SPAN`; SNAKE unchanged; STAGE K3 `DIR` / S4 `RANGE` (section 4.2 table updated, reasons in SEQUENCER_UX 4.2). Outside PERF the OCT buttons no longer switch rows on other pages: NOTE_EDIT and REC use them as octave, CHAN as -/+ a page, SCALE as global octave (SEQUENCER_UX 3). ROW 1 morphs score 12 as performance, ROW 2 morphs 10 as setup dial-ins.
+
 > Change note (P1-014 revision, scheme B2; for owner review): the dice and UNDO return to their P1-012 / P1-013 buttons (`FX` ALL, `SCL` NOTES, `SEQ` HITS, `ENV` ACCNT, `ARP` ARTIC, `LFO` SHAPE; `EDIT` = UNDO, hold = RESET), `GLO` = the SET page (not `SEQ`), `REC` = RECORD, MUTATE is removed, a sixth context `REC` exists, and a held step key plus another white key sets that step's pitch. The knob rows (sections 2, 3, 5) are still **unchanged**. **Historical sections:** the context rows of 1.3 and 1.4 (`SCL`, `CHAN`, `GLOB`, hold SCL = keyboard octave), the rejected-options table, the F35 row and the per-section edit lists below describe the P1-013 approval and are kept for the record only; the current role of every control in every context is [control_map.tsv](control_map.tsv) / [CONTROL_MAP.md](CONTROL_MAP.md) Appendix A, and the reasoning is [PERFORMANCE_DESIGN.md](PERFORMANCE_DESIGN.md). Keyboard octave: SET row 2 K2 (global) and the REC K4 `OCT`.
 
 > Change note (P1-014, performance-first; for owner review): the knob rows themselves (sections 2, 3, 5.1 step rule, 5.2) are **unchanged**. Superseded by [PERFORMANCE_DESIGN.md](PERFORMANCE_DESIGN.md): (1) the contexts `STEP`, `SCL`, `CHAN`, `GLOB` of section 1.3 are replaced by `SET` (tap or hold SEQ: row 1 `GATE DIV SWING BPM`, row 2 `SCALE OCTAVE MIDI LENGTH`, with OCT- / OCT+ picking the SET row) and `RESET` (hold UNDO); there is no STEP mode. (2) In a held step (`STEP_HELD`) OCT- / OCT+ now pick one of two step-band rows instead of pinning +-12 semitones (the pin octave is the `OCT` cell of row 2). (3) The keyboard octave (F35, hold SCL + OCT) is **retired** because the white keys are always steps and there are no live notes. (4) Section 5.1's last bullet ("no per-morph reset in v1", owner question 49) is replaced: hold UNDO and turn the knob resets that one morph; hold UNDO and tap OCT- / OCT+ resets a row; hold UNDO and tap FX resets the whole algorithm. Every reset is undoable. (5) The ease scores of section 4 gain the L sub-score in UX_REVIEW 3.3 / PERFORMANCE_DESIGN 7.2 (F30-F34 are 12 and 11 of 12 there).
@@ -292,13 +294,15 @@ Why each sub-score:
 | Knob | ACID | EUCLID | SNAKE | STAGE | V/I/O = total |
 | --- | --- | --- | --- | --- | --- |
 | K1 | `DENS` | `HITS` | `DENS` | `DENS` | 3/3/3 = 9 |
-| K2 | `PEDAL` | `LEN` | `LEN` | `TOTAL` | 3/3/3 = 9 |
-| K3 | `JUMP` | `SPAN` | `RANGE` | `RANGE` | 3/3/3 = 9 |
+| K2 | `SLIDE` | `OFFSET` | `LEN` | `TOTAL` | 3/3/3 = 9 |
+| K3 | `JUMP` | `RATCH` | `RANGE` | `DIR` | 3/3/3 = 9 |
 | K4 | `ACCNT` | `ACCNT` | `PATH` | `RATCH` | 3/3/3 = 9 |
-| S1 | `OFFSET` | `OFFSET` | `OFFSET` | `OFFSET` | 3/2/3 = 8 |
-| S2 | `SLIDE` | `RATCH` | `GLEN` | `RDIV` | 3/2/3 = 8 |
+| S1 | `OFFSET` | `LEN` | `OFFSET` | `OFFSET` | 3/2/3 = 8 |
+| S2 | `PEDAL` | `SPAN` | `GLEN` | `RDIV` | 3/2/3 = 8 |
 | S3 | `PUNCH` | `PUNCH` | `DYN` | `DYN` | 3/2/3 = 8 |
-| S4 | `DIR` | `CURVE` | `DIR` | `DIR` | 3/2/3 = 8 |
+| S4 | `DIR` | `CURVE` | `DIR` | `RANGE` | 3/2/3 = 8 |
+
+(P1-017 3B assignment; `knob_morph[]` ACID `{0,5,2,3,4,1,6,7}`, EUCLID `{0,4,5,3,1,2,6,7}`, SNAKE `{0,1,2,3,4,5,6,7}`, STAGE `{0,1,7,3,4,5,6,2}`.)
 
 All 32 performance knob functions (8 knobs x 4 algorithms) score at least 8 with no sub-score below 2.
 Totals over all 36 functions F00..F35 (as in UX_REVIEW 3.2; recomputed by script): current 88 / 324 (32 of 36 fail), proposed 297 / 324 (36 of 36 pass).

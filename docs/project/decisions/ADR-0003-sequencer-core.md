@@ -22,6 +22,8 @@ in that log and, per ADR-0004, "Design locked" later.
 > single-pin `pin_mask` / `pin_note[16]` layout of section 3 is an upper-bound placeholder for P1-016's per-step record (reserve 64 steps x 3 B x 4 channels
 > = 768 B live + 768 B undo, already inside the 11.1 totals); P1-016 integrates it. The RAM floor holds (11.1). The pin-edit gestures of section 9 (K3 NOTE, OCT- / OCT+ = +-12) are superseded by the held-step band of PERFORMANCE_DESIGN 3.1 (two rows of four properties); P1-016 integrates them. Key labels in this ADR that say `EDIT-tap` or `D#5` follow the P1-014 control map (UNDO = EDIT tap after the P1-014 revision, restart = F#5).
 
+> Change note (P1-017, sequencer UX lock; for owner review): [SEQUENCER_UX.md](../../design/SEQUENCER_UX.md) replaces the pin model and the R1-R4 reserve with a **per-step edit layer** and **pages**. Section 9.1 of SEQUENCER_UX is the normative struct block and supersedes the matching structs of section 3 below: `StepEdit` 4 B (PITCH unsnapped + set bit, VELO, GATE / TIE, RATCH, ON, SLIDE, PROB, OCT; every field AUTO or set), `ChanSave` 102 -> **344 B** (`pin_mask` / `pin_note[16]` removed; `len` 1..64, `pg_flow`, `pg_used`, `StepEdit ed[64]` added), `UndoRec` 48 -> **92 B** (one page of edits, morphs, len / page bits; the pin fields removed), `SeqPreset` 420 -> **1388 B** (version 2), `ChanRT` stays 24 B (`uint32_t t` -> `uint8_t p` 0..len-1, `uint16_t pass`, `uint8_t tie`). `PulseOut.note` becomes ALWAYS valid like `vel` / `gate` (EUCLID evaluates its contour at non-hit positions). `step()` is called with the **generator position** `g(p)` (COPY page: `p % 16`; FLOW page and page 1: `p`) instead of the free-running `t`; the loop resets at `len`. Section 9's pin overlay is replaced by the resolution of SEQUENCER_UX 9.2; swing parity is by `p`; a SLIDE edit means "glide into the next sounding step" and feeds the existing slide pairing; TIE holds until the next sounding step or the loop point (a `tie` flag in `ChanRT`, closed at the wrap and by `sq_all_off`). New main-loop API: `sq_step_toggle(ch,p,vel)`, `sq_step_set(ch,p,field,value)`, `sq_step_clear(ch,p)`, `sq_step_dice(ch,p,what)`, `sq_note_edit_begin(ch,p)` (UndoRec snapshot), `sq_page_add(ch)`, `sq_page_copy(ch,page)`, `sq_page_clear(ch,page)`, `sq_set_length(ch,len)`, `sq_set_source(ch,page,flow)`; removed: `sq_pin_set / sq_pin_clear / sq_pin_clear_all / sq_pin_pitch` and the scene API `sq_scene` (scenes are dropped, owner decision 58). The undo of a preset load applies at the next step. The 4.1 `knob_morph[]` tables change (3B re-lock): ACID `{0,5,2,3,4,1,6,7}`, EUCLID `{0,4,5,3,1,2,6,7}`, SNAKE unchanged, STAGE `{0,1,7,3,4,5,6,2}`. RAM re-added in section 11.2.
+
 Inputs: [VISION](../VISION.md), [ADR-0004](ADR-0004-design-lock.md) (and its flexibility addendum),
 [OWNER_QUESTIONS](../OWNER_QUESTIONS.md) (all owner decisions), [ALGORITHM_SET](../../design/ALGORITHM_SET.md)
 (SP1-SP15, layer vocabulary), [UX_REVIEW](../../design/UX_REVIEW.md), [CONTROL_MAP](../../design/CONTROL_MAP.md),
@@ -506,6 +508,8 @@ NOTE_OFFs; a NOTE_OFF that cannot be sent stays in the queue and is retried next
 
 ## 9. Step entry: pins on the 16 white keys, and `K1 = 0` (KEYS ONLY)
 
+> P1-017: superseded by the edit layer of SEQUENCER_UX 1 and 9.2 (pins become `StepEdit` with `ON` set; `K1 = 0` still means KEYS ONLY). Kept below as history.
+
 Pins are core data, not algorithm data (SP8): `ChanSave.pin_mask`, `pin_note[16]`, per channel, kept across algorithm
 switches. A pin at position `pos` (0..15) overlays whatever the algorithm produced at the steps whose
 `t % loop_len == pos`:
@@ -600,6 +604,29 @@ Facts (SYSTEM_MAP section 9): RAM `.data+.bss` after the E3 removals 27232 B of 
 | Pool: 16 presets + staging + undo-load copy + scenes A, B (about 1120 B each at the upper bound = 20 copies) | about 22400 | .pool |
 
 Checks (SYSTEM_MAP section 9: headroom 46496 B after the removals, 17984 B before; floor 4096; E9 trigger 8192): after the removals 46496 - 6962 = **39534 B** left; before them 17984 - 6962 = **11022 B** left (above the 8 KB trigger, 6926 B above the 4096 B floor). Pool today 25764 - 22400 = **3364 B** left, so the removals (R6) must precede preset storage (E7), or P1-016 must shrink the step record; after the removals 217975 - 22400 = 195575 B. Scenes are volatile (owner question 58).
+
+### 11.2 Re-added for P1-017 (edit layer, pages, force sensing; supersedes the 11.1 reserve)
+
+| Item | B (.bss) |
+| --- | ---: |
+| Section 11 total new .bss (P1-013 version: `ChanSave` 4 x 102, `UndoRec` 4 x 34) | 5329 |
+| `ChanSave` 102 -> 344 B, x4 | +968 |
+| `UndoRec` 34 -> 92 B, x4 | +232 |
+| REC state + sounding-note table (P1-014) | +31 |
+| NOTE_EDIT / page UI state (edited step, open flag, `view_page[4]`, FOLLOW, ADD prompt, open page, HELP control) | +10 |
+| `sq_perf`, saved FILL morph, FILL / ROLL force levels | +4 |
+| Force sensing: 20 keys x 8 B, 20 floors x 2 B, MASTER cache 2 B | +202 |
+| 11.1 reserve (768 + 768), scenes, MUTATE, held-step pitch | 0 (dropped) |
+| **Total new .bss** | **6776** |
+
+Checks: after the E3 removals 46496 - 6776 = **39720 B** headroom; built before them 17984 - 6776 = **11208 B**
+(above the 8192 B E9 trigger, 7112 B above the 4096 B floor). Pool: 16 slots x 1388 + staging + undo-load copy
+(2 x 1388) = **24984 B**; today's 25764 B free would leave 780 B, so **the R6 fx-bus removal (SYSTEM_MAP section 6)
+is a prerequisite of preset storage (E7)**; until then `SQ_NSLOT = 8` (13880 B). After the removals 192991 B stay free.
+Static-assert plan: `StepEdit` 4, `ChanSave` 344, `UndoRec` 92, `SeqPreset` 1388, `ChanRT` 24, and
+`sizeof(((SeqPreset*)0)->ch) == 1376` in `sq_core.c` (replaces the 408 assert). CPU: `sq_eval` adds about 30 integer
+operations per step per channel; force sensing runs in the scan ISR (estimate 1-2 %, gate limit 3 %), none in the
+audio ISR.
 
 Removed with R8 (T-1 retirement): `t1_micro_queue` 4096 B and the two `MidiRingBuffer` 2 x 264 B and `t1_sequencer_ram`
 9348 B + the T-1 `.pool` buffers (13980 B total per SYSTEM_MAP; all in the pool, `.bss` impact 36 B). CPU: per tick

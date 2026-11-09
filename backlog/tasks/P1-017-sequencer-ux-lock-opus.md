@@ -3,7 +3,7 @@ id: P1-017
 title: Sequencer functionality and UX lock: step-centric editing, 64-step pages, force-sensing keys, page/state/mode framework
 phase: P1
 type: spike
-status: todo
+status: review
 priority: 0
 executor: opus
 depends_on: [P1-014, P1-015]
@@ -49,16 +49,16 @@ You are the UX designer and technical architect for this instrument. The owner h
 - New owner questions (continue numbering after 64; keep them few and real).
 
 ## Acceptance criteria
-- [ ] Every owner requirement 1-7 above is satisfied or explicitly argued against with score evidence
-- [ ] Pages: up to 4 x 16 steps per channel, duplicate-then-edit, page swap, length per channel fully specified; white keys align to the viewed page
-- [ ] NOTE EDIT page specified with its knob map; step on/off and per-step morph specified
-- [ ] No scenes, no tap tempo; tempo on the SET page; freed controls reassigned
-- [ ] Force-sensing gestures specified with fallbacks, LED handling, costs and a hardware-test gate
-- [ ] State/page, button-mode, knob-map and key-map tables exist as TSVs; tools/check_sequencer_ux.py prints OK; tools/check_control_map.py prints OK
+- [x] Every owner requirement 1-7 above is satisfied or explicitly argued against with score evidence
+- [x] Pages: up to 4 x 16 steps per channel, duplicate-then-edit, page swap, length per channel fully specified; white keys align to the viewed page
+- [x] NOTE EDIT page specified with its knob map; step on/off and per-step morph specified
+- [x] No scenes, no tap tempo; tempo on the SET page; freed controls reassigned
+- [x] Force-sensing gestures specified with fallbacks, LED handling, costs and a hardware-test gate
+- [x] State/page, button-mode, knob-map and key-map tables exist as TSVs; tools/check_sequencer_ux.py prints OK; tools/check_control_map.py prints OK
 - [ ] Every function traced input -> processing -> output and scored; all pass the high-bar rule honestly; two editing models compared
-- [ ] RAM/pool budget re-added; 4 KB floor respected; prerequisites named
-- [ ] ADR-0003 and algorithm docs consistent with the locked spec
-- [ ] No 'TBD', 'choose' or 'decide' wording; a 'Locked' section lists what is locked
+- [x] RAM/pool budget re-added; 4 KB floor respected; prerequisites named
+- [x] ADR-0003 and algorithm docs consistent with the locked spec
+- [x] No 'TBD', 'choose' or 'decide' wording; a 'Locked' section lists what is locked
 - [ ] The owner approved it (log line 'Approved: <name> <date>')
 
 ## Verification
@@ -73,3 +73,54 @@ python3 tools/backlog.py check
 - Firmware code; flashing. (Downloaded code is read-only and never executed.)
 
 ## Log
+
+### 2026-11-10 executor (claude-opus-5-5)
+
+Wrote docs/design/SEQUENCER_UX.md (locked spec, sections 0-14), the TSVs page_states / button_modes / knob_map /
+key_map (new) and control_map (regenerated: 49 controls x 9 pages = 441 rows; CONTROL_MAP.md section 2 and appendix A
+regenerated), tools/check_sequencer_ux.py, and change notes / edits in PERFORMANCE_DESIGN, CONTROL_MAP, FULL_CONTROL
+(3B table 4.2), ALGORITHM_SET, the 6.5 sections of sting / t1 / snake / ml185, ADR-0003 (structs, API, 11.2 RAM),
+VISION rule 3, OWNER_QUESTIONS 65-71.
+
+Design in brief: model M2 (hold a step = latched NOTE EDIT page; K1 PITCH K2 GATE K3 VELO K4 RATCH, OCT = octave,
+layer buttons toggle the step's fields); edits survive dice / morph (AUTO-or-set per field); pages added by PG+ twice
+as an exact copy of the page before (COPY source = silent), FLOW source lets the algorithm continue; CHAN page on
+D#4 (LENGTH MIDI SOURCE FOLLOW); SET on GLO tap, SCALE on GLO hold; HELP = HOME tap on PERF; RESET = latched one-shot
+page. "Tap acts, hold opens a page" removes every hold-while-turning gesture (they score input 1 and fail the new bar).
+Force: hard-tap accent, pressure ROLL / FILL, REC velocity, each with a fallback, behind an HT-FORCE hardware gate.
+
+Verification:
+```
+$ python3 tools/check_sequencer_ux.py
+pages=9 button-rows=254 knob-rows=95 key-rows=307 control-rows=441 scored=68 exceptions=1
+OK
+$ python3 tools/check_control_map.py
+rows tsv=441 md=441
+OK
+$ grep -nEi 'TBD|choose|decide' docs/design/SEQUENCER_UX.md || echo clean
+clean
+$ python3 tools/backlog.py check
+38 items, 0 errors
+```
+No firmware changed, so tools/check.sh and the host tests were not run.
+
+Criteria left unticked:
+- "all pass the high-bar rule honestly": 67 of 68 functions pass; U68 (cue a preset while playing) scores 3/3/1/3 = 10
+  with O1, because owner decision 34 queues loads to the bar. Kept as the one argued exception E1 (SEQUENCER_UX 8.3);
+  the alternative is one constant (SQ_LOAD_AT = STEP, 11). Owner question 71.
+- Owner approval (human-review gate).
+
+Changed decided items (with evidence): none of the B2 buttons. Changed from P1-014 (not owner-locked): step band,
+GLO hold, HOME help gesture, RESET layer (all input 1 under the new bar), scenes / tap tempo removed per decision 58.
+
+Owner questions (also in OWNER_QUESTIONS.md):
+65. Chance has two levels (100/50 %) on LFO in NOTE EDIT. Accept, or four levels on a knob?
+66. A new page copies the page before it (A, A', A''). Confirm.
+67. SLIDE on a step = glide into the next step (TB-303 convention). Confirm on the TB-3.
+68. Force ships behind the HT-FORCE gate, FORCE OFF until it passes. Accept the set?
+69. Scale / key / octave on a GLO-hold SCALE page (not SCL hold). Accept?
+70. SNAKE polymeter cut at the channel length (max 64). Accept?
+71. E1: preset load while playing stays on the bar, or next step after a 300 ms settle?
+
+Reviewer: please check the RAM arithmetic in SEQUENCER_UX 9.4 / ADR-0003 11.2 (6776 B new .bss; 11208 B headroom
+before removals) and the pool prerequisite (R6 before E7; 780 B spare otherwise).

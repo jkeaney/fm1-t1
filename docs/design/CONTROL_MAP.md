@@ -1,3 +1,5 @@
+> P1-017 (sequencer UX lock; for owner review): the contexts are now the nine **pages** of [SEQUENCER_UX.md](SEQUENCER_UX.md): `PERF`, `NOTE_EDIT`, `CHAN`, `SET`, `SCALE`, `REC`, `RESET`, `HELP`, `MENU` (441 rows = 49 controls x 9). `STEP_HELD` is gone (a held step opens the latched NOTE_EDIT page). Black keys: `D#4` = CHAN page, `C#5` / `D#5` = PG- / PG+ (scenes and tap tempo removed). `GLO` tap = SET (BPM SWING GATE DIV), hold = SCALE (SCALE KEY OCTAVE, any key = KEY). `HOME` tap on PERF = HELP, hold = MENU. `EDIT` hold = RESET (latched, one shot). Section 2 and Appendix A are regenerated; the per-mode, per-knob and per-key detail is in button_modes.tsv, knob_map.tsv and key_map.tsv. Sections 0-1 and 3-7 below are P1-014 history where they differ.
+
 # Control map v1: every control, every context, one gesture
 
 > P1-014 revision (printed-word pass, scheme B2; supersedes the layer-order layout of the note below): every button now does what its **printed word** says wherever this sequencer can do it. `FX` = DICE ALL; `SCL` = NOTES (scale / pitch), `ENV` = ACCNT (envelope accent), `LFO` = SHAPE (movement over the bar), `ARP` = ARTIC (repeats, slides, gate: the arpeggio-like layer), `SEQ` = HITS (the steps); `EDIT` = UNDO / RESET; `GLO` = the SET page (global feel); `REC` = RECORD (new `REC` context: play the keys, they write); `HOME` hold: HELP while held, MENU on release if nothing was touched. MUTATE is removed (dice + UNDO cover it, owner question 36 stays with the hardware test). White keys stay the steps; hold a step key and press another white key = that scale degree. Contexts are six (`REC` added, 294 rows = 49 x 6). Appendix A regenerated from control_map.tsv. Reasoning and scores: PERFORMANCE_DESIGN.md sections 0, 7, 8.
@@ -12,7 +14,7 @@ Task P2-001, amended by P1-013 and P1-014. Status: consolidation of the owner-ap
 decisions 31-36 in [OWNER_QUESTIONS.md](../project/OWNER_QUESTIONS.md)), re-organised by the performance-first pass
 P1-014 (for owner review). The reasoning, ease scores and rejected alternatives are in
 [PERFORMANCE_DESIGN.md](PERFORMANCE_DESIGN.md) (current) and [UX_REVIEW.md](UX_REVIEW.md) (history); the exact
-machine-readable table is [control_map.tsv](control_map.tsv) (245 rows = 49 controls x 5 contexts). Appendix A below repeats every TSV row
+machine-readable table is [control_map.tsv](control_map.tsv) (441 rows = 49 controls x 9 pages, P1-017). Appendix A below repeats every TSV row
 verbatim, and `python3 tools/check_control_map.py` proves the two agree. If they ever differ, the TSV is the source
 and this file is wrong.
 
@@ -54,45 +56,41 @@ The **context** column of the TSV and of Appendix A uses exactly these six names
 
 ## 2. The control table: Control | Tap | Hold | Combo | Screen label
 
-Summary in panel order. Per-context detail is Appendix A; where the summary and Appendix A differ, Appendix A (= the TSV) wins.
+Summary in panel order (P1-017). Per-page detail is Appendix A; where the summary and Appendix A differ, Appendix A (= the TSV) wins.
 
-| Control (printed) | Tap or press | Hold | Combo | Screen label |
+| Control (printed) | Tap or press (PERF) | Hold (PERF) | Other pages | Screen label |
 | --- | --- | --- | --- | --- |
-| `MASTER` (pot) | analogue: preview-synth and USB-audio volume | n/a | n/a | none (no MIDI effect) |
-| `EN_SELECT` (SELECT) | turn: select channel CH1..CH4 (clamped, no wrap) | n/a | every context including MENU | `CH n` |
-| `EN_ALGO` (ALGORITHM) | turn: algorithm of the selected channel `ACID > EUCLID > SNAKE > STAGE`; lands at the next step; morphs and seeds kept per algorithm (S7) | n/a | in MENU: next/previous tab | algorithm name |
-| `EN_PRESET` (PRESETS) | turn: preset slot P01..P16; filled slot loads at the next bar (now if stopped); empty slot only selects the SAVE target | n/a | in MENU: next/previous row | `Pnn`, `Pnn>` while queued, `Pnn EMPTY` |
-| `EN_K1` (KNOB 1) | turn: the live row's first function: ROW 1 DENSITY (0 = `KEYS ONLY`), ROW 2 START (`OFFSET`) | n/a | step key held: row 1 `NOTE`, row 2 `TIE`; REC: CURSOR; SET: GATE / SCALE; RESET held: reset this morph; MENU: value | algorithm label (both rows always drawn), `NOTE`, `TIE`, `GATE`, `SCALE`, `RST` |
-| `EN_K2` (KNOB 2) | turn: ROW 1 FORM (PEDAL, LEN, LEN, TOTAL), ROW 2 ARTIC (SLIDE, RATCH, GLEN, RDIV) | n/a | step key held: `ACC` / `MUTE`; REC: ACC; SET: DIV / OCTAVE; RESET: reset this morph | algorithm label, `ACC`, `MUTE`, `DIV`, `OCTAVE`, `RST` |
-| `EN_K3` (KNOB 3) | turn: ROW 1 PITCH (JUMP, SPAN, RANGE, RANGE), ROW 2 DYNAMICS (PUNCH, PUNCH, DYN, DYN) | n/a | step key held: `SLIDE` / `PROB`; REC: SLIDE; SET: SWING / MIDI (the selected channel's MIDI channel); RESET: reset this morph | algorithm label, `SLIDE`, `PROB`, `SWING`, `MIDI`, `RST` |
-| `EN_K4` (KNOB 4) | turn: ROW 1 SPICE (ACCNT, ACCNT, PATH, RATCH), ROW 2 READ (DIR, CURVE, DIR, DIR) | n/a | step key held: `RATCH` / `OCT`; REC: OCT; SET: BPM / LENGTH (pattern length of the selected channel, reserved for P1-016); RESET: reset this morph | algorithm label, `RATCH`, `OCT`, `BPM`, `LENGTH`, `RST` |
-| `B_FX` (FX) | press: DICE ALL layers present | n/a | RESET held: reset the whole algorithm (all 8 morphs and all seeds to factory) | `ALL`, `RST ALL` |
-| `B_SCL` (SCL) | press: dice NOTES (the scale / pitch layer) | n/a | RESET held: reset the NOTES seed | `NOTES +sub`, `RST NOT` |
-| `B_ENV` (ENV) | press: dice ACCNT (envelope accent) | n/a | RESET held: reset the ACCNT seed | `ACCNT +sub`, `RST ACC` |
-| `B_LFO` (LFO) | press: dice SHAPE (movement over the bar; inert if none) | n/a | RESET held: reset the SHAPE seed | `SHAPE +sub`, `RST SHP` |
-| `B_EDIT` (EDIT) | tap: UNDO / REDO the last dice, dice-all, pin edit, written note, pin clear or reset | past 0.4 s: RESET layer | in RESET: held keeps the layer open | `UNDO`, `RESET` |
-| `B_GLO` (GLO) | tap: open the SET page (latched); tap again closes | past 0.4 s: SET page while held | in SET: `BACK`; in REC: inert | `SET`, `BACK` |
-| `B_HOME` (HOME) | tap: back to PERF from anywhere (leaves REC, SET, RESET, a held step); in MENU: close | hold: shows `touch = HELP, let go = MENU`; release after 0.7 s with nothing touched: open MENU | touch any control while held: HELP for that control (no time limit; nothing else happens, release does nothing) | `HOME`, `BACK` |
-| `B_SAVE` (SAVE) | tap: save the whole device state to the preset slot in the header | 0.7 s: undo the last preset load (again: redo) | n/a | `SAVE Pnn` |
-| `B_ARP` (ARP) | press: dice ARTIC (gate, slide, ratchet; inert if none) | n/a | RESET held: reset the ARTIC seed | `ARTIC +sub`, `RST ART` |
-| `B_SEQ` (SEQ) | press: dice HITS (where the steps fall) | n/a | RESET held: reset the HITS seed | `HITS +sub`, `RST HIT` |
-| `B_PLAY` (PLAY/STOP) | press: start / stop all channels | n/a | every context including MENU | `PLAY / STOP` |
-| `B_REC` (REC) | tap: arm RECORD (latched, LED lit, banner `REC`): the 27 keys play pitches and write them; tap again or HOME: disarm | n/a | RESET held: clear all pins of the selected channel | `REC`, `CLR PIN` |
-| `B_OCTDN` (OCT-) | PERF: tap latches ROW 1 (a set, not a toggle) | n/a | hold and turn a knob = ROW 1 live while held; step key held: step band row 1; SET: SET row 1; RESET: reset ROW 1; both held 5 s = UPDATE MODE; both at power-on = CALIBRATION | `ROW 1`, `STEP 1`, `SET 1`, `RST R1` |
-| `B_OCTUP` (OCT+) | PERF: tap latches ROW 2 | n/a | hold and turn a knob = ROW 2 live while held; step key held: step band row 2; SET: SET row 2; RESET: reset ROW 2; hidden gestures as OCT- | `ROW 2`, `STEP 2`, `SET 2`, `RST R2` |
-| White keys F3 G3 A3 B3 C4 D4 E4 F4 G4 A4 B4 C5 D5 E5 F5 G5 (`KEY_W01_F3` .. `KEY_W16_G5`) | press: step n of the viewed page: pin it (auditioned); tap a pinned step again: clear it; with PAGE held: the pattern ends here | hold = STEP_HELD (knobs and OCT edit the held step; pressing ANOTHER white key sets its pitch = that scale degree); REC: plays pitches and writes them; [R4 slot: per-key pressure or position] | SET row 2: set the global KEY; RESET held: clear that step; MENU: inert | `step n`, `KEY`, `CLR n` |
-| Black key F#3 G#3 A#3 C#4 (`KEY_B01..B04`, printed OP1..OP4) | press: mute / unmute CH1..CH4 (latched) | n/a | SET row 2: set KEY; REC: plays pitch | `MUTE1`..`MUTE4`, `KEY` |
-| Black key D#4 (`KEY_B05`) | press: PAGE: view the next page of the selected channel (wraps) | hold: the next white key pressed sets the pattern length | SET row 2: set KEY | `PAGE`, `KEY` |
-| Black key F#4 (`KEY_B06`) | hold: SOLO the selected channel (release restores the mutes) | acts on press | SET row 2: set KEY | `SOLO`, `KEY` |
-| Black key G#4 (`KEY_B07`) | hold: FILL (the selected channel plays at maximum density) | acts on press | SET row 2: set KEY | `FILL`, `KEY` |
-| Black key A#4 (`KEY_B08`) | hold: ROLL (every step of the selected channel repeats twice) | acts on press | SET row 2: set KEY | `ROLL`, `KEY` |
-| Black key C#5 (`KEY_B09`) | tap: recall scene A at the next bar | 0.7 s: store the whole current state into scene A | SET row 2: set KEY | `SCN A`, `KEY` |
-| Black key D#5 (`KEY_B10`) | tap: recall scene B at the next bar | 0.7 s: store the whole current state into scene B | SET row 2: set KEY | `SCN B`, `KEY` |
-| Black key F#5 (`KEY_B11`) | press: restart all channels from step 1 at the next step | n/a | SET row 2: set KEY | `RESTRT`, `KEY` |
-
-No control is "unused, reserved": all 49 controls (MASTER, 3 encoders, 4 knobs, 14 buttons, 16 white keys and 11 black
-keys) have an assigned role in PERF. The only unused combinations are those in the TSV marked `-`: GLO while a step key or EDIT is held or while recording, OCT- / OCT+ and PRESETS while recording,
-all 27 keys in MENU (deliberately inert so nothing is pinned or muted by accident), and OCT- / OCT+ inside MENU, which keep Felucca's menu rule (previous / next value).
+| `MASTER` (pot) | analogue volume | n/a | every page | none |
+| `EN_SELECT` (SELECT) | select channel CH1..CH4 | n/a | NOTE_EDIT: also closes it; REC: cursor to step 1 | `CH n` |
+| `EN_ALGO` (ALGORITHM) | algorithm of the selected channel (edits kept) | n/a | MENU: tab | algorithm name |
+| `EN_PRESET` (PRESETS) | preset slot; playing: lands on the bar; stopped: at once | n/a | REC, RESET: inert; MENU: row | `Pnn`, `Pnn>` |
+| `EN_K1` (KNOB 1) | live row column 1 (ACID DENS/OFFSET, EUCLID HITS/LEN, SNAKE DENS/OFFSET, STAGE DENS/OFFSET) | n/a | NOTE_EDIT `PITCH`; CHAN `LENGTH`; SET `BPM`; SCALE `SCALE`; REC `CURSOR`; RESET `RST` | morph label |
+| `EN_K2` (KNOB 2) | column 2 (ACID SLIDE/PEDAL, EUCLID OFFSET/SPAN, SNAKE LEN/GLEN, STAGE TOTAL/RDIV) | n/a | NOTE_EDIT `GATE`; CHAN `MIDI`; SET `SWING`; SCALE `KEY`; REC `ACC` | morph label |
+| `EN_K3` (KNOB 3) | column 3 (ACID JUMP/PUNCH, EUCLID RATCH/PUNCH, SNAKE RANGE/DYN, STAGE DIR/DYN) | n/a | NOTE_EDIT `VELO`; CHAN `SOURCE`; SET `GATE`; SCALE `OCTAVE`; REC `SLIDE` | morph label |
+| `EN_K4` (KNOB 4) | column 4 (ACID ACCNT/DIR, EUCLID ACCNT/CURVE, SNAKE PATH/DIR, STAGE RATCH/RANGE) | n/a | NOTE_EDIT `RATCH`; CHAN `FOLLOW`; SET `DIV`; SCALE `-`; REC `OCT` | morph label |
+| `B_FX` (FX) | dice ALL | none | NOTE_EDIT: dice this step; RESET: algorithm / step to default | `ALL` |
+| `B_SCL` (SCL) | dice NOTES | none | NOTE_EDIT: dice this step's pitch | `NOTES`, `NOTE` |
+| `B_ENV` (ENV) | dice ACCNT | none | NOTE_EDIT: accent on/off | `ACCNT`, `ACCENT` |
+| `B_LFO` (LFO) | dice SHAPE | none | NOTE_EDIT: chance 100/50 % | `SHAPE`, `PROB` |
+| `B_EDIT` (EDIT) | UNDO / REDO | RESET page (one shot) | REC: undo the last note | `UNDO`, `RESET` |
+| `B_GLO` (GLO) | SET page | SCALE page | SET / SCALE: BACK | `SET`, `SCALE` |
+| `B_HOME` (HOME) | PERF: HELP; elsewhere: back to PERF | 0.7 s: MENU | | `HELP`, `HOME`, `MENU` |
+| `B_SAVE` (SAVE) | save | 0.7 s: undo the last load (next step) | | `SAVE`, `UNDO L` |
+| `B_ARP` (ARP) | dice ARTIC | none | NOTE_EDIT: slide on/off | `ARTIC`, `SLIDE` |
+| `B_SEQ` (SEQ) | dice HITS | none | NOTE_EDIT: step on/off | `HITS`, `ON/OFF` |
+| `B_PLAY` (PLAY/STOP) | start / stop | none | every page | `PLAY` |
+| `B_REC` (REC) | open REC | none | REC: DONE; RESET: clear the viewed page | `REC` |
+| `B_OCTDN` (OCT-) | latch ROW 1 | peek ROW 1 while turning | NOTE_EDIT / SCALE / REC: octave -1; CHAN: -16 steps | `ROW 1` |
+| `B_OCTUP` (OCT+) | latch ROW 2 | peek ROW 2 while turning | NOTE_EDIT / SCALE / REC: octave +1; CHAN: +16 steps | `ROW 2` |
+| White keys F3 G3 A3 B3 C4 D4 E4 F4 G4 A4 B4 C5 D5 E5 F5 G5 (`KEY_W01_F3` .. `KEY_W16_G5`) | step n of the viewed page ON/OFF; force F3..C5: hard tap = accent | 0.4 s: NOTE_EDIT on that step | SCALE: KEY; REC: notes; RESET: clear the step; MENU: inert | `STEP` |
+| Black key F#3 G#3 A#3 C#4 (`KEY_B01..B04`) | MUTE CH1..CH4 | n/a | SCALE: KEY; REC: notes | `MUTE1`..`MUTE4` |
+| Black key D#4 (`KEY_B05`) | CHAN page | n/a | CHAN: BACK; RESET: re-copy the page before | `CHAN` |
+| Black key F#4 (`KEY_B06`) | SOLO while held | | | `SOLO` |
+| Black key G#4 (`KEY_B07`) | FILL while held (pressure = depth) | | | `FILL` |
+| Black key A#4 (`KEY_B08`) | ROLL while held (pressure = 2x..4x) | | | `ROLL` |
+| Black key C#5 (`KEY_B09`) | PG-: previous page | | | `PG-` |
+| Black key D#5 (`KEY_B10`) | PG+: next page; last page: ADD PAGE prompt, PG+ again adds | | | `PG+` |
+| Black key F#5 (`KEY_B11`) | RESTRT: all channels to step 1 | | | `RESTRT` |
 
 ## 3. Keys: steps versus moves
 
@@ -184,298 +182,445 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | Control | Context | Action | Label |
 | --- | --- | --- | --- |
 <!-- BEGIN-APPENDIX-A -->
-| `B_FX` | `PERF` | press (acts on press, no hold role): DICE ALL layers present in the channel's algorithm (order NOTES HITS ACCNT ARTIC SHAPE) | `ALL` |
-| `B_FX` | `STEP_HELD` | press (acts on press, no hold role): DICE ALL layers present in the channel's algorithm (order NOTES HITS ACCNT ARTIC SHAPE) | `ALL` |
-| `B_FX` | `SET` | press (acts on press, no hold role): DICE ALL layers present in the channel's algorithm (order NOTES HITS ACCNT ARTIC SHAPE) | `ALL` |
-| `B_FX` | `RESET` | press: reset the selected channel's current algorithm to its factory state: all 8 morphs to their defaults AND every seed to its factory seed (pins and flags kept); UNDO tap restores | `RST ALL` |
-| `B_FX` | `REC` | press (acts on press, no hold role): DICE ALL layers present in the channel's algorithm (order NOTES HITS ACCNT ARTIC SHAPE) | `ALL` |
-| `B_FX` | `MENU` | press: closes the menu (no other action) | `close` |
-| `B_SCL` | `PERF` | press (acts on press, no hold role): dice NOTES | `NOTES +sub` |
-| `B_SCL` | `STEP_HELD` | press (acts on press, no hold role): dice NOTES | `NOTES +sub` |
-| `B_SCL` | `SET` | press (acts on press, no hold role): dice NOTES | `NOTES +sub` |
-| `B_SCL` | `RESET` | press: reset the NOTES layer's seed to its factory seed | `RST NOT` |
-| `B_SCL` | `REC` | press (acts on press, no hold role): dice NOTES | `NOTES +sub` |
-| `B_SCL` | `MENU` | press: closes the menu (no other action) | `close` |
-| `B_ENV` | `PERF` | press (acts on press, no hold role): dice ACCNT | `ACCNT +sub` |
-| `B_ENV` | `STEP_HELD` | press (acts on press, no hold role): dice ACCNT | `ACCNT +sub` |
-| `B_ENV` | `SET` | press (acts on press, no hold role): dice ACCNT | `ACCNT +sub` |
-| `B_ENV` | `RESET` | press: reset the ACCNT layer's seed to its factory seed | `RST ACC` |
-| `B_ENV` | `REC` | press (acts on press, no hold role): dice ACCNT | `ACCNT +sub` |
-| `B_ENV` | `MENU` | press: closes the menu (no other action) | `close` |
-| `B_LFO` | `PERF` | press (acts on press, no hold role): dice SHAPE (dimmed and inert if the algorithm has no SHAPE layer) | `SHAPE +sub` |
-| `B_LFO` | `STEP_HELD` | press (acts on press, no hold role): dice SHAPE (dimmed and inert if the algorithm has no SHAPE layer) | `SHAPE +sub` |
-| `B_LFO` | `SET` | press (acts on press, no hold role): dice SHAPE (dimmed and inert if the algorithm has no SHAPE layer) | `SHAPE +sub` |
-| `B_LFO` | `RESET` | press: reset the SHAPE layer's seed to its factory seed (inert if the algorithm has none) | `RST SHP` |
-| `B_LFO` | `REC` | press (acts on press, no hold role): dice SHAPE (dimmed and inert if the algorithm has no SHAPE layer) | `SHAPE +sub` |
-| `B_LFO` | `MENU` | press: closes the menu (no other action) | `close` |
-| `B_EDIT` | `PERF` | tap (release before HOLD): UNDO / REDO the last dice, dice-all, pin edit, written note, pin-clear or reset (swaps current and previous; one record per channel; after a preset load there is nothing to undo, toast `SAVE hold undoes a load`); hold past HOLD, or any control pressed while it is held: open the RESET layer (no undo) | `UNDO` |
-| `B_EDIT` | `STEP_HELD` | tap: UNDO / REDO as in PERF; hold: nothing (the RESET layer opens from PERF only) | `UNDO` |
-| `B_EDIT` | `SET` | tap: UNDO / REDO as in PERF; hold: nothing (the RESET layer opens from PERF only) | `UNDO` |
-| `B_EDIT` | `RESET` | held: keeps the RESET layer open; release closes it and does not undo | `RESET` |
-| `B_EDIT` | `REC` | tap: UNDO / REDO the last written note (the cursor steps back to it); hold: nothing (leave REC to reach RESET) | `UNDO` |
-| `B_EDIT` | `MENU` | press: closes the menu (no other action) | `close` |
-| `B_GLO` | `PERF` | tap: open the SET page (latched, row 1 first); hold past HOLD: SET page while held | `SET` |
-| `B_GLO` | `STEP_HELD` | inert while a step key is held (finish the step edit first) | `-` |
-| `B_GLO` | `SET` | tap: close the SET page (same as HOME tap); hold: keeps it open while held | `BACK` |
-| `B_GLO` | `RESET` | inert while UNDO is held | `-` |
-| `B_GLO` | `REC` | inert while recording (toast `REC: tap REC to finish`) | `-` |
-| `B_GLO` | `MENU` | press: closes the menu (no other action) | `close` |
-| `B_HOME` | `PERF` | tap (release before 0.7 s): back to PERF from anywhere (in PERF the cue strip shows `HOME=back  hold=MENU/HELP` for 3 s); hold: the cue strip shows `touch = HELP, let go = MENU` at once; touch or turn any control while it is held = HELP for that control (no time limit; the control does nothing; releasing HOME then does nothing); release after 0.7 s with no control touched = open the MENU | `HOME` |
-| `B_HOME` | `STEP_HELD` | tap (release before 0.7 s): back to PERF from anywhere (in PERF the cue strip shows `HOME=back  hold=MENU/HELP` for 3 s); hold: the cue strip shows `touch = HELP, let go = MENU` at once; touch or turn any control while it is held = HELP for that control (no time limit; the control does nothing; releasing HOME then does nothing); release after 0.7 s with no control touched = open the MENU | `HOME` |
-| `B_HOME` | `SET` | tap (release before 0.7 s): back to PERF from anywhere (in PERF the cue strip shows `HOME=back  hold=MENU/HELP` for 3 s); hold: the cue strip shows `touch = HELP, let go = MENU` at once; touch or turn any control while it is held = HELP for that control (no time limit; the control does nothing; releasing HOME then does nothing); release after 0.7 s with no control touched = open the MENU | `HOME` |
-| `B_HOME` | `RESET` | tap: close the RESET layer and return to PERF; hold + control: HELP (same rule as PERF) | `HOME` |
-| `B_HOME` | `REC` | tap (release before 0.7 s): leave REC (back to PERF) (in PERF the cue strip shows `HOME=back  hold=MENU/HELP` for 3 s); hold: the cue strip shows `touch = HELP, let go = MENU` at once; touch or turn any control while it is held = HELP for that control (no time limit; the control does nothing; releasing HOME then does nothing); release after 0.7 s with no control touched = open the MENU | `HOME` |
-| `B_HOME` | `MENU` | tap or hold 0.7 s: close the menu | `BACK` |
-| `B_SAVE` | `PERF` | tap: save the whole device state into the preset slot shown in the header; hold 0.7 s: undo the last preset load (again: redo) | `SAVE Pnn` |
-| `B_SAVE` | `STEP_HELD` | tap: save the whole device state into the preset slot shown in the header; hold 0.7 s: undo the last preset load (again: redo) | `SAVE Pnn` |
-| `B_SAVE` | `SET` | tap: save the whole device state into the preset slot shown in the header; hold 0.7 s: undo the last preset load (again: redo) | `SAVE Pnn` |
-| `B_SAVE` | `RESET` | tap: save the whole device state into the preset slot shown in the header; hold 0.7 s: undo the last preset load (again: redo) | `SAVE Pnn` |
-| `B_SAVE` | `REC` | tap: save the whole device state into the preset slot shown in the header; hold 0.7 s: undo the last preset load (again: redo) | `SAVE Pnn` |
-| `B_SAVE` | `MENU` | press: closes the menu (no other action) | `close` |
-| `B_ARP` | `PERF` | press (acts on press, no hold role): dice ARTIC (dimmed and inert if the algorithm has no ARTIC layer) | `ARTIC +sub` |
-| `B_ARP` | `STEP_HELD` | press (acts on press, no hold role): dice ARTIC (dimmed and inert if the algorithm has no ARTIC layer) | `ARTIC +sub` |
-| `B_ARP` | `SET` | press (acts on press, no hold role): dice ARTIC (dimmed and inert if the algorithm has no ARTIC layer) | `ARTIC +sub` |
-| `B_ARP` | `RESET` | press: reset the ARTIC layer's seed to its factory seed (inert if the algorithm has none) | `RST ART` |
-| `B_ARP` | `REC` | press (acts on press, no hold role): dice ARTIC (dimmed and inert if the algorithm has no ARTIC layer) | `ARTIC +sub` |
-| `B_ARP` | `MENU` | press: closes the menu (no other action) | `close` |
-| `B_SEQ` | `PERF` | press (acts on press, no hold role): dice HITS | `HITS +sub` |
-| `B_SEQ` | `STEP_HELD` | press (acts on press, no hold role): dice HITS | `HITS +sub` |
-| `B_SEQ` | `SET` | press (acts on press, no hold role): dice HITS | `HITS +sub` |
-| `B_SEQ` | `RESET` | press: reset the HITS layer's seed to its factory seed | `RST HIT` |
-| `B_SEQ` | `REC` | press (acts on press, no hold role): dice HITS | `HITS +sub` |
-| `B_SEQ` | `MENU` | press: closes the menu (no other action) | `close` |
-| `B_PLAY` | `PERF` | press: start / stop all channels | `PLAY / STOP` |
-| `B_PLAY` | `STEP_HELD` | press: start / stop all channels | `PLAY / STOP` |
-| `B_PLAY` | `SET` | press: start / stop all channels | `PLAY / STOP` |
-| `B_PLAY` | `RESET` | press: start / stop all channels | `PLAY / STOP` |
-| `B_PLAY` | `REC` | press: start / stop all channels (RECORD stays armed; playing, a note lands on the step nearest the playhead) | `PLAY / STOP` |
-| `B_PLAY` | `MENU` | press: start / stop all channels | `PLAY / STOP` |
-| `B_REC` | `PERF` | tap (release before HOLD): arm RECORD (latched, LED lit, banner `REC`): the 27 keys now PLAY pitches F3..G5 on the selected channel and WRITE each note into the step at the cursor (stopped) or the step nearest the playhead (playing); tap again or HOME: disarm | `REC` |
-| `B_REC` | `STEP_HELD` | tap: arm RECORD (the held step stays selected until released; the key then plays pitches) | `REC` |
-| `B_REC` | `SET` | tap: close SET and arm RECORD | `REC` |
-| `B_REC` | `RESET` | press: CLEAR PINS: remove every pin and per-step flag of the selected channel (UNDO tap restores) | `CLR PIN` |
-| `B_REC` | `REC` | tap: disarm RECORD (back to PERF; every written note stays; UNDO takes back only the LAST note, an overwritten pin is not restored) | `REC` |
-| `B_REC` | `MENU` | press: closes the menu (no other action) | `close` |
-| `B_OCTDN` | `PERF` | tap (release before HOLD, no knob turned): latch ROW 1 of the knob band (a set, not a toggle); hold and turn a knob: ROW 1 is live while held, then the latched row returns; both OCT held 5 s = UPDATE MODE; both at power-on = CALIBRATION | `ROW 1` |
-| `B_OCTDN` | `STEP_HELD` | tap: step band row 1 (K1..K4 edit that row of the held step); hold and turn: row 1 while held | `STEP 1` |
-| `B_OCTDN` | `SET` | tap: SET row 1 (hold: SET row 1 while held); the morph latch is untouched | `SET 1` |
-| `B_OCTDN` | `RESET` | press: reset ROW 1 (its four morphs) of the selected channel to the defaults; UNDO tap restores | `RST R1` |
-| `B_OCTDN` | `REC` | inert while recording (the REC band is one row; toast `REC: tap REC to finish`) | `-` |
-| `B_OCTDN` | `MENU` | release: previous value / back (Felucca menu rule) | `-` |
-| `B_OCTUP` | `PERF` | tap (release before HOLD, no knob turned): latch ROW 2 of the knob band (a set, not a toggle); hold and turn a knob: ROW 2 is live while held, then the latched row returns; both OCT held 5 s = UPDATE MODE; both at power-on = CALIBRATION | `ROW 2` |
-| `B_OCTUP` | `STEP_HELD` | tap: step band row 2 (K1..K4 edit that row of the held step); hold and turn: row 2 while held | `STEP 2` |
-| `B_OCTUP` | `SET` | tap: SET row 2 (hold: SET row 2 while held); the morph latch is untouched | `SET 2` |
-| `B_OCTUP` | `RESET` | press: reset ROW 2 (its four morphs) of the selected channel to the defaults; UNDO tap restores | `RST R2` |
-| `B_OCTUP` | `REC` | inert while recording (the REC band is one row; toast `REC: tap REC to finish`) | `-` |
-| `B_OCTUP` | `MENU` | release: next value / do it (opens CALIBRATION, INFO, ABOUT rows) | `-` |
+| `B_FX` | `PERF` | tap: press: DICE ALL layers present in the algorithm (generated layer only; every step edit is kept) // hold: no hold role: acted once on press | `ALL` |
+| `B_FX` | `NOTE_EDIT` | tap: press: DICE THIS STEP: new pitch, accent, slide and gate for the edited step from fresh entropy, written as edits and auditioned; EDIT tap undoes // hold: no hold role: acted once on press | `ALL` |
+| `B_FX` | `CHAN` | tap: press: DICE ALL layers present in the algorithm (generated layer only; every step edit is kept) // hold: no hold role: acted once on press | `ALL` |
+| `B_FX` | `SET` | tap: press: DICE ALL layers present in the algorithm (generated layer only; every step edit is kept) // hold: no hold role: acted once on press | `ALL` |
+| `B_FX` | `SCALE` | tap: press: DICE ALL layers present in the algorithm (generated layer only; every step edit is kept) // hold: no hold role: acted once on press | `ALL` |
+| `B_FX` | `REC` | tap: press: DICE ALL layers present in the algorithm (generated layer only; every step edit is kept) (performing while recording is allowed) // hold: no hold role: acted once on press | `ALL` |
+| `B_FX` | `RESET` | tap: press: from PERF/CHAN/SET/SCALE: the whole algorithm to factory (8 morphs + every seed; edits kept); from NOTE_EDIT: every edit of the edited step to AUTO; RESET closes; EDIT tap undoes // hold: no hold role: acted once on press | `RST AL` |
+| `B_FX` | `HELP` | tap: explain this control (help box + cue strip); nothing else happens // hold: as tap (explain); nothing else happens | `?` |
+| `B_FX` | `MENU` | tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `close` |
+| `B_SCL` | `PERF` | tap: press: dice the NOTES layer (new pitches in the scale; edited pitches kept); algorithm sub-label under it // hold: no hold role: acted once on press | `NOTES` |
+| `B_SCL` | `NOTE_EDIT` | tap: press: dice the edited step's pitch: a new scale note, written as its PITCH edit and auditioned; EDIT tap undoes // hold: no hold role: acted once on press | `NOTE` |
+| `B_SCL` | `CHAN` | tap: press: dice the NOTES layer (new pitches in the scale; edited pitches kept); algorithm sub-label under it // hold: no hold role: acted once on press | `NOTES` |
+| `B_SCL` | `SET` | tap: press: dice the NOTES layer (new pitches in the scale; edited pitches kept); algorithm sub-label under it // hold: no hold role: acted once on press | `NOTES` |
+| `B_SCL` | `SCALE` | tap: press: dice the NOTES layer (new pitches in the scale; edited pitches kept); algorithm sub-label under it // hold: no hold role: acted once on press | `NOTES` |
+| `B_SCL` | `REC` | tap: press: dice the NOTES layer (new pitches in the scale; edited pitches kept) (performing while recording is allowed) // hold: no hold role: acted once on press | `NOTES` |
+| `B_SCL` | `RESET` | tap: press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (NOTE); RESET closes; EDIT tap undoes // hold: no hold role: acted once on press | `RST NT` |
+| `B_SCL` | `HELP` | tap: explain this control (help box + cue strip); nothing else happens // hold: as tap (explain); nothing else happens | `?` |
+| `B_SCL` | `MENU` | tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `close` |
+| `B_ENV` | `PERF` | tap: press: dice the ACCNT layer (which generated steps are loud; VELO edits kept); algorithm sub-label under it // hold: no hold role: acted once on press | `ACCNT` |
+| `B_ENV` | `NOTE_EDIT` | tap: press: toggle ACCENT on the edited step: velocity to ACC_VEL 120, or back to 80 / AUTO; EDIT tap undoes // hold: no hold role: acted once on press | `ACCENT` |
+| `B_ENV` | `CHAN` | tap: press: dice the ACCNT layer (which generated steps are loud; VELO edits kept); algorithm sub-label under it // hold: no hold role: acted once on press | `ACCNT` |
+| `B_ENV` | `SET` | tap: press: dice the ACCNT layer (which generated steps are loud; VELO edits kept); algorithm sub-label under it // hold: no hold role: acted once on press | `ACCNT` |
+| `B_ENV` | `SCALE` | tap: press: dice the ACCNT layer (which generated steps are loud; VELO edits kept); algorithm sub-label under it // hold: no hold role: acted once on press | `ACCNT` |
+| `B_ENV` | `REC` | tap: press: dice the ACCNT layer (which generated steps are loud; VELO edits kept) (performing while recording is allowed) // hold: no hold role: acted once on press | `ACCNT` |
+| `B_ENV` | `RESET` | tap: press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (ACCENT); RESET closes; EDIT tap undoes // hold: no hold role: acted once on press | `RST AC` |
+| `B_ENV` | `HELP` | tap: explain this control (help box + cue strip); nothing else happens // hold: as tap (explain); nothing else happens | `?` |
+| `B_ENV` | `MENU` | tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `close` |
+| `B_LFO` | `PERF` | tap: press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent; algorithm sub-label under it // hold: no hold role: acted once on press | `SHAPE` |
+| `B_LFO` | `NOTE_EDIT` | tap: press: toggle PROB on the edited step: 100 % / 50 % (PROB_LOW), drawn deterministically per pass; EDIT tap undoes // hold: no hold role: acted once on press | `PROB` |
+| `B_LFO` | `CHAN` | tap: press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent; algorithm sub-label under it // hold: no hold role: acted once on press | `SHAPE` |
+| `B_LFO` | `SET` | tap: press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent; algorithm sub-label under it // hold: no hold role: acted once on press | `SHAPE` |
+| `B_LFO` | `SCALE` | tap: press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent; algorithm sub-label under it // hold: no hold role: acted once on press | `SHAPE` |
+| `B_LFO` | `REC` | tap: press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent (performing while recording is allowed) // hold: no hold role: acted once on press | `SHAPE` |
+| `B_LFO` | `RESET` | tap: press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (PROB); RESET closes; EDIT tap undoes // hold: no hold role: acted once on press | `RST SH` |
+| `B_LFO` | `HELP` | tap: explain this control (help box + cue strip); nothing else happens // hold: as tap (explain); nothing else happens | `?` |
+| `B_LFO` | `MENU` | tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `close` |
+| `B_EDIT` | `PERF` | tap: UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel // hold: 0.4 s: open RESET (latched, one shot): the next control touched goes back to its default | `UNDO` |
+| `B_EDIT` | `NOTE_EDIT` | tap: UNDO: the edited step back to how it was when this NOTE EDIT visit began; again = redo // hold: 0.4 s: open RESET over NOTE_EDIT (next touch puts that property of the step back to AUTO) | `UNDO` |
+| `B_EDIT` | `CHAN` | tap: UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel // hold: 0.4 s: open RESET (latched, one shot): the next control touched goes back to its default | `UNDO` |
+| `B_EDIT` | `SET` | tap: UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel // hold: 0.4 s: open RESET (latched, one shot): the next control touched goes back to its default | `UNDO` |
+| `B_EDIT` | `SCALE` | tap: UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel // hold: 0.4 s: open RESET (latched, one shot): the next control touched goes back to its default | `UNDO` |
+| `B_EDIT` | `REC` | tap: UNDO the last written note (the cursor steps back); again = redo // hold: inert in REC (toast LEAVE REC FIRST) | `UNDO` |
+| `B_EDIT` | `RESET` | tap: cancel RESET (nothing reset), back to the page beneath // hold: inert (already in RESET) | `CANCEL` |
+| `B_EDIT` | `HELP` | tap: explain this control (help box + cue strip); nothing else happens // hold: as tap (explain); nothing else happens | `?` |
+| `B_EDIT` | `MENU` | tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `close` |
+| `B_GLO` | `PERF` | tap: open SET (latched): BPM SWING GATE DIV // hold: 0.4 s: open SCALE (latched): SCALE KEY OCTAVE; any key = KEY | `SET` |
+| `B_GLO` | `NOTE_EDIT` | tap: open SET (latched): BPM SWING GATE DIV (closes NOTE EDIT) // hold: 0.4 s: open SCALE (latched): SCALE KEY OCTAVE; any key = KEY | `SET` |
+| `B_GLO` | `CHAN` | tap: open SET (latched): BPM SWING GATE DIV // hold: 0.4 s: open SCALE (latched): SCALE KEY OCTAVE; any key = KEY | `SET` |
+| `B_GLO` | `SET` | tap: close SET, back to PERF // hold: 0.4 s: switch to SCALE | `BACK` |
+| `B_GLO` | `SCALE` | tap: close SCALE, back to PERF // hold: inert (already on SCALE) | `BACK` |
+| `B_GLO` | `REC` | tap: inert in REC (toast REC: tap REC to finish) // hold: inert in REC | `-` |
+| `B_GLO` | `RESET` | tap: inert (nothing to reset; toast NOTHING TO RESET) // hold: inert | `-` |
+| `B_GLO` | `HELP` | tap: explain this control (help box + cue strip); nothing else happens // hold: as tap (explain); nothing else happens | `?` |
+| `B_GLO` | `MENU` | tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `close` |
+| `B_HOME` | `PERF` | tap: release under 0.7 s: open HELP (already home, so HOME explains) // hold: held 0.7 s, acts on release: open MENU | `HELP` |
+| `B_HOME` | `NOTE_EDIT` | tap: release under 0.7 s: back to PERF (leaves NOTE_EDIT) // hold: held 0.7 s, acts on release: open MENU | `HOME` |
+| `B_HOME` | `CHAN` | tap: release under 0.7 s: back to PERF (leaves CHAN) // hold: held 0.7 s, acts on release: open MENU | `HOME` |
+| `B_HOME` | `SET` | tap: release under 0.7 s: back to PERF (leaves SET) // hold: held 0.7 s, acts on release: open MENU | `HOME` |
+| `B_HOME` | `SCALE` | tap: release under 0.7 s: back to PERF (leaves SCALE) // hold: held 0.7 s, acts on release: open MENU | `HOME` |
+| `B_HOME` | `REC` | tap: release under 0.7 s: back to PERF (leaves REC) // hold: held 0.7 s, acts on release: open MENU | `HOME` |
+| `B_HOME` | `RESET` | tap: cancel RESET and go to PERF // hold: held 0.7 s, acts on release: open MENU | `HOME` |
+| `B_HOME` | `HELP` | tap: release under 0.7 s: close HELP, back to PERF // hold: held 0.7 s, acts on release: open MENU | `BACK` |
+| `B_HOME` | `MENU` | tap: tap or hold 0.7 s: close the menu // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `BACK` |
+| `B_SAVE` | `PERF` | tap: release under 0.7 s: save the whole device state to the preset slot in the header // hold: 0.7 s: undo the last preset load, applied at the next step (again = redo) | `SAVE` |
+| `B_SAVE` | `NOTE_EDIT` | tap: release under 0.7 s: save the whole device state to the preset slot in the header // hold: 0.7 s: undo the last preset load, applied at the next step (again = redo) | `SAVE` |
+| `B_SAVE` | `CHAN` | tap: release under 0.7 s: save the whole device state to the preset slot in the header // hold: 0.7 s: undo the last preset load, applied at the next step (again = redo) | `SAVE` |
+| `B_SAVE` | `SET` | tap: release under 0.7 s: save the whole device state to the preset slot in the header // hold: 0.7 s: undo the last preset load, applied at the next step (again = redo) | `SAVE` |
+| `B_SAVE` | `SCALE` | tap: release under 0.7 s: save the whole device state to the preset slot in the header // hold: 0.7 s: undo the last preset load, applied at the next step (again = redo) | `SAVE` |
+| `B_SAVE` | `REC` | tap: release under 0.7 s: save the whole device state to the preset slot in the header // hold: 0.7 s: undo the last preset load, applied at the next step (again = redo) | `SAVE` |
+| `B_SAVE` | `RESET` | tap: inert (toast NOTHING TO RESET) // hold: inert | `-` |
+| `B_SAVE` | `HELP` | tap: explain this control (help box + cue strip); nothing else happens // hold: as tap (explain); nothing else happens | `?` |
+| `B_SAVE` | `MENU` | tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `close` |
+| `B_ARP` | `PERF` | tap: press: dice the ARTIC layer (gate, slide, ratchet as the algorithm has them; edits kept); dim if absent; algorithm sub-label under it // hold: no hold role: acted once on press | `ARTIC` |
+| `B_ARP` | `NOTE_EDIT` | tap: press: toggle SLIDE on the edited step: this note glides into the next sounding step (TB-303 convention); EDIT tap undoes // hold: no hold role: acted once on press | `SLIDE` |
+| `B_ARP` | `CHAN` | tap: press: dice the ARTIC layer (gate, slide, ratchet as the algorithm has them; edits kept); dim if absent; algorithm sub-label under it // hold: no hold role: acted once on press | `ARTIC` |
+| `B_ARP` | `SET` | tap: press: dice the ARTIC layer (gate, slide, ratchet as the algorithm has them; edits kept); dim if absent; algorithm sub-label under it // hold: no hold role: acted once on press | `ARTIC` |
+| `B_ARP` | `SCALE` | tap: press: dice the ARTIC layer (gate, slide, ratchet as the algorithm has them; edits kept); dim if absent; algorithm sub-label under it // hold: no hold role: acted once on press | `ARTIC` |
+| `B_ARP` | `REC` | tap: press: dice the ARTIC layer (gate, slide, ratchet as the algorithm has them; edits kept); dim if absent (performing while recording is allowed) // hold: no hold role: acted once on press | `ARTIC` |
+| `B_ARP` | `RESET` | tap: press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (SLIDE); RESET closes; EDIT tap undoes // hold: no hold role: acted once on press | `RST AR` |
+| `B_ARP` | `HELP` | tap: explain this control (help box + cue strip); nothing else happens // hold: as tap (explain); nothing else happens | `?` |
+| `B_ARP` | `MENU` | tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `close` |
+| `B_SEQ` | `PERF` | tap: press: dice the HITS layer (where the generated steps fall; ON/OFF edits kept); algorithm sub-label under it // hold: no hold role: acted once on press | `HITS` |
+| `B_SEQ` | `NOTE_EDIT` | tap: press: toggle the edited step ON/OFF (same as tapping its key); EDIT tap undoes // hold: no hold role: acted once on press | `ON/OFF` |
+| `B_SEQ` | `CHAN` | tap: press: dice the HITS layer (where the generated steps fall; ON/OFF edits kept); algorithm sub-label under it // hold: no hold role: acted once on press | `HITS` |
+| `B_SEQ` | `SET` | tap: press: dice the HITS layer (where the generated steps fall; ON/OFF edits kept); algorithm sub-label under it // hold: no hold role: acted once on press | `HITS` |
+| `B_SEQ` | `SCALE` | tap: press: dice the HITS layer (where the generated steps fall; ON/OFF edits kept); algorithm sub-label under it // hold: no hold role: acted once on press | `HITS` |
+| `B_SEQ` | `REC` | tap: press: dice the HITS layer (where the generated steps fall; ON/OFF edits kept) (performing while recording is allowed) // hold: no hold role: acted once on press | `HITS` |
+| `B_SEQ` | `RESET` | tap: press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (ON/OFF); RESET closes; EDIT tap undoes // hold: no hold role: acted once on press | `RST HT` |
+| `B_SEQ` | `HELP` | tap: explain this control (help box + cue strip); nothing else happens // hold: as tap (explain); nothing else happens | `?` |
+| `B_SEQ` | `MENU` | tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `close` |
+| `B_PLAY` | `PERF` | tap: press: start / stop all channels (stop sends every note-off then CC123) // hold: no hold role: acted once on press | `PLAY` |
+| `B_PLAY` | `NOTE_EDIT` | tap: press: start / stop all channels (stop sends every note-off then CC123) // hold: no hold role: acted once on press | `PLAY` |
+| `B_PLAY` | `CHAN` | tap: press: start / stop all channels (stop sends every note-off then CC123) // hold: no hold role: acted once on press | `PLAY` |
+| `B_PLAY` | `SET` | tap: press: start / stop all channels (stop sends every note-off then CC123) // hold: no hold role: acted once on press | `PLAY` |
+| `B_PLAY` | `SCALE` | tap: press: start / stop all channels (stop sends every note-off then CC123) // hold: no hold role: acted once on press | `PLAY` |
+| `B_PLAY` | `REC` | tap: press: start / stop all channels (stop sends every note-off then CC123) // hold: no hold role: acted once on press | `PLAY` |
+| `B_PLAY` | `RESET` | tap: press: start / stop all channels (stop sends every note-off then CC123) // hold: no hold role: acted once on press | `PLAY` |
+| `B_PLAY` | `HELP` | tap: press: start / stop (still works in HELP) and explain it // hold: no hold role: acted once on press | `PLAY` |
+| `B_PLAY` | `MENU` | tap: press: start / stop all channels // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `PLAY` |
+| `B_REC` | `PERF` | tap: press: open REC (latched, LED lit): the 27 keys play and write notes // hold: no hold role: acted once on press | `REC` |
+| `B_REC` | `NOTE_EDIT` | tap: press: open REC with the write cursor on the edited step // hold: no hold role: acted once on press | `REC` |
+| `B_REC` | `CHAN` | tap: press: open REC (latched, LED lit): the 27 keys play and write notes // hold: no hold role: acted once on press | `REC` |
+| `B_REC` | `SET` | tap: press: open REC (latched, LED lit): the 27 keys play and write notes // hold: no hold role: acted once on press | `REC` |
+| `B_REC` | `SCALE` | tap: press: open REC (latched, LED lit): the 27 keys play and write notes // hold: no hold role: acted once on press | `REC` |
+| `B_REC` | `REC` | tap: press: leave REC, back to PERF // hold: no hold role: acted once on press | `DONE` |
+| `B_REC` | `RESET` | tap: press: clear every edit on the viewed page of the selected channel (it becomes pure generator); RESET closes; EDIT tap undoes // hold: no hold role: acted once on press | `RST PG` |
+| `B_REC` | `HELP` | tap: explain this control (help box + cue strip); nothing else happens // hold: as tap (explain); nothing else happens | `?` |
+| `B_REC` | `MENU` | tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `close` |
+| `B_OCTDN` | `PERF` | tap: release: latch ROW 1 of the knob band // hold: hold and turn a knob: ROW 1 live while held (momentary peek; the tap is the main route) | `ROW 1` |
+| `B_OCTDN` | `NOTE_EDIT` | tap: release: the edited step one octave down (OCT -2..+2), auditioned // hold: as tap (no hold role on this page) | `OCT-` |
+| `B_OCTDN` | `CHAN` | tap: release: LENGTH -16 (hide the last page; nothing is lost) // hold: as tap (no hold role on this page) | `-PAGE` |
+| `B_OCTDN` | `SET` | tap: inert on SET (one row of four; toast ONE ROW HERE) // hold: inert | `-` |
+| `B_OCTDN` | `SCALE` | tap: release: global OCTAVE -1 (-2..+2) // hold: as tap (no hold role on this page) | `OCT-` |
+| `B_OCTDN` | `REC` | tap: release: the REC keyboard octave -1 (same value as K4 OCT) // hold: as tap (no hold role on this page) | `OCT-` |
+| `B_OCTDN` | `RESET` | tap: from PERF: reset the four morphs of ROW 1; from NOTE_EDIT: the step octave to AUTO; elsewhere inert; RESET closes; EDIT tap undoes // hold: as tap | `RST R1` |
+| `B_OCTDN` | `HELP` | tap: explain this control (help box + cue strip); nothing else happens // hold: as tap (explain); nothing else happens | `?` |
+| `B_OCTDN` | `MENU` | tap: release: previous value / back (Felucca menu rule) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `-` |
+| `B_OCTUP` | `PERF` | tap: release: latch ROW 2 of the knob band // hold: hold and turn a knob: ROW 2 live while held (momentary peek; the tap is the main route) | `ROW 2` |
+| `B_OCTUP` | `NOTE_EDIT` | tap: release: the edited step one octave up (OCT -2..+2), auditioned // hold: as tap (no hold role on this page) | `OCT+` |
+| `B_OCTUP` | `CHAN` | tap: release: LENGTH +16 (add a page: a copy of the page before it, or the stored page if one was hidden) // hold: as tap (no hold role on this page) | `+PAGE` |
+| `B_OCTUP` | `SET` | tap: inert on SET (one row of four; toast ONE ROW HERE) // hold: inert | `-` |
+| `B_OCTUP` | `SCALE` | tap: release: global OCTAVE +1 (-2..+2) // hold: as tap (no hold role on this page) | `OCT+` |
+| `B_OCTUP` | `REC` | tap: release: the REC keyboard octave +1 (same value as K4 OCT) // hold: as tap (no hold role on this page) | `OCT+` |
+| `B_OCTUP` | `RESET` | tap: from PERF: reset the four morphs of ROW 2; from NOTE_EDIT: the step octave to AUTO; elsewhere inert; RESET closes; EDIT tap undoes // hold: as tap | `RST R2` |
+| `B_OCTUP` | `HELP` | tap: explain this control (help box + cue strip); nothing else happens // hold: as tap (explain); nothing else happens | `?` |
+| `B_OCTUP` | `MENU` | tap: release: next value / do it (opens CALIBRATION, INFO, ABOUT rows) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `-` |
 | `EN_SELECT` | `PERF` | turn: select channel CH1..CH4 (clamped, no wrap) | `CH n` |
-| `EN_SELECT` | `STEP_HELD` | turn: select channel CH1..CH4 (clamped, no wrap) | `CH n` |
+| `EN_SELECT` | `NOTE_EDIT` | turn: select channel CH1..CH4; closes NOTE EDIT (the edited step belongs to the old channel) | `CH n` |
+| `EN_SELECT` | `CHAN` | turn: select channel CH1..CH4 (clamped, no wrap) | `CH n` |
 | `EN_SELECT` | `SET` | turn: select channel CH1..CH4 (clamped, no wrap) | `CH n` |
+| `EN_SELECT` | `SCALE` | turn: select channel CH1..CH4 (clamped, no wrap) | `CH n` |
+| `EN_SELECT` | `REC` | turn: select channel; the cursor goes to step 1 | `CH n` |
 | `EN_SELECT` | `RESET` | turn: select channel CH1..CH4 (clamped, no wrap) | `CH n` |
-| `EN_SELECT` | `REC` | turn: select channel CH1..CH4 (the cursor goes to step 1) | `CH n` |
-| `EN_SELECT` | `MENU` | turn: select channel CH1..CH4 (clamped, no wrap) | `CH n` |
-| `EN_ALGO` | `PERF` | turn: algorithm of the selected channel ACID > EUCLID > SNAKE > STAGE (clamped); lands at the next step; morphs and seeds kept per channel (S7) | `ALGO name` |
-| `EN_ALGO` | `STEP_HELD` | turn: algorithm of the selected channel ACID > EUCLID > SNAKE > STAGE (clamped); lands at the next step; morphs and seeds kept per channel (S7) | `ALGO name` |
-| `EN_ALGO` | `SET` | turn: algorithm of the selected channel ACID > EUCLID > SNAKE > STAGE (clamped); lands at the next step; morphs and seeds kept per channel (S7) | `ALGO name` |
-| `EN_ALGO` | `RESET` | turn: algorithm of the selected channel ACID > EUCLID > SNAKE > STAGE (clamped); lands at the next step; morphs and seeds kept per channel (S7) | `ALGO name` |
-| `EN_ALGO` | `REC` | turn: algorithm of the selected channel ACID > EUCLID > SNAKE > STAGE (clamped); lands at the next step; morphs and seeds kept per channel (S7) | `ALGO name` |
-| `EN_ALGO` | `MENU` | turn: next / previous menu tab (wraps) | `tab` |
-| `EN_PRESET` | `PERF` | turn: preset slot P01..P16; a filled slot loads at the next bar (immediately when stopped); an empty slot only selects the target for SAVE | `Pnn` |
-| `EN_PRESET` | `STEP_HELD` | turn: preset slot P01..P16; a filled slot loads at the next bar (immediately when stopped); an empty slot only selects the target for SAVE | `Pnn` |
-| `EN_PRESET` | `SET` | turn: preset slot P01..P16; a filled slot loads at the next bar (immediately when stopped); an empty slot only selects the target for SAVE | `Pnn` |
-| `EN_PRESET` | `RESET` | turn: preset slot P01..P16; a filled slot loads at the next bar (immediately when stopped); an empty slot only selects the target for SAVE | `Pnn` |
-| `EN_PRESET` | `REC` | inert while recording (no preset loads under a take; toast `REC: tap REC to finish`) | `-` |
-| `EN_PRESET` | `MENU` | turn: next / previous menu row (wraps) | `row` |
-| `MASTER` | `PERF` | analogue pot: preview-synth and USB-audio volume (song.master_q12); no MIDI effect | `-` |
-| `MASTER` | `STEP_HELD` | analogue pot: preview-synth and USB-audio volume (song.master_q12); no MIDI effect | `-` |
-| `MASTER` | `SET` | analogue pot: preview-synth and USB-audio volume (song.master_q12); no MIDI effect | `-` |
-| `MASTER` | `RESET` | analogue pot: preview-synth and USB-audio volume (song.master_q12); no MIDI effect | `-` |
-| `MASTER` | `REC` | analogue pot: preview-synth and USB-audio volume (song.master_q12); no MIDI effect | `-` |
-| `MASTER` | `MENU` | analogue pot: preview-synth and USB-audio volume (song.master_q12); no MIDI effect | `-` |
-| `EN_K1` | `PERF` | turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K1 DENSITY: ACID DENS 0..16 / EUCLID HITS 0..16 / SNAKE DENS 0..16 / STAGE DENS 0..8; 0 = KEYS ONLY (only pins play). ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S1 START: OFFSET (ACID 0..15 / EUCLID 0..15 / SNAKE 0..15 / STAGE 0..63). Details FULL_CONTROL.md section 3 | `algo label` |
-| `EN_K1` | `STEP_HELD` | turn: step band row 1 (OCT- or the default): the held step's pin NOTE, one scale degree per detent (auditioned); row 2 (tap OCT+): TIE flag (the previous step's note is held through it), turn right = ON, left = OFF | `NOTE / TIE` |
-| `EN_K1` | `SET` | turn: SET row 1 = GATE 10..100 % (50 % neutral); SET row 2 = global SCALE (the KEY is set by pressing any key while row 2 shows) | `GATE / SCALE` |
-| `EN_K1` | `RESET` | turn: reset that ONE morph of the live row (DENSITY slot of the latched ROW 1 or ROW 2) to its default; the cell reads RST; further turns of the same knob do nothing until UNDO is released and held again | `RST` |
-| `EN_K1` | `REC` | turn: CURSOR: move the write cursor one step per detent (stopped: the step plays so you can hear where you are; wraps at the pattern length) | `CURSOR` |
-| `EN_K1` | `MENU` | turn: change the selected row's value (K1..K4 equivalent) | `value` |
-| `EN_K2` | `PERF` | turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K2 FORM: ACID PEDAL 0..12 / EUCLID LEN 2..16 / SNAKE LEN 1..16 / STAGE TOTAL 8..64 (step 4 when turned fast, 1 when slow). ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S2 ARTIC: ACID SLIDE 0..8 / EUCLID RATCH 0..8 / SNAKE GLEN 1..16 / STAGE RDIV 1..4. Details FULL_CONTROL.md section 3 | `algo label` |
-| `EN_K2` | `STEP_HELD` | turn: row 1: ACC accent flag of the held step, right = ON, left = OFF; row 2: MUTE (the step does not sound even if the algorithm hits it), right = ON, left = OFF | `ACC / MUTE` |
-| `EN_K2` | `SET` | turn: SET row 1 = DIV 1/4..1/32; SET row 2 = global OCTAVE -3..+3 | `DIV / OCTAVE` |
-| `EN_K2` | `RESET` | turn: reset that ONE morph of the live row (FORM slot of the latched ROW 1 or ROW 2) to its default; the cell reads RST; further turns of the same knob do nothing until UNDO is released and held again | `RST` |
-| `EN_K2` | `REC` | turn: ACC for the notes written next: ON / OFF (accent flag) | `ACC` |
-| `EN_K2` | `MENU` | turn: change the selected row's value (K1..K4 equivalent) | `value` |
-| `EN_K3` | `PERF` | turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K3 PITCH: ACID JUMP 0..20 / EUCLID SPAN 0..24 / SNAKE RANGE 0..48 / STAGE RANGE 0..36 (step 4 when turned fast on RANGE, 1 when slow). ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S3 DYNAMICS: ACID PUNCH 0..47 / EUCLID PUNCH 0..47 / SNAKE DYN 0..10 / STAGE DYN 0..10. Details FULL_CONTROL.md section 3 | `algo label` |
-| `EN_K3` | `STEP_HELD` | turn: row 1: SLIDE flag (glide into that step), right = ON, left = OFF; row 2: PROB probability of the step sounding: 100, 75, 50, 25 % (a seeded draw: the same pass plays the same way; P1-016 fixes the draw) | `SLIDE / PROB` |
-| `EN_K3` | `SET` | turn: SET row 1 = SWING 50..75 %; SET row 2 = MIDI channel of the SELECTED channel 1..16 or OFF | `SWING / MIDI` |
-| `EN_K3` | `RESET` | turn: reset that ONE morph of the live row (PITCH slot of the latched ROW 1 or ROW 2) to its default; the cell reads RST; further turns of the same knob do nothing until UNDO is released and held again | `RST` |
-| `EN_K3` | `REC` | turn: SLIDE for the notes written next: ON / OFF (slide into the next step) | `SLIDE` |
-| `EN_K3` | `MENU` | turn: change the selected row's value (K1..K4 equivalent) | `value` |
-| `EN_K4` | `PERF` | turn: morph of the LIVE ROW. ROW 1 (latched by tapping OCT-, the power-on row) = K4 SPICE: ACID ACCNT 0..8 / EUCLID ACCNT 0..8 / SNAKE PATH 1..14 / STAGE RATCH 0..8. ROW 2 (latched by tapping OCT+; or momentary while OCT+ is held, or OCT- for ROW 1) = S4 READ: ACID DIR 0..2 / EUCLID CURVE 0..6 / SNAKE DIR 0..2 / STAGE DIR 0..2. Details FULL_CONTROL.md section 3 | `algo label` |
-| `EN_K4` | `STEP_HELD` | turn: row 1: RATCH repeats in the step: 1x, 2x, 3x, 4x; row 2: OCT pin octave -2..+2 (in steps of 12 semitones) | `RATCH / OCT` |
-| `EN_K4` | `SET` | turn: SET row 1 = BPM 40..240 (EXT when slaved); SET row 2 = pattern length of the SELECTED channel in steps (R1; range, default and the relation to the algorithm LEN morph are filled by P1-016; the slot is reserved here) | `BPM / LENGTH` |
-| `EN_K4` | `RESET` | turn: reset that ONE morph of the live row (SPICE slot of the latched ROW 1 or ROW 2) to its default; the cell reads RST; further turns of the same knob do nothing until UNDO is released and held again | `RST` |
-| `EN_K4` | `REC` | turn: OCT: octave of the keys -2..+2 (added to the global OCTAVE; applies to the next key) | `OCT` |
-| `EN_K4` | `MENU` | turn: change the selected row's value (K1..K4 equivalent) | `value` |
-| `KEY_W01_F3` | `PERF` | press (a touch under 30 ms is ignored): step (viewed page - 1) x 16 + 1 (past the pattern length the key is dim and inert). An unpinned step gets a pin now (the note generated there, or the root when silent; auditioned). A pinned step is cleared on release if it was held under 0.4 s and no knob, OCT or second white key was used; otherwise the held step goes to STEP_HELD. While PAGE (D#4) is held: the pattern of the selected channel ends at this step (LENGTH). [R4 slot: per-key pressure / position on a held step key writes the armed step property, reserved, P1-015] | `step 1` |
-| `KEY_W01_F3` | `STEP_HELD` | press while another white key is held: set the HELD step's pitch to the ROOT (degree 0; sounds); pressed first, it is the held step and the knobs edit it | `pitch / step 1` |
-| `KEY_W01_F3` | `SET` | press: SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of F3; SET row 1: step 1 as PERF | `KEY / step` |
-| `KEY_W01_F3` | `RESET` | press: clear the pin and flags of step 1 (UNDO tap restores) | `CLR 1` |
-| `KEY_W01_F3` | `REC` | press: PLAY the pitch F3 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_W01_F3` | `MENU` | inert while the menu is open (no accidental pins) | `-` |
-| `KEY_W02_G3` | `PERF` | press (a touch under 30 ms is ignored): step (viewed page - 1) x 16 + 2 (past the pattern length the key is dim and inert). An unpinned step gets a pin now (the note generated there, or the root when silent; auditioned). A pinned step is cleared on release if it was held under 0.4 s and no knob, OCT or second white key was used; otherwise the held step goes to STEP_HELD. While PAGE (D#4) is held: the pattern of the selected channel ends at this step (LENGTH). [R4 slot: per-key pressure / position on a held step key writes the armed step property, reserved, P1-015] | `step 2` |
-| `KEY_W02_G3` | `STEP_HELD` | press while another white key is held: set the HELD step's pitch to scale degree 1 (key 1 = the root, one scale degree per key; the note sounds; OCT+ then K4 OCT shifts the octave); a second press replaces it; UNDO tap restores | `pitch` |
-| `KEY_W02_G3` | `SET` | press: SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of G3; SET row 1: step 2 as PERF | `KEY / step` |
-| `KEY_W02_G3` | `RESET` | press: clear the pin and flags of step 2 (UNDO tap restores) | `CLR 2` |
-| `KEY_W02_G3` | `REC` | press: PLAY the pitch G3 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_W02_G3` | `MENU` | inert while the menu is open (no accidental pins) | `-` |
-| `KEY_W03_A3` | `PERF` | press (a touch under 30 ms is ignored): step (viewed page - 1) x 16 + 3 (past the pattern length the key is dim and inert). An unpinned step gets a pin now (the note generated there, or the root when silent; auditioned). A pinned step is cleared on release if it was held under 0.4 s and no knob, OCT or second white key was used; otherwise the held step goes to STEP_HELD. While PAGE (D#4) is held: the pattern of the selected channel ends at this step (LENGTH). [R4 slot: per-key pressure / position on a held step key writes the armed step property, reserved, P1-015] | `step 3` |
-| `KEY_W03_A3` | `STEP_HELD` | press while another white key is held: set the HELD step's pitch to scale degree 2 (key 1 = the root, one scale degree per key; the note sounds; OCT+ then K4 OCT shifts the octave); a second press replaces it; UNDO tap restores | `pitch` |
-| `KEY_W03_A3` | `SET` | press: SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of A3; SET row 1: step 3 as PERF | `KEY / step` |
-| `KEY_W03_A3` | `RESET` | press: clear the pin and flags of step 3 (UNDO tap restores) | `CLR 3` |
-| `KEY_W03_A3` | `REC` | press: PLAY the pitch A3 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_W03_A3` | `MENU` | inert while the menu is open (no accidental pins) | `-` |
-| `KEY_W04_B3` | `PERF` | press (a touch under 30 ms is ignored): step (viewed page - 1) x 16 + 4 (past the pattern length the key is dim and inert). An unpinned step gets a pin now (the note generated there, or the root when silent; auditioned). A pinned step is cleared on release if it was held under 0.4 s and no knob, OCT or second white key was used; otherwise the held step goes to STEP_HELD. While PAGE (D#4) is held: the pattern of the selected channel ends at this step (LENGTH). [R4 slot: per-key pressure / position on a held step key writes the armed step property, reserved, P1-015] | `step 4` |
-| `KEY_W04_B3` | `STEP_HELD` | press while another white key is held: set the HELD step's pitch to scale degree 3 (key 1 = the root, one scale degree per key; the note sounds; OCT+ then K4 OCT shifts the octave); a second press replaces it; UNDO tap restores | `pitch` |
-| `KEY_W04_B3` | `SET` | press: SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of B3; SET row 1: step 4 as PERF | `KEY / step` |
-| `KEY_W04_B3` | `RESET` | press: clear the pin and flags of step 4 (UNDO tap restores) | `CLR 4` |
-| `KEY_W04_B3` | `REC` | press: PLAY the pitch B3 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_W04_B3` | `MENU` | inert while the menu is open (no accidental pins) | `-` |
-| `KEY_W05_C4` | `PERF` | press (a touch under 30 ms is ignored): step (viewed page - 1) x 16 + 5 (past the pattern length the key is dim and inert). An unpinned step gets a pin now (the note generated there, or the root when silent; auditioned). A pinned step is cleared on release if it was held under 0.4 s and no knob, OCT or second white key was used; otherwise the held step goes to STEP_HELD. While PAGE (D#4) is held: the pattern of the selected channel ends at this step (LENGTH). [R4 slot: per-key pressure / position on a held step key writes the armed step property, reserved, P1-015] | `step 5` |
-| `KEY_W05_C4` | `STEP_HELD` | press while another white key is held: set the HELD step's pitch to scale degree 4 (key 1 = the root, one scale degree per key; the note sounds; OCT+ then K4 OCT shifts the octave); a second press replaces it; UNDO tap restores | `pitch` |
-| `KEY_W05_C4` | `SET` | press: SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of C4; SET row 1: step 5 as PERF | `KEY / step` |
-| `KEY_W05_C4` | `RESET` | press: clear the pin and flags of step 5 (UNDO tap restores) | `CLR 5` |
-| `KEY_W05_C4` | `REC` | press: PLAY the pitch C4 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_W05_C4` | `MENU` | inert while the menu is open (no accidental pins) | `-` |
-| `KEY_W06_D4` | `PERF` | press (a touch under 30 ms is ignored): step (viewed page - 1) x 16 + 6 (past the pattern length the key is dim and inert). An unpinned step gets a pin now (the note generated there, or the root when silent; auditioned). A pinned step is cleared on release if it was held under 0.4 s and no knob, OCT or second white key was used; otherwise the held step goes to STEP_HELD. While PAGE (D#4) is held: the pattern of the selected channel ends at this step (LENGTH). [R4 slot: per-key pressure / position on a held step key writes the armed step property, reserved, P1-015] | `step 6` |
-| `KEY_W06_D4` | `STEP_HELD` | press while another white key is held: set the HELD step's pitch to scale degree 5 (key 1 = the root, one scale degree per key; the note sounds; OCT+ then K4 OCT shifts the octave); a second press replaces it; UNDO tap restores | `pitch` |
-| `KEY_W06_D4` | `SET` | press: SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of D4; SET row 1: step 6 as PERF | `KEY / step` |
-| `KEY_W06_D4` | `RESET` | press: clear the pin and flags of step 6 (UNDO tap restores) | `CLR 6` |
-| `KEY_W06_D4` | `REC` | press: PLAY the pitch D4 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_W06_D4` | `MENU` | inert while the menu is open (no accidental pins) | `-` |
-| `KEY_W07_E4` | `PERF` | press (a touch under 30 ms is ignored): step (viewed page - 1) x 16 + 7 (past the pattern length the key is dim and inert). An unpinned step gets a pin now (the note generated there, or the root when silent; auditioned). A pinned step is cleared on release if it was held under 0.4 s and no knob, OCT or second white key was used; otherwise the held step goes to STEP_HELD. While PAGE (D#4) is held: the pattern of the selected channel ends at this step (LENGTH). [R4 slot: per-key pressure / position on a held step key writes the armed step property, reserved, P1-015] | `step 7` |
-| `KEY_W07_E4` | `STEP_HELD` | press while another white key is held: set the HELD step's pitch to scale degree 6 (key 1 = the root, one scale degree per key; the note sounds; OCT+ then K4 OCT shifts the octave); a second press replaces it; UNDO tap restores | `pitch` |
-| `KEY_W07_E4` | `SET` | press: SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of E4; SET row 1: step 7 as PERF | `KEY / step` |
-| `KEY_W07_E4` | `RESET` | press: clear the pin and flags of step 7 (UNDO tap restores) | `CLR 7` |
-| `KEY_W07_E4` | `REC` | press: PLAY the pitch E4 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_W07_E4` | `MENU` | inert while the menu is open (no accidental pins) | `-` |
-| `KEY_W08_F4` | `PERF` | press (a touch under 30 ms is ignored): step (viewed page - 1) x 16 + 8 (past the pattern length the key is dim and inert). An unpinned step gets a pin now (the note generated there, or the root when silent; auditioned). A pinned step is cleared on release if it was held under 0.4 s and no knob, OCT or second white key was used; otherwise the held step goes to STEP_HELD. While PAGE (D#4) is held: the pattern of the selected channel ends at this step (LENGTH). [R4 slot: per-key pressure / position on a held step key writes the armed step property, reserved, P1-015] | `step 8` |
-| `KEY_W08_F4` | `STEP_HELD` | press while another white key is held: set the HELD step's pitch to scale degree 7 (key 1 = the root, one scale degree per key; the note sounds; OCT+ then K4 OCT shifts the octave); a second press replaces it; UNDO tap restores | `pitch` |
-| `KEY_W08_F4` | `SET` | press: SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of F4; SET row 1: step 8 as PERF | `KEY / step` |
-| `KEY_W08_F4` | `RESET` | press: clear the pin and flags of step 8 (UNDO tap restores) | `CLR 8` |
-| `KEY_W08_F4` | `REC` | press: PLAY the pitch F4 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_W08_F4` | `MENU` | inert while the menu is open (no accidental pins) | `-` |
-| `KEY_W09_G4` | `PERF` | press (a touch under 30 ms is ignored): step (viewed page - 1) x 16 + 9 (past the pattern length the key is dim and inert). An unpinned step gets a pin now (the note generated there, or the root when silent; auditioned). A pinned step is cleared on release if it was held under 0.4 s and no knob, OCT or second white key was used; otherwise the held step goes to STEP_HELD. While PAGE (D#4) is held: the pattern of the selected channel ends at this step (LENGTH). [R4 slot: per-key pressure / position on a held step key writes the armed step property, reserved, P1-015] | `step 9` |
-| `KEY_W09_G4` | `STEP_HELD` | press while another white key is held: set the HELD step's pitch to scale degree 8 (key 1 = the root, one scale degree per key; the note sounds; OCT+ then K4 OCT shifts the octave); a second press replaces it; UNDO tap restores | `pitch` |
-| `KEY_W09_G4` | `SET` | press: SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of G4; SET row 1: step 9 as PERF | `KEY / step` |
-| `KEY_W09_G4` | `RESET` | press: clear the pin and flags of step 9 (UNDO tap restores) | `CLR 9` |
-| `KEY_W09_G4` | `REC` | press: PLAY the pitch G4 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_W09_G4` | `MENU` | inert while the menu is open (no accidental pins) | `-` |
-| `KEY_W10_A4` | `PERF` | press (a touch under 30 ms is ignored): step (viewed page - 1) x 16 + 10 (past the pattern length the key is dim and inert). An unpinned step gets a pin now (the note generated there, or the root when silent; auditioned). A pinned step is cleared on release if it was held under 0.4 s and no knob, OCT or second white key was used; otherwise the held step goes to STEP_HELD. While PAGE (D#4) is held: the pattern of the selected channel ends at this step (LENGTH). [R4 slot: per-key pressure / position on a held step key writes the armed step property, reserved, P1-015] | `step 10` |
-| `KEY_W10_A4` | `STEP_HELD` | press while another white key is held: set the HELD step's pitch to scale degree 9 (key 1 = the root, one scale degree per key; the note sounds; OCT+ then K4 OCT shifts the octave); a second press replaces it; UNDO tap restores | `pitch` |
-| `KEY_W10_A4` | `SET` | press: SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of A4; SET row 1: step 10 as PERF | `KEY / step` |
-| `KEY_W10_A4` | `RESET` | press: clear the pin and flags of step 10 (UNDO tap restores) | `CLR 10` |
-| `KEY_W10_A4` | `REC` | press: PLAY the pitch A4 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_W10_A4` | `MENU` | inert while the menu is open (no accidental pins) | `-` |
-| `KEY_W11_B4` | `PERF` | press (a touch under 30 ms is ignored): step (viewed page - 1) x 16 + 11 (past the pattern length the key is dim and inert). An unpinned step gets a pin now (the note generated there, or the root when silent; auditioned). A pinned step is cleared on release if it was held under 0.4 s and no knob, OCT or second white key was used; otherwise the held step goes to STEP_HELD. While PAGE (D#4) is held: the pattern of the selected channel ends at this step (LENGTH). [R4 slot: per-key pressure / position on a held step key writes the armed step property, reserved, P1-015] | `step 11` |
-| `KEY_W11_B4` | `STEP_HELD` | press while another white key is held: set the HELD step's pitch to scale degree 10 (key 1 = the root, one scale degree per key; the note sounds; OCT+ then K4 OCT shifts the octave); a second press replaces it; UNDO tap restores | `pitch` |
-| `KEY_W11_B4` | `SET` | press: SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of B4; SET row 1: step 11 as PERF | `KEY / step` |
-| `KEY_W11_B4` | `RESET` | press: clear the pin and flags of step 11 (UNDO tap restores) | `CLR 11` |
-| `KEY_W11_B4` | `REC` | press: PLAY the pitch B4 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_W11_B4` | `MENU` | inert while the menu is open (no accidental pins) | `-` |
-| `KEY_W12_C5` | `PERF` | press (a touch under 30 ms is ignored): step (viewed page - 1) x 16 + 12 (past the pattern length the key is dim and inert). An unpinned step gets a pin now (the note generated there, or the root when silent; auditioned). A pinned step is cleared on release if it was held under 0.4 s and no knob, OCT or second white key was used; otherwise the held step goes to STEP_HELD. While PAGE (D#4) is held: the pattern of the selected channel ends at this step (LENGTH). [R4 slot: per-key pressure / position on a held step key writes the armed step property, reserved, P1-015] | `step 12` |
-| `KEY_W12_C5` | `STEP_HELD` | press while another white key is held: set the HELD step's pitch to scale degree 11 (key 1 = the root, one scale degree per key; the note sounds; OCT+ then K4 OCT shifts the octave); a second press replaces it; UNDO tap restores | `pitch` |
-| `KEY_W12_C5` | `SET` | press: SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of C5; SET row 1: step 12 as PERF | `KEY / step` |
-| `KEY_W12_C5` | `RESET` | press: clear the pin and flags of step 12 (UNDO tap restores) | `CLR 12` |
-| `KEY_W12_C5` | `REC` | press: PLAY the pitch C5 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_W12_C5` | `MENU` | inert while the menu is open (no accidental pins) | `-` |
-| `KEY_W13_D5` | `PERF` | press (a touch under 30 ms is ignored): step (viewed page - 1) x 16 + 13 (past the pattern length the key is dim and inert). An unpinned step gets a pin now (the note generated there, or the root when silent; auditioned). A pinned step is cleared on release if it was held under 0.4 s and no knob, OCT or second white key was used; otherwise the held step goes to STEP_HELD. While PAGE (D#4) is held: the pattern of the selected channel ends at this step (LENGTH). [R4 slot: per-key pressure / position on a held step key writes the armed step property, reserved, P1-015] | `step 13` |
-| `KEY_W13_D5` | `STEP_HELD` | press while another white key is held: set the HELD step's pitch to scale degree 12 (key 1 = the root, one scale degree per key; the note sounds; OCT+ then K4 OCT shifts the octave); a second press replaces it; UNDO tap restores | `pitch` |
-| `KEY_W13_D5` | `SET` | press: SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of D5; SET row 1: step 13 as PERF | `KEY / step` |
-| `KEY_W13_D5` | `RESET` | press: clear the pin and flags of step 13 (UNDO tap restores) | `CLR 13` |
-| `KEY_W13_D5` | `REC` | press: PLAY the pitch D5 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_W13_D5` | `MENU` | inert while the menu is open (no accidental pins) | `-` |
-| `KEY_W14_E5` | `PERF` | press (a touch under 30 ms is ignored): step (viewed page - 1) x 16 + 14 (past the pattern length the key is dim and inert). An unpinned step gets a pin now (the note generated there, or the root when silent; auditioned). A pinned step is cleared on release if it was held under 0.4 s and no knob, OCT or second white key was used; otherwise the held step goes to STEP_HELD. While PAGE (D#4) is held: the pattern of the selected channel ends at this step (LENGTH). [R4 slot: per-key pressure / position on a held step key writes the armed step property, reserved, P1-015] | `step 14` |
-| `KEY_W14_E5` | `STEP_HELD` | press while another white key is held: set the HELD step's pitch to scale degree 13 (key 1 = the root, one scale degree per key; the note sounds; OCT+ then K4 OCT shifts the octave); a second press replaces it; UNDO tap restores | `pitch` |
-| `KEY_W14_E5` | `SET` | press: SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of E5; SET row 1: step 14 as PERF | `KEY / step` |
-| `KEY_W14_E5` | `RESET` | press: clear the pin and flags of step 14 (UNDO tap restores) | `CLR 14` |
-| `KEY_W14_E5` | `REC` | press: PLAY the pitch E5 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_W14_E5` | `MENU` | inert while the menu is open (no accidental pins) | `-` |
-| `KEY_W15_F5` | `PERF` | press (a touch under 30 ms is ignored): step (viewed page - 1) x 16 + 15 (past the pattern length the key is dim and inert). An unpinned step gets a pin now (the note generated there, or the root when silent; auditioned). A pinned step is cleared on release if it was held under 0.4 s and no knob, OCT or second white key was used; otherwise the held step goes to STEP_HELD. While PAGE (D#4) is held: the pattern of the selected channel ends at this step (LENGTH). [R4 slot: per-key pressure / position on a held step key writes the armed step property, reserved, P1-015] | `step 15` |
-| `KEY_W15_F5` | `STEP_HELD` | press while another white key is held: set the HELD step's pitch to scale degree 14 (key 1 = the root, one scale degree per key; the note sounds; OCT+ then K4 OCT shifts the octave); a second press replaces it; UNDO tap restores | `pitch` |
-| `KEY_W15_F5` | `SET` | press: SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of F5; SET row 1: step 15 as PERF | `KEY / step` |
-| `KEY_W15_F5` | `RESET` | press: clear the pin and flags of step 15 (UNDO tap restores) | `CLR 15` |
-| `KEY_W15_F5` | `REC` | press: PLAY the pitch F5 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_W15_F5` | `MENU` | inert while the menu is open (no accidental pins) | `-` |
-| `KEY_W16_G5` | `PERF` | press (a touch under 30 ms is ignored): step (viewed page - 1) x 16 + 16 (past the pattern length the key is dim and inert). An unpinned step gets a pin now (the note generated there, or the root when silent; auditioned). A pinned step is cleared on release if it was held under 0.4 s and no knob, OCT or second white key was used; otherwise the held step goes to STEP_HELD. While PAGE (D#4) is held: the pattern of the selected channel ends at this step (LENGTH). [R4 slot: per-key pressure / position on a held step key writes the armed step property, reserved, P1-015] | `step 16` |
-| `KEY_W16_G5` | `STEP_HELD` | press while another white key is held: set the HELD step's pitch to scale degree 15 (key 1 = the root, one scale degree per key; the note sounds; OCT+ then K4 OCT shifts the octave); a second press replaces it; UNDO tap restores | `pitch` |
-| `KEY_W16_G5` | `SET` | press: SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of G5; SET row 1: step 16 as PERF | `KEY / step` |
-| `KEY_W16_G5` | `RESET` | press: clear the pin and flags of step 16 (UNDO tap restores) | `CLR 16` |
-| `KEY_W16_G5` | `REC` | press: PLAY the pitch G5 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_W16_G5` | `MENU` | inert while the menu is open (no accidental pins) | `-` |
-| `KEY_B01_F#3` | `PERF` | press: mute / unmute CH1 (latched) | `MUTE1` |
-| `KEY_B01_F#3` | `STEP_HELD` | press: mute / unmute CH1 (latched) | `MUTE1` |
-| `KEY_B01_F#3` | `SET` | SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of F#3; SET row 1: mute / unmute CH1 (latched) | `KEY / MUTE1` |
-| `KEY_B01_F#3` | `RESET` | press: mute / unmute CH1 (latched) | `MUTE1` |
-| `KEY_B01_F#3` | `REC` | press: PLAY the pitch F#3 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_B01_F#3` | `MENU` | inert while the menu is open (no accidental moves) | `-` |
-| `KEY_B02_G#3` | `PERF` | press: mute / unmute CH2 (latched) | `MUTE2` |
-| `KEY_B02_G#3` | `STEP_HELD` | press: mute / unmute CH2 (latched) | `MUTE2` |
-| `KEY_B02_G#3` | `SET` | SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of G#3; SET row 1: mute / unmute CH2 (latched) | `KEY / MUTE2` |
-| `KEY_B02_G#3` | `RESET` | press: mute / unmute CH2 (latched) | `MUTE2` |
-| `KEY_B02_G#3` | `REC` | press: PLAY the pitch G#3 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_B02_G#3` | `MENU` | inert while the menu is open (no accidental moves) | `-` |
-| `KEY_B03_A#3` | `PERF` | press: mute / unmute CH3 (latched) | `MUTE3` |
-| `KEY_B03_A#3` | `STEP_HELD` | press: mute / unmute CH3 (latched) | `MUTE3` |
-| `KEY_B03_A#3` | `SET` | SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of A#3; SET row 1: mute / unmute CH3 (latched) | `KEY / MUTE3` |
-| `KEY_B03_A#3` | `RESET` | press: mute / unmute CH3 (latched) | `MUTE3` |
-| `KEY_B03_A#3` | `REC` | press: PLAY the pitch A#3 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_B03_A#3` | `MENU` | inert while the menu is open (no accidental moves) | `-` |
-| `KEY_B04_C#4` | `PERF` | press: mute / unmute CH4 (latched) | `MUTE4` |
-| `KEY_B04_C#4` | `STEP_HELD` | press: mute / unmute CH4 (latched) | `MUTE4` |
-| `KEY_B04_C#4` | `SET` | SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of C#4; SET row 1: mute / unmute CH4 (latched) | `KEY / MUTE4` |
-| `KEY_B04_C#4` | `RESET` | press: mute / unmute CH4 (latched) | `MUTE4` |
-| `KEY_B04_C#4` | `REC` | press: PLAY the pitch C#4 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_B04_C#4` | `MENU` | inert while the menu is open (no accidental moves) | `-` |
-| `KEY_B05_D#4` | `PERF` | press: PAGE: tap: view the next page of the selected channel (wraps; the viewed page is UI state, the playhead is never moved); hold: the next white key pressed sets the pattern length to end at that step | `PAGE` |
-| `KEY_B05_D#4` | `STEP_HELD` | inert while a step key is held (finish the step first; toast `FINISH THE STEP`) | `-` |
-| `KEY_B05_D#4` | `SET` | SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of D#4; SET row 1: PAGE: tap: view the next page of the selected channel (wraps; the viewed page is UI state, the playhead is never moved); hold: the next white key pressed sets the pattern length to end at that step | `KEY / PAGE` |
-| `KEY_B05_D#4` | `RESET` | press: PAGE: tap: view the next page of the selected channel (wraps; the viewed page is UI state, the playhead is never moved); hold: the next white key pressed sets the pattern length to end at that step | `PAGE` |
-| `KEY_B05_D#4` | `REC` | press: PLAY the pitch D#4 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_B05_D#4` | `MENU` | inert while the menu is open (no accidental moves) | `-` |
-| `KEY_B06_F#4` | `PERF` | press: SOLO: hold: only the selected channel sounds, release restores every mute | `SOLO` |
-| `KEY_B06_F#4` | `STEP_HELD` | press: SOLO: hold: only the selected channel sounds, release restores every mute | `SOLO` |
-| `KEY_B06_F#4` | `SET` | SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of F#4; SET row 1: SOLO: hold: only the selected channel sounds, release restores every mute | `KEY / SOLO` |
-| `KEY_B06_F#4` | `RESET` | press: SOLO: hold: only the selected channel sounds, release restores every mute | `SOLO` |
-| `KEY_B06_F#4` | `REC` | press: PLAY the pitch F#4 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_B06_F#4` | `MENU` | inert while the menu is open (no accidental moves) | `-` |
-| `KEY_B07_G#4` | `PERF` | press: FILL: hold: the selected channel's K1 morph goes to its maximum (every step / stage plays), release restores it | `FILL` |
-| `KEY_B07_G#4` | `STEP_HELD` | press: FILL: hold: the selected channel's K1 morph goes to its maximum (every step / stage plays), release restores it | `FILL` |
-| `KEY_B07_G#4` | `SET` | SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of G#4; SET row 1: FILL: hold: the selected channel's K1 morph goes to its maximum (every step / stage plays), release restores it | `KEY / FILL` |
-| `KEY_B07_G#4` | `RESET` | press: FILL: hold: the selected channel's K1 morph goes to its maximum (every step / stage plays), release restores it | `FILL` |
-| `KEY_B07_G#4` | `REC` | press: PLAY the pitch G#4 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_B07_G#4` | `MENU` | inert while the menu is open (no accidental moves) | `-` |
-| `KEY_B08_A#4` | `PERF` | press: ROLL: hold: every step of the selected channel repeats twice (1/32 at DIV 1/16), release stops it | `ROLL` |
-| `KEY_B08_A#4` | `STEP_HELD` | press: ROLL: hold: every step of the selected channel repeats twice (1/32 at DIV 1/16), release stops it | `ROLL` |
-| `KEY_B08_A#4` | `SET` | SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of A#4; SET row 1: ROLL: hold: every step of the selected channel repeats twice (1/32 at DIV 1/16), release stops it | `KEY / ROLL` |
-| `KEY_B08_A#4` | `RESET` | press: ROLL: hold: every step of the selected channel repeats twice (1/32 at DIV 1/16), release stops it | `ROLL` |
-| `KEY_B08_A#4` | `REC` | press: PLAY the pitch A#4 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_B08_A#4` | `MENU` | inert while the menu is open (no accidental moves) | `-` |
-| `KEY_B09_C#5` | `PERF` | press: SCENE A: tap: recall scene A at the next bar (toast `A EMPTY: hold to store` if unset); hold 0.7 s: store the whole current state into scene A | `SCN A` |
-| `KEY_B09_C#5` | `STEP_HELD` | press: SCENE A: tap: recall scene A at the next bar (toast `A EMPTY: hold to store` if unset); hold 0.7 s: store the whole current state into scene A | `SCN A` |
-| `KEY_B09_C#5` | `SET` | SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of C#5; SET row 1: SCENE A: tap: recall scene A at the next bar (toast `A EMPTY: hold to store` if unset); hold 0.7 s: store the whole current state into scene A | `KEY / SCN A` |
-| `KEY_B09_C#5` | `RESET` | press: SCENE A: tap: recall scene A at the next bar (toast `A EMPTY: hold to store` if unset); hold 0.7 s: store the whole current state into scene A | `SCN A` |
-| `KEY_B09_C#5` | `REC` | press: PLAY the pitch C#5 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_B09_C#5` | `MENU` | inert while the menu is open (no accidental moves) | `-` |
-| `KEY_B10_D#5` | `PERF` | press: SCENE B: tap: recall scene B at the next bar (toast `B EMPTY: hold to store` if unset); hold 0.7 s: store the whole current state into scene B | `SCN B` |
-| `KEY_B10_D#5` | `STEP_HELD` | press: SCENE B: tap: recall scene B at the next bar (toast `B EMPTY: hold to store` if unset); hold 0.7 s: store the whole current state into scene B | `SCN B` |
-| `KEY_B10_D#5` | `SET` | SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of D#5; SET row 1: SCENE B: tap: recall scene B at the next bar (toast `B EMPTY: hold to store` if unset); hold 0.7 s: store the whole current state into scene B | `KEY / SCN B` |
-| `KEY_B10_D#5` | `RESET` | press: SCENE B: tap: recall scene B at the next bar (toast `B EMPTY: hold to store` if unset); hold 0.7 s: store the whole current state into scene B | `SCN B` |
-| `KEY_B10_D#5` | `REC` | press: PLAY the pitch D#5 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_B10_D#5` | `MENU` | inert while the menu is open (no accidental moves) | `-` |
-| `KEY_B11_F#5` | `PERF` | press: restart all channels from step 1 at the next step | `RESTRT` |
-| `KEY_B11_F#5` | `STEP_HELD` | press: restart all channels from step 1 at the next step | `RESTRT` |
-| `KEY_B11_F#5` | `SET` | SET row 2 (the cue strip says KEYS SET THE KEY): set the global KEY to the pitch class of F#5; SET row 1: restart all channels from step 1 at the next step | `KEY / RESTRT` |
-| `KEY_B11_F#5` | `RESET` | press: restart all channels from step 1 at the next step | `RESTRT` |
-| `KEY_B11_F#5` | `REC` | press: PLAY the pitch F#5 (+ the REC OCT K4 and the global OCTAVE) on the selected channel (MIDI + preview), WRITE it as a pin at the cursor with the ACC and SLIDE flags, then the cursor advances; release: note off. A press under 30 ms is ignored | `note` |
-| `KEY_B11_F#5` | `MENU` | inert while the menu is open (no accidental moves) | `-` |
+| `EN_SELECT` | `HELP` | turn: explain SELECT | `?` |
+| `EN_SELECT` | `MENU` | turn: select channel CH1..CH4 | `CH n` |
+| `EN_ALGO` | `PERF` | turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept | `ALGO` |
+| `EN_ALGO` | `NOTE_EDIT` | turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept | `ALGO` |
+| `EN_ALGO` | `CHAN` | turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept | `ALGO` |
+| `EN_ALGO` | `SET` | turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept | `ALGO` |
+| `EN_ALGO` | `SCALE` | turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept | `ALGO` |
+| `EN_ALGO` | `REC` | turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept | `ALGO` |
+| `EN_ALGO` | `RESET` | turn: inert (toast NOTHING TO RESET) | `-` |
+| `EN_ALGO` | `HELP` | turn: explain ALGORITHM | `?` |
+| `EN_ALGO` | `MENU` | turn: next / previous menu tab | `tab` |
+| `EN_PRESET` | `PERF` | turn: preset slot P01..P16; playing: the last slot turned to loads at the next 768-tick bar (header Pnn>); stopped: at once | `Pnn` |
+| `EN_PRESET` | `NOTE_EDIT` | turn: preset slot P01..P16; playing: the last slot turned to loads at the next 768-tick bar (header Pnn>); stopped: at once | `Pnn` |
+| `EN_PRESET` | `CHAN` | turn: preset slot P01..P16; playing: the last slot turned to loads at the next 768-tick bar (header Pnn>); stopped: at once | `Pnn` |
+| `EN_PRESET` | `SET` | turn: preset slot P01..P16; playing: the last slot turned to loads at the next 768-tick bar (header Pnn>); stopped: at once | `Pnn` |
+| `EN_PRESET` | `SCALE` | turn: preset slot P01..P16; playing: the last slot turned to loads at the next 768-tick bar (header Pnn>); stopped: at once | `Pnn` |
+| `EN_PRESET` | `REC` | turn: inert in REC (toast REC: tap REC to finish) | `-` |
+| `EN_PRESET` | `RESET` | turn: inert (toast NOTHING TO RESET) | `-` |
+| `EN_PRESET` | `HELP` | turn: explain PRESETS | `?` |
+| `EN_PRESET` | `MENU` | turn: next / previous menu row | `row` |
+| `EN_K1` | `PERF` | turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above): ACID DENS/OFFSET, EUCLID HITS/LEN, SNAKE DENS/OFFSET, STAGE DENS/OFFSET | `morph` |
+| `EN_K1` | `NOTE_EDIT` | turn: one scale degree per detent from the current note; every detent sounds the note (MIDI + preview); the first detent turns AUTO into a set pitch | `PITCH` |
+| `EN_K1` | `CHAN` | turn: pattern length of the selected channel; crossing into a new page fills it (copy of the page before, or the stored page); shrinking hides, never deletes | `LENGTH` |
+| `EN_K1` | `SET` | turn: tempo (internal clock; ignored while an external MIDI clock runs, value shows EXT) | `BPM` |
+| `EN_K1` | `SCALE` | turn: global scale (every algorithm and every edited pitch snaps to it) | `SCALE` |
+| `EN_K1` | `REC` | turn: move the write cursor one step per detent (stopped: the step sounds) | `CURSOR` |
+| `EN_K1` | `RESET` | turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE COPY / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes | `RST` |
+| `EN_K1` | `HELP` | turn: explain this knob on PERF (both rows); nothing changes | `?` |
+| `EN_K1` | `MENU` | turn: change the selected row's value (Felucca menu rule) | `value` |
+| `EN_K2` | `PERF` | turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above): ACID SLIDE/PEDAL, EUCLID OFFSET/SPAN, SNAKE LEN/GLEN, STAGE TOTAL/RDIV | `morph` |
+| `EN_K2` | `NOTE_EDIT` | turn: note length of the edited step, x global GATE; top value TIE (holds into the next step) | `GATE` |
+| `EN_K2` | `CHAN` | turn: MIDI output channel of the selected channel | `MIDI` |
+| `EN_K2` | `SET` | turn: odd steps late by 2*(swing-50) % of a step (decision 43); parity by pattern position | `SWING` |
+| `EN_K2` | `SCALE` | turn: global key (also: press any key) | `KEY` |
+| `EN_K2` | `REC` | turn: written notes get ACCENT (velocity 120) when ON; with force sensing the landing force sets the velocity and ACC forces 120 | `ACC` |
+| `EN_K2` | `RESET` | turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE COPY / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes | `RST` |
+| `EN_K2` | `HELP` | turn: explain this knob on PERF (both rows); nothing changes | `?` |
+| `EN_K2` | `MENU` | turn: change the selected row's value (Felucca menu rule) | `value` |
+| `EN_K3` | `PERF` | turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above): ACID JUMP/PUNCH, EUCLID RATCH/PUNCH, SNAKE RANGE/DYN, STAGE DIR/DYN | `morph` |
+| `EN_K3` | `NOTE_EDIT` | turn: velocity of the edited step; value reads ACC at >= ACC_THR 100 (TB-3 accent) | `VELO` |
+| `EN_K3` | `CHAN` | turn: generator source of the VIEWED page: COPY = reads page 1 positions (a duplicate), FLOW = reads its own positions (the algorithm continues); page 1 shows - | `SOURCE` |
+| `EN_K3` | `SET` | turn: global gate, x the step gate (50 % neutral = x1.0, decision 44) | `GATE` |
+| `EN_K3` | `SCALE` | turn: global output octave (also OCT- / OCT+) | `OCTAVE` |
+| `EN_K3` | `REC` | turn: written notes get SLIDE when ON | `SLIDE` |
+| `EN_K3` | `RESET` | turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE COPY / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes | `RST` |
+| `EN_K3` | `HELP` | turn: explain this knob on PERF (both rows); nothing changes | `?` |
+| `EN_K3` | `MENU` | turn: change the selected row's value (Felucca menu rule) | `value` |
+| `EN_K4` | `PERF` | turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above): ACID ACCNT/DIR, EUCLID ACCNT/CURVE, SNAKE PATH/DIR, STAGE RATCH/RANGE | `morph` |
+| `EN_K4` | `NOTE_EDIT` | turn: repeats inside the step (SP5 spacing) | `RATCH` |
+| `EN_K4` | `CHAN` | turn: the lane view follows the playhead page while playing | `FOLLOW` |
+| `EN_K4` | `SET` | turn: step length | `DIV` |
+| `EN_K4` | `SCALE` | turn: inert by design: nothing global is left; the cell is drawn dim with - | `-` |
+| `EN_K4` | `REC` | turn: REC keyboard octave (also OCT- / OCT+) | `OCT` |
+| `EN_K4` | `RESET` | turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE COPY / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes | `RST` |
+| `EN_K4` | `HELP` | turn: explain this knob on PERF (both rows); nothing changes | `?` |
+| `EN_K4` | `MENU` | turn: change the selected row's value (Felucca menu rule) | `value` |
+| `MASTER` | `PERF` | analogue pot: preview-synth and USB-audio volume; no MIDI effect (with force sensing the scan ISR samples it, master.c reads the cached value) | `-` |
+| `MASTER` | `NOTE_EDIT` | analogue pot: preview-synth and USB-audio volume; no MIDI effect (with force sensing the scan ISR samples it, master.c reads the cached value) | `-` |
+| `MASTER` | `CHAN` | analogue pot: preview-synth and USB-audio volume; no MIDI effect (with force sensing the scan ISR samples it, master.c reads the cached value) | `-` |
+| `MASTER` | `SET` | analogue pot: preview-synth and USB-audio volume; no MIDI effect (with force sensing the scan ISR samples it, master.c reads the cached value) | `-` |
+| `MASTER` | `SCALE` | analogue pot: preview-synth and USB-audio volume; no MIDI effect (with force sensing the scan ISR samples it, master.c reads the cached value) | `-` |
+| `MASTER` | `REC` | analogue pot: preview-synth and USB-audio volume; no MIDI effect (with force sensing the scan ISR samples it, master.c reads the cached value) | `-` |
+| `MASTER` | `RESET` | analogue pot: preview-synth and USB-audio volume; no MIDI effect (with force sensing the scan ISR samples it, master.c reads the cached value) | `-` |
+| `MASTER` | `HELP` | analogue pot: preview-synth and USB-audio volume; no MIDI effect (with force sensing the scan ISR samples it, master.c reads the cached value) | `-` |
+| `MASTER` | `MENU` | analogue pot: preview-synth and USB-audio volume; no MIDI effect (with force sensing the scan ISR samples it, master.c reads the cached value) | `-` |
+| `KEY_W01_F3` | `PERF` | tap: release under 0.4 s: step 1 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 1 of the viewed page | `STEP` |
+| `KEY_W01_F3` | `NOTE_EDIT` | tap: release under 0.4 s: step 1 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 1 (no new page) | `STEP` |
+| `KEY_W01_F3` | `CHAN` | tap: release under 0.4 s: step 1 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 1 of the viewed page | `STEP` |
+| `KEY_W01_F3` | `SET` | tap: release under 0.4 s: step 1 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 1 of the viewed page | `STEP` |
+| `KEY_W01_F3` | `SCALE` | tap: set the global KEY to the pitch class of F3 (sounds the new root) | `KEY` |
+| `KEY_W01_F3` | `REC` | tap: play F3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_W01_F3` | `RESET` | tap: clear every edit of step 1 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
+| `KEY_W01_F3` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_W01_F3` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_W02_G3` | `PERF` | tap: release under 0.4 s: step 2 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 2 of the viewed page | `STEP` |
+| `KEY_W02_G3` | `NOTE_EDIT` | tap: release under 0.4 s: step 2 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 2 (no new page) | `STEP` |
+| `KEY_W02_G3` | `CHAN` | tap: release under 0.4 s: step 2 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 2 of the viewed page | `STEP` |
+| `KEY_W02_G3` | `SET` | tap: release under 0.4 s: step 2 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 2 of the viewed page | `STEP` |
+| `KEY_W02_G3` | `SCALE` | tap: set the global KEY to the pitch class of G3 (sounds the new root) | `KEY` |
+| `KEY_W02_G3` | `REC` | tap: play G3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_W02_G3` | `RESET` | tap: clear every edit of step 2 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
+| `KEY_W02_G3` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_W02_G3` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_W03_A3` | `PERF` | tap: release under 0.4 s: step 3 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 3 of the viewed page | `STEP` |
+| `KEY_W03_A3` | `NOTE_EDIT` | tap: release under 0.4 s: step 3 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 3 (no new page) | `STEP` |
+| `KEY_W03_A3` | `CHAN` | tap: release under 0.4 s: step 3 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 3 of the viewed page | `STEP` |
+| `KEY_W03_A3` | `SET` | tap: release under 0.4 s: step 3 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 3 of the viewed page | `STEP` |
+| `KEY_W03_A3` | `SCALE` | tap: set the global KEY to the pitch class of A3 (sounds the new root) | `KEY` |
+| `KEY_W03_A3` | `REC` | tap: play A3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_W03_A3` | `RESET` | tap: clear every edit of step 3 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
+| `KEY_W03_A3` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_W03_A3` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_W04_B3` | `PERF` | tap: release under 0.4 s: step 4 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 4 of the viewed page | `STEP` |
+| `KEY_W04_B3` | `NOTE_EDIT` | tap: release under 0.4 s: step 4 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 4 (no new page) | `STEP` |
+| `KEY_W04_B3` | `CHAN` | tap: release under 0.4 s: step 4 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 4 of the viewed page | `STEP` |
+| `KEY_W04_B3` | `SET` | tap: release under 0.4 s: step 4 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 4 of the viewed page | `STEP` |
+| `KEY_W04_B3` | `SCALE` | tap: set the global KEY to the pitch class of B3 (sounds the new root) | `KEY` |
+| `KEY_W04_B3` | `REC` | tap: play B3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_W04_B3` | `RESET` | tap: clear every edit of step 4 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
+| `KEY_W04_B3` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_W04_B3` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_W05_C4` | `PERF` | tap: release under 0.4 s: step 5 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 5 of the viewed page | `STEP` |
+| `KEY_W05_C4` | `NOTE_EDIT` | tap: release under 0.4 s: step 5 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 5 (no new page) | `STEP` |
+| `KEY_W05_C4` | `CHAN` | tap: release under 0.4 s: step 5 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 5 of the viewed page | `STEP` |
+| `KEY_W05_C4` | `SET` | tap: release under 0.4 s: step 5 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 5 of the viewed page | `STEP` |
+| `KEY_W05_C4` | `SCALE` | tap: set the global KEY to the pitch class of C4 (sounds the new root) | `KEY` |
+| `KEY_W05_C4` | `REC` | tap: play C4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_W05_C4` | `RESET` | tap: clear every edit of step 5 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
+| `KEY_W05_C4` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_W05_C4` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_W06_D4` | `PERF` | tap: release under 0.4 s: step 6 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 6 of the viewed page | `STEP` |
+| `KEY_W06_D4` | `NOTE_EDIT` | tap: release under 0.4 s: step 6 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 6 (no new page) | `STEP` |
+| `KEY_W06_D4` | `CHAN` | tap: release under 0.4 s: step 6 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 6 of the viewed page | `STEP` |
+| `KEY_W06_D4` | `SET` | tap: release under 0.4 s: step 6 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 6 of the viewed page | `STEP` |
+| `KEY_W06_D4` | `SCALE` | tap: set the global KEY to the pitch class of D4 (sounds the new root) | `KEY` |
+| `KEY_W06_D4` | `REC` | tap: play D4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_W06_D4` | `RESET` | tap: clear every edit of step 6 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
+| `KEY_W06_D4` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_W06_D4` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_W07_E4` | `PERF` | tap: release under 0.4 s: step 7 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 7 of the viewed page | `STEP` |
+| `KEY_W07_E4` | `NOTE_EDIT` | tap: release under 0.4 s: step 7 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 7 (no new page) | `STEP` |
+| `KEY_W07_E4` | `CHAN` | tap: release under 0.4 s: step 7 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 7 of the viewed page | `STEP` |
+| `KEY_W07_E4` | `SET` | tap: release under 0.4 s: step 7 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 7 of the viewed page | `STEP` |
+| `KEY_W07_E4` | `SCALE` | tap: set the global KEY to the pitch class of E4 (sounds the new root) | `KEY` |
+| `KEY_W07_E4` | `REC` | tap: play E4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_W07_E4` | `RESET` | tap: clear every edit of step 7 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
+| `KEY_W07_E4` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_W07_E4` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_W08_F4` | `PERF` | tap: release under 0.4 s: step 8 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 8 of the viewed page | `STEP` |
+| `KEY_W08_F4` | `NOTE_EDIT` | tap: release under 0.4 s: step 8 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 8 (no new page) | `STEP` |
+| `KEY_W08_F4` | `CHAN` | tap: release under 0.4 s: step 8 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 8 of the viewed page | `STEP` |
+| `KEY_W08_F4` | `SET` | tap: release under 0.4 s: step 8 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 8 of the viewed page | `STEP` |
+| `KEY_W08_F4` | `SCALE` | tap: set the global KEY to the pitch class of F4 (sounds the new root) | `KEY` |
+| `KEY_W08_F4` | `REC` | tap: play F4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_W08_F4` | `RESET` | tap: clear every edit of step 8 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
+| `KEY_W08_F4` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_W08_F4` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_W09_G4` | `PERF` | tap: release under 0.4 s: step 9 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 9 of the viewed page | `STEP` |
+| `KEY_W09_G4` | `NOTE_EDIT` | tap: release under 0.4 s: step 9 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 9 (no new page) | `STEP` |
+| `KEY_W09_G4` | `CHAN` | tap: release under 0.4 s: step 9 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 9 of the viewed page | `STEP` |
+| `KEY_W09_G4` | `SET` | tap: release under 0.4 s: step 9 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 9 of the viewed page | `STEP` |
+| `KEY_W09_G4` | `SCALE` | tap: set the global KEY to the pitch class of G4 (sounds the new root) | `KEY` |
+| `KEY_W09_G4` | `REC` | tap: play G4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_W09_G4` | `RESET` | tap: clear every edit of step 9 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
+| `KEY_W09_G4` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_W09_G4` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_W10_A4` | `PERF` | tap: release under 0.4 s: step 10 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 10 of the viewed page | `STEP` |
+| `KEY_W10_A4` | `NOTE_EDIT` | tap: release under 0.4 s: step 10 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 10 (no new page) | `STEP` |
+| `KEY_W10_A4` | `CHAN` | tap: release under 0.4 s: step 10 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 10 of the viewed page | `STEP` |
+| `KEY_W10_A4` | `SET` | tap: release under 0.4 s: step 10 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 10 of the viewed page | `STEP` |
+| `KEY_W10_A4` | `SCALE` | tap: set the global KEY to the pitch class of A4 (sounds the new root) | `KEY` |
+| `KEY_W10_A4` | `REC` | tap: play A4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_W10_A4` | `RESET` | tap: clear every edit of step 10 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
+| `KEY_W10_A4` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_W10_A4` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_W11_B4` | `PERF` | tap: release under 0.4 s: step 11 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 11 of the viewed page | `STEP` |
+| `KEY_W11_B4` | `NOTE_EDIT` | tap: release under 0.4 s: step 11 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 11 (no new page) | `STEP` |
+| `KEY_W11_B4` | `CHAN` | tap: release under 0.4 s: step 11 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 11 of the viewed page | `STEP` |
+| `KEY_W11_B4` | `SET` | tap: release under 0.4 s: step 11 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 11 of the viewed page | `STEP` |
+| `KEY_W11_B4` | `SCALE` | tap: set the global KEY to the pitch class of B4 (sounds the new root) | `KEY` |
+| `KEY_W11_B4` | `REC` | tap: play B4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_W11_B4` | `RESET` | tap: clear every edit of step 11 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
+| `KEY_W11_B4` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_W11_B4` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_W12_C5` | `PERF` | tap: release under 0.4 s: step 12 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 12 of the viewed page | `STEP` |
+| `KEY_W12_C5` | `NOTE_EDIT` | tap: release under 0.4 s: step 12 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 12 (no new page) | `STEP` |
+| `KEY_W12_C5` | `CHAN` | tap: release under 0.4 s: step 12 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 12 of the viewed page | `STEP` |
+| `KEY_W12_C5` | `SET` | tap: release under 0.4 s: step 12 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 12 of the viewed page | `STEP` |
+| `KEY_W12_C5` | `SCALE` | tap: set the global KEY to the pitch class of C5 (sounds the new root) | `KEY` |
+| `KEY_W12_C5` | `REC` | tap: play C5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_W12_C5` | `RESET` | tap: clear every edit of step 12 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
+| `KEY_W12_C5` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_W12_C5` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_W13_D5` | `PERF` | tap: release under 0.4 s: step 13 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 13 of the viewed page | `STEP` |
+| `KEY_W13_D5` | `NOTE_EDIT` | tap: release under 0.4 s: step 13 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: move NOTE EDIT to step 13 (no new page) | `STEP` |
+| `KEY_W13_D5` | `CHAN` | tap: release under 0.4 s: step 13 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 13 of the viewed page | `STEP` |
+| `KEY_W13_D5` | `SET` | tap: release under 0.4 s: step 13 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 13 of the viewed page | `STEP` |
+| `KEY_W13_D5` | `SCALE` | tap: set the global KEY to the pitch class of D5 (sounds the new root) | `KEY` |
+| `KEY_W13_D5` | `REC` | tap: play D5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_W13_D5` | `RESET` | tap: clear every edit of step 13 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
+| `KEY_W13_D5` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_W13_D5` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_W14_E5` | `PERF` | tap: release under 0.4 s: step 14 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 14 of the viewed page | `STEP` |
+| `KEY_W14_E5` | `NOTE_EDIT` | tap: release under 0.4 s: step 14 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: move NOTE EDIT to step 14 (no new page) | `STEP` |
+| `KEY_W14_E5` | `CHAN` | tap: release under 0.4 s: step 14 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 14 of the viewed page | `STEP` |
+| `KEY_W14_E5` | `SET` | tap: release under 0.4 s: step 14 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 14 of the viewed page | `STEP` |
+| `KEY_W14_E5` | `SCALE` | tap: set the global KEY to the pitch class of E5 (sounds the new root) | `KEY` |
+| `KEY_W14_E5` | `REC` | tap: play E5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_W14_E5` | `RESET` | tap: clear every edit of step 14 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
+| `KEY_W14_E5` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_W14_E5` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_W15_F5` | `PERF` | tap: release under 0.4 s: step 15 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 15 of the viewed page | `STEP` |
+| `KEY_W15_F5` | `NOTE_EDIT` | tap: release under 0.4 s: step 15 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: move NOTE EDIT to step 15 (no new page) | `STEP` |
+| `KEY_W15_F5` | `CHAN` | tap: release under 0.4 s: step 15 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 15 of the viewed page | `STEP` |
+| `KEY_W15_F5` | `SET` | tap: release under 0.4 s: step 15 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 15 of the viewed page | `STEP` |
+| `KEY_W15_F5` | `SCALE` | tap: set the global KEY to the pitch class of F5 (sounds the new root) | `KEY` |
+| `KEY_W15_F5` | `REC` | tap: play F5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_W15_F5` | `RESET` | tap: clear every edit of step 15 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
+| `KEY_W15_F5` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_W15_F5` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_W16_G5` | `PERF` | tap: release under 0.4 s: step 16 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 16 of the viewed page | `STEP` |
+| `KEY_W16_G5` | `NOTE_EDIT` | tap: release under 0.4 s: step 16 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: move NOTE EDIT to step 16 (no new page) | `STEP` |
+| `KEY_W16_G5` | `CHAN` | tap: release under 0.4 s: step 16 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 16 of the viewed page | `STEP` |
+| `KEY_W16_G5` | `SET` | tap: release under 0.4 s: step 16 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 16 of the viewed page | `STEP` |
+| `KEY_W16_G5` | `SCALE` | tap: set the global KEY to the pitch class of G5 (sounds the new root) | `KEY` |
+| `KEY_W16_G5` | `REC` | tap: play G5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_W16_G5` | `RESET` | tap: clear every edit of step 16 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
+| `KEY_W16_G5` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_W16_G5` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_B01_F#3` | `PERF` | tap: tap: mute / unmute CH1 (latched; phase keeps running) | `MUTE1` |
+| `KEY_B01_F#3` | `NOTE_EDIT` | tap: tap: mute / unmute CH1 (latched; phase keeps running) | `MUTE1` |
+| `KEY_B01_F#3` | `CHAN` | tap: tap: mute / unmute CH1 (latched; phase keeps running) | `MUTE1` |
+| `KEY_B01_F#3` | `SET` | tap: tap: mute / unmute CH1 (latched; phase keeps running) | `MUTE1` |
+| `KEY_B01_F#3` | `SCALE` | tap: set the global KEY to the pitch class of F#3 (sounds the new root) | `KEY` |
+| `KEY_B01_F#3` | `REC` | tap: play F#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_B01_F#3` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
+| `KEY_B01_F#3` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_B01_F#3` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_B02_G#3` | `PERF` | tap: tap: mute / unmute CH2 | `MUTE2` |
+| `KEY_B02_G#3` | `NOTE_EDIT` | tap: tap: mute / unmute CH2 | `MUTE2` |
+| `KEY_B02_G#3` | `CHAN` | tap: tap: mute / unmute CH2 | `MUTE2` |
+| `KEY_B02_G#3` | `SET` | tap: tap: mute / unmute CH2 | `MUTE2` |
+| `KEY_B02_G#3` | `SCALE` | tap: set the global KEY to the pitch class of G#3 (sounds the new root) | `KEY` |
+| `KEY_B02_G#3` | `REC` | tap: play G#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_B02_G#3` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
+| `KEY_B02_G#3` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_B02_G#3` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_B03_A#3` | `PERF` | tap: tap: mute / unmute CH3 | `MUTE3` |
+| `KEY_B03_A#3` | `NOTE_EDIT` | tap: tap: mute / unmute CH3 | `MUTE3` |
+| `KEY_B03_A#3` | `CHAN` | tap: tap: mute / unmute CH3 | `MUTE3` |
+| `KEY_B03_A#3` | `SET` | tap: tap: mute / unmute CH3 | `MUTE3` |
+| `KEY_B03_A#3` | `SCALE` | tap: set the global KEY to the pitch class of A#3 (sounds the new root) | `KEY` |
+| `KEY_B03_A#3` | `REC` | tap: play A#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_B03_A#3` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
+| `KEY_B03_A#3` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_B03_A#3` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_B04_C#4` | `PERF` | tap: tap: mute / unmute CH4 | `MUTE4` |
+| `KEY_B04_C#4` | `NOTE_EDIT` | tap: tap: mute / unmute CH4 | `MUTE4` |
+| `KEY_B04_C#4` | `CHAN` | tap: tap: mute / unmute CH4 | `MUTE4` |
+| `KEY_B04_C#4` | `SET` | tap: tap: mute / unmute CH4 | `MUTE4` |
+| `KEY_B04_C#4` | `SCALE` | tap: set the global KEY to the pitch class of C#4 (sounds the new root) | `KEY` |
+| `KEY_B04_C#4` | `REC` | tap: play C#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_B04_C#4` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
+| `KEY_B04_C#4` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_B04_C#4` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_B05_D#4` | `PERF` | tap: tap: open the CHAN page of the selected channel (LENGTH MIDI SOURCE FOLLOW) | `CHAN` |
+| `KEY_B05_D#4` | `NOTE_EDIT` | tap: switch to the CHAN page (closes NOTE EDIT) | `CHAN` |
+| `KEY_B05_D#4` | `CHAN` | tap: close CHAN, back to PERF | `BACK` |
+| `KEY_B05_D#4` | `SET` | tap: switch to the CHAN page | `CHAN` |
+| `KEY_B05_D#4` | `SCALE` | tap: set the global KEY to the pitch class of D#4 (sounds the new root) | `KEY` |
+| `KEY_B05_D#4` | `REC` | tap: play D#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_B05_D#4` | `RESET` | tap: re-copy the page before onto the viewed page (page 1: clear its edits); RESET closes; EDIT tap undoes | `COPY P` |
+| `KEY_B05_D#4` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_B05_D#4` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_B06_F#4` | `PERF` | hold: hold: only the selected channel sounds; release restores the mutes | `SOLO` |
+| `KEY_B06_F#4` | `NOTE_EDIT` | hold: hold: only the selected channel sounds; release restores the mutes | `SOLO` |
+| `KEY_B06_F#4` | `CHAN` | hold: hold: only the selected channel sounds; release restores the mutes | `SOLO` |
+| `KEY_B06_F#4` | `SET` | hold: hold: only the selected channel sounds; release restores the mutes | `SOLO` |
+| `KEY_B06_F#4` | `SCALE` | tap: set the global KEY to the pitch class of F#4 (sounds the new root) | `KEY` |
+| `KEY_B06_F#4` | `REC` | tap: play F#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_B06_F#4` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
+| `KEY_B06_F#4` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_B06_F#4` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_B07_G#4` | `PERF` | hold: hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores; force: aftertouch: depth light..firm = halfway..maximum density; fallback: no force (or FORCE OFF): maximum density | `FILL` |
+| `KEY_B07_G#4` | `NOTE_EDIT` | hold: hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores; force: aftertouch: depth light..firm = halfway..maximum density; fallback: no force (or FORCE OFF): maximum density | `FILL` |
+| `KEY_B07_G#4` | `CHAN` | hold: hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores; force: aftertouch: depth light..firm = halfway..maximum density; fallback: no force (or FORCE OFF): maximum density | `FILL` |
+| `KEY_B07_G#4` | `SET` | hold: hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores; force: aftertouch: depth light..firm = halfway..maximum density; fallback: no force (or FORCE OFF): maximum density | `FILL` |
+| `KEY_B07_G#4` | `SCALE` | tap: set the global KEY to the pitch class of G#4 (sounds the new root) | `KEY` |
+| `KEY_B07_G#4` | `REC` | tap: play G#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_B07_G#4` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
+| `KEY_B07_G#4` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_B07_G#4` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_B08_A#4` | `PERF` | hold: hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm); force: aftertouch: 2x / 3x / 4x by pressure bins; fallback: no force: 2x | `ROLL` |
+| `KEY_B08_A#4` | `NOTE_EDIT` | hold: hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm); force: aftertouch: 2x / 3x / 4x by pressure bins; fallback: no force: 2x | `ROLL` |
+| `KEY_B08_A#4` | `CHAN` | hold: hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm); force: aftertouch: 2x / 3x / 4x by pressure bins; fallback: no force: 2x | `ROLL` |
+| `KEY_B08_A#4` | `SET` | hold: hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm); force: aftertouch: 2x / 3x / 4x by pressure bins; fallback: no force: 2x | `ROLL` |
+| `KEY_B08_A#4` | `SCALE` | tap: set the global KEY to the pitch class of A#4 (sounds the new root) | `KEY` |
+| `KEY_B08_A#4` | `REC` | tap: play A#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_B08_A#4` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
+| `KEY_B08_A#4` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_B08_A#4` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_B09_C#5` | `PERF` | tap: tap: view the previous page of the selected channel (no wrap; FOLLOW off) | `PG-` |
+| `KEY_B09_C#5` | `NOTE_EDIT` | tap: tap: view the previous page of the selected channel (no wrap; FOLLOW off) | `PG-` |
+| `KEY_B09_C#5` | `CHAN` | tap: tap: view the previous page of the selected channel (no wrap; FOLLOW off) | `PG-` |
+| `KEY_B09_C#5` | `SET` | tap: tap: view the previous page of the selected channel (no wrap; FOLLOW off) | `PG-` |
+| `KEY_B09_C#5` | `SCALE` | tap: set the global KEY to the pitch class of C#5 (sounds the new root) | `KEY` |
+| `KEY_B09_C#5` | `REC` | tap: play C#5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_B09_C#5` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
+| `KEY_B09_C#5` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_B09_C#5` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_B10_D#5` | `PERF` | tap: tap: view the next page (FOLLOW off); on the last page: ADD PAGE prompt, PG+ again adds a copy of it (length +16, max 64) | `PG+` |
+| `KEY_B10_D#5` | `NOTE_EDIT` | tap: tap: view the next page (FOLLOW off); on the last page: ADD PAGE prompt, PG+ again adds a copy of it (length +16, max 64) | `PG+` |
+| `KEY_B10_D#5` | `CHAN` | tap: tap: view the next page (FOLLOW off); on the last page: ADD PAGE prompt, PG+ again adds a copy of it (length +16, max 64) | `PG+` |
+| `KEY_B10_D#5` | `SET` | tap: tap: view the next page (FOLLOW off); on the last page: ADD PAGE prompt, PG+ again adds a copy of it (length +16, max 64) | `PG+` |
+| `KEY_B10_D#5` | `SCALE` | tap: set the global KEY to the pitch class of D#5 (sounds the new root) | `KEY` |
+| `KEY_B10_D#5` | `REC` | tap: play D#5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_B10_D#5` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
+| `KEY_B10_D#5` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_B10_D#5` | `MENU` | tap/hold: inert while the menu is open | `-` |
+| `KEY_B11_F#5` | `PERF` | tap: tap: all channels to step 1 at the next step | `RESTRT` |
+| `KEY_B11_F#5` | `NOTE_EDIT` | tap: tap: all channels to step 1 at the next step | `RESTRT` |
+| `KEY_B11_F#5` | `CHAN` | tap: tap: all channels to step 1 at the next step | `RESTRT` |
+| `KEY_B11_F#5` | `SET` | tap: tap: all channels to step 1 at the next step | `RESTRT` |
+| `KEY_B11_F#5` | `SCALE` | tap: set the global KEY to the pitch class of F#5 (sounds the new root) | `KEY` |
+| `KEY_B11_F#5` | `REC` | tap: play F#5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
+| `KEY_B11_F#5` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
+| `KEY_B11_F#5` | `HELP` | tap/hold: explain this key on PERF; nothing happens | `?` |
+| `KEY_B11_F#5` | `MENU` | tap/hold: inert while the menu is open | `-` |
 <!-- END-APPENDIX-A -->

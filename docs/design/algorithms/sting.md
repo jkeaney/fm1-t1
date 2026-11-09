@@ -330,6 +330,8 @@ per channel; this is an implementation choice, not a design one. CPU: a full rec
 - This is the minimum interplay needed so "enter or dial" works on the same channel; the key-entry gesture itself
   (which key, which mode) belongs to the channel/step-entry spec and must cite this section.
 
+- **P1-017 (supersedes the pin bullets above; SEQUENCER_UX 1, 9.2):** pins become the per-step edit layer. ACID's own loop is 16 steps, so with a channel LENGTH of 32..64 every page repeats the 16-step line: COPY and FLOW pages sound the same (the CHAN page says `ACID REPEATS EVERY 16`), and the pages differ only by their edits. An edited PITCH replaces `pitch[i]` (and ignores the OCT layer unless the OCT edit is set); an edited SLIDE ON on step i is the source flag "glide from i into i+1" and is effective only if both steps sound, as in 6.3a; an edited ON forces `hit`. `note`, `vel`, `gate` are filled for every position. OFFSET and DIR read the generator position, not the step, so edits never move.
+
 ### 6.6 Flex points (ADR-0004 addendum): what is a table edit, what is not
 
 - ROW 2 (P1-013): which knob slot drives OFFSET, SLIDE, PUNCH, DIR (`knob_morph[8]`), their ranges and defaults, the slide base table `ps`, the accent velocity base 80 and the PUNCH range.
