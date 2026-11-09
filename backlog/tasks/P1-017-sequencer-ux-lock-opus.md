@@ -3,7 +3,7 @@ id: P1-017
 title: Sequencer functionality and UX lock: step-centric editing, 64-step pages, force-sensing keys, page/state/mode framework
 phase: P1
 type: spike
-status: review
+status: todo
 priority: 0
 executor: opus
 depends_on: [P1-014, P1-015]
@@ -216,3 +216,13 @@ so a deliberate, visibly counted-down launch scores O2; then nothing is left as 
 Awaiting owner: decide on the must-fix list (the FLOW source model, the L-rule restatement plus hold sub-labels,
 save-to-slot, slide across the loop, the HOME-help change) and questions 65-71. Then send the task back for one opus
 revision pass before writing "Approved" / "Design locked".
+
+### 2026-11-10 orchestrator: sent back for ONE revision pass (before the owner sees it)
+The independent Opus review found the spec close but not lockable. Required fixes (full detail in the reviewer's log above):
+1. FLOW/page copy: adding a page after a FLOW page must be an EXACT copy. Each page stores which page it reads from (2 bits per page); fix W3 steps 4-5 and the page-add rule; keep determinism and RAM re-added.
+2. Learnability honesty: P1-014's rule scored any role found only by a hold as L1; SEQUENCER_UX scored it L2. Show what each hold does on PERF (for example UNDO/RST, SET/SCL, HELP/MENU) so the L2 is earned, restate the L rule openly in the doc (the owner will accept or reject it), rescore the 22 affected setup functions and U15 (hard-tap accent: 9, not 11) honestly, and recount the passes. Do not hide failures: list the exceptions.
+3. Save-to-slot: turning PRESETS marks a slot pending (for example P05?) and a SAVE tap while pending saves there instead of loading; specify the states, screen and cue, and score it.
+4. Slides across the loop end: ACID slides from the last step into step 1 are allowed (cut only on STOP or a length change); resolve the 'next step' vs 'next sounding step' disagreement in the docs and the ADR-0003 timing.
+5. HOME: the owner DECIDED (decisions 57 and 61): HOME tap = home, hold and touch a control = HELP, release after 0.7 s with nothing touched = MENU. HOME tap on PERF must NOT open HELP; revert that change, remove the HELP dead-end (double HOME), and keep one escape.
+6. The smaller items: partial last page when adding a page; STAGE TOTAL above the pattern length; the DRIVE mode that force sensing depends on and its cost; the default MIDI channels versus a TB-3 on channel 2 (state which channel each of the six tracks defaults to and how the producer changes it in at most 2 gestures); update CLAUDE.md product rule 3 to say a channel has a MIDI channel, an algorithm and a pattern length.
+Keep questions 65-71 consistent, re-run both checker scripts (OK), do not write an Approved line, commit only your own paths.
