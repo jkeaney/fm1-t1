@@ -29,6 +29,11 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 23 | P1-008 melodic-steps | Should note lanes advance per sounding note (hit counter, keeps the tune in order when thinned or pinned) or per step (`t`, as SNAKE/STAGE)? Shared primitive if per note. | P1-010 / P2-001 |
 | 24 | P1-008 melodic-steps | Should a typed (pinned) step consume a contour note? Recommended no. | first hardware test |
 | 25 | P1-008 melodic-steps | Cheaper v1 option: SNAKE plus a LEAP morph on its pitch lane instead of a separate MELODY algorithm (only if #22 is yes)? | P1-010 |
+| 26 | P1-009 t1 | Is a 16-step maximum (LEN 2..16) acceptable for EUCLID, or are 32/64 steps (the T-1's range) wanted? (Relates to #10.) | P1-010 |
+| 27 | P1-009 t1 | Is RATCH acceptable as a dice layer with fixed odds and no amount knob, or should it take a knob from SPAN or ACCNT? | P1-010 |
+| 28 | P1-009 t1 | Should ROTATE be a knob (replacing LEN) rather than a dice layer? | P1-010 |
+| 29 | P1-009 t1 | Is a root-anchored contour (never below the root, base 36, ceiling 73) right for a TB-3 bass, or centred on the root? | first hardware test |
+| 30 | P1-009 t1 | Should EUCLID be the fourth v1 algorithm (recommended), or only a shared Euclidean placement source inside another algorithm? | P1-010 |
 
 ## Decisions (owner, 2026-11-09)
 | # | Decision |
