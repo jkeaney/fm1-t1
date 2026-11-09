@@ -24,6 +24,8 @@ in that log and, per ADR-0004, "Design locked" later.
 
 > Change note (P1-017, sequencer UX lock; for owner review): [SEQUENCER_UX.md](../../design/SEQUENCER_UX.md) replaces the pin model and the R1-R4 reserve with a **per-step edit layer** and **pages**. Section 9.1 of SEQUENCER_UX is the normative struct block and supersedes the matching structs of section 3 below: `StepEdit` 4 B (PITCH unsnapped + set bit, VELO, GATE / TIE, RATCH, ON, SLIDE, PROB, OCT; every field AUTO or set), `ChanSave` 102 -> **344 B** (`pin_mask` / `pin_note[16]` removed; `len` 1..64, `pg_src` (2 bits per page: the generator block it reads), `pg_used`, `StepEdit ed[64]` added), `UndoRec` 48 -> **92 B** (one page of edits, morphs, len / page bits; the pin fields removed), `SeqPreset` 420 -> **1388 B** (version 2), `ChanRT` stays 24 B: `uint32_t t` is removed and the new fields go first, in the order `uint32_t grid; uint16_t pass; uint8_t p, tie;` followed by the existing fields unchanged (`nxt` .. `open`); compiled in revision 2 (offsets grid 0, pass 4, p 6, tie 7, nxt 8, open 21; size 24). Replacing `t` in place (p, pass, tie before grid) pads to 28 B and fails the assert. `PulseOut.note` becomes ALWAYS valid like `vel` / `gate` (EUCLID evaluates its contour at non-hit positions). `step()` is called with the **generator position** `g(p) = 16 * src(k) + p % 16` (page `k = p / 16`; `src(0) = 0`; a new page inherits `src` of the page before, so a copy is exact; `src(k) = k` is OWN) instead of the free-running `t`; the loop resets at `len`. Section 9's pin overlay is replaced by the resolution of SEQUENCER_UX 9.2; swing parity is by `p`; a SLIDE edit means "glide into the next step" (step `p+1`, after the last step step 0; no glide if that step does not sound) and feeds the existing slide pairing, **across the loop end too** (revision 1: 7.3 step 5's `(t + 1) % loop_len != 0` term is replaced by the next position `n = (p + 1 >= len) ? 0 : p + 1`; the pairing is cancelled only by STOP and by a LENGTH change inside the step); TIE holds until the next sounding step, searched with the same wrap as a slide, so it crosses the loop end too (revision 2; at most one loop; a `tie` flag in `ChanRT`, cleared by `sq_all_off` on STOP and closed at the next step start by a LENGTH change). New main-loop API: `sq_step_toggle(ch,p,vel)`, `sq_step_set(ch,p,field,value)`, `sq_step_clear(ch,p)`, `sq_step_dice(ch,p,what)`, `sq_note_edit_begin(ch,p)` (UndoRec snapshot), `sq_page_add(ch)`, `sq_page_copy(ch,page)`, `sq_page_clear(ch,page)`, `sq_set_length(ch,len)`, `sq_set_source(ch,page,src)`; removed: `sq_pin_set / sq_pin_clear / sq_pin_clear_all / sq_pin_pitch` and the scene API `sq_scene` (scenes are dropped, owner decision 58). The undo of a preset load applies at the next step and restores the previous header slot; a PRESETS turn makes the slot **pending** (stopped: loads after `SQ_LOAD_SETTLE` 1.5 s; playing: on the first bar that starts at least `SQ_LOAD_SETTLE` after the last detent, revision 2) and a SAVE tap while pending saves into that slot instead (section 10). The `K3 SOURCE` list on the CHAN page offers only the blocks earlier pages play, labelled by the first page that plays each, plus OWN (SEQUENCER_UX 1.4, revision 2); the stored `pg_src` is unchanged. Power-on MIDI channels stay CH1..CH4 = 1..4 (section 12; the 2..5 proposal was rejected by the owner, who asked for a first-run MIDI CHANNEL prompt instead). The 4.1 `knob_morph[]` tables change (3B re-lock): ACID `{0,5,2,3,4,1,6,7}`, EUCLID `{0,4,5,3,1,2,6,7}`, SNAKE unchanged, STAGE `{0,1,7,3,4,5,6,2}`. RAM re-added in section 11.2.
 
+> Change note (FB-001 / P2-003, tempo source and clock out; additive, owner decision 2026-11-10): the FM-1 is the MIDI clock **master** in v1 when its tempo source is INT. New: section 5 row "Clock out" and section 7.4. The screen states are in SEQUENCER_UX 2.8 and SCREEN_SPEC 6. No struct, size or budget changes beyond about 8 B of `.bss` (a pulse counter and two flags); the E4 dev task is `FB-001` triage output.
+
 Inputs: [VISION](../VISION.md), [ADR-0004](ADR-0004-design-lock.md) (and its flexibility addendum),
 [OWNER_QUESTIONS](../OWNER_QUESTIONS.md) (all owner decisions), [ALGORITHM_SET](../../design/ALGORITHM_SET.md)
 (SP1-SP15, layer vocabulary), [UX_REVIEW](../../design/UX_REVIEW.md), [CONTROL_MAP](../../design/CONTROL_MAP.md),
@@ -323,6 +325,7 @@ clock, polyphony), it needs a new ADR (section 15).
 | SWING | core: odd steps start later by `o = (L * (swing - 50) * 2 + 50) / 100` ticks (swing 66 = triplet feel, 75 = dotted); step lengths are unchanged | no |
 | BPM / external clock | `beat_samples()` (fx.c), unchanged; external clock arrives through `events_block`'s `seq_n` | no |
 | MIDI channel, mute | core, per channel | no |
+| Clock out (FB-001) | `sq_block`: when `song.g[G_CLOCK] == 0` (INT) emit `0xF8` every 8 ticks of the 192-PPQN grid (24 per quarter), `0xFA` on a start from step 0, `0xFB` on a continue, `0xFC` on stop, through `midi_out_event`; when the source is USB / TRS emit nothing (it follows, never echoes) | no |
 
 Because `build` reads only `key/octave/snap`, a host test that varies gate/div/swing must see identical caches.
 Settled by the owner (decisions 43 and 44): swing is doubled, and GATE 50 % is neutral; the screen labels GATE as a share of the algorithm's own gate (P2-003). Both are one table edit.
@@ -382,7 +385,15 @@ int     sq_preset_load(const SeqPreset *in, uint8_t when);        /* when: 0 now
 
 ## 7. Timing and the scheduler
 
-### 7.1 Why 192 PPQN
+### 7.4 Clock out (added by FB-001; master when INT, silent when following)
+
+- 192 PPQN / 24 = one `0xF8` every 8 ticks of `sq_block`'s loop. The pulse is emitted at the **tick**, before any note scheduled on the same tick, so a receiver sees the clock first.
+- `0xFA` on a start from step 0, `0xFB` on a continue (a stop followed by PLAY with the playhead kept), `0xFC` on stop. They go out only when `song.g[G_CLOCK] == 0`.
+- Following (`G_CLOCK != 0`, including when the host has gone quiet) sends nothing, so a host that echoes clock cannot loop.
+- The packets are 1-byte realtime messages `CIN 0xF`: `0x0F | status << 8` in `midi_out_event` (usb.c, the same ring, so a full ring drops a pulse, never a note: `sq_drops` counts it). Risk: 24 PPQN x 4 per second at 240 BPM = 96 packets per second, inside the 64-entry ring's drain rate; the hardware-test gate checks it with Ableton and the TB-3.
+- Test: a host test counts 24 `0xF8` per quarter over 4 bars at 90 / 120 / 180 BPM and zero when the source is USB.
+
+## 8. The event path
 
 192 is the T-1 resolution and `t1_block()` already derives it from `beat_samples()`: `acc += n * 192; while (acc >= bs)
 { acc -= bs; tick(); }`, which follows the internal BPM and an external MIDI clock (`events_block`'s `seq_n`). It is
@@ -742,6 +753,7 @@ Changeable by editing a table row, no algorithm or core code change:
 | `AlgoDesc.sub[5]` | dice sub-labels |
 | `AlgoDesc.seed_k[]`, `SQ_DEFAULTS` | default seeds' k (also the RESET factory seeds, P1-014), boot algorithm/MIDI/mute per channel, global defaults |
 | `DIV_TICKS[6]`, `GATE_MUL[10]`, `SQ_BAR_TICKS` (768), swing formula constants, `D` (L/8), `GAP` | feel constants |
+| `CLK_TIMEOUT_MS` (500), the clock-out pulse spacing (8 ticks), clock-out on / off by source | tempo-source and clock-out constants (FB-001) |
 | Name order of `ALGOS[]` (`EN_ALGO` cycle order) | reorder |
 | The 40 ms fast-turn threshold | UI table (P2-003), not here (the fast step itself is `MorphDesc.fast`) |
 

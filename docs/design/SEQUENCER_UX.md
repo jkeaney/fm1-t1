@@ -257,7 +257,7 @@ for the six dice buttons and the hold role, prefixed `h:`, for the buttons that 
 
 ```
 +----------------------------------------+
-|> 120 P01  CH1 ACID M1  [1][2]. .  L32  |  header: play state, BPM, preset, channel, algorithm, MIDI, page map, LENGTH
+|> 120 P01  CH1 ACID M1  [1][2]. .  L32  |  header: play state, BPM (tempo source: INT, or EXT n, 2.8), preset, channel, algorithm, MIDI, page map, LENGTH
 | [1 ACID] 2 EUCL m  3 SNAK m  4 STAG m  |  channel band: selected inverted, m = muted, activity dot
 | PG 1/2  FOLLOW  hold=EDIT        >P2   |  lane header: viewed page / pages, FOLLOW, the white-key hold, playhead page
 | #  .  #' #  .  #! .  #~ #  .  #  .  #x2 . |  16 lane cells = white keys 1..16 (# on, . off, ' edited, ! ~ x2 glyphs)
@@ -312,7 +312,7 @@ for the six dice buttons and the hold role, prefixed `h:`, for the buttons that 
 | SET (all channels)                     |   | SCALE (all channels)  C MINPEN  OCT 0  |
 | lane as PERF (steps stay live)         |   | 27-key picture, scale tones lit, root  |
 | BPM 120 |SWING 50|GATE 50 |DIV 1/16    |   |   boxed                                |
-|  (EXT when an external clock runs)     |   | SCALE MINPEN|KEY C|OCTAVE 0|  -        |
+|  TEMPO INT/EXT n  OUT MASTER/FOLLOW    |   | SCALE MINPEN|KEY C|OCTAVE 0|  -        |
 | ... buttons as PERF, GLO = BACK,       |   | OCT- / OCT+ = OCTAVE -1 / +1           |
 |     hold GLO = SCALE                   |   | GLO = BACK                             |
 | SET: GLO hold=SCALE  HOME=back         |   | SCALE: PRESS A KEY = KEY  HOME=back    |
@@ -381,6 +381,22 @@ FIRST_RUN, ADD_PAGE and MOVE_HELD are overlays that only change the cue strip an
 - Opening a page from another latched page replaces it (one latched page at a time; NOTE_EDIT, CHAN, SET, SCALE switch
   freely). REC and RESET are exclusive: in REC, GLO, PRESETS and EDIT hold are inert and say why.
 - Power-on always lands on PERF; REC, NOTE_EDIT, RESET, HELP are never restored.
+
+### 2.8 Tempo source and clock out (added by FB-001 / P2-003 after the lock; owner decision 2026-11-10; adds, changes nothing above)
+
+The header and the SET page always say where the tempo comes from and whether the FM-1 sends clock. No new control and
+no new MENU row: the existing set-and-forget source (MENU > CLOCK: `INT`, `USB`, `TRS`) decides. Pixels and strings:
+[SCREEN_SPEC.md](SCREEN_SPEC.md) section 6.
+
+| State | Condition | Header tempo | Clock out |
+| --- | --- | --- | --- |
+| INT | source INT | `INT 120` + out-mark | MASTER: 24 pulses per quarter plus Start / Stop / Continue over USB |
+| EXT LIVE | source USB / TRS, a pulse within 500 ms, tempo measured | `EXT 126` (the incoming BPM) | FOLLOW: nothing is sent |
+| EXT SYNC | as EXT LIVE, first quarter note | `EXT --` | FOLLOW |
+| EXT WAIT | source USB / TRS, no pulse for 500 ms (or never) | `120 EXT?` (the internal BPM again) | FOLLOW (the state follows the selected source, never the live pulse) |
+
+Timeout rule: 500 ms, the value the firmware already uses to stop the transport on clock loss. On SET, K1 BPM edits
+the internal BPM while an EXT state shows (the cell mirrors the incoming BPM and flashes `INT n` for 2 s while turned).
 
 ## 3. Button modes
 
@@ -1071,11 +1087,13 @@ What the user hears, checked against ADR-0003 section 7 (192 PPQN; jitter at mos
 | 6 | CHAN | `CHn: K1 LENGTH  OCT=+-PAGE  D#4=back` |
 | 7 | SCALE | `SCALE: PRESS A KEY = KEY  HOME=back` |
 | 8 | SET | `SET: GLO hold=SCALE  HOME=back` |
+| 8a | SET, tempo source EXT (added, 2.8) | `EXT: K1 SETS INT BPM  HOME=back` |
 | 9 | SOLO / FILL / ROLL held | `ROLL 3x: let go to stop` (same shape) |
 | 10 | a preset slot pending | `P05: SAVE = save here` (stopped, with the 1.5 s countdown) / `P05 AT BAR  SAVE = save here` (playing: from the last detent until the load lands on the first bar starting >= 1.5 s later) |
 | 11 | just after a dice / reset / clear | `EDIT takes it back` (2 s) |
 | 12 | first-run step | the step's text (11.3) |
 | 13 | stopped | `PLAY: start   K1-K4: morph` |
+| 13a | stopped, tempo source EXT with no clock (added, 2.8) | `EXT CLOCK: WAITING FOR USB` (`TRS`) |
 | 14 | playing, ROW 1 | `TAP STEP=ON/OFF  HOLD=EDIT NOTE` (alternates every 4 s with `FX=dice  EDIT=undo  PG+=page`, and with `HARD TAP = ACCENT` when FORCE is on) |
 | 15 | playing, ROW 2 | `ROW 2: OCT- = back to row 1` |
 
@@ -1113,6 +1131,7 @@ needed, and the TB-3 played from the first PLAY because the first-run strip led 
 | key_map.tsv | force gestures on / off per key; which black keys are moves |
 | Constants | `ACC_VEL` 120, `ACC_THR` 100, `PROB_LOW` 50, the 0.4 / 0.7 s holds, force bin edges and the FORCE menu offsets, FILL / ROLL pressure bins, audition length 120 ms, `SQ_NSLOT`, `SQ_LOAD_AT` (BAR / STEP), `SQ_LOAD_SETTLE` 1.5 s, the 0.25 s HOME strip delay, FOLLOW default, the default MIDI channel per channel (`SQ_DEFAULTS`: 2, 3, 4, 5), DRIVE / pull-up sensing mode |
 | Cue-strip, first-run and HELP strings | every text and priority |
+| Tempo-source strings, the clock timeout (500 ms), the BPM readout rate (2.8, SCREEN_SPEC 6, 8) | text and constants |
 
 ### 12.2 Code or an ADR amendment
 
@@ -1158,6 +1177,7 @@ When the owner approves this document, the following are locked for the dev task
     LENGTH change; TIE on the same terms; swing parity by position; audition notes; note-off guarantees).
 11. Scores of section 8 under the restated L rule (8.1, subject to owner question 72), with the three listed
     exceptions E1, E2, E3.
+12. (Added after the lock by FB-001, owner decision 2026-11-10; additive.) The tempo-source and clock-out state of 2.8: INT / EXT n / EXT WAIT on the header and the SET page; clock out is master when the source is INT (24 per quarter plus Start / Stop / Continue over USB) and silent when following; 500 ms timeout.
 
 ## 14. Owner questions (65-73; also in OWNER_QUESTIONS.md)
 
