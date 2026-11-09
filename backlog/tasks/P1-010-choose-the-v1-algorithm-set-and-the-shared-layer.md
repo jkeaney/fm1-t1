@@ -41,3 +41,13 @@ Wrote docs/design/ALGORITHM_SET.md (design only; no code, assessments not edited
 - v1: ACID, EUCLID, SNAKE, STAGE; deferred ARP, RHYTHM, MELODY. 5 shared layers NOTES/HITS/ACCNT/ARTIC/SHAPE. Knobs K1 DENSITY, K2 FORM, K3 PITCH, K4 SPICE (edits table 5.4). 15 shared primitives. 30 owner questions answered as recommendations (+N1..N3).
 - Reviewer attention: (1) ACID SLIDE shares the ARTIC button with GATE, which conflicts with owner decision 2 ("sixth dice layer"); flagged as N1. (2) Recommends changing the shared quantiser to nearest-ties-lower (changes T-1 behaviour). (3) Recommends SNAKE RANGE default 24 -> 12. (4) Knob reorders needed in sting, snake, ml185 docs (not applied).
 - Third criterion (owner approval) is intentionally unticked; no 'Approved:' line written. Awaiting owner.
+
+### 2026-11-09 review (sonnet)
+Verdict: PASS on checkable criteria; **Awaiting owner** (gate human-review; status left at review; no Approved line written).
+Verified against the 7 assessments: all 4 INCLUDE (sting, t1, snake, ml185) are in v1; ARP, RHYTHM, MELODY are LATER with reasons. 5 layers; every seed maps (ACID 6 seeds/5 buttons, EUCLID ROT+NOTES+ACC+RAT, SNAKE NOTES+GATES+VEL+POLY, STAGE NOTES+LENS+RESTS+MODE+VEL), seed names/defaults match each 6.1. K1-K4 table matches each assessment's morph ranges/defaults; edit table 5.4 is concrete. 15 primitives SP1-SP15 counted. Small fix made: section 9 now states the snap change keeps the existing phase-2 test assertions green but alters current T-1 pipeline output.
+Findings for the owner (judgement, not defects):
+- SHAPE is a grab-bag: ACID register jumps, SNAKE velocity-lane length (POLY), STAGE which stages are long (LENS, arguably rhythm); absent in EUCLID. Hard to label understandably on screen (rule 1).
+- ACID SLIDE shares ARTIC with GATE: decision 2 ("sixth dice layer") is not met literally; slide cannot be re-rolled alone. Fallback (long press) is a table edit.
+- Some K2/K4 fits are stretches (ACID TYPE as FORM, SNAKE PATH as SPICE).
+- Snap change, SNAKE RANGE 24->12, pentatonic default scale are recommendations only.
+Awaiting owner: approve N1, SHAPE naming, snap rule, default scale, and the 4-algorithm set.

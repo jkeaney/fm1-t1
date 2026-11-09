@@ -267,7 +267,7 @@ New questions raised by this task (append to OWNER_QUESTIONS.md after review):
 | Item | Detail | Goes to |
 | --- | --- | --- |
 | Owner decision 2 vs 5-layer limit | See 4.3 and N1. | Owner |
-| Quantiser behaviour change | `t1_harmony_quantize` snap-down becomes nearest-ties-lower; EUCLID goldens are generated from the new behaviour. | P2-008 (prototype), dev task for SP6 |
+| Quantiser behaviour change | `t1_harmony_quantize` snap-down becomes nearest-ties-lower; EUCLID goldens are generated from the new behaviour. Reviewer check: the existing `tests/torso_phase2_test.c` snap assertions (lines 212-224: A# in A P-MIN -> A, C# and D# in C major -> down) still hold under the new rule (all are ties or nearer-below). It does change today's T-1 pipeline output (`torso_t1_pipeline.c` 262, 323) whenever the nearer scale tone is above, e.g. B in C P-MIN now goes up to C. | P2-008 (prototype), dev task for SP6 |
 | F3 (ARCH and INV A broken) | Must be fixed before EUCLID's SPAN is correct (t1 7.3). | EUCLID dev task, first step |
 | Seven dice inputs | P2-001 must give 5 layer buttons + dice-all + undo within the existing 14 buttons / layer system. | P2-001 |
 | Absent-layer display | Dimmed label rule in 4.4. | P2-003 (screen spec) |
