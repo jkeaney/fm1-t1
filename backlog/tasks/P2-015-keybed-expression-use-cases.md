@@ -56,3 +56,11 @@ python3 tools/backlog.py check
 - Flag for the owner/reviewer: algorithms write a flat velocity 100 (TIMING_SPEC 424); if H0 shows the TB-3 accents at 100, those need 90 in an algorithm task. Calibration and LED sections 6.2-6.3 not changed.
 - `python3 tests/design/check_scenarios.py` -> 441 control-map rows, 0 with no scenario; `python3 tools/check_control_map.py` -> OK; `python3 tools/check_sequencer_ux.py` -> OK; `python3 tests/design/check_help.py` -> OK; `python3 tools/backlog.py check` -> 0 errors.
 - Design lock (owner line) still needed: criterion left unticked.
+
+### 2026-11-10 review (sonnet)
+- Verdict: PASS on all checkable criteria; gate is human-review, so the task stays at `review`.
+- Re-ran check_scenarios.py (441 rows, 0 unscenarioed), backlog.py check (0 errors), check_control_map.py, check_sequencer_ux.py, check_help.py: all OK.
+- Checked KEYBED_USE_CASES.md: 5 use cases (max 6), each with intent, gesture, sound, MIDI, screen, fallback, hardware reasoning; TB-3 CC facts sourced and tagged, accent-by-velocity honestly marked unconfirmed (H0); earlier "not used" items reconsidered; checklist H0-H5; RAM stated (no new per-step data). SEQUENCER_UX 6, U67, key_map, control_map, CONTROL_MAP.md, knob_map, page_states, S07 and S14 are consistent (no stale "velocity 100" / "1..127" REC text left). Only design docs changed.
+- Notes (non-blocking): UC5 channel aftertouch is TB-3-ignored (poly only) and OFF by default, flagged as first to cut. If H0 shows the TB-3 accents at 100, algorithm tasks must move their flat velocity 100 to 90.
+- Build was not applicable (design only); ./build.sh printed no RAM line when filtered, headroom not re-measured.
+- Awaiting owner: read docs/design/KEYBED_USE_CASES.md, decide whether to keep UC5, and add the design-lock line; HT-FORCE items H0-H5 are judged later on the TB-3.
