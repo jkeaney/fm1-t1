@@ -6,14 +6,14 @@ Where this document and the locked tables disagree, section 8 lists each locked 
 
 ## 0. Summary and the five orchestrator rulings
 
-HARMONY is one global state: **a progression** (1 to 8 chords, each a scale degree 1..7, spread over 1 to 8 bars), **three voicing dials** (`VOICE`, `MOVE`, `PEDAL`) and **a
+HARMONY is one global state: **a progression** (1 to 8 chords, each a scale degree 1..7, spread over 1 to 8 bars), **three voicing dials** (`VOICE`, `MOVE`, `DRONE`) and **a
 per-channel ROLE** (OFF, AUTO, ROOT, FULL). It lives on the existing hold-GLO page (table id `SCALE`, screen name `HARMONY`) next to the global SCALE and KEY: one gesture
 (hold GLO) opens it, one more control changes anything on it. Every channel passes its generated notes through one **chord stage** after the algorithm and the scale quantise.
 
 | # | Ruling | Where it is answered |
 | --- | --- | --- |
 | 1 | MIDI-in chord following is **deferred to v2**; only the hook point is specified | 7.6 (one paragraph) |
-| 2 | **Invisible by default.** With `1---`, `VOICE 2`, no `PEDAL` and every ROLE AUTO the device sounds and behaves exactly as the locked design; steps the producer enters are only ever scale-quantised, never pulled to the chord; there is no per-channel opt-in for entered steps in v1 | 1 (with the worked example) |
+| 2 | **Invisible by default.** With `1---`, `VOICE 2`, no `DRONE` and every ROLE AUTO the device sounds and behaves exactly as the locked design; steps the producer enters are only ever scale-quantised, never pulled to the chord; there is no per-channel opt-in for entered steps in v1 | 1 (with the worked example) |
 | 3 | **Small control surface, one gesture.** No new top-level page: HARMONY extends the hold-GLO page; PROG dice is HARMONY-page-only | 5 (page), 6.3 (dice scheme and reason) |
 | 4 | **Memory.** 42 B of RAM (target 64 B), 0 B in the per-preset pool beyond the saved 8 B per slot (144 B in all) | 7.2 |
 | 5 | P2-013 (ARP) and P2-014 (PATTERNS) are untouched except for the chord and voicing query interface | 9 |
@@ -22,7 +22,7 @@ per-channel ROLE** (OFF, AUTO, ROOT, FULL). It lives on the existing hold-GLO pa
 
 ### 1.1 What "inert" means
 
-HARMONY is **inert** when all of: one chord (`nchords = 1`), its degree is 1, `VOICE = 2`, `PEDAL = 0`. (`BARS`, `MOVE` and the ROLEs do not matter for the test:
+HARMONY is **inert** when all of: one chord (`nchords = 1`), its degree is 1, `VOICE = 2`, `DRONE = 0`. (`BARS`, `MOVE` and the ROLEs do not matter for the test:
 with one chord there is nothing to lead between.) Then:
 
 - a channel with ROLE AUTO (the default) or OFF gets **exactly** the note its algorithm and SP6 produced: `harm_apply()` returns its input, no anchor, no pull;
@@ -31,7 +31,7 @@ with one chord there is nothing to lead between.) Then:
 
 ROOT and FULL are explicit per-channel choices made on the HARMONY page, so they apply even while the rest is inert.
 
-HARMONY becomes **active** the moment the producer does something that only HARMONY can do: types a progression other than `1`, turns `VOICE` off 2, or walks a `PEDAL`.
+HARMONY becomes **active** the moment the producer does something that only HARMONY can do: types a progression other than `1`, turns `VOICE` off 2, or walks a `DRONE`.
 The page shows the state in words: the lane header reads `HARMONY` always; PERF draws the chord chip only while active (5.4). Returning every dial to its default makes it inert
 again (RESET + PROG puts the progression back to `1---`, 6.3).
 
@@ -47,7 +47,7 @@ The reference workflow (VISION): select CH1, MIDI 2, algorithm ACID, enter steps
 
 | Step of the workflow | HARMONY state | Result |
 | --- | --- | --- |
-| power-on, `D#4` `K2` 2, ALGORITHM ACID | default `{0x03,0,0,0,0x82,0,0,0}` = `1---`, VOICE 2, MOVE 8, no pedal, AUTO | inert |
+| power-on, `D#4` `K2` 2, ALGORITHM ACID | default `{0x03,0,0,0,0x82,0,0,0}` = `1---`, VOICE 2, MOVE 8, no drone, AUTO | inert |
 | REC, type steps C2 (s = 0), G2 (s = 7), Bb2 (s = 10) | entered steps: scale-only | ACID's generated notes between them are unchanged |
 | PLAY | key C, MINPEN, octave 0, base 36 | ACID emits s = 0, 3, 7, 10 ... exactly as the P2-008 golden; MIDI `ch2 ON 36`, `39`, `43`, `46` ... |
 | morph K1..K4, dice, mute | not touched | not touched |
@@ -66,7 +66,7 @@ typedef struct {
     uint8_t len;     /* bits0..2 bars-1 (0..7); bits3..5 nchords-1 (0..7); bits6..7 0. Rule: nchords <= bars */
     uint8_t deg[3];  /* 8 slots x 3 bits: (deg[0] | deg[1]<<8 | deg[2]<<16) >> (3*i) & 7 = degree-1 of slot i (0..6) */
     uint8_t vm;      /* bits0..3 VOICE 0..6 (default 2); bits4..7 MOVE 0..8 (default 8) */
-    uint8_t pedal;   /* 0 = off; 1..14 = the candidate walked to (2.5) */
+    uint8_t drone;   /* 0 = off; 1..14 = the candidate walked to (2.5) */
     uint8_t roles;   /* 2 bits per channel (bit 2c): 0 AUTO, 1 OFF, 2 ROOT, 3 FULL */
     uint8_t rsv;     /* 0; version / future */
 } HarmonySave;
@@ -76,8 +76,8 @@ _Static_assert(sizeof(HarmonySave) == 8, "HarmonySave");
 Key, scale and octave are **not** repeated: they stay in `GlobalSave` (ADR-0003, `key`, `scale`, `octave`) and remain the single source for SP6 and SP9.
 The 8 B joins `SeqPreset` (1388 -> 1396 B, version 3).
 
-**Defaults:** `{0x03, 0,0,0, 0x82, 0, 0, 0}`: `bars = 4`, `nchords = 1`, `deg[0] = 0` (degree 1), `VOICE 2`, `MOVE 8`, no pedal, all roles AUTO. This is `1---`.
-A preset of version 2 loads with these defaults; `sq_preset_load` clamps `bars/nchords` to 1..8 with `nchords <= bars`, degrees to 0..6, `VOICE <= 6`, `MOVE <= 8`, `pedal <= 14`, roles to 0..3.
+**Defaults:** `{0x03, 0,0,0, 0x82, 0, 0, 0}`: `bars = 4`, `nchords = 1`, `deg[0] = 0` (degree 1), `VOICE 2`, `MOVE 8`, no drone, all roles AUTO. This is `1---`.
+A preset of version 2 loads with these defaults; `sq_preset_load` clamps `bars/nchords` to 1..8 with `nchords <= bars`, degrees to 0..6, `VOICE <= 6`, `MOVE <= 8`, `drone <= 14`, roles to 0..3.
 
 ### 2.2 Notation and the `1---` default
 
@@ -117,12 +117,12 @@ The chord's **quality** for display (the chip's case) is the interval to the sna
 
 `HarmonySave harm_db[2]` is double buffered like `sq_gdb` (the UI writes the idle buffer, flips `harm_gidx`; the ISR reads it once per block). `HarmRT` (14 B) is derived by the ISR
 at a bar boundary or on a flip (the flip is taken at the next 48-tick step grid so a dial lands on the next step, not the next bar): `slot`, the voiced notes `vt[6]` and count, the
-pitch-class mask of the chord tones and pedal, the root, the pedal pitch, and one `anchor` bit per channel. Rebuilding the voice-leading chain for slot `k` costs at most `k` iterations
+pitch-class mask of the chord tones and drone, the root, the drone pitch, and one `anchor` bit per channel. Rebuilding the voice-leading chain for slot `k` costs at most `k` iterations
 of the 3 x n candidates of 3.2 (under 1500 integer operations in the worst case, once per edit or per bar).
 
 ## 3. The voicing dials (simple, integer, performable live)
 
-All three are integer tables. **Neutral** (all defaults) is plain root-position triads with no pedal, which is the inert state of 1.
+All three are integer tables. **Neutral** (all defaults) is plain root-position triads with no drone, which is the inert state of 1.
 
 ### 3.1 VOICE (K3), range 0..6, default 2
 
@@ -166,7 +166,7 @@ Algorithm (integer, deterministic):
 5. Choose the `C` with the least `(cost, i, |q|, q)` (ties: fewer inversions, then no shift, then the lower shift).
 
 So `m = 8` costs only the inversion number (root position wins), `m = 0` is pure smallest movement, and in between the voice-leading gain must beat `4 m` per inversion.
-The chain restarts at slot 0 on every PLAY and every phrase wrap, so each pass of the loop is identical (determinism). The pedal does not take part (3.3).
+The chain restarts at slot 0 on every PLAY and every phrase wrap, so each pass of the loop is identical (determinism). The drone does not take part (3.3).
 
 Golden, C major, VOICE 2, chords 1 4 5 1 (`dist` = the sum of the voice movements over the three changes):
 
@@ -194,41 +194,41 @@ C minor pentatonic (the device default, key C, MINPEN), chords 1 4 5 1 = C, G, B
 MOVE only changes the **placement** of the voiced notes: AUTO channels are pulled to pitch classes (any octave) and ROOT channels play the root, so MOVE is audible on **FULL
 channels** and through the interface (ARP, PATTERNS). The strip shows the voiced chord of the touched chord only as an audition when a key is typed.
 
-### 3.3 PEDAL (OCT-/OCT+ on the HARMONY page), range 0..14, default 0
+### 3.3 DRONE (OCT-/OCT+ on the HARMONY page), range 0..14, default 0
 
-The producer walks the pedal tone through the candidates by tapping OCT+ (next) and OCT- (previous), and finds the alignment by ear. `n' = min(7, size of the scale)` is the number of
+The producer walks the drone tone through the candidates by tapping OCT+ (next) and OCT- (previous), and finds the alignment by ear. `n' = min(7, size of the scale)` is the number of
 degrees offered (5 in the default pentatonic).
 
-| p | Pedal tone | Octave shift |
+| p | Drone tone | Octave shift |
 | --- | --- | --- |
 | 0 | off | |
 | 1 .. n' | the scale tone of degree `p` | +0 |
 | n'+1 .. 2n' | the scale tone of degree `p - n'` | +12 |
 | above 2n' | clamped to 2n' | |
 
-The pedal pitch is `degree_root(p) + 12 * shift` semitones above the key (`pedal_pitch` in the prototype). What it does:
+The drone pitch is `degree_root(p) + 12 * shift` semitones above the key (`drone_pitch` in the prototype). What it does:
 
-- **ROOT channels** play the pedal instead of the chord root (a pedal point in the bass);
-- **AUTO channels** treat the pedal's pitch class as one more chord tone in every chord (it enters the pitch-class mask, so notes are pulled onto it too);
-- **FULL channels** get the pedal as an extra voice of the voicing (up to 6 notes);
+- **ROOT channels** play the drone instead of the chord root (a drone point in the bass);
+- **AUTO channels** treat the drone's pitch class as one more chord tone in every chord (it enters the pitch-class mask, so notes are pulled onto it too);
+- **FULL channels** get the drone as an extra voice of the voicing (up to 6 notes);
 - the anchor (first hit of a chord) is still the chord root.
 
-**Clash marks.** For each chord of the loop the status line shows one mark: `+` the pedal's pitch class is a tone of that chord's voicing; `X` it is not, and a chord tone lies one
+**Clash marks.** For each chord of the loop the status line shows one mark: `+` the drone's pitch class is a tone of that chord's voicing; `X` it is not, and a chord tone lies one
 semitone from it (a real clash); `-` it is not in the chord but nothing is a semitone away (a passing tone, usually fine). Golden, C major, chords I IV V I, VOICE 2:
 
-| PEDAL | Tone | I | IV | V | I |
+| DRONE | Tone | I | IV | V | I |
 | --- | --- | --- | --- | --- | --- |
 | 1 | C (0) | `+` | `+` | `X` (B is a semitone away) | `+` |
 | 5 | G (7) | `+` | `-` | `+` | `+` |
 | 8 | C (12) | `+` | `+` | `X` | `+` |
 | 4 | F (5) | `X` | `+` | `-` | `X` |
 
-C natural minor (i iv v i): PEDAL 1 `+ + - +`; PEDAL 5 (G) `+ X + +`; PEDAL 3 (Eb) `+ - X +`. MINPEN (C G Bb C): PEDAL 1 `+ - - +`; PEDAL 2 (Eb) `+ + + +`; PEDAL 4 (G) `+ + - +`.
+C natural minor (i iv v i): DRONE 1 `+ + - +`; DRONE 5 (G) `+ X + +`; DRONE 3 (Eb) `+ - X +`. MINPEN (C G Bb C): DRONE 1 `+ - - +`; DRONE 2 (Eb) `+ + + +`; DRONE 4 (G) `+ + - +`.
 
 ### 3.4 How the dials combine with the morph bias
 
 The morph bias (4.3) sets **how often** a note is pulled (the pull amount, 0..8, from the algorithm's own pitch-width morph). The dials set **to what**: VOICE sets which pitch classes
-count as chord tones, MOVE sets where the exact voiced notes sit (FULL only), PEDAL adds one more target. Nothing about a dial changes the pull amount, and nothing about a morph
+count as chord tones, MOVE sets where the exact voiced notes sit (FULL only), DRONE adds one more target. Nothing about a dial changes the pull amount, and nothing about a morph
 changes a dial: the two are independent, so turning K1..K4 on PERF never moves the voicing and turning K3/K4 on HARMONY never moves a morph.
 
 ### 3.5 Each channel can follow the voicing differently: ROLE
@@ -237,9 +237,9 @@ ROLE is per channel (the ARP button on the HARMONY page, for the channel SELECT 
 
 | ROLE | A generated note becomes | Typical use |
 | --- | --- | --- |
-| `AUTO` (default) | pulled toward the chord tones by the rule of 4 (first hit of a chord = its root); the chord tones are the pitch classes of the VOICE chord plus the pedal | lead, acid line |
+| `AUTO` (default) | pulled toward the chord tones by the rule of 4 (first hit of a chord = its root); the chord tones are the pitch classes of the VOICE chord plus the drone | lead, acid line |
 | `OFF` | untouched: never harmonised | a channel that drives drums by pitch, or a part that must stay on the scale |
-| `ROOT` | the chord root (the pedal if set), in the octave of the algorithm's note | bass |
+| `ROOT` | the chord root (the drone if set), in the octave of the algorithm's note | bass |
 | `FULL` | the voiced chord note chosen by the line's contour (4.2) | pad, stabs, a second voice |
 
 ## 4. The chord stage (the quantise rule every algorithm uses)
@@ -252,11 +252,11 @@ algorithm's range ceiling `hi` (`AlgoDesc.hi(m)`, ADR-0003 section 20), the tick
 
 ### 4.2 The rule, in order
 
-Let `inert` be 1.1, `role` the channel's ROLE, `C` the chord of the step's tick (voiced notes `vt[]`, pitch-class mask `pcs`, root `r`, pedal pitch `ped`), `pull` the amount of 4.3.
+Let `inert` be 1.1, `role` the channel's ROLE, `C` the chord of the step's tick (voiced notes `vt[]`, pitch-class mask `pcs`, root `r`, drone pitch `drone`), `pull` the amount of 4.3.
 
 1. `role = OFF`, or `role = AUTO` and `inert`: return `s`.
-2. `role = ROOT`: `x = (ped if set else r) % 12 + 12 * (s / 12)`.
-3. `role = FULL`: `x = vt[ min(n-1, (s * n) / (hi + 1)) ]` (the line's contour is mapped onto the voiced notes from the bottom voice to the top one; the pedal is one of the voices).
+2. `role = ROOT`: `x = (drone if set else r) % 12 + 12 * (s / 12)`.
+3. `role = FULL`: `x = vt[ min(n-1, (s * n) / (hi + 1)) ]` (the line's contour is mapped onto the voiced notes from the bottom voice to the top one; the drone is one of the voices).
 4. `role = AUTO` (active), by priority:
    - **Root default (anchor):** if this channel has an `anchor` bit set (set at PLAY and at every chord change) this is the **first sounding generated hit** of the chord: `x = r % 12 + 12 * (s / 12)`; clear the bit.
    - **Chord-tone priority:** otherwise `peff = min(8, pull + 4 * strong)`; `h = ((t * 0x9E3779B1) >> 29)` (3 bits, a fixed hash of the step position, no random number consumed so the generator's seeds never shift); if `h < peff` then `x` is the pitch of the chord-tone set (all octaves of `pcs`) nearest to `s`, ties to the lower.
@@ -310,7 +310,7 @@ HARMONY is the hold-GLO page (table id `SCALE`), screen name `HARMONY`. The alte
 | C: put it on the SET page (tap GLO) | 3 | 2 | 3 | 2 | 10 | 2 | rejected: SET is four tempo-feel knobs with two status lines and has no room for 4 knobs + strip |
 | D: two knob rows on the HARMONY page (OCT-/OCT+) | 3 | 1 | 3 | 2 | 9 | 3 (open, row, turn) | fails the 2-gesture rule |
 
-To fit one row of four knobs, the page gives its OCT-/OCT+ pair to the PEDAL walk and moves OCTAVE to the same buttons on SET (printed octave, L3). KEY stays on K2 and the 27 keys
+To fit one row of four knobs, the page gives its OCT-/OCT+ pair to the DRONE walk and moves OCTAVE to the same buttons on SET (printed octave, L3). KEY stays on K2 and the 27 keys
 become the chord keys (5.3): this costs the "press any key = KEY" convenience and the 27-key picture (owner question 86).
 
 ### 5.2 Controls on the HARMONY page (hold GLO, table id SCALE)
@@ -321,7 +321,7 @@ become the chord keys (5.3): this costs the "press any key = KEY" convenience an
 | K2 | `KEY` | global key (unchanged; the keys no longer set it) | C..B, C | 2 |
 | K3 | `VOICE` | 3.1 | 0..6, 2 | 2 |
 | K4 | `MOVE` | 3.2 | 0..8, 8 | 2 |
-| OCT- / OCT+ | `OCT-` `OCT+` (tag column shows `PEDAL`) | 3.3 pedal walk, one candidate per tap | 0..14, 0 | 2 |
+| OCT- / OCT+ | `OCT-` `OCT+` (tag column shows `DRONE`) | 3.3 drone walk, one candidate per tap | 0..14, 0 | 2 |
 | SCL | `PROG` | dice the progression (6) | | 2 |
 | LFO | `BARS` | phrase length 1..8 bars, one per press, wraps to the chord count (never fewer bars than chords) | 1..8, 4 | 2 |
 | ARP | `ROLE` | the selected channel's ROLE: OFF, AUTO, ROOT, FULL, wrapping | AUTO | 2 |
@@ -357,8 +357,8 @@ the bar that is playing.
 |  C   G   Bb  C       <- chord names    |
 |  F3 G3 A3 B3 C4 D4 E4 = 1..7           |  legend
 |OCT- |SCALE   |KEY     |VOICE   |MOVE    |  Z3: tag column + K1..K4
-|PEDAL|MINPEN  |C       |2       |8       |
-| PEDAL 1 C +0  + - - +                  |  status line 1
+|DRONE|MINPEN  |C       |2       |8       |
+| DRONE 1 C +0  + - - +                  |  status line 1
 | CH1 ROLE AUTO                          |  status line 2
 | ALL PROG ACCNT BARS UNDO HARM          |  Z4 row 1
 | HOME SAVE ROLE NEW PLAY REC            |  Z4 row 2
@@ -366,7 +366,7 @@ the bar that is playing.
 +----------------------------------------+
 ```
 
-Undo toasts (EDIT tap, shown on every page): `UNDO: PROG`, `UNDO: CHORDS` (a typing run), `UNDO: VOICE`, `UNDO: MOVE`, `UNDO: PEDAL`, `UNDO: BARS`, `UNDO: ROLE`; a second tap redoes with the same words prefixed `REDO:`. Toasts added to the screen spec's toast list: `PROG` (dice), `UNDO: PROG`, `NEW: TYPE CHORDS`, `BARS n`, `VOICE n`, `8 CHORDS MAX`, `PEDAL OFF`, `RST PROG`. Strings are measured in
+Undo toasts (EDIT tap, shown on every page): `UNDO: PROG`, `UNDO: CHORDS` (a typing run), `UNDO: VOICE`, `UNDO: MOVE`, `UNDO: DRONE`, `UNDO: BARS`, `UNDO: ROLE`; a second tap redoes with the same words prefixed `REDO:`. Toasts added to the screen spec's toast list: `PROG` (dice), `UNDO: PROG`, `NEW: TYPE CHORDS`, `BARS n`, `VOICE n`, `8 CHORDS MAX`, `DRONE OFF`, `RST PROG`. Strings are measured in
 `tests/design/widths.tsv` (all inside their budgets).
 
 ### 5.6 L rubric score of each new function
@@ -377,12 +377,12 @@ Setup scores V/I/O/L (pass >= 10, no sub-score below 2, <= 2 gestures); P rows n
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | VOICE (U70) | hold GLO, K3 | 3 | 2 | 3 | 2 | 10 | value and chord on screen; the page is named on PERF by `h:HARM`, so L2 by the restated rule |
 | MOVE (U71) | hold GLO, K4 | 3 | 2 | 3 | 2 | 10 | as U70 |
-| PEDAL (U72) | hold GLO, OCT-/OCT+ | 3 | 2 | 3 | 2 | 10 | printed word OCT overridden (decision 48, as on PERF); the pedal tone and clash marks are on screen |
+| DRONE (U72) | hold GLO, OCT-/OCT+ | 3 | 2 | 3 | 2 | 10 | printed word OCT overridden (decision 48, as on PERF); the drone tone and clash marks are on screen |
 | PROG dice (U73) | hold GLO, SCL | 3 | 2 | 3 | 2 | 10 | printed SCL = scale; the cell reads `PROG` |
 | Type a progression (U74) | hold GLO, keys | 3 | 2 | 3 | 2 | 10 | digits and key names drawn; every key sounds its chord |
 | BARS (U75) | hold GLO, LFO | 3 | 2 | 3 | 2 | 10 | cell reads `BARS`; the strip changes |
 | ROLE (U76) | hold GLO, ARP | 3 | 2 | 3 | 2 | 10 | cell reads `ROLE`; status line 2 names the channel and role |
-| Perform VOICE / MOVE / PEDAL (U77) | page open: K3, K4, OCT | 3 | 3 | 3 | 2 | 11 | one control; the lane stays live |
+| Perform VOICE / MOVE / DRONE (U77) | page open: K3, K4, OCT | 3 | 3 | 3 | 2 | 11 | one control; the lane stays live |
 | Perform PROG (U78) | page open: SCL | 3 | 3 | 3 | 2 | 11 | one control |
 | Know the chord (U79) | none (display) | 3 | 3 | 3 | 3 | 12 | chip on PERF, strip on HARMONY |
 | Octave (U47, changed) | tap GLO, OCT-/OCT+ | 3 | 2 | 3 | 3 | 11 | printed OCT = octave, on SET |
@@ -393,7 +393,7 @@ No exception is needed: every row passes, none needs more than 2 gestures.
 
 ### 6.1 What it re-rolls
 
-Degrees, bars and chord count, within musical limits; it never touches KEY, SCALE, VOICE, MOVE, PEDAL, ROLEs or any channel layer. One press = one deterministic draw from a stream seeded by
+Degrees, bars and chord count, within musical limits; it never touches KEY, SCALE, VOICE, MOVE, DRONE, ROLEs or any channel layer. One press = one deterministic draw from a stream seeded by
 the low 16 bits of the audio sample counter at the press (SP13), kept for undo:
 
 - RNG: xorshift32 (13, 17, 5) seeded with `(seed16 << 16 | seed16) ^ 0x4841524D`, `rnd(n) = (next() >> 8) % n` (SP1; salt `HARM`).
@@ -433,7 +433,7 @@ that dice touch one channel's layers. So the PROG dice is the `SCL` button on th
 | --- | ---: | --- |
 | `HarmonySave harm_db[2]` | 16 | .bss |
 | `harm_gidx` | 1 | .bss |
-| `HarmRT`: slot 1, count 1, `vt[6]` 6, pcmask 2, root 1, pedal 1, anchor bits 1, epoch 1 | 14 | .bss |
+| `HarmRT`: slot 1, count 1, `vt[6]` 6, pcmask 2, root 1, drone 1, anchor bits 1, epoch 1 | 14 | .bss |
 | `HarmUndo`: previous `HarmonySave` 8 + valid 1 | 9 | .bss |
 | `undo_last` (0 channel record, 1 harmony record) | 1 | .bss |
 | typing cursor (0..8) | 1 | .bss |
@@ -452,7 +452,7 @@ the user can leave the page and still take a PROG dice back. A preset load clear
 
 ### 7.4 Presets
 
-Per slot: the progression, bars, VOICE, MOVE, PEDAL and the four ROLEs (8 B). A preset load validates and clamps them (2.1) and takes effect with the rest at its bar. A version-2 preset loads as
+Per slot: the progression, bars, VOICE, MOVE, DRONE and the four ROLEs (8 B). A preset load validates and clamps them (2.1) and takes effect with the rest at its bar. A version-2 preset loads as
 inert defaults.
 
 ### 7.5 Clock and transport
@@ -473,11 +473,11 @@ touching `HarmonySave`, so presets, undo and the progression strip stay as they 
 | --- | --- | --- | --- |
 | 1 | page_states.tsv `SCALE`: screen, knob band, keys, cue | the 27-key picture replaced by the progression strip; band SCALE KEY VOICE MOVE; keys F3-E4 = chord degree; cue `HARM: KEYS F3-E4 = CHORD 1-7`. Table id stays `SCALE`, screen name `HARMONY` | the one-gesture HARMONY page (ruling 3) |
 | 2 | knob_map.tsv `SCALE` K2/K3/K4 | K2 `KEY` text drops "press any key"; K3 `OCTAVE` becomes `VOICE`; K4 inert becomes `MOVE` | |
-| 3 | button_modes.tsv + control_map.tsv `SCALE` | `SCL` `PROG`, `LFO` `BARS`, `ARP` `ROLE`, `SEQ` `NEW`; `OCT-`/`OCT+` = PEDAL walk; GLO `BACK` text | 5.2 |
+| 3 | button_modes.tsv + control_map.tsv `SCALE` | `SCL` `PROG`, `LFO` `BARS`, `ARP` `ROLE`, `SEQ` `NEW`; `OCT-`/`OCT+` = DRONE walk; GLO `BACK` text | 5.2 |
 | 4 | `SET`: `OCT-`/`OCT+` | inert becomes global OCTAVE -/+1 (page_states SET, SCREEN_SPEC 3) | OCTAVE had to leave the SCALE page |
 | 5 | `h:SCALE` -> `h:HARM`, `B_GLO` hold label `SCALE` -> `HARM`, SET/PERF cue `hold=HARM` | PERF button picture, SEQUENCER_UX 2.1, 2.4, 3, SCREEN_SPEC | the hold must be named (R-8) |
 | 6 | `B_EDIT` tap on PERF, CHAN, SET, SCALE | also undoes the last HARMONY change when it came later | 7.3 |
-| 7 | `RESET` rows `SCL`, `OCT-`, `OCT+` | from HARMONY: progression to `1---`; PEDAL OFF | |
+| 7 | `RESET` rows `SCL`, `OCT-`, `OCT+` | from HARMONY: progression to `1---`; DRONE OFF | |
 | 8 | key_map.tsv `SCALE` | 27 rows: W01..W07 `DEG`, the other 20 keys `-` (were all `KEY`) | 5.3 |
 | 9 | help_text.tsv (generated by tests/design/gen_help.py) | the SCALE and SET rows above, all within 34 characters and 224 px (`check_help.py` OK) | |
 | 10 | SEQUENCER_UX | revision 3 note; 1.7, 2.4, 3, 4.1, 4.3 rows; U46, U47 paths; U70..U79; totals (79 functions, 76 pass); 9.1 `SeqPreset` 1396 B; 9.4 RAM +42; 9.5 pool +144 | |
@@ -501,9 +501,9 @@ typedef struct {
     uint8_t  slot, n;         /* chord index 0..7 and the number of voiced notes in vt[] (1..6) */
     uint8_t  deg;             /* degree 1..7 */
     int8_t   root;            /* chord root, semitones above the key (0..11 + octave carry) */
-    int8_t   ped;             /* pedal pitch, semitones above the key, or -1 */
-    int8_t   vt[HARM_MAXV];   /* voiced notes ascending, semitones above the key (VOICE + MOVE + pedal) */
-    uint16_t pcs;             /* 12-bit pitch-class set of the chord tones and the pedal, bit k = key+k */
+    int8_t   drone;             /* drone pitch, semitones above the key, or -1 */
+    int8_t   vt[HARM_MAXV];   /* voiced notes ascending, semitones above the key (VOICE + MOVE + drone) */
+    uint16_t pcs;             /* 12-bit pitch-class set of the chord tones and the drone, bit k = key+k */
 } HarmChord;                  /* 16 B */
 
 uint8_t  harm_active(void);                                   /* ruling 2: false for the default state */
@@ -526,17 +526,11 @@ int16_t  harm_tone(const HarmChord *c, uint8_t idx);          /* idx-th chord to
 - **H-GOLDEN:** the tables of 3.1, 3.2, 3.3, 4.2 and 6.1 are compared bit for bit with `harmony_proto.py` (the C implementation is tested against the Python).
 - **H-RAM:** 42 B .bss; `ChanRT` 24 B; the headroom line is reported on every dev review.
 - **H-UNDO:** EDIT swaps the later of the channel and harmony records; a preset load clears both.
-- Risks: the pedal walk by two buttons is less direct than a knob (accepted, the owner asked for "walk through candidates"); AUTO's pull is a seeded-free hash, so identical positions repeat
-  identically each pass (by design: rule 4); a monophonic synth hears only the last note of a chord audition unless it is an arpeggio (hence 5.3); the label `PEDAL` also names ACID's ROW 2
-  morph (different page, different meaning; owner question 87).
+- Risks: the drone walk by two buttons is less direct than a knob (accepted, the owner asked for "walk through candidates"); AUTO's pull is a seeded-free hash, so identical positions repeat
+  identically each pass (by design: rule 4); a monophonic synth hears only the last note of a chord audition unless it is an arpeggio (hence 5.3); the label `PEDAL` is kept only for ACID's ROW 2
+  morph, which is why the HARMONY dial is called `DRONE` (owner decision 87B).
 
-## 11. Open questions (with a recommendation each; also in OWNER_QUESTIONS 85-89 and 91)
+## 11. Owner decisions (2026-11-10, approved; OWNER_QUESTIONS 85-89 and 91)
 
-| # | Question | Options | Recommendation |
-| --- | --- | --- | --- |
-| 85 | Default phrase length | A) 4 bars (`1---`), B) 5 bars to match the literal `1----` | A: five bars is not a musical loop; the dashes only show how long the one chord holds |
-| 86 | Cost of the one-gesture page (this **partly reverses decision 69**, which put scale, key and octave on the hold-GLO page; octave now leaves it): the keys become chord keys, so "press any key = KEY" and the 27-key picture go (KEY is K2); OCTAVE moves to OCT-/OCT+ on SET | A) accept, B) keep key-press = KEY on the 20 non-chord keys | A: B hides two meanings on one keyboard and breaks the legend |
-| 87 | ACID's ROW 2 morph is also called `PEDAL`; HARMONY's is the owner's `PEDAL` | A) keep both (separate pages), B) rename the HARMONY one `DRONE` | A: the owner named it; the page title disambiguates |
-| 88 | FULL role is monophonic (the line's contour mapped onto the voiced notes); a true chord out (several simultaneous notes per step) needs `ChanRT.snd[2]` and the event queue to grow | A) monophonic FULL in v1, B) polyphonic chords in v1 | A: keeps `ChanRT` 24 B and the DIN-gear target (a TB-3 is monophonic) |
-| 91 | Decision 46 (one undo record per channel) is extended: EDIT tap also undoes the last HARMONY change (7.3), the later of the two wins | A) accept, B) EDIT undoes only the channel and HARMONY gets no undo | A: a rolled PROG that cannot be taken back breaks "EDIT = take back, everywhere" |
-| 89 | ROLE is a per-channel setting beyond VISION rule 3 (MIDI channel, algorithm, length). It lives on the HARMONY page and is saved in `HarmonySave`, not in `ChanSave` | A) accept ROLE as a harmony-page setting, B) drop ROLE: every channel AUTO (no OFF for gear driven by pitch, no bass-root channel) | A: without OFF a drum-by-pitch channel is harmonised the moment a progression is typed; VISION is not edited |
+85A: default phrase length 4 bars (`1---`). 86A: chord keys replace press-a-key-sets-KEY and OCTAVE moves to SET (partly reverses decision 69). 87B: the HARMONY dial is named `DRONE`; ACID's ROW 2 morph
+keeps `PEDAL`. 88A: FULL is monophonic. 89A: ROLE is a harmony-page setting. 91A: EDIT also undoes the last HARMONY change (extends decision 46).

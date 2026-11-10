@@ -7,10 +7,10 @@ of that document, the pin model of [ADR-0003](../project/decisions/ADR-0003-sequ
 ROW 1 / ROW 2 assignment of [FULL_CONTROL.md](FULL_CONTROL.md) section 3 (re-locked here, 3B).
 
 > **Revision 3 (P2-012, HARMONY; for owner review; additive, see [HARMONY.md](HARMONY.md)).** The SCALE page (hold GLO) becomes the HARMONY screen
-> (table id `SCALE` is kept so no context is added): K1 SCALE, K2 KEY, K3 `VOICE`, K4 `MOVE`; OCT- / OCT+ walk the `PEDAL` (OCTAVE moves to the same
+> (table id `SCALE` is kept so no context is added): K1 SCALE, K2 KEY, K3 `VOICE`, K4 `MOVE`; OCT- / OCT+ walk the `DRONE` (OCTAVE moves to the same
 > buttons on SET, which had them inert); `SCL` dices the progression (`PROG`), `LFO` sets `BARS`, `ARP` sets the channel `ROLE`, `SEQ` starts a `NEW`
 > progression; keys F3-E4 type chords 1-7 (the KEY is K2 only); the 27-key picture is replaced by the progression strip. Defaults are inert: with
-> `1---`, `VOICE 2`, `PEDAL` off no note changes (HARMONY.md 1). The GLO hold sub-label is `h:HARM`. EDIT tap also undoes the last HARMONY change.
+> `1---`, `VOICE 2`, `DRONE` off no note changes (HARMONY.md 1). The GLO hold sub-label is `h:HARM`. EDIT tap also undoes the last HARMONY change.
 > New scored rows U70-U79; U46 and U47 change their path. PERF gains a chord chip in the lane header only while HARMONY is active.
 
 > **Revision 1 (2026-11-10, after the independent Opus review; for owner review).** Six fixes, applied to this
@@ -321,7 +321,7 @@ for the six dice buttons and the hold role, prefixed `h:`, for the buttons that 
 | BPM 120 |SWING 50|GATE 50 |DIV 1/16    |   |  C   F   G   C    <- chord names       |
 |  TEMPO INT/EXT n  OUT MASTER/FOLLOW    |   |  keys F3 G3 A3 B3 C4 D4 E4 = 1..7      |
 |  tag OCT- / OCT+ = OCTAVE -/+          |   | SCALE MINPEN|KEY C|VOICE 2|MOVE 8    |
-| ... buttons as PERF, GLO = BACK,       |   | PEDAL OFF (OCT-/OCT+)  CH1 ROLE AUTO   |
+| ... buttons as PERF, GLO = BACK,       |   | DRONE OFF (OCT-/OCT+)  CH1 ROLE AUTO   |
 |     hold GLO = HARM                    |   | PROG BARS ROLE NEW  (SCL LFO ARP SEQ)  |
 | SET: GLO hold=HARM  HOME=back          |   | HARM: KEYS F3-E4 = CHORD 1-7           |
 +----------------------------------------+   +----------------------------------------+
@@ -435,7 +435,7 @@ button acts on **press** and its hold does nothing more. Full per-page rows: [bu
 | `SAVE` | save to the header slot, or to the pending slot `Pnn?` `SAVE` | undo last load (state and slot; next step) `UNDO L` (sub-label `h:UNDO L`) | as PERF | as PERF | as PERF | inert | printed |
 | `PLAY` | start / stop `PLAY` | - | as PERF | as PERF | as PERF | as PERF | printed |
 | `REC` | open REC `REC` | - | REC at this step | open REC | leave `DONE` | clear viewed page `RST PG` | printed: arm to record |
-| `OCT-` / `OCT+` | latch ROW 1 / ROW 2 | peek the row while turning (`h:peek`) | step octave -1 / +1 `OCT-` `OCT+` | CHAN: to the page boundary below / above `-PAGE` `+PAGE`; SET: OCTAVE -/+1; SCALE (HARMONY): PEDAL walk down / up | REC octave -/+1 | ROW reset / OCT AUTO | rows on PERF; printed octave elsewhere |
+| `OCT-` / `OCT+` | latch ROW 1 / ROW 2 | peek the row while turning (`h:peek`) | step octave -1 / +1 `OCT-` `OCT+` | CHAN: to the page boundary below / above `-PAGE` `+PAGE`; SET: OCTAVE -/+1; SCALE (HARMONY): DRONE walk down / up | REC octave -/+1 | ROW reset / OCT AUTO | rows on PERF; printed octave elsewhere |
 
 HELP (HOME held): every control explains its role on the page beneath and does nothing (PLAY still starts and stops). MENU: Felucca's rule (buttons close
 the menu, OCT- / OCT+ = previous / next value).
@@ -454,7 +454,7 @@ ARP articulation = slide, LFO movement = chance, SCL notes = a new note, FX all 
 | NOTE_EDIT | `PITCH` scale degree per detent, sounds | `GATE` 10..100 %, TIE | `VELO` 1..127 (`ACC` >= 100) | `RATCH` 1x..4x | one row; each starts at AUTO |
 | CHAN | `LENGTH` 1..64 | `MIDI` 1..16, OFF (defaults CH1..CH4 = 1..4; **unique** across the four channels, 4.4) | `SOURCE` of the viewed page: the blocks earlier pages play, labelled `Pm` by the first page `m` that plays each, then `OWN` (1.4) | `FOLLOW` ON / OFF | one row |
 | SET | `BPM` 40..240 | `SWING` 50..75 % | `GATE` 10..100 % (50 neutral) | `DIV` 1/32..1/4 | one row |
-| SCALE (HARMONY) | `SCALE` 16 scales | `KEY` C..B | `VOICE` 0..6 (2) | `MOVE` 0..8 (8) | one row; OCT- / OCT+ = PEDAL 0..14 |
+| SCALE (HARMONY) | `SCALE` 16 scales | `KEY` C..B | `VOICE` 0..6 (2) | `MOVE` 0..8 (8) | one row; OCT- / OCT+ = DRONE 0..14 |
 | REC | `CURSOR` | `ACC` OFF / ON | `SLIDE` OFF / ON | `OCT` -2..+2 | one row |
 | RESET | `RST` that value of the page beneath to default (NOTE_EDIT: to AUTO) | `RST` | `RST` | `RST` | |
 | HELP (HOME held) | `?` explain | `?` | `?` | `?` | |
@@ -597,7 +597,7 @@ preview synth plays CH1 (ADR-0003). API names are ADR-0003 section 6 plus the ad
 | U74 | Type a progression (1-3-5-3) | S | 2 | 3/2/3/2 = 10 | pass | hold GLO, keys F3-E4 (like U54: one open, then the keys; digits drawn on the strip) |
 | U75 | Phrase length in bars | S | 2 | 3/2/3/2 = 10 | pass | hold GLO, LFO (`BARS`) |
 | U76 | Channel ROLE (OFF AUTO ROOT FULL) | S | 2 | 3/2/3/2 = 10 | pass | hold GLO, ARP (`ROLE`); SELECT picks the channel |
-| U77 | Perform VOICE, MOVE, PEDAL with HARMONY open | P | 1 | 3/3/3/2 = 11 | pass | K3, K4, OCT- / OCT+ with the page open (same acts as U70-U72; the lane stays live) |
+| U77 | Perform VOICE, MOVE, DRONE with HARMONY open | P | 1 | 3/3/3/2 = 11 | pass | K3, K4, OCT- / OCT+ with the page open (same acts as U70-U72; the lane stays live) |
 | U78 | Perform the progression dice with HARMONY open | P | 1 | 3/3/3/2 = 11 | pass | SCL (`PROG`) with the page open (same act as U73) |
 | U79 | Know the chord that is playing | S | 0 | 3/3/3/3 = 12 | pass | chord chip in the PERF lane header (shown only while HARMONY is active) and the strip on HARMONY |
 | U59 | EDIT hold, knob (PERF) | `sq_reset_morph` | next step | `RST` then the default value |
@@ -1216,7 +1216,7 @@ When the owner approves this document, the following are locked for the dev task
    Presets: PRESETS turn = pending slot `Pnn?` (stopped: loads after 1.5 s; playing: on the first bar starting at
    least 1.5 s after the last detent); SAVE tap while
    pending = save there; SAVE hold = undo the last load (state and slot). SET (GLO tap): BPM, SWING, GATE, DIV. HARMONY (GLO
-   hold; revision 3, HARMONY.md): SCALE, KEY, VOICE, MOVE, PEDAL (OCT- / OCT+), the progression (keys F3-E4, PROG, BARS, NEW) and the channel ROLE; OCTAVE is OCT- / OCT+ on SET. PG- / PG+ on C#5 / D#5; ADD_PAGE by PG+ twice.
+   hold; revision 3, HARMONY.md): SCALE, KEY, VOICE, MOVE, DRONE (OCT- / OCT+), the progression (keys F3-E4, PROG, BARS, NEW) and the channel ROLE; OCTAVE is OCT- / OCT+ on SET. PG- / PG+ on C#5 / D#5; ADD_PAGE by PG+ twice.
 7. No scenes; no tap tempo; tempo on SET; the freed controls as listed in 4.3.
 8. Force sensing: FS1-FS4 with their fallbacks, DRIVE sensing mode (pull-up fallback), H1-H3 LED handling, the ADC
    schedule, costs, and the HT-FORCE gate (section 6); `FORCE` default OFF until the gate passes.

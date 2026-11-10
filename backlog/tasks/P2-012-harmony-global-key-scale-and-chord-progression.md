@@ -3,7 +3,7 @@ id: P2-012
 title: Design the global HARMONY mode: key, scale and chord progression
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P2-011]
@@ -46,7 +46,7 @@ HARMONY also has a small set of voicing dials, simple and mathematical, performa
 - [x] L rubric score shown for each new function; any exception justified (HARMONY.md 5.1, 5.6; no exception needed)
 - [x] Memory cost within budget, or the overrun and a proposal stated (42 B .bss, 144 B pool, ChanRT 24 B)
 - [x] ADR-0003 amended if the sequencer core changes; ALGORITHM_SET.md updated (ADR-0003 section 20, ALGORITHM_SET 12)
-- [ ] Design locked: owner line in the log
+- [x] Design locked: owner line in the log
 
 ## Verification
 ```sh
@@ -103,3 +103,9 @@ Gate human-review: no Approved line written. Status set back to in_progress.
 ### 2026-11-10 executor fix (Sonnet 5.5)
 
 Review findings 1-5 fixed: page_states CHAN opener, CONTROL_MAP workflow row 6, superseded notes on UX_REVIEW W9 and PERFORMANCE_DESIGN F18, HARMONY.md section 8 rows 15-17 (full file list), Q86 now says it partly reverses decision 69, new Q91 (extends decision 46), undo toasts specified (5.5). All checks re-run and passing (check_scenarios, backlog check, check_control_map, check_sequencer_ux, check_help, width_probe, harmony_proto).
+
+### 2026-11-10 executor (Sonnet 5.5): decision 87B applied
+
+HARMONY dial renamed DRONE across HARMONY.md, SCREEN_SPEC, SEQUENCER_UX, TSVs, widths.tsv, S07/S18, harmony_proto.py, regenerated sweeps/help/COVERAGE. Remaining PEDAL hits are ACID ROW 2 morph or history. HARMONY.md section 11 now records the decisions. Checks re-run and passing. Task files P2-013, P5-005, P5-006 still say PEDAL for the HARMONY dial (not touched: another session edits backlog/tasks).
+
+- Approved: owner 2026-11-10 (85A 86A 87B 88A 89A 91A; HARMONY dial renamed DRONE)

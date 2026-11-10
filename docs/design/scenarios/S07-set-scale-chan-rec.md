@@ -15,12 +15,12 @@ octave 0. Notation as S01. Rows with `K1R` on a one-row page use the whole band 
 | 8 | Press PLAY, then PLAY | the pattern runs, then stops | `FA`, notes, then `FC`, offs, `B1 7B 00` | B_PLAY/SET |
 | 9 | Tap REC | REC opens from SET: see step 15 | none | B_REC/SET |
 | 10 | Tap REC | leaves REC, back to PERF; tap GLO | none | B_REC/REC, B_GLO/PERF |
-| 11 | Hold GLO for 0.4 s | Page HARMONY (table id SCALE). Lane header `HARMONY  C MINPEN  OCT 0`; the progression strip `1---` with `C` under the numeral and the legend `F3 G3 A3 B3 C4 D4 E4 = 1..7`; K1R `SCALE MINPEN` `KEY C` `VOICE 2` `MOVE 8`; tag `OCT-` `OCT+` over `PEDAL OFF`; status line 1 `PEDAL OFF`, status line 2 `CH1 ROLE AUTO`; buttons `PROG` `BARS` `ROLE` `NEW`; GLO cell `BACK`; CUE `HARM: KEYS F3-E4 = CHORD 1-7` | none | B_GLO/SET |
+| 11 | Hold GLO for 0.4 s | Page HARMONY (table id SCALE). Lane header `HARMONY  C MINPEN  OCT 0`; the progression strip `1---` with `C` under the numeral and the legend `F3 G3 A3 B3 C4 D4 E4 = 1..7`; K1R `SCALE MINPEN` `KEY C` `VOICE 2` `MOVE 8`; tag `OCT-` `OCT+` over `DRONE OFF`; status line 1 `DRONE OFF`, status line 2 `CH1 ROLE AUTO`; buttons `PROG` `BARS` `ROLE` `NEW`; GLO cell `BACK`; CUE `HARM: KEYS F3-E4 = CHORD 1-7` | none | B_GLO/SET |
 | 12 | Turn K1 one detent clockwise | `SCALE DORIAN`; scale tones relit | from the next step every pitch is re-snapped | EN_K1/SCALE |
 | 13 | Turn K2 four detents clockwise | `KEY E`; the strip's chord name under the numeral reads `E`; the new root sounds once | the new root sounds once: `ch2 ON/OFF` of the E root | EN_K2/SCALE |
 | 14 | Tap every white key F3 to G5 and every black key once | only the seven keys F3 to E4 act (steps 19 and 20 of S18); the other 20 keys do nothing and the cell labels read `-` | none from those 20 keys | KEY_W08_F4/SCALE, KEY_W09_G4/SCALE, KEY_W10_A4/SCALE, KEY_W11_B4/SCALE, KEY_W12_C5/SCALE, KEY_W13_D5/SCALE, KEY_W14_E5/SCALE, KEY_W15_F5/SCALE, KEY_W16_G5/SCALE, KEY_B*/SCALE |
 | 15 | Turn K2 one detent counter-clockwise, K3 one detent clockwise | `KEY` of the previous pitch class; `VOICE 3` (the chord grows a seventh) | from the next step the AUTO channel is pulled toward the I7 chord tones | EN_K2/SCALE, EN_K3/SCALE |
-| 16 | Tap OCT- | `PEDAL` stays `OFF` (already at the bottom); toast `PEDAL OFF` | none | B_OCTDN/SCALE, B_OCTUP/SCALE |
+| 16 | Tap OCT- | `DRONE` stays `OFF` (already at the bottom); toast `DRONE OFF` | none | B_OCTDN/SCALE, B_OCTUP/SCALE |
 | 17 | Turn K4 one detent counter-clockwise | `MOVE 7` (with one chord nothing changes in the sound) | none | EN_K4/SCALE |
 | 18 | Tap GLO | PERF | none | B_GLO/SCALE |
 | 19 | Tap REC | Page REC, REC LED lit; HD transport `R`; banner `CH1 REC writing to page 1` in T_REC; lane with the cursor `^` on step 1; K1R `CURSOR 1` `ACC OFF` `SLIDE OFF` `OCT 0`; status line `KEYS = NOTES (all 27)`; tag `OCT-` `OCT+` read `OCT -` `OCT +`; CUE `REC: PLAY KEYS TO WRITE  REC=done` | none | B_REC/PERF |

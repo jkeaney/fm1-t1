@@ -3,7 +3,7 @@
 """P2-012: reference prototype of the HARMONY maths (docs/design/HARMONY.md). Integer-only, deterministic.
 
 It is the golden source for every worked example in HARMONY.md: the chord builder (VOICE), the voice leader (MOVE), the
-pedal, the chord-tone pull and the progression dice.  `python3 tests/design/harmony_proto.py` prints the tables; with
+drone, the chord-tone pull and the progression dice.  `python3 tests/design/harmony_proto.py` prints the tables; with
 `--check` it asserts the golden values quoted in HARMONY.md and exits 1 on any difference.  Semitone space: 0 = the key
 note at the base octave (MIDI 36 + key + 12 * OCTAVE), as ALGORITHM_SET SP9.
 """
@@ -98,15 +98,15 @@ def progression(sc, degs, voice, move):
     return out
 
 
-def pedal_pitch(sc, p):
+def drone_pitch(sc, p):
     if p == 0:
         return None
     d = (p - 1) % 7 + 1
     return degree_root(sc, d) + (12 if p > 7 else 0)
 
 
-def pedal_mark(sc, chord, ped):
-    """'in' = pedal pitch class is a chord tone, 'clash' = a semitone from one, else 'tension'"""
+def drone_mark(sc, chord, ped):
+    """'in' = drone pitch class is a chord tone, 'clash' = a semitone from one, else 'tension'"""
     pcs = {n % 12 for n in chord}
     if ped % 12 in pcs:
         return "in"
@@ -231,17 +231,17 @@ def main():
         GOLD[("MAJOR", vo, 8)] = p
     print("== MAJOR key C, 1-4-5-1, MOVE 0, VOICE 3")
     print("  ".join(fmt(v) for v in progression(sc, [1, 4, 5, 1], 3, 0)))
-    print("== PEDAL, MAJOR, VOICE 2, MOVE 8, chords I IV V I")
+    print("== DRONE, MAJOR, VOICE 2, MOVE 8, chords I IV V I")
     for ped in (1, 5, 8, 4):
-        pp = pedal_pitch(sc, ped)
-        marks = [pedal_mark(sc, c, pp) for c in progression(sc, [1, 4, 5, 1], 2, 8)]
-        print("PEDAL %d -> %d (%s)" % (ped, pp, NAMES[pp % 12]), marks)
+        pp = drone_pitch(sc, ped)
+        marks = [drone_mark(sc, c, pp) for c in progression(sc, [1, 4, 5, 1], 2, 8)]
+        print("DRONE %d -> %d (%s)" % (ped, pp, NAMES[pp % 12]), marks)
     sc2 = SCALES["NATMIN"]
-    print("== PEDAL, NATMIN, chords i iv v i")
+    print("== DRONE, NATMIN, chords i iv v i")
     for ped in (1, 5, 3):
-        pp = pedal_pitch(sc2, ped)
-        marks = [pedal_mark(sc2, c, pp) for c in progression(sc2, [1, 4, 5, 1], 2, 8)]
-        print("PEDAL %d -> %d (%s)" % (ped, pp, NAMES[pp % 12]), marks)
+        pp = drone_pitch(sc2, ped)
+        marks = [drone_mark(sc2, c, pp) for c in progression(sc2, [1, 4, 5, 1], 2, 8)]
+        print("DRONE %d -> %d (%s)" % (ped, pp, NAMES[pp % 12]), marks)
     print("== PULL, MAJOR chord IV (bar 2), ACID default pull 3, hi 24, s = 0 2 4 5 7 9 11 12 (t = 16..23)")
     iv = progression(sc, [1, 4, 5, 1], 2, 8)[1]
     pcs = sorted({n % 12 for n in iv})

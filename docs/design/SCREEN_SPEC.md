@@ -174,7 +174,7 @@ Per page (the nine contexts of the tables), the slots that change meaning:
 | NOTE_EDIT | banner replaces cells: `CH1 NOTE EDIT STEP 21` (`CH n` = the EN_SELECT label) | edited cell boxed | tag `OCT-`/`OCT+` (step octave); K1..K4 PITCH GATE VELO RATCH, value + `AUTO`/`*` | dice-this-step labels (ALL NOTE ACCENT PROB UNDO SET / HOME SAVE SLIDE ON/OFF PLAY REC) | as PERF | `STEP n: KNOBS EDIT  HOME=done` |
 | CHAN | 4 cells | page map cells (4) | tag `-PAGE`/`+PAGE`; K1..K4 LENGTH MIDI SOURCE FOLLOW; status lines: 7.1 | as PERF | D#4 reads `BACK` | row 6 |
 | SET | 4 cells | lane as PERF | tag `OCT-`/`OCT+` = `OCTAVE -`/`+` with the value (P2-012; was inert); K1..K4 BPM SWING GATE DIV; **status lines: tempo source and clock out (6.5)** | `GLO` reads `BACK`, hold `HARM` | as PERF | row 8 (or 8a, 6.6) |
-| SCALE (HARMONY, P2-012) | 4 cells | progression strip and key legend (section 7a), replacing the 27-key picture | tag `OCT-`/`OCT+` = `PEDAL -`/`+`; K1..K4 SCALE KEY VOICE MOVE; status lines PEDAL and ROLE; buttons `PROG BARS ROLE NEW` in the SCL LFO ARP SEQ cells | as SET | W01..W07 read `DEG`, the other 20 keys `-` | row 7 |
+| SCALE (HARMONY, P2-012) | 4 cells | progression strip and key legend (section 7a), replacing the 27-key picture | tag `OCT-`/`OCT+` = `DRONE -`/`+`; K1..K4 SCALE KEY VOICE MOVE; status lines DRONE and ROLE; buttons `PROG BARS ROLE NEW` in the SCL LFO ARP SEQ cells | as SET | W01..W07 read `DEG`, the other 20 keys `-` | row 7 |
 | REC | banner `CH1 REC writing to page 2` (T_REC; `CH n` = the EN_SELECT label) | write cursor `^` | tag `OCT-`/`OCT+` = `OCT -`/`+`; K1..K4 CURSOR ACC SLIDE OCT; status `KEYS = NOTES (all 27)` | dice labels live (performing while recording is allowed) | `KEYS = NOTES` | row 4 |
 | RESET | the page beneath, banner `RESET`; ALGO / PRESET encoders read `-` (no role) in the Z0 H3 / H4 slots | every resettable cell tagged `RST` | K1..K4 = `RST` over the value being reset; tag column BT: `RST R1` (OCT-) over `RST R2` (OCT+) | `RST AL`, `RST NT`... (two-line wrap, 9) | white keys `CLR`; D#4 = re-copy | row 2 |
 | HELP | the page beneath dimmed | dimmed | dimmed | dimmed | dimmed | 2-line help box over Z3..Z4 (y=108..212, x=8..232) naming the touched control | row 1 |
@@ -372,7 +372,7 @@ rows) and SET is in 6.5. The strings below are table data; every width is measur
 | NOTE_EDIT | `AUTO = generated: F2  50%  96  1x` (183): the generated PITCH, GATE, VELO, RATCH of the edited step, in knob order; a field the user has set is shown bright with `*` in its knob cell instead | `* = set by you (EDIT: undo)` (138) |
 | CHAN | `PAGES  1 OWN  2 P1  3 hidden  4 -` (179): per page, the source it reads (`OWN`, `Pm`) or `hidden` / `-` (never existed) | `D#4 = BACK` (65), then `OCT- / OCT+ = PAGE BOUNDARY` (174) after 2 s |
 | REC | `WRITING TO PAGE 2   CURSOR 5` (171) | `KEYS = NOTES (all 27)` (117) |
-| SCALE (HARMONY) | line 1 `PEDAL OFF` or `PEDAL 5 G +0  + + - +` (degree, tone, octave shift, one mark per chord: `+` chord tone, `-` passing, `X` a semitone clash) | line 2 `CH1 ROLE AUTO` (the selected channel) |
+| SCALE (HARMONY) | line 1 `DRONE OFF` or `DRONE 5 G +0  + + - +` (degree, tone, octave shift, one mark per chord: `+` chord tone, `-` passing, `X` a semitone clash) | line 2 `CH1 ROLE AUTO` (the selected channel) |
 
 NOTE_EDIT knob cells: label (y+2) and value (y+16). The value of a field that follows the generator is the word `AUTO`
 (dim); a set value is bright with `*`. The mock-up of SEQUENCER_UX 2.2 that printed `(gen F2)` under each AUTO cell is
@@ -390,7 +390,7 @@ Zones, all inside the existing zone grid (nothing is added to the 240 x 240 budg
 | Z2 lane header (y=48..62) | `HARMONY  C MINPEN  OCT 0` (AF_S) |
 | Z2 strip (y=62..98) | up to 8 bar cells, 28 px wide from x=8: the degree numeral (AF_L, T_THEME) at each chord start, `-` (T_MID) for a held bar, the cell of the playing bar filled (T_SEL), the typing cursor outlined (T_ACCENT); under it the chord root name (AF_S, T_MID, `C`, `F#`, `Bb`) |
 | Z2 legend (y=98..108) | `F3 G3 A3 B3 C4 D4 E4 = 1..7` (AF_S, T_MID), 7 cells x 28 px aligned under the keys' order |
-| Z3 band | tag column `OCT-` / `OCT+` over the PEDAL value; K1 `SCALE` (name), K2 `KEY`, K3 `VOICE` (value 0..6), K4 `MOVE` (value 0..8); lower 24 px two status lines (above) |
+| Z3 band | tag column `OCT-` / `OCT+` over the DRONE value; K1 `SCALE` (name), K2 `KEY`, K3 `VOICE` (value 0..6), K4 `MOVE` (value 0..8); lower 24 px two status lines (above) |
 | Z4 | row 1 `ALL PROG ACCNT BARS UNDO HARM`; row 2 `HOME SAVE ROLE NEW PLAY REC` (PERF sub-labels dropped on this page) |
 | Z6 | `HARM: KEYS F3-E4 = CHORD 1-7` (29 characters) |
 
