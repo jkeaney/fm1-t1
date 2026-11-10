@@ -429,7 +429,7 @@ Approved = the P1-013 scheme (control_map.tsv before this task). B = the first v
 | F15 | Undo / redo (dice, pins, resets) | P | 3/3/3/3 = 12 pass | 3/3/3/2 = 11 pass | 3/3/3/2 = 11 pass (EDIT tap) |
 | F16 | Tune GATE, DIV, SWING | S | 3/2/3/2 = 10 pass | 3/2/3/2 = 10 pass | 3/2/3/3 = 11 pass (GLO tap (SET), K1..K3) |
 | F17 | Tempo | S | 3/2/3/2 = 10 pass | 3/2/3/2 = 10 pass | 3/2/3/3 = 11 pass (GLO tap (SET), K4 BPM) |
-| F18 | Set global key | S | 3/1/3/2 = 9 pass | 3/2/3/2 = 10 pass | 3/2/3/2 = 10 pass (SET row 2, press any key) |
+| F18 | Set global key | S | 3/1/3/2 = 9 pass | 3/2/3/2 = 10 pass | 3/2/3/2 = 10 pass (SET row 2, press any key; superseded by HARMONY.md 5 (P2-012): hold GLO, K2) |
 | F19 | Set global scale | S | 3/1/3/2 = 9 pass | 3/1/3/2 = 9 pass | 3/1/3/2 = 9 pass (SET row 2, K1) |
 | F20 | Mute channel | P | 2/3/3/2 = 10 FAIL | 3/3/3/2 = 11 pass | 3/3/3/2 = 11 pass (black F#3..C#4 (printed OP1..OP4)) |
 | F21 | Switch channel | P | 3/3/3/3 = 12 pass | 3/3/3/3 = 12 pass | 3/3/3/3 = 12 pass (SELECT turn) |

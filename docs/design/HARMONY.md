@@ -366,7 +366,7 @@ the bar that is playing.
 +----------------------------------------+
 ```
 
-Toasts added to the screen spec's toast list: `PROG` (dice), `UNDO: PROG`, `NEW: TYPE CHORDS`, `BARS n`, `VOICE n`, `8 CHORDS MAX`, `PEDAL OFF`, `RST PROG`. Strings are measured in
+Undo toasts (EDIT tap, shown on every page): `UNDO: PROG`, `UNDO: CHORDS` (a typing run), `UNDO: VOICE`, `UNDO: MOVE`, `UNDO: PEDAL`, `UNDO: BARS`, `UNDO: ROLE`; a second tap redoes with the same words prefixed `REDO:`. Toasts added to the screen spec's toast list: `PROG` (dice), `UNDO: PROG`, `NEW: TYPE CHORDS`, `BARS n`, `VOICE n`, `8 CHORDS MAX`, `PEDAL OFF`, `RST PROG`. Strings are measured in
 `tests/design/widths.tsv` (all inside their budgets).
 
 ### 5.6 L rubric score of each new function
@@ -485,7 +485,9 @@ touching `HarmonySave`, so presets, undo and the progression strip stay as they 
 | 12 | ADR-0003 | new section 20 (chord stage, `HarmonySave`, `AlgoDesc.hi`); `ChanRT` unchanged | |
 | 13 | ALGORITHM_SET | new section 12 (SP18 chord stage, per-algorithm table) | |
 | 14 | scenarios | S07 steps 1, 6, 11, 13..17 and S01 / S06 sub-label updated; S18 added; COVERAGE regenerated (S18 counts as a narrative walk) | |
-| 15 | VISION | **unchanged**; HARMONY serves rules 3 and 4 (the algorithm drives the sequence; knobs morph). The one tension is the per-channel ROLE, a fourth channel setting stored on the global page: owner question 89 | |
+| 15 | Stale text fixed after review | page_states.tsv CHAN opener (`on SCALE D#4 is inert`), CONTROL_MAP.md workflow row 6, and a "superseded by HARMONY.md 5 (P2-012)" note on UX_REVIEW.md W9 and PERFORMANCE_DESIGN.md F18 (history kept, not rewritten) | |
+| 16 | Files changed beyond the rows above | CONTROL_MAP.md appendix A (50 rows, kept equal to control_map.tsv); scenarios S09, S10, S11, S12, S13, S15 (regenerated sweeps), S01, S06, S07 (hand edits), S18 (new), COVERAGE.md; tests/design/gen_help.py (HARMONY overrides), check_scenarios.py (S18 counts as a narrative walk), widths.tsv (HARMONY strings), harmony_proto.py (new); OWNER_QUESTIONS.md 85-91 | |
+| 17 | VISION | **unchanged**; HARMONY serves rules 3 and 4 (the algorithm drives the sequence; knobs morph). The one tension is the per-channel ROLE, a fourth channel setting stored on the global page: owner question 89 | |
 
 ## 9. The chord and voicing query interface (for P2-013 ARP and P2-014 PATTERNS)
 
@@ -528,12 +530,13 @@ int16_t  harm_tone(const HarmChord *c, uint8_t idx);          /* idx-th chord to
   identically each pass (by design: rule 4); a monophonic synth hears only the last note of a chord audition unless it is an arpeggio (hence 5.3); the label `PEDAL` also names ACID's ROW 2
   morph (different page, different meaning; owner question 87).
 
-## 11. Open questions (with a recommendation each; also in OWNER_QUESTIONS 85-89)
+## 11. Open questions (with a recommendation each; also in OWNER_QUESTIONS 85-89 and 91)
 
 | # | Question | Options | Recommendation |
 | --- | --- | --- | --- |
 | 85 | Default phrase length | A) 4 bars (`1---`), B) 5 bars to match the literal `1----` | A: five bars is not a musical loop; the dashes only show how long the one chord holds |
-| 86 | Cost of the one-gesture page: the keys become chord keys, so "press any key = KEY" and the 27-key picture go (KEY is K2); OCTAVE moves to OCT-/OCT+ on SET | A) accept, B) keep key-press = KEY on the 20 non-chord keys | A: B hides two meanings on one keyboard and breaks the legend |
+| 86 | Cost of the one-gesture page (this **partly reverses decision 69**, which put scale, key and octave on the hold-GLO page; octave now leaves it): the keys become chord keys, so "press any key = KEY" and the 27-key picture go (KEY is K2); OCTAVE moves to OCT-/OCT+ on SET | A) accept, B) keep key-press = KEY on the 20 non-chord keys | A: B hides two meanings on one keyboard and breaks the legend |
 | 87 | ACID's ROW 2 morph is also called `PEDAL`; HARMONY's is the owner's `PEDAL` | A) keep both (separate pages), B) rename the HARMONY one `DRONE` | A: the owner named it; the page title disambiguates |
 | 88 | FULL role is monophonic (the line's contour mapped onto the voiced notes); a true chord out (several simultaneous notes per step) needs `ChanRT.snd[2]` and the event queue to grow | A) monophonic FULL in v1, B) polyphonic chords in v1 | A: keeps `ChanRT` 24 B and the DIN-gear target (a TB-3 is monophonic) |
+| 91 | Decision 46 (one undo record per channel) is extended: EDIT tap also undoes the last HARMONY change (7.3), the later of the two wins | A) accept, B) EDIT undoes only the channel and HARMONY gets no undo | A: a rolled PROG that cannot be taken back breaks "EDIT = take back, everywhere" |
 | 89 | ROLE is a per-channel setting beyond VISION rule 3 (MIDI channel, algorithm, length). It lives on the HARMONY page and is saved in `HarmonySave`, not in `ChanSave` | A) accept ROLE as a harmony-page setting, B) drop ROLE: every channel AUTO (no OFF for gear driven by pitch, no bass-root channel) | A: without OFF a drum-by-pitch channel is harmonised the moment a progression is typed; VISION is not edited |

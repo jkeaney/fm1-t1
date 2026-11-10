@@ -114,7 +114,7 @@ Starting from power-on. No step opens the MENU. Result: **performing within 5 ge
 | 4a | Dial a sequence in | press PLAY; turn K1 (density), K2 (form), K3 (pitch width), K4 (spice) | each knob cell highlights for 1 s and shows its value | W5, W6 |
 | 4b | or enter steps | turn K1 to `KEYS ONLY`; tap white keys to pin steps; tap REC and play the pitches (or hold a step key and press another white key) | pins outlined on the lane; the pin sounds | W4 |
 | 5 | Perform | morph with K1-K4, tap OCT+ for ROW 2; dice with FX (all) SCL (NOTES) SEQ (HITS) ENV (ACCNT) ARP (ARTIC) LFO (SHAPE); EDIT undoes; mute with F#3..C#4; hold G#4 to fill | every button shows its role; muted channel cell dimmed with `M` | W6, W7, W10 |
-| 6 | Optional global changes | tap GLO: row 1 GATE, DIV, SWING, BPM; row 2 SCALE, OCTAVE, MIDI, LENGTH (any key sets the KEY); SAVE to keep it | header `C MINPEN` on every screen | W8, W9, W11, W12 |
+| 6 | Optional global changes | tap GLO: row 1 GATE, DIV, SWING, BPM; row 2 SCALE, OCTAVE, MIDI, LENGTH (superseded by HARMONY.md 5, P2-012: hold GLO = HARMONY, KEY is K2, OCTAVE is OCT-/OCT+ on SET); SAVE to keep it | header `C MINPEN` on every screen | W8, W9, W11, W12 |
 
 Gestures 1-3 plus PLAY make sound on a TB-3; the only latched page is SET. Save and load: tap SAVE
 (`SAVED P01`); a filled slot loads at the next bar and the header shows `P03>` until then (decision 34).

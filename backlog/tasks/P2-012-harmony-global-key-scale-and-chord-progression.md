@@ -3,7 +3,7 @@ id: P2-012
 title: Design the global HARMONY mode: key, scale and chord progression
 phase: P2
 type: task
-status: in_progress
+status: review
 priority: 1
 executor: sonnet
 depends_on: [P2-011]
@@ -99,3 +99,7 @@ Findings (fix these):
 Note (no change needed): undo of a HARMONY change from PERF gives a toast only for PROG; typing, VOICE and BARS undo toasts are not specified (7.3 / 5.5). Consider specifying so the screen says what EDIT just did.
 
 Gate human-review: no Approved line written. Status set back to in_progress.
+
+### 2026-11-10 executor fix (Sonnet 5.5)
+
+Review findings 1-5 fixed: page_states CHAN opener, CONTROL_MAP workflow row 6, superseded notes on UX_REVIEW W9 and PERFORMANCE_DESIGN F18, HARMONY.md section 8 rows 15-17 (full file list), Q86 now says it partly reverses decision 69, new Q91 (extends decision 46), undo toasts specified (5.5). All checks re-run and passing (check_scenarios, backlog check, check_control_map, check_sequencer_ux, check_help, width_probe, harmony_proto).
