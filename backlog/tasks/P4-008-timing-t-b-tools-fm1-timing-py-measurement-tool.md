@@ -3,7 +3,7 @@ id: P4-008
 title: Timing T-B: tools/fm1_timing.py measurement tool
 phase: P4
 type: task
-status: review
+status: done
 priority: 2
 executor: haiku
 depends_on: [P2-005]
@@ -83,3 +83,11 @@ Notes for the reviewer:
 - `tests/run_tests.sh` is shared with P3-001 (uncommitted edits there). My change is one `run` line after the
   installer CLI step. That line did not appear in the concurrent run's log, so it is verified directly above, not by
   the full runner.
+
+### 2026-11-10 review (sonnet)
+
+Verdict: PASS (gate none).
+- Selftest prints TIMING SELFTEST PASS; `--help` lists --loopback, --sweep, --port, --minutes.
+- `sh tools/check.sh` ends CHECK PASS; RAM .data+.bss 55744 B of 73728 (17984 B headroom); backlog 109 items, 0 errors.
+- Tool covers TIMING_SPEC 6.2: callback capture, full message log incl. F8/FA/FB/FC/F2, --loopback, --sweep, exit 0 only on all PASS.
+- Notes (not blocking): T1 N/A, T4 is note-vs-own-clock offset, T11/T13 not implemented (not in 6.2). The working-tree run_tests.sh has uncommitted edits from P3-001 unrelated to this commit.
