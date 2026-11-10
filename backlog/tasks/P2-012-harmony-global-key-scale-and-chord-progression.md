@@ -3,7 +3,7 @@ id: P2-012
 title: Design the global HARMONY mode: key, scale and chord progression
 phase: P2
 type: task
-status: todo
+status: review
 priority: 1
 executor: sonnet
 depends_on: [P2-011]
@@ -39,13 +39,13 @@ HARMONY also has a small set of voicing dials, simple and mathematical, performa
 - Scenario S18 added to docs/design/scenarios and COVERAGE.md
 
 ## Acceptance criteria
-- [ ] HARMONY.md has no 'TBD'; the default (`1----`) behaves as one chord for every channel
-- [ ] VOICE, MOVE and PEDAL are each defined by a formula with worked examples, defaults that leave the sound unchanged, and are mapped to controls
-- [ ] Every algorithm in the v1 set has a stated chord-quantise and morph rule
-- [ ] Every new page, button mode and knob role is in the TSV tables, and tests/design check scripts pass
-- [ ] L rubric score shown for each new function; any exception justified
-- [ ] Memory cost within budget, or the overrun and a proposal stated
-- [ ] ADR-0003 amended if the sequencer core changes; ALGORITHM_SET.md updated
+- [x] HARMONY.md has no 'TBD'; the default (`1---`, 4 bars; owner question 85) behaves as one chord for every channel and is inert (HARMONY.md 1)
+- [x] VOICE, MOVE and PEDAL are each defined by a formula with worked examples, defaults that leave the sound unchanged, and are mapped to controls (HARMONY.md 3, 5.2; golden from tests/design/harmony_proto.py)
+- [x] Every algorithm in the v1 set has a stated chord-quantise and morph rule (HARMONY.md 4.3, ALGORITHM_SET 12)
+- [x] Every new page, button mode and knob role is in the TSV tables, and tests/design check scripts pass (no new page: the hold-GLO page is extended)
+- [x] L rubric score shown for each new function; any exception justified (HARMONY.md 5.1, 5.6; no exception needed)
+- [x] Memory cost within budget, or the overrun and a proposal stated (42 B .bss, 144 B pool, ChanRT 24 B)
+- [x] ADR-0003 amended if the sequencer core changes; ALGORITHM_SET.md updated (ADR-0003 section 20, ALGORITHM_SET 12)
 - [ ] Design locked: owner line in the log
 
 ## Verification
@@ -58,3 +58,27 @@ python3 tools/backlog.py check
 - Writing firmware, or changing locked designs beyond what HARMONY requires (list each change).
 
 ## Log
+
+### 2026-11-10 executor (Sonnet 5.5)
+
+Orchestrator rulings recorded in docs/design/HARMONY.md section 0: (1) MIDI-in chord following deferred to v2, hook point in one paragraph (7.6); (2) invisible by default,
+worked example and an explicit byte-identical acceptance test (1, 10), entered steps scale-only with no opt-in; (3) no new page, HARMONY extends the hold-GLO page (table id
+SCALE), PROG dice is HARMONY-page-only on SCL (6.3); (4) 42 B .bss and 144 B pool (7.2), ChanRT stays 24 B; (5) the ARP / PATTERNS interface is HARMONY.md 9, nothing else of P2-013/014 touched.
+
+Deliverables: docs/design/HARMONY.md, docs/design/scenarios/S18-harmony.md, tests/design/harmony_proto.py (golden source). Locked-doc changes are listed one by one in HARMONY.md 8
+(tables: page_states, button_modes, knob_map, key_map, control_map + CONTROL_MAP.md appendix; help_text regenerated; SEQUENCER_UX rev 3 with U70-U79; SCREEN_SPEC 7a; ADR-0003 section 20;
+ALGORITHM_SET 12; S01/S06/S07 updated; check_scenarios.py now counts S18 as a narrative walk; OWNER_QUESTIONS 85-89 added).
+
+Verification (all run from the repo root):
+```
+python3 tests/design/check_scenarios.py   -> scenarios: 18 files, 441 control-map rows, 0 with no scenario, 265 only in a sweep
+python3 tools/backlog.py check            -> 47 items, 0 errors
+python3 tools/check_control_map.py        -> rows tsv=441 md=441 / OK
+python3 tools/check_sequencer_ux.py       -> pages=9 ... scored=79 exceptions=3 / OK
+python3 tests/design/check_help.py        -> OK: 343 help rows, 1733 strings measured
+sh tests/design/width_probe.sh            -> 119 strings, 0 over
+python3 tests/design/harmony_proto.py --check -> CHECK OK
+```
+No firmware changed, so `tools/check.sh` (a build) was not run.
+
+Open (not ticked): "Design locked: owner line in the log" needs the owner's Approved line; the executor does not write it. Five owner questions (85-89, each with a recommendation) are in HARMONY.md 11 and OWNER_QUESTIONS.md.

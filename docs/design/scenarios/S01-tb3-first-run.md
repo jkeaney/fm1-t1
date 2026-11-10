@@ -18,7 +18,7 @@ Reference frame F-PERF-INT (PERF, stopped, power-on, nothing else touched):
 | LN | `PG 1/1  FOLLOW  hold=EDIT` |
 | K1R | `DENS 12` `SLIDE 4` `JUMP 5` `ACCNT 3` (live row, filled); tag column `OCT-` over `h:peek` |
 | K2R | `OFFSET 0` `PEDAL 6` `PUNCH 40` `DIR FWD` (dim); tag column `OCT+` over `h:peek` |
-| BTN row 1 | `ALL` `NOTES` `ACCNT` `SHAPE` (sub `OCTAVE`) `UNDO` (hold mark `RST`) `SET` (hold mark `SCALE`) |
+| BTN row 1 | `ALL` `NOTES` `ACCNT` `SHAPE` (sub `OCTAVE`) `UNDO` (hold mark `RST`) `SET` (hold mark `HARM`) |
 | BTN row 2 | `HOME` (hold mark `HLP/MN`) `SAVE` (hold mark `UNDO L`) `ARTIC` (sub `GT+SLD`) `HITS` `PLAY` `REC` |
 | LEG | `M1 M2 M3 M4 CHN SOL FIL ROL PG- PG+ RST` |
 | CUE | `D#4 K2: MIDI CHANNEL` (first-run step 1, priority 12 beats stopped, row 13) |

@@ -195,9 +195,9 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `B_SCL` | `NOTE_EDIT` | tap: press: dice the edited step's pitch: a new scale note, written as its PITCH edit and auditioned; EDIT tap undoes // hold: no hold role: acted once on press | `NOTE` |
 | `B_SCL` | `CHAN` | tap: press: dice the NOTES layer (new pitches in the scale; edited pitches kept); algorithm sub-label under it // hold: no hold role: acted once on press | `NOTES` |
 | `B_SCL` | `SET` | tap: press: dice the NOTES layer (new pitches in the scale; edited pitches kept); algorithm sub-label under it // hold: no hold role: acted once on press | `NOTES` |
-| `B_SCL` | `SCALE` | tap: press: dice the NOTES layer (new pitches in the scale; edited pitches kept); algorithm sub-label under it // hold: no hold role: acted once on press | `NOTES` |
+| `B_SCL` | `SCALE` | tap: press: dice the PROGRESSION: new chord degrees, bars and chord count within the musical limits (HARMONY 6); KEY, SCALE, VOICE, MOVE, PEDAL and the channel dice layers are kept; EDIT tap undoes // hold: no hold role: acted once on press | `PROG` |
 | `B_SCL` | `REC` | tap: press: dice the NOTES layer (new pitches in the scale; edited pitches kept) (performing while recording is allowed) // hold: no hold role: acted once on press | `NOTES` |
-| `B_SCL` | `RESET` | tap: press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (NOTE); RESET closes; EDIT tap undoes // hold: no hold role: acted once on press | `RST NT` |
+| `B_SCL` | `RESET` | tap: press: from PERF/CHAN/SET: that layer's seeds to factory; from HARMONY: the progression back to 1--- (4 bars, one chord, degree 1); from NOTE_EDIT: that property of the edited step to AUTO (NOTE); RESET closes; EDIT tap undoes // hold: no hold role: acted once on press | `RST NT` |
 | `B_SCL` | `HELP` | tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens | `?` |
 | `B_SCL` | `MENU` | tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `close` |
 | `B_ENV` | `PERF` | tap: press: dice the ACCNT layer (which generated steps are loud; VELO edits kept); algorithm sub-label under it // hold: no hold role: acted once on press | `ACCNT` |
@@ -213,25 +213,25 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `B_LFO` | `NOTE_EDIT` | tap: press: toggle PROB on the edited step: 100 % / 50 % (PROB_LOW), drawn deterministically per pass; EDIT tap undoes // hold: no hold role: acted once on press | `PROB` |
 | `B_LFO` | `CHAN` | tap: press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent; algorithm sub-label under it // hold: no hold role: acted once on press | `SHAPE` |
 | `B_LFO` | `SET` | tap: press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent; algorithm sub-label under it // hold: no hold role: acted once on press | `SHAPE` |
-| `B_LFO` | `SCALE` | tap: press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent; algorithm sub-label under it // hold: no hold role: acted once on press | `SHAPE` |
+| `B_LFO` | `SCALE` | tap: press: BARS, the phrase length: 1..8 bars, one step per press, wrapping after 8 to the chord count (never fewer bars than chords); heard at the next phrase start // hold: no hold role: acted once on press | `BARS` |
 | `B_LFO` | `REC` | tap: press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent (performing while recording is allowed) // hold: no hold role: acted once on press | `SHAPE` |
 | `B_LFO` | `RESET` | tap: press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (PROB); RESET closes; EDIT tap undoes // hold: no hold role: acted once on press | `RST SH` |
 | `B_LFO` | `HELP` | tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens | `?` |
 | `B_LFO` | `MENU` | tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `close` |
-| `B_EDIT` | `PERF` | tap: UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel // hold: 0.4 s: open RESET (latched, one shot): the next control touched goes back to its default | `UNDO` |
+| `B_EDIT` | `PERF` | tap: UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel, or the last HARMONY change when that came later (PROG dice, typed progression, BARS, VOICE, MOVE, PEDAL) // hold: 0.4 s: open RESET (latched, one shot): the next control touched goes back to its default | `UNDO` |
 | `B_EDIT` | `NOTE_EDIT` | tap: UNDO: the edited step back to how it was when this NOTE EDIT visit began; again = redo // hold: 0.4 s: open RESET over NOTE_EDIT (next touch puts that property of the step back to AUTO) | `UNDO` |
-| `B_EDIT` | `CHAN` | tap: UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel // hold: 0.4 s: open RESET (latched, one shot): the next control touched goes back to its default | `UNDO` |
-| `B_EDIT` | `SET` | tap: UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel // hold: 0.4 s: open RESET (latched, one shot): the next control touched goes back to its default | `UNDO` |
-| `B_EDIT` | `SCALE` | tap: UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel // hold: 0.4 s: open RESET (latched, one shot): the next control touched goes back to its default | `UNDO` |
+| `B_EDIT` | `CHAN` | tap: UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel, or the last HARMONY change when that came later (PROG dice, typed progression, BARS, VOICE, MOVE, PEDAL) // hold: 0.4 s: open RESET (latched, one shot): the next control touched goes back to its default | `UNDO` |
+| `B_EDIT` | `SET` | tap: UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel, or the last HARMONY change when that came later (PROG dice, typed progression, BARS, VOICE, MOVE, PEDAL) // hold: 0.4 s: open RESET (latched, one shot): the next control touched goes back to its default | `UNDO` |
+| `B_EDIT` | `SCALE` | tap: UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel, or the last HARMONY change when that came later (PROG dice, typed progression, BARS, VOICE, MOVE, PEDAL) // hold: 0.4 s: open RESET (latched, one shot): the next control touched goes back to its default | `UNDO` |
 | `B_EDIT` | `REC` | tap: UNDO the last written note (the cursor steps back); again = redo // hold: inert in REC (toast LEAVE REC FIRST) | `UNDO` |
 | `B_EDIT` | `RESET` | tap: cancel RESET (nothing reset), back to the page beneath // hold: inert (already in RESET) | `CANCEL` |
 | `B_EDIT` | `HELP` | tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens | `?` |
 | `B_EDIT` | `MENU` | tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `close` |
-| `B_GLO` | `PERF` | tap: open SET (latched): BPM SWING GATE DIV // hold: 0.4 s: open SCALE (latched): SCALE KEY OCTAVE; any key = KEY | `SET` |
-| `B_GLO` | `NOTE_EDIT` | tap: open SET (latched): BPM SWING GATE DIV (closes NOTE EDIT) // hold: 0.4 s: open SCALE (latched): SCALE KEY OCTAVE; any key = KEY | `SET` |
-| `B_GLO` | `CHAN` | tap: open SET (latched): BPM SWING GATE DIV // hold: 0.4 s: open SCALE (latched): SCALE KEY OCTAVE; any key = KEY | `SET` |
-| `B_GLO` | `SET` | tap: close SET, back to PERF // hold: 0.4 s: switch to SCALE | `BACK` |
-| `B_GLO` | `SCALE` | tap: close SCALE, back to PERF // hold: inert (already on SCALE) | `BACK` |
+| `B_GLO` | `PERF` | tap: open SET (latched): BPM SWING GATE DIV // hold: 0.4 s: open HARMONY (latched): SCALE KEY VOICE MOVE, the progression strip, keys F3-E4 = chords 1-7 | `SET` |
+| `B_GLO` | `NOTE_EDIT` | tap: open SET (latched): BPM SWING GATE DIV (closes NOTE EDIT) // hold: 0.4 s: open HARMONY (latched): SCALE KEY VOICE MOVE, the progression strip, keys F3-E4 = chords 1-7 | `SET` |
+| `B_GLO` | `CHAN` | tap: open SET (latched): BPM SWING GATE DIV // hold: 0.4 s: open HARMONY (latched): SCALE KEY VOICE MOVE, the progression strip, keys F3-E4 = chords 1-7 | `SET` |
+| `B_GLO` | `SET` | tap: close SET, back to PERF // hold: 0.4 s: switch to HARMONY | `BACK` |
+| `B_GLO` | `SCALE` | tap: close HARMONY, back to PERF // hold: inert (already on HARMONY) | `BACK` |
 | `B_GLO` | `REC` | tap: inert in REC (toast REC: tap REC to finish) // hold: inert in REC | `-` |
 | `B_GLO` | `RESET` | tap: inert (nothing to reset; toast NOTHING TO RESET) // hold: inert | `-` |
 | `B_GLO` | `HELP` | tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens | `?` |
@@ -258,7 +258,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `B_ARP` | `NOTE_EDIT` | tap: press: toggle SLIDE on the edited step: this note glides into the next step (step 1 after the last step; TB-303 rule; no glide if that step is silent); EDIT tap undoes // hold: no hold role: acted once on press | `SLIDE` |
 | `B_ARP` | `CHAN` | tap: press: dice the ARTIC layer (gate, slide, ratchet as the algorithm has them; edits kept); dim if absent; algorithm sub-label under it // hold: no hold role: acted once on press | `ARTIC` |
 | `B_ARP` | `SET` | tap: press: dice the ARTIC layer (gate, slide, ratchet as the algorithm has them; edits kept); dim if absent; algorithm sub-label under it // hold: no hold role: acted once on press | `ARTIC` |
-| `B_ARP` | `SCALE` | tap: press: dice the ARTIC layer (gate, slide, ratchet as the algorithm has them; edits kept); dim if absent; algorithm sub-label under it // hold: no hold role: acted once on press | `ARTIC` |
+| `B_ARP` | `SCALE` | tap: press: ROLE of the selected channel, wrapping OFF, AUTO, ROOT, FULL (AUTO follows the chords by the quantise rule, ROOT plays the chord root, FULL plays the voiced chord notes, OFF is never harmonised) // hold: no hold role: acted once on press | `ROLE` |
 | `B_ARP` | `REC` | tap: press: dice the ARTIC layer (gate, slide, ratchet as the algorithm has them; edits kept); dim if absent (performing while recording is allowed) // hold: no hold role: acted once on press | `ARTIC` |
 | `B_ARP` | `RESET` | tap: press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (SLIDE); RESET closes; EDIT tap undoes // hold: no hold role: acted once on press | `RST AR` |
 | `B_ARP` | `HELP` | tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens | `?` |
@@ -267,7 +267,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `B_SEQ` | `NOTE_EDIT` | tap: press: toggle the edited step ON/OFF (same as tapping its key); EDIT tap undoes // hold: no hold role: acted once on press | `ON/OFF` |
 | `B_SEQ` | `CHAN` | tap: press: dice the HITS layer (where the generated steps fall; ON/OFF edits kept); algorithm sub-label under it // hold: no hold role: acted once on press | `HITS` |
 | `B_SEQ` | `SET` | tap: press: dice the HITS layer (where the generated steps fall; ON/OFF edits kept); algorithm sub-label under it // hold: no hold role: acted once on press | `HITS` |
-| `B_SEQ` | `SCALE` | tap: press: dice the HITS layer (where the generated steps fall; ON/OFF edits kept); algorithm sub-label under it // hold: no hold role: acted once on press | `HITS` |
+| `B_SEQ` | `SCALE` | tap: press: NEW progression: the next degree key starts again at chord 1 (nothing changes until a key is typed) // hold: no hold role: acted once on press | `NEW` |
 | `B_SEQ` | `REC` | tap: press: dice the HITS layer (where the generated steps fall; ON/OFF edits kept) (performing while recording is allowed) // hold: no hold role: acted once on press | `HITS` |
 | `B_SEQ` | `RESET` | tap: press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (ON/OFF); RESET closes; EDIT tap undoes // hold: no hold role: acted once on press | `RST HT` |
 | `B_SEQ` | `HELP` | tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens | `?` |
@@ -293,19 +293,19 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `B_OCTDN` | `PERF` | tap: release: latch ROW 1 of the knob band // hold: hold and turn a knob: ROW 1 live while held (momentary peek; the tap is the main route; sub-label h:peek; unscored) | `ROW 1` |
 | `B_OCTDN` | `NOTE_EDIT` | tap: release: the edited step one octave down (OCT -2..+2), auditioned // hold: as tap (no hold role on this page) | `OCT-` |
 | `B_OCTDN` | `CHAN` | tap: release: LENGTH to the page boundary below (20 -> 16, 48 -> 32; at 16 or less inert, toast ONE PAGE: K1 = SHORTER); the hidden steps keep their edits // hold: as tap (no hold role on this page) | `-PAGE` |
-| `B_OCTDN` | `SET` | tap: inert on SET (one row of four; toast ONE ROW HERE) // hold: inert | `-` |
-| `B_OCTDN` | `SCALE` | tap: release: global OCTAVE -1 (-2..+2) // hold: as tap (no hold role on this page) | `OCT-` |
+| `B_OCTDN` | `SET` | tap: release: global OCTAVE -1 (-2..+2); the tag column reads OCT -2..+2 (moved here from the SCALE page, which uses OCT- / OCT+ for PEDAL) // hold: as tap (no hold role on this page) | `OCT-` |
+| `B_OCTDN` | `SCALE` | tap: release: PEDAL walks one candidate down (0 = OFF); the status line names the degree and marks clashes // hold: as tap (no hold role on this page) | `OCT-` |
 | `B_OCTDN` | `REC` | tap: release: the REC keyboard octave -1 (same value as K4 OCT) // hold: as tap (no hold role on this page) | `OCT-` |
-| `B_OCTDN` | `RESET` | tap: from PERF: reset the four morphs of ROW 1; from NOTE_EDIT: the step octave to AUTO; elsewhere inert; RESET closes; EDIT tap undoes // hold: as tap | `RST R1` |
+| `B_OCTDN` | `RESET` | tap: from PERF: reset the four morphs of ROW 1; from NOTE_EDIT: the step octave to AUTO; from HARMONY: PEDAL OFF; elsewhere inert; RESET closes; EDIT tap undoes // hold: as tap | `RST R1` |
 | `B_OCTDN` | `HELP` | tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens | `?` |
 | `B_OCTDN` | `MENU` | tap: release: previous value / back (Felucca menu rule) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `-` |
 | `B_OCTUP` | `PERF` | tap: release: latch ROW 2 of the knob band // hold: hold and turn a knob: ROW 2 live while held (momentary peek; the tap is the main route; sub-label h:peek; unscored) | `ROW 2` |
 | `B_OCTUP` | `NOTE_EDIT` | tap: release: the edited step one octave up (OCT -2..+2), auditioned // hold: as tap (no hold role on this page) | `OCT+` |
 | `B_OCTUP` | `CHAN` | tap: release: LENGTH to the page boundary above (20 -> 32, 32 -> 48, max 64): a partial page is completed, a new page is a copy of the page before it (edits and source), a hidden page comes back as stored // hold: as tap (no hold role on this page) | `+PAGE` |
-| `B_OCTUP` | `SET` | tap: inert on SET (one row of four; toast ONE ROW HERE) // hold: inert | `-` |
-| `B_OCTUP` | `SCALE` | tap: release: global OCTAVE +1 (-2..+2) // hold: as tap (no hold role on this page) | `OCT+` |
+| `B_OCTUP` | `SET` | tap: release: global OCTAVE +1 (-2..+2); the tag column reads OCT -2..+2 (moved here from the SCALE page, which uses OCT- / OCT+ for PEDAL) // hold: as tap (no hold role on this page) | `OCT+` |
+| `B_OCTUP` | `SCALE` | tap: release: PEDAL walks one candidate up (14 = top); the status line names the degree and marks clashes // hold: as tap (no hold role on this page) | `OCT+` |
 | `B_OCTUP` | `REC` | tap: release: the REC keyboard octave +1 (same value as K4 OCT) // hold: as tap (no hold role on this page) | `OCT+` |
-| `B_OCTUP` | `RESET` | tap: from PERF: reset the four morphs of ROW 2; from NOTE_EDIT: the step octave to AUTO; elsewhere inert; RESET closes; EDIT tap undoes // hold: as tap | `RST R2` |
+| `B_OCTUP` | `RESET` | tap: from PERF: reset the four morphs of ROW 2; from NOTE_EDIT: the step octave to AUTO; from HARMONY: PEDAL OFF; elsewhere inert; RESET closes; EDIT tap undoes // hold: as tap | `RST R2` |
 | `B_OCTUP` | `HELP` | tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens | `?` |
 | `B_OCTUP` | `MENU` | tap: release: next value / do it (opens CALIBRATION, INFO, ABOUT rows) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `-` |
 | `EN_SELECT` | `PERF` | turn: select channel CH1..CH4 (clamped, no wrap) | `CH n` |
@@ -348,7 +348,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `EN_K2` | `NOTE_EDIT` | turn: note length of the edited step, x global GATE; top value TIE (holds into the next step) | `GATE` |
 | `EN_K2` | `CHAN` | turn: MIDI output channel of the selected channel (unique across the 4 channels: taking one another channel uses sets that channel to OFF; toast names it; one undo record) | `MIDI` |
 | `EN_K2` | `SET` | turn: odd steps late by 2*(swing-50) % of a step (decision 43); parity by pattern position | `SWING` |
-| `EN_K2` | `SCALE` | turn: global key (also: press any key) | `KEY` |
+| `EN_K2` | `SCALE` | turn: global key: the scale and every chord move with it (also sounds the new root) | `KEY` |
 | `EN_K2` | `REC` | turn: written notes get ACCENT (velocity 120) when ON; with force sensing the landing force sets the velocity and ACC forces 120 | `ACC` |
 | `EN_K2` | `RESET` | turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE P1 (reads page 1) / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes | `RST` |
 | `EN_K2` | `HELP` | turn (HOME held): explain this knob on the page beneath (PERF: both rows); nothing changes | `?` |
@@ -357,7 +357,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `EN_K3` | `NOTE_EDIT` | turn: velocity of the edited step; value reads ACC at >= ACC_THR 100 (TB-3 accent) | `VELO` |
 | `EN_K3` | `CHAN` | turn: generator source of the VIEWED page k: offers only the blocks the pages before it play now, each labelled Pm by the first page m that plays it (so Pm = the notes page m plays), then OWN = its own positions (the algorithm continues past it); a block no earlier page plays any more stays as the current value shown by its positions (17-32, dim) until turned away; page 1 is always OWN (cell dim); a new page inherits the source of the page before, so a copy is exact | `SOURCE` |
 | `EN_K3` | `SET` | turn: global gate, x the step gate (50 % neutral = x1.0, decision 44) | `GATE` |
-| `EN_K3` | `SCALE` | turn: global output octave (also OCT- / OCT+) | `OCTAVE` |
+| `EN_K3` | `SCALE` | turn: voicing of every chord: 0 root only, 1 root and fifth, 2 plain triad (neutral), 3 seventh, 4 ninth, 5 open ninth, 6 wide; changes the chord tones every AUTO channel is pulled to and what FULL channels play | `VOICE` |
 | `EN_K3` | `REC` | turn: written notes get SLIDE when ON | `SLIDE` |
 | `EN_K3` | `RESET` | turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE P1 (reads page 1) / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes | `RST` |
 | `EN_K3` | `HELP` | turn (HOME held): explain this knob on the page beneath (PERF: both rows); nothing changes | `?` |
@@ -366,7 +366,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `EN_K4` | `NOTE_EDIT` | turn: repeats inside the step (SP5 spacing) | `RATCH` |
 | `EN_K4` | `CHAN` | turn: the lane view follows the playhead page while playing | `FOLLOW` |
 | `EN_K4` | `SET` | turn: step length | `DIV` |
-| `EN_K4` | `SCALE` | turn: inert by design: nothing global is left; the cell is drawn dim with - | `-` |
+| `EN_K4` | `SCALE` | turn: voice-leading distance between chords: 8 = every chord in root position (neutral), 0 = common tones kept and the smallest step per voice; changes FULL channels only | `MOVE` |
 | `EN_K4` | `REC` | turn: REC keyboard octave (also OCT- / OCT+) | `OCT` |
 | `EN_K4` | `RESET` | turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE P1 (reads page 1) / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes | `RST` |
 | `EN_K4` | `HELP` | turn (HOME held): explain this knob on the page beneath (PERF: both rows); nothing changes | `?` |
@@ -384,7 +384,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_W01_F3` | `NOTE_EDIT` | tap: release under 0.4 s: step 1 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 1 (no new page) | `STEP` |
 | `KEY_W01_F3` | `CHAN` | tap: release under 0.4 s: step 1 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 1 of the viewed page | `STEP` |
 | `KEY_W01_F3` | `SET` | tap: release under 0.4 s: step 1 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 1 of the viewed page | `STEP` |
-| `KEY_W01_F3` | `SCALE` | tap: set the global KEY to the pitch class of F3 (sounds the new root) | `KEY` |
+| `KEY_W01_F3` | `SCALE` | tap: type chord 1: writes degree 1 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes | `DEG` |
 | `KEY_W01_F3` | `REC` | tap: play F3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_W01_F3` | `RESET` | tap: clear every edit of step 1 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
 | `KEY_W01_F3` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -393,7 +393,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_W02_G3` | `NOTE_EDIT` | tap: release under 0.4 s: step 2 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 2 (no new page) | `STEP` |
 | `KEY_W02_G3` | `CHAN` | tap: release under 0.4 s: step 2 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 2 of the viewed page | `STEP` |
 | `KEY_W02_G3` | `SET` | tap: release under 0.4 s: step 2 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 2 of the viewed page | `STEP` |
-| `KEY_W02_G3` | `SCALE` | tap: set the global KEY to the pitch class of G3 (sounds the new root) | `KEY` |
+| `KEY_W02_G3` | `SCALE` | tap: type chord 2: writes degree 2 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes | `DEG` |
 | `KEY_W02_G3` | `REC` | tap: play G3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_W02_G3` | `RESET` | tap: clear every edit of step 2 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
 | `KEY_W02_G3` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -402,7 +402,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_W03_A3` | `NOTE_EDIT` | tap: release under 0.4 s: step 3 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 3 (no new page) | `STEP` |
 | `KEY_W03_A3` | `CHAN` | tap: release under 0.4 s: step 3 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 3 of the viewed page | `STEP` |
 | `KEY_W03_A3` | `SET` | tap: release under 0.4 s: step 3 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 3 of the viewed page | `STEP` |
-| `KEY_W03_A3` | `SCALE` | tap: set the global KEY to the pitch class of A3 (sounds the new root) | `KEY` |
+| `KEY_W03_A3` | `SCALE` | tap: type chord 3: writes degree 3 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes | `DEG` |
 | `KEY_W03_A3` | `REC` | tap: play A3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_W03_A3` | `RESET` | tap: clear every edit of step 3 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
 | `KEY_W03_A3` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -411,7 +411,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_W04_B3` | `NOTE_EDIT` | tap: release under 0.4 s: step 4 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 4 (no new page) | `STEP` |
 | `KEY_W04_B3` | `CHAN` | tap: release under 0.4 s: step 4 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 4 of the viewed page | `STEP` |
 | `KEY_W04_B3` | `SET` | tap: release under 0.4 s: step 4 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 4 of the viewed page | `STEP` |
-| `KEY_W04_B3` | `SCALE` | tap: set the global KEY to the pitch class of B3 (sounds the new root) | `KEY` |
+| `KEY_W04_B3` | `SCALE` | tap: type chord 4: writes degree 4 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes | `DEG` |
 | `KEY_W04_B3` | `REC` | tap: play B3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_W04_B3` | `RESET` | tap: clear every edit of step 4 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
 | `KEY_W04_B3` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -420,7 +420,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_W05_C4` | `NOTE_EDIT` | tap: release under 0.4 s: step 5 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 5 (no new page) | `STEP` |
 | `KEY_W05_C4` | `CHAN` | tap: release under 0.4 s: step 5 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 5 of the viewed page | `STEP` |
 | `KEY_W05_C4` | `SET` | tap: release under 0.4 s: step 5 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 5 of the viewed page | `STEP` |
-| `KEY_W05_C4` | `SCALE` | tap: set the global KEY to the pitch class of C4 (sounds the new root) | `KEY` |
+| `KEY_W05_C4` | `SCALE` | tap: type chord 5: writes degree 5 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes | `DEG` |
 | `KEY_W05_C4` | `REC` | tap: play C4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_W05_C4` | `RESET` | tap: clear every edit of step 5 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
 | `KEY_W05_C4` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -429,7 +429,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_W06_D4` | `NOTE_EDIT` | tap: release under 0.4 s: step 6 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 6 (no new page) | `STEP` |
 | `KEY_W06_D4` | `CHAN` | tap: release under 0.4 s: step 6 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 6 of the viewed page | `STEP` |
 | `KEY_W06_D4` | `SET` | tap: release under 0.4 s: step 6 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 6 of the viewed page | `STEP` |
-| `KEY_W06_D4` | `SCALE` | tap: set the global KEY to the pitch class of D4 (sounds the new root) | `KEY` |
+| `KEY_W06_D4` | `SCALE` | tap: type chord 6: writes degree 6 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes | `DEG` |
 | `KEY_W06_D4` | `REC` | tap: play D4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_W06_D4` | `RESET` | tap: clear every edit of step 6 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
 | `KEY_W06_D4` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -438,7 +438,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_W07_E4` | `NOTE_EDIT` | tap: release under 0.4 s: step 7 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 7 (no new page) | `STEP` |
 | `KEY_W07_E4` | `CHAN` | tap: release under 0.4 s: step 7 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 7 of the viewed page | `STEP` |
 | `KEY_W07_E4` | `SET` | tap: release under 0.4 s: step 7 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 7 of the viewed page | `STEP` |
-| `KEY_W07_E4` | `SCALE` | tap: set the global KEY to the pitch class of E4 (sounds the new root) | `KEY` |
+| `KEY_W07_E4` | `SCALE` | tap: type chord 7: writes degree 7 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes | `DEG` |
 | `KEY_W07_E4` | `REC` | tap: play E4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_W07_E4` | `RESET` | tap: clear every edit of step 7 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
 | `KEY_W07_E4` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -447,7 +447,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_W08_F4` | `NOTE_EDIT` | tap: release under 0.4 s: step 8 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 8 (no new page) | `STEP` |
 | `KEY_W08_F4` | `CHAN` | tap: release under 0.4 s: step 8 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 8 of the viewed page | `STEP` |
 | `KEY_W08_F4` | `SET` | tap: release under 0.4 s: step 8 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 8 of the viewed page | `STEP` |
-| `KEY_W08_F4` | `SCALE` | tap: set the global KEY to the pitch class of F4 (sounds the new root) | `KEY` |
+| `KEY_W08_F4` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_W08_F4` | `REC` | tap: play F4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_W08_F4` | `RESET` | tap: clear every edit of step 8 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
 | `KEY_W08_F4` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -456,7 +456,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_W09_G4` | `NOTE_EDIT` | tap: release under 0.4 s: step 9 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 9 (no new page) | `STEP` |
 | `KEY_W09_G4` | `CHAN` | tap: release under 0.4 s: step 9 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 9 of the viewed page | `STEP` |
 | `KEY_W09_G4` | `SET` | tap: release under 0.4 s: step 9 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 9 of the viewed page | `STEP` |
-| `KEY_W09_G4` | `SCALE` | tap: set the global KEY to the pitch class of G4 (sounds the new root) | `KEY` |
+| `KEY_W09_G4` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_W09_G4` | `REC` | tap: play G4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_W09_G4` | `RESET` | tap: clear every edit of step 9 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
 | `KEY_W09_G4` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -465,7 +465,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_W10_A4` | `NOTE_EDIT` | tap: release under 0.4 s: step 10 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 10 (no new page) | `STEP` |
 | `KEY_W10_A4` | `CHAN` | tap: release under 0.4 s: step 10 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 10 of the viewed page | `STEP` |
 | `KEY_W10_A4` | `SET` | tap: release under 0.4 s: step 10 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 10 of the viewed page | `STEP` |
-| `KEY_W10_A4` | `SCALE` | tap: set the global KEY to the pitch class of A4 (sounds the new root) | `KEY` |
+| `KEY_W10_A4` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_W10_A4` | `REC` | tap: play A4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_W10_A4` | `RESET` | tap: clear every edit of step 10 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
 | `KEY_W10_A4` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -474,7 +474,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_W11_B4` | `NOTE_EDIT` | tap: release under 0.4 s: step 11 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 11 (no new page) | `STEP` |
 | `KEY_W11_B4` | `CHAN` | tap: release under 0.4 s: step 11 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 11 of the viewed page | `STEP` |
 | `KEY_W11_B4` | `SET` | tap: release under 0.4 s: step 11 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 11 of the viewed page | `STEP` |
-| `KEY_W11_B4` | `SCALE` | tap: set the global KEY to the pitch class of B4 (sounds the new root) | `KEY` |
+| `KEY_W11_B4` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_W11_B4` | `REC` | tap: play B4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_W11_B4` | `RESET` | tap: clear every edit of step 11 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
 | `KEY_W11_B4` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -483,7 +483,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_W12_C5` | `NOTE_EDIT` | tap: release under 0.4 s: step 12 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: move NOTE EDIT to step 12 (no new page) | `STEP` |
 | `KEY_W12_C5` | `CHAN` | tap: release under 0.4 s: step 12 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 12 of the viewed page | `STEP` |
 | `KEY_W12_C5` | `SET` | tap: release under 0.4 s: step 12 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 12 of the viewed page | `STEP` |
-| `KEY_W12_C5` | `SCALE` | tap: set the global KEY to the pitch class of C5 (sounds the new root) | `KEY` |
+| `KEY_W12_C5` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_W12_C5` | `REC` | tap: play C5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_W12_C5` | `RESET` | tap: clear every edit of step 12 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
 | `KEY_W12_C5` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -492,7 +492,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_W13_D5` | `NOTE_EDIT` | tap: release under 0.4 s: step 13 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: move NOTE EDIT to step 13 (no new page) | `STEP` |
 | `KEY_W13_D5` | `CHAN` | tap: release under 0.4 s: step 13 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 13 of the viewed page | `STEP` |
 | `KEY_W13_D5` | `SET` | tap: release under 0.4 s: step 13 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 13 of the viewed page | `STEP` |
-| `KEY_W13_D5` | `SCALE` | tap: set the global KEY to the pitch class of D5 (sounds the new root) | `KEY` |
+| `KEY_W13_D5` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_W13_D5` | `REC` | tap: play D5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_W13_D5` | `RESET` | tap: clear every edit of step 13 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
 | `KEY_W13_D5` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -501,7 +501,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_W14_E5` | `NOTE_EDIT` | tap: release under 0.4 s: step 14 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: move NOTE EDIT to step 14 (no new page) | `STEP` |
 | `KEY_W14_E5` | `CHAN` | tap: release under 0.4 s: step 14 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 14 of the viewed page | `STEP` |
 | `KEY_W14_E5` | `SET` | tap: release under 0.4 s: step 14 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 14 of the viewed page | `STEP` |
-| `KEY_W14_E5` | `SCALE` | tap: set the global KEY to the pitch class of E5 (sounds the new root) | `KEY` |
+| `KEY_W14_E5` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_W14_E5` | `REC` | tap: play E5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_W14_E5` | `RESET` | tap: clear every edit of step 14 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
 | `KEY_W14_E5` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -510,7 +510,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_W15_F5` | `NOTE_EDIT` | tap: release under 0.4 s: step 15 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: move NOTE EDIT to step 15 (no new page) | `STEP` |
 | `KEY_W15_F5` | `CHAN` | tap: release under 0.4 s: step 15 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 15 of the viewed page | `STEP` |
 | `KEY_W15_F5` | `SET` | tap: release under 0.4 s: step 15 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 15 of the viewed page | `STEP` |
-| `KEY_W15_F5` | `SCALE` | tap: set the global KEY to the pitch class of F5 (sounds the new root) | `KEY` |
+| `KEY_W15_F5` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_W15_F5` | `REC` | tap: play F5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_W15_F5` | `RESET` | tap: clear every edit of step 15 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
 | `KEY_W15_F5` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -519,7 +519,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_W16_G5` | `NOTE_EDIT` | tap: release under 0.4 s: step 16 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: move NOTE EDIT to step 16 (no new page) | `STEP` |
 | `KEY_W16_G5` | `CHAN` | tap: release under 0.4 s: step 16 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 16 of the viewed page | `STEP` |
 | `KEY_W16_G5` | `SET` | tap: release under 0.4 s: step 16 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 16 of the viewed page | `STEP` |
-| `KEY_W16_G5` | `SCALE` | tap: set the global KEY to the pitch class of G5 (sounds the new root) | `KEY` |
+| `KEY_W16_G5` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_W16_G5` | `REC` | tap: play G5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_W16_G5` | `RESET` | tap: clear every edit of step 16 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
 | `KEY_W16_G5` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -528,7 +528,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_B01_F#3` | `NOTE_EDIT` | tap: tap: mute / unmute CH1 (latched; phase keeps running) | `MUTE1` |
 | `KEY_B01_F#3` | `CHAN` | tap: tap: mute / unmute CH1 (latched; phase keeps running) | `MUTE1` |
 | `KEY_B01_F#3` | `SET` | tap: tap: mute / unmute CH1 (latched; phase keeps running) | `MUTE1` |
-| `KEY_B01_F#3` | `SCALE` | tap: set the global KEY to the pitch class of F#3 (sounds the new root) | `KEY` |
+| `KEY_B01_F#3` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B01_F#3` | `REC` | tap: play F#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B01_F#3` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
 | `KEY_B01_F#3` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -537,7 +537,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_B02_G#3` | `NOTE_EDIT` | tap: tap: mute / unmute CH2 | `MUTE2` |
 | `KEY_B02_G#3` | `CHAN` | tap: tap: mute / unmute CH2 | `MUTE2` |
 | `KEY_B02_G#3` | `SET` | tap: tap: mute / unmute CH2 | `MUTE2` |
-| `KEY_B02_G#3` | `SCALE` | tap: set the global KEY to the pitch class of G#3 (sounds the new root) | `KEY` |
+| `KEY_B02_G#3` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B02_G#3` | `REC` | tap: play G#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B02_G#3` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
 | `KEY_B02_G#3` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -546,7 +546,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_B03_A#3` | `NOTE_EDIT` | tap: tap: mute / unmute CH3 | `MUTE3` |
 | `KEY_B03_A#3` | `CHAN` | tap: tap: mute / unmute CH3 | `MUTE3` |
 | `KEY_B03_A#3` | `SET` | tap: tap: mute / unmute CH3 | `MUTE3` |
-| `KEY_B03_A#3` | `SCALE` | tap: set the global KEY to the pitch class of A#3 (sounds the new root) | `KEY` |
+| `KEY_B03_A#3` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B03_A#3` | `REC` | tap: play A#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B03_A#3` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
 | `KEY_B03_A#3` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -555,7 +555,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_B04_C#4` | `NOTE_EDIT` | tap: tap: mute / unmute CH4 | `MUTE4` |
 | `KEY_B04_C#4` | `CHAN` | tap: tap: mute / unmute CH4 | `MUTE4` |
 | `KEY_B04_C#4` | `SET` | tap: tap: mute / unmute CH4 | `MUTE4` |
-| `KEY_B04_C#4` | `SCALE` | tap: set the global KEY to the pitch class of C#4 (sounds the new root) | `KEY` |
+| `KEY_B04_C#4` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B04_C#4` | `REC` | tap: play C#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B04_C#4` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
 | `KEY_B04_C#4` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -564,7 +564,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_B05_D#4` | `NOTE_EDIT` | tap: switch to the CHAN page (closes NOTE EDIT) | `CHAN` |
 | `KEY_B05_D#4` | `CHAN` | tap: close CHAN, back to PERF | `BACK` |
 | `KEY_B05_D#4` | `SET` | tap: switch to the CHAN page | `CHAN` |
-| `KEY_B05_D#4` | `SCALE` | tap: set the global KEY to the pitch class of D#4 (sounds the new root) | `KEY` |
+| `KEY_B05_D#4` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B05_D#4` | `REC` | tap: play D#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B05_D#4` | `RESET` | tap: re-copy the page before onto the viewed page (edits and source; page 1: clear its edits); RESET closes; EDIT tap undoes | `COPY P` |
 | `KEY_B05_D#4` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -573,7 +573,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_B06_F#4` | `NOTE_EDIT` | hold: hold: only the selected channel sounds; release restores the mutes | `SOLO` |
 | `KEY_B06_F#4` | `CHAN` | hold: hold: only the selected channel sounds; release restores the mutes | `SOLO` |
 | `KEY_B06_F#4` | `SET` | hold: hold: only the selected channel sounds; release restores the mutes | `SOLO` |
-| `KEY_B06_F#4` | `SCALE` | tap: set the global KEY to the pitch class of F#4 (sounds the new root) | `KEY` |
+| `KEY_B06_F#4` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B06_F#4` | `REC` | tap: play F#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B06_F#4` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
 | `KEY_B06_F#4` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -582,7 +582,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_B07_G#4` | `NOTE_EDIT` | hold: hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores; force: aftertouch: depth light..firm = halfway..maximum density; fallback: no force (or FORCE OFF): maximum density | `FILL` |
 | `KEY_B07_G#4` | `CHAN` | hold: hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores; force: aftertouch: depth light..firm = halfway..maximum density; fallback: no force (or FORCE OFF): maximum density | `FILL` |
 | `KEY_B07_G#4` | `SET` | hold: hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores; force: aftertouch: depth light..firm = halfway..maximum density; fallback: no force (or FORCE OFF): maximum density | `FILL` |
-| `KEY_B07_G#4` | `SCALE` | tap: set the global KEY to the pitch class of G#4 (sounds the new root) | `KEY` |
+| `KEY_B07_G#4` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B07_G#4` | `REC` | tap: play G#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B07_G#4` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
 | `KEY_B07_G#4` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -591,7 +591,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_B08_A#4` | `NOTE_EDIT` | hold: hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm); force: aftertouch: 2x / 3x / 4x by pressure bins; fallback: no force: 2x | `ROLL` |
 | `KEY_B08_A#4` | `CHAN` | hold: hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm); force: aftertouch: 2x / 3x / 4x by pressure bins; fallback: no force: 2x | `ROLL` |
 | `KEY_B08_A#4` | `SET` | hold: hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm); force: aftertouch: 2x / 3x / 4x by pressure bins; fallback: no force: 2x | `ROLL` |
-| `KEY_B08_A#4` | `SCALE` | tap: set the global KEY to the pitch class of A#4 (sounds the new root) | `KEY` |
+| `KEY_B08_A#4` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B08_A#4` | `REC` | tap: play A#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force sets the written velocity 1..127 (>= 100 is an accent); fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B08_A#4` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
 | `KEY_B08_A#4` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -600,7 +600,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_B09_C#5` | `NOTE_EDIT` | tap: tap: view the previous page of the selected channel (no wrap; FOLLOW off) | `PG-` |
 | `KEY_B09_C#5` | `CHAN` | tap: tap: view the previous page of the selected channel (no wrap; FOLLOW off) | `PG-` |
 | `KEY_B09_C#5` | `SET` | tap: tap: view the previous page of the selected channel (no wrap; FOLLOW off) | `PG-` |
-| `KEY_B09_C#5` | `SCALE` | tap: set the global KEY to the pitch class of C#5 (sounds the new root) | `KEY` |
+| `KEY_B09_C#5` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B09_C#5` | `REC` | tap: play C#5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B09_C#5` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
 | `KEY_B09_C#5` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -609,7 +609,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_B10_D#5` | `NOTE_EDIT` | tap: tap: view the next page (FOLLOW off); on the last page: a prompt that names what PG+ again will do: ADD PAGE n = COPY OF n-1 (edits and source; LENGTH to 16 x pages, max 64), SHOW PAGE n (HIDDEN) (a page hidden by a shrink comes back as stored), or SHOW ALL OF PAGE n (a partial last page, e.g. LENGTH 20, is completed to 32 first); on page 4 at LENGTH 64 no prompt: toast 64 STEPS = MAX, nothing changes | `PG+` |
 | `KEY_B10_D#5` | `CHAN` | tap: tap: view the next page (FOLLOW off); on the last page: a prompt that names what PG+ again will do: ADD PAGE n = COPY OF n-1 (edits and source; LENGTH to 16 x pages, max 64), SHOW PAGE n (HIDDEN) (a page hidden by a shrink comes back as stored), or SHOW ALL OF PAGE n (a partial last page, e.g. LENGTH 20, is completed to 32 first); on page 4 at LENGTH 64 no prompt: toast 64 STEPS = MAX, nothing changes | `PG+` |
 | `KEY_B10_D#5` | `SET` | tap: tap: view the next page (FOLLOW off); on the last page: a prompt that names what PG+ again will do: ADD PAGE n = COPY OF n-1 (edits and source; LENGTH to 16 x pages, max 64), SHOW PAGE n (HIDDEN) (a page hidden by a shrink comes back as stored), or SHOW ALL OF PAGE n (a partial last page, e.g. LENGTH 20, is completed to 32 first); on page 4 at LENGTH 64 no prompt: toast 64 STEPS = MAX, nothing changes | `PG+` |
-| `KEY_B10_D#5` | `SCALE` | tap: set the global KEY to the pitch class of D#5 (sounds the new root) | `KEY` |
+| `KEY_B10_D#5` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B10_D#5` | `REC` | tap: play D#5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B10_D#5` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
 | `KEY_B10_D#5` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
@@ -618,7 +618,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_B11_F#5` | `NOTE_EDIT` | tap: tap: all channels to step 1 at the next step | `RESTRT` |
 | `KEY_B11_F#5` | `CHAN` | tap: tap: all channels to step 1 at the next step | `RESTRT` |
 | `KEY_B11_F#5` | `SET` | tap: tap: all channels to step 1 at the next step | `RESTRT` |
-| `KEY_B11_F#5` | `SCALE` | tap: set the global KEY to the pitch class of F#5 (sounds the new root) | `KEY` |
+| `KEY_B11_F#5` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B11_F#5` | `REC` | tap: play F#5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 100, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B11_F#5` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
 | `KEY_B11_F#5` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |

@@ -876,3 +876,18 @@ trigger. CPU: one compare per 100 us tick when idle; the gate is `cpu_q8` not ri
 
 T-A timing-test image; T-B `tools/fm1_timing.py`; T-C release ring, stamps, tempo constant (extends prerequisite task 5
 and 6); T-D source model, PLL, Start/SPP; T-E visibility; T-F hardware gate. TIMING_SPEC section 9 lists dependencies.
+
+## 20. Addendum (P2-012): the HARMONY stage
+
+Additive; for owner review. Full spec: [HARMONY.md](../../design/HARMONY.md). The sequencer core changes in four places and nowhere else.
+
+| # | Change | Cost |
+| --- | --- | --- |
+| 1 | **A chord stage after the algorithm, at emit time** (`harm_apply()` between `step()` and `sq_note()`, section 5 and SEQUENCER_UX 9.2). `build()` and `step()` stay pure and unchanged; caches are not invalidated by a chord change, because the chord is not an input of `build()`. | ISR: a few integer ops per sounding step |
+| 2 | **`HarmonySave` (8 B) joins `SeqPreset`** (1388 -> 1396 B, version 3), saved per slot. `GlobalSave` is unchanged; key, scale and octave stay there. | pool +144 B (18 preset-sized copies) |
+| 3 | **Runtime**: `HarmonySave harm_db[2]` (double buffer, read once per block like `sq_gdb`), `HarmRT` (14 B, ISR-owned), `HarmUndo` (9 B), one `undo_last` byte. `ChanRT` stays 24 B, `ChanSave` 344 B, `UndoRec` 92 B. | .bss +42 B |
+| 4 | **`AlgoDesc.hi(m)`**: a const function per algorithm returning the highest semitone it can emit for morphs `m` (ACID 12 + 12 if JUMP > 0; EUCLID `max(SPAN, 12)`; SNAKE and STAGE `max(RANGE, 12)`), used to fold a pulled note back into the algorithm's own range. ROM only. | 0 B RAM |
+
+The chord position is a pure function of `sq_bar` (ticks since PLAY / restart, section 10) and `HarmonySave`, so PLAY resets it with no extra state, a preset load
+that lands on a bar boundary swaps the progression and the position together, and RESTRT (F#5) does not touch it. With the default progression, `VOICE 2`,
+no pedal, `harm_apply()` returns its input unchanged for every role except an explicit ROOT / FULL (HARMONY.md 1). Hand-off interface for ARP and PATTERNS: HARMONY.md 9.

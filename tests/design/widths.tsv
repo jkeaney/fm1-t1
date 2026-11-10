@@ -109,3 +109,12 @@ S	240	HOME	toast (2.7): 240 px
 S	240	CH2 IS MIDI OFF: CH1 TAKES 2	toast, MIDI displacement (2.7)
 S	240	CH4 IS MIDI OFF: CH3 TAKES 16	toast, worst case
 S	240	UNDO: MIDI 2 BACK ON CH2	toast, undo of a displacement
+S	240	HARMONY  C MINPEN  OCT 0	Z2 lane header on HARMONY (P2-012)
+S	204	PEDAL 14 G +12  + - X +	HARMONY status line 1 (P2-012): 204 px
+S	204	CH4 ROLE FULL   PEDAL OFF	HARMONY status line 2 (P2-012)
+S	240	HARM: KEYS F3-E4 = CHORD 1-7	HARMONY cue strip (P2-012)
+S	34	vii	PERF chord chip (P2-012): 34 px
+S	51	VOICE	HARMONY knob label cell (51 px)
+S	26	F#	HARMONY chord name under a 28 px strip cell (P2-012)
+S	26	Bb	HARMONY chord name under a 28 px strip cell (P2-012)
+S	26	F3	HARMONY key legend cell (P2-012)

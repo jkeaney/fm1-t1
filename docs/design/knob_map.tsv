@@ -44,9 +44,9 @@ SET	*	K2	SWING	odd steps late by 2*(swing-50) % of a step (decision 43); parity 
 SET	*	K3	GATE	global gate, x the step gate (50 % neutral = x1.0, decision 44)	10..100 %, default 50
 SET	*	K4	DIV	step length	1/32 1/16T 1/16 1/8T 1/8 1/4; default 1/16
 SCALE	*	K1	SCALE	global scale (every algorithm and every edited pitch snaps to it)	16 scales, T1_SCALE_MASKS order; default MINPEN
-SCALE	*	K2	KEY	global key (also: press any key)	C..B, default C
-SCALE	*	K3	OCTAVE	global output octave (also OCT- / OCT+)	-2..+2, default 0
-SCALE	*	K4	-	inert by design: nothing global is left; the cell is drawn dim with -	-
+SCALE	*	K2	KEY	global key: the scale and every chord move with it (also sounds the new root)	C..B, default C
+SCALE	*	K3	VOICE	voicing of every chord: 0 root only, 1 root and fifth, 2 plain triad (neutral), 3 seventh, 4 ninth, 5 open ninth, 6 wide; changes the chord tones every AUTO channel is pulled to and what FULL channels play	0..6, default 2
+SCALE	*	K4	MOVE	voice-leading distance between chords: 8 = every chord in root position (neutral), 0 = common tones kept and the smallest step per voice; changes FULL channels only	0..8, default 8
 REC	*	K1	CURSOR	move the write cursor one step per detent (stopped: the step sounds)	1..LENGTH, wraps
 REC	*	K2	ACC	written notes get ACCENT (velocity 120) when ON; with force sensing the landing force sets the velocity and ACC forces 120	OFF ON
 REC	*	K3	SLIDE	written notes get SLIDE when ON	OFF ON

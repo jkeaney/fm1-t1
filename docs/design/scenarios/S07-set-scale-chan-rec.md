@@ -1,27 +1,27 @@
-# S07: global settings (SET, SCALE) and recording notes (REC)
+# S07: global settings (SET, HARMONY page, table id SCALE) and recording notes (REC)
 
 SEQUENCER_UX 2.4, 2.5, 3, U41 to U47 and U54 to U55. Start: stopped, CH1 ACID MIDI 2, BPM `INT 120`, scale MINPEN, key C,
 octave 0. Notation as S01. Rows with `K1R` on a one-row page use the whole band (SCREEN_SPEC 2.4).
 
 | Step | User action | Exact screen text | MIDI out | Row ids |
 | --- | --- | --- | --- | --- |
-| 1 | Tap GLO | Page SET. K1R `BPM 120` `SWING 50` `GATE 50` `DIV 1/16`; tag column `-` `-`; status line 1 `TEMPO INT 120` and `OUT MASTER`; status line 2 `host clock takes over`; GLO cell `BACK`; CUE `SET: GLO hold=SCALE  HOME=back` | none | B_GLO/PERF |
+| 1 | Tap GLO | Page SET. K1R `BPM 120` `SWING 50` `GATE 50` `DIV 1/16`; tag column `OCT-` `OCT+` (OCTAVE 0); status line 1 `TEMPO INT 120` and `OUT MASTER`; status line 2 `host clock takes over`; GLO cell `BACK`; CUE `SET: GLO hold=HARM  HOME=back` | none | B_GLO/PERF |
 | 2 | Turn K1 eight detents clockwise | `BPM 128`; HD `INT 128`; status line 1 `TEMPO INT 128` | none (stopped); `beat_samples()` changes at once | EN_K1/SET |
 | 3 | Turn K2 six detents clockwise | `SWING 56` (odd steps late by 12 % of a step) | from the next step on playing | EN_K2/SET |
 | 4 | Turn K3 ten detents counter-clockwise | `GATE 40` (global gate, 50 is neutral) | from the next step on playing | EN_K3/SET |
 | 5 | Turn K4 one detent clockwise | `DIV 1/8T` | step length changes from the next step | EN_K4/SET |
-| 6 | Tap OCT+ | toast `ONE ROW HERE`; nothing changes | none | B_OCTUP/SET, B_OCTDN/SET |
+| 6 | Tap OCT+, then OCT- | tag column reads `OCT +1`, then `OCT 0`; the global OCTAVE moves up one and back (it moved here from the SCALE page) | from the next step the notes are an octave higher, then as before | B_OCTUP/SET, B_OCTDN/SET |
 | 7 | Press FX (dice all) while SET is open | toast `ALL`; lane redraws; the SET page stays open | next step: a new line | B_FX/SET, B_SCL/SET, B_ENV/SET, B_LFO/SET, B_ARP/SET, B_SEQ/SET, B_EDIT/SET |
 | 8 | Press PLAY, then PLAY | the pattern runs, then stops | `FA`, notes, then `FC`, offs, `B1 7B 00` | B_PLAY/SET |
 | 9 | Tap REC | REC opens from SET: see step 15 | none | B_REC/SET |
 | 10 | Tap REC | leaves REC, back to PERF; tap GLO | none | B_REC/REC, B_GLO/PERF |
-| 11 | Hold GLO for 0.4 s | Page SCALE. Banner `SCALE (all channels)  C MINPEN  OCT 0`; the 27-key picture with the scale tones lit and the root boxed; K1R `SCALE MINPEN` `KEY C` `OCTAVE 0` `-` (dim); tag `OCT-` `OCT+` read `OCTAVE -` `OCTAVE +`; GLO cell `BACK`; LEG and lane replaced by the picture; CUE `SCALE: PRESS A KEY = KEY  HOME=back` | none | B_GLO/PERF |
+| 11 | Hold GLO for 0.4 s | Page HARMONY (table id SCALE). Lane header `HARMONY  C MINPEN  OCT 0`; the progression strip `1---` with `C` under the numeral and the legend `F3 G3 A3 B3 C4 D4 E4 = 1..7`; K1R `SCALE MINPEN` `KEY C` `VOICE 2` `MOVE 8`; tag `OCT-` `OCT+` over `PEDAL OFF`; status line 1 `PEDAL OFF`, status line 2 `CH1 ROLE AUTO`; buttons `PROG` `BARS` `ROLE` `NEW`; GLO cell `BACK`; CUE `HARM: KEYS F3-E4 = CHORD 1-7` | none | B_GLO/SET |
 | 12 | Turn K1 one detent clockwise | `SCALE DORIAN`; scale tones relit | from the next step every pitch is re-snapped | EN_K1/SCALE |
-| 13 | Tap white key E4 | `KEY E`; the root is boxed on E | the new root sounds once: `ch2 ON/OFF` of the E root | KEY_W07_E4/SCALE |
-| 14 | Tap every other key once (the 15 other white keys and the 11 black keys) | `KEY` shows the pitch class of each key pressed: F, G, A, B, C, D, F, G, A, B, C, D, E, F, G for the white keys F3 to G5 and F#, G#, A#, C#, D#, F#, G#, A#, C#, D#, F# for the black keys | each key sounds its new root once | KEY_W*/SCALE, KEY_B*/SCALE |
-| 15 | Turn K2 one detent counter-clockwise, K3 one detent clockwise | `KEY` of the previous pitch class; `OCTAVE +1` | from the next step | EN_K2/SCALE, EN_K3/SCALE |
-| 16 | Tap OCT- | `OCTAVE 0` | from the next step | B_OCTDN/SCALE, B_OCTUP/SCALE |
-| 17 | Turn K4 | nothing changes; the cell stays dim `-` | none | EN_K4/SCALE |
+| 13 | Turn K2 four detents clockwise | `KEY E`; the strip's chord name under the numeral reads `E`; the new root sounds once | the new root sounds once: `ch2 ON/OFF` of the E root | EN_K2/SCALE |
+| 14 | Tap every white key F3 to G5 and every black key once | only the seven keys F3 to E4 act (steps 19 and 20 of S18); the other 20 keys do nothing and the cell labels read `-` | none from those 20 keys | KEY_W08_F4/SCALE, KEY_W09_G4/SCALE, KEY_W10_A4/SCALE, KEY_W11_B4/SCALE, KEY_W12_C5/SCALE, KEY_W13_D5/SCALE, KEY_W14_E5/SCALE, KEY_W15_F5/SCALE, KEY_W16_G5/SCALE, KEY_B*/SCALE |
+| 15 | Turn K2 one detent counter-clockwise, K3 one detent clockwise | `KEY` of the previous pitch class; `VOICE 3` (the chord grows a seventh) | from the next step the AUTO channel is pulled toward the I7 chord tones | EN_K2/SCALE, EN_K3/SCALE |
+| 16 | Tap OCT- | `PEDAL` stays `OFF` (already at the bottom); toast `PEDAL OFF` | none | B_OCTDN/SCALE, B_OCTUP/SCALE |
+| 17 | Turn K4 one detent counter-clockwise | `MOVE 7` (with one chord nothing changes in the sound) | none | EN_K4/SCALE |
 | 18 | Tap GLO | PERF | none | B_GLO/SCALE |
 | 19 | Tap REC | Page REC, REC LED lit; HD transport `R`; banner `CH1 REC writing to page 1` in T_REC; lane with the cursor `^` on step 1; K1R `CURSOR 1` `ACC OFF` `SLIDE OFF` `OCT 0`; status line `KEYS = NOTES (all 27)`; tag `OCT-` `OCT+` read `OCT -` `OCT +`; CUE `REC: PLAY KEYS TO WRITE  REC=done` | none | B_REC/PERF |
 | 20 | Press white key C4 and release it | cell 1 fills; the cursor moves to step 2 (`CURSOR 2`); with force sensing the cell reports the last velocity, `v 96` style | `ch2 ON n v` at landing plus about 5 ms, `ch2 OFF n` on release; v = landing force, or 100 without force | KEY_W05_C4/REC |
@@ -39,5 +39,5 @@ octave 0. Notation as S01. Rows with `K1R` on a one-row page use the whole band 
 | 32 | Hold white key 9 for 0.4 s, then tap REC | NOTE_EDIT, then REC with the cursor on step 9; banner `CH1 REC writing to page 1` | audition of step 9 | KEY_W09_G4/PERF, B_REC/NOTE_EDIT |
 | 33 | Tap REC | back to PERF | none | B_REC/REC |
 
-Step 14 shows the SCALE-page rule that all 27 keys set the key, so the mute keys are unreachable there; step 23 shows
-the same for REC (a note, not a mute). Both are stated in the locked tables.
+Step 14 shows that on the HARMONY page only keys F3 to E4 act (the key is K2), so the mute keys are inert there; step 23 shows
+the REC rule (a note, not a mute). Both are stated in the locked tables. HARMONY itself is walked in S18.

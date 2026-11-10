@@ -25,11 +25,11 @@ CHAN	B_SCL	tap	press: dice the NOTES layer (new pitches in the scale; edited pit
 CHAN	B_SCL	hold	no hold role: acted once on press	NOTES	dice buttons act on press (B2)
 SET	B_SCL	tap	press: dice the NOTES layer (new pitches in the scale; edited pitches kept); algorithm sub-label under it	NOTES	printed SCL = scale: the pitch layer
 SET	B_SCL	hold	no hold role: acted once on press	NOTES	dice buttons act on press (B2)
-SCALE	B_SCL	tap	press: dice the NOTES layer (new pitches in the scale; edited pitches kept); algorithm sub-label under it	NOTES	printed SCL = scale: the pitch layer
-SCALE	B_SCL	hold	no hold role: acted once on press	NOTES	dice buttons act on press (B2)
+SCALE	B_SCL	tap	press: dice the PROGRESSION: new chord degrees, bars and chord count within the musical limits (HARMONY 6); KEY, SCALE, VOICE, MOVE, PEDAL and the channel dice layers are kept; EDIT tap undoes	PROG	printed SCL = scale: harmony is the scale-level layer; on this page SCL dices the progression (the NOTES dice is on PERF)
+SCALE	B_SCL	hold	no hold role: acted once on press	PROG	dice buttons act on press (B2)
 REC	B_SCL	tap	press: dice the NOTES layer (new pitches in the scale; edited pitches kept) (performing while recording is allowed)	NOTES	printed SCL = scale: the pitch layer
 REC	B_SCL	hold	no hold role: acted once on press	NOTES	dice buttons act on press (B2)
-RESET	B_SCL	tap	press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (NOTE); RESET closes; EDIT tap undoes	RST NT	hold EDIT then touch = back to default (one rule)
+RESET	B_SCL	tap	press: from PERF/CHAN/SET: that layer's seeds to factory; from HARMONY: the progression back to 1--- (4 bars, one chord, degree 1); from NOTE_EDIT: that property of the edited step to AUTO (NOTE); RESET closes; EDIT tap undoes	RST NT	hold EDIT then touch = back to default (one rule)
 RESET	B_SCL	hold	no hold role: acted once on press	RST NT	one shot
 HELP	B_SCL	tap	explain this control on the page beneath (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
 HELP	B_SCL	hold	as tap (explain while HOME stays down); nothing else happens	?	HELP: touch to learn, nothing acts
@@ -61,8 +61,8 @@ CHAN	B_LFO	tap	press: dice the SHAPE layer (register jumps, slot lengths, drift)
 CHAN	B_LFO	hold	no hold role: acted once on press	SHAPE	dice buttons act on press (B2)
 SET	B_LFO	tap	press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent; algorithm sub-label under it	SHAPE	printed LFO = movement: shape and chance
 SET	B_LFO	hold	no hold role: acted once on press	SHAPE	dice buttons act on press (B2)
-SCALE	B_LFO	tap	press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent; algorithm sub-label under it	SHAPE	printed LFO = movement: shape and chance
-SCALE	B_LFO	hold	no hold role: acted once on press	SHAPE	dice buttons act on press (B2)
+SCALE	B_LFO	tap	press: BARS, the phrase length: 1..8 bars, one step per press, wrapping after 8 to the chord count (never fewer bars than chords); heard at the next phrase start	BARS	LFO = movement over time: the length of the chord loop; the label is on screen
+SCALE	B_LFO	hold	no hold role: acted once on press	BARS	buttons act on press (B2)
 REC	B_LFO	tap	press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent (performing while recording is allowed)	SHAPE	printed LFO = movement: shape and chance
 REC	B_LFO	hold	no hold role: acted once on press	SHAPE	dice buttons act on press (B2)
 RESET	B_LFO	tap	press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (PROB); RESET closes; EDIT tap undoes	RST SH	hold EDIT then touch = back to default (one rule)
@@ -71,15 +71,15 @@ HELP	B_LFO	tap	explain this control on the page beneath (help box + cue strip); 
 HELP	B_LFO	hold	as tap (explain while HOME stays down); nothing else happens	?	HELP: touch to learn, nothing acts
 MENU	B_LFO	tap	press: closes the menu (no other action)	close	Felucca menu rule (unchanged)
 MENU	B_LFO	hold	as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	Felucca menu rule (unchanged)
-PERF	B_EDIT	tap	UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel	UNDO	EDIT = take back, everywhere
+PERF	B_EDIT	tap	UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel, or the last HARMONY change when that came later (PROG dice, typed progression, BARS, VOICE, MOVE, PEDAL)	UNDO	EDIT = take back, everywhere
 PERF	B_EDIT	hold	0.4 s: open RESET (latched, one shot): the next control touched goes back to its default	RESET	hold = open the page of that button; named on PERF by the sub-label h:RST
 NOTE_EDIT	B_EDIT	tap	UNDO: the edited step back to how it was when this NOTE EDIT visit began; again = redo	UNDO	EDIT = take back, everywhere
 NOTE_EDIT	B_EDIT	hold	0.4 s: open RESET over NOTE_EDIT (next touch puts that property of the step back to AUTO)	RESET	hold = open the page of that button
-CHAN	B_EDIT	tap	UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel	UNDO	EDIT = take back, everywhere
+CHAN	B_EDIT	tap	UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel, or the last HARMONY change when that came later (PROG dice, typed progression, BARS, VOICE, MOVE, PEDAL)	UNDO	EDIT = take back, everywhere
 CHAN	B_EDIT	hold	0.4 s: open RESET (latched, one shot): the next control touched goes back to its default	RESET	hold = open the page of that button; named on PERF by the sub-label h:RST
-SET	B_EDIT	tap	UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel	UNDO	EDIT = take back, everywhere
+SET	B_EDIT	tap	UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel, or the last HARMONY change when that came later (PROG dice, typed progression, BARS, VOICE, MOVE, PEDAL)	UNDO	EDIT = take back, everywhere
 SET	B_EDIT	hold	0.4 s: open RESET (latched, one shot): the next control touched goes back to its default	RESET	hold = open the page of that button; named on PERF by the sub-label h:RST
-SCALE	B_EDIT	tap	UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel	UNDO	EDIT = take back, everywhere
+SCALE	B_EDIT	tap	UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel, or the last HARMONY change when that came later (PROG dice, typed progression, BARS, VOICE, MOVE, PEDAL)	UNDO	EDIT = take back, everywhere
 SCALE	B_EDIT	hold	0.4 s: open RESET (latched, one shot): the next control touched goes back to its default	RESET	hold = open the page of that button; named on PERF by the sub-label h:RST
 REC	B_EDIT	tap	UNDO the last written note (the cursor steps back); again = redo	UNDO	EDIT = take back, everywhere
 REC	B_EDIT	hold	inert in REC (toast LEAVE REC FIRST)	UNDO	one latched page at a time
@@ -90,15 +90,15 @@ HELP	B_EDIT	hold	as tap (explain while HOME stays down); nothing else happens	?	
 MENU	B_EDIT	tap	press: closes the menu (no other action)	close	Felucca menu rule (unchanged)
 MENU	B_EDIT	hold	as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	Felucca menu rule (unchanged)
 PERF	B_GLO	tap	open SET (latched): BPM SWING GATE DIV	SET	printed GLO = global
-PERF	B_GLO	hold	0.4 s: open SCALE (latched): SCALE KEY OCTAVE; any key = KEY	SCALE	hold = the second global page (named on PERF by the sub-label h:SCALE)
+PERF	B_GLO	hold	0.4 s: open HARMONY (latched): SCALE KEY VOICE MOVE, the progression strip, keys F3-E4 = chords 1-7	HARM	hold = the second global page (named on PERF by the sub-label h:HARM)
 NOTE_EDIT	B_GLO	tap	open SET (latched): BPM SWING GATE DIV (closes NOTE EDIT)	SET	printed GLO = global
-NOTE_EDIT	B_GLO	hold	0.4 s: open SCALE (latched): SCALE KEY OCTAVE; any key = KEY	SCALE	hold = the second global page (named on PERF by the sub-label h:SCALE)
+NOTE_EDIT	B_GLO	hold	0.4 s: open HARMONY (latched): SCALE KEY VOICE MOVE, the progression strip, keys F3-E4 = chords 1-7	HARM	hold = the second global page (named on PERF by the sub-label h:HARM)
 CHAN	B_GLO	tap	open SET (latched): BPM SWING GATE DIV	SET	printed GLO = global
-CHAN	B_GLO	hold	0.4 s: open SCALE (latched): SCALE KEY OCTAVE; any key = KEY	SCALE	hold = the second global page (named on PERF by the sub-label h:SCALE)
+CHAN	B_GLO	hold	0.4 s: open HARMONY (latched): SCALE KEY VOICE MOVE, the progression strip, keys F3-E4 = chords 1-7	HARM	hold = the second global page (named on PERF by the sub-label h:HARM)
 SET	B_GLO	tap	close SET, back to PERF	BACK	the button that opened it closes it
-SET	B_GLO	hold	0.4 s: switch to SCALE	SCALE	hold = the second global page
-SCALE	B_GLO	tap	close SCALE, back to PERF	BACK	the button that opened it closes it
-SCALE	B_GLO	hold	inert (already on SCALE)	BACK	hold = the second global page
+SET	B_GLO	hold	0.4 s: switch to HARMONY	HARM	hold = the second global page
+SCALE	B_GLO	tap	close HARMONY, back to PERF	BACK	the button that opened it closes it
+SCALE	B_GLO	hold	inert (already on HARMONY)	BACK	hold = the second global page
 REC	B_GLO	tap	inert in REC (toast REC: tap REC to finish)	-	one latched page at a time
 REC	B_GLO	hold	inert in REC	-	one latched page at a time
 RESET	B_GLO	tap	inert (nothing to reset; toast NOTHING TO RESET)	-	RESET touches values only
@@ -151,8 +151,8 @@ CHAN	B_ARP	tap	press: dice the ARTIC layer (gate, slide, ratchet as the algorith
 CHAN	B_ARP	hold	no hold role: acted once on press	ARTIC	dice buttons act on press (B2)
 SET	B_ARP	tap	press: dice the ARTIC layer (gate, slide, ratchet as the algorithm has them; edits kept); dim if absent; algorithm sub-label under it	ARTIC	printed ARP = repeating figures: the articulation layer
 SET	B_ARP	hold	no hold role: acted once on press	ARTIC	dice buttons act on press (B2)
-SCALE	B_ARP	tap	press: dice the ARTIC layer (gate, slide, ratchet as the algorithm has them; edits kept); dim if absent; algorithm sub-label under it	ARTIC	printed ARP = repeating figures: the articulation layer
-SCALE	B_ARP	hold	no hold role: acted once on press	ARTIC	dice buttons act on press (B2)
+SCALE	B_ARP	tap	press: ROLE of the selected channel, wrapping OFF, AUTO, ROOT, FULL (AUTO follows the chords by the quantise rule, ROOT plays the chord root, FULL plays the voiced chord notes, OFF is never harmonised)	ROLE	printed ARP = chords played as notes: the channel's part in the chord
+SCALE	B_ARP	hold	no hold role: acted once on press	ROLE	buttons act on press (B2)
 REC	B_ARP	tap	press: dice the ARTIC layer (gate, slide, ratchet as the algorithm has them; edits kept); dim if absent (performing while recording is allowed)	ARTIC	printed ARP = repeating figures: the articulation layer
 REC	B_ARP	hold	no hold role: acted once on press	ARTIC	dice buttons act on press (B2)
 RESET	B_ARP	tap	press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (SLIDE); RESET closes; EDIT tap undoes	RST AR	hold EDIT then touch = back to default (one rule)
@@ -169,8 +169,8 @@ CHAN	B_SEQ	tap	press: dice the HITS layer (where the generated steps fall; ON/OF
 CHAN	B_SEQ	hold	no hold role: acted once on press	HITS	dice buttons act on press (B2)
 SET	B_SEQ	tap	press: dice the HITS layer (where the generated steps fall; ON/OFF edits kept); algorithm sub-label under it	HITS	printed SEQ = steps: which steps play
 SET	B_SEQ	hold	no hold role: acted once on press	HITS	dice buttons act on press (B2)
-SCALE	B_SEQ	tap	press: dice the HITS layer (where the generated steps fall; ON/OFF edits kept); algorithm sub-label under it	HITS	printed SEQ = steps: which steps play
-SCALE	B_SEQ	hold	no hold role: acted once on press	HITS	dice buttons act on press (B2)
+SCALE	B_SEQ	tap	press: NEW progression: the next degree key starts again at chord 1 (nothing changes until a key is typed)	NEW	printed SEQ = sequence: start a new one
+SCALE	B_SEQ	hold	no hold role: acted once on press	NEW	buttons act on press (B2)
 REC	B_SEQ	tap	press: dice the HITS layer (where the generated steps fall; ON/OFF edits kept) (performing while recording is allowed)	HITS	printed SEQ = steps: which steps play
 REC	B_SEQ	hold	no hold role: acted once on press	HITS	dice buttons act on press (B2)
 RESET	B_SEQ	tap	press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (ON/OFF); RESET closes; EDIT tap undoes	RST HT	hold EDIT then touch = back to default (one rule)
@@ -222,13 +222,13 @@ NOTE_EDIT	B_OCTDN	tap	release: the edited step one octave down (OCT -2..+2), aud
 NOTE_EDIT	B_OCTDN	hold	as tap (no hold role on this page)	OCT-	printed OCT = octave
 CHAN	B_OCTDN	tap	release: LENGTH to the page boundary below (20 -> 16, 48 -> 32; at 16 or less inert, toast ONE PAGE: K1 = SHORTER); the hidden steps keep their edits	-PAGE	minus / plus a page
 CHAN	B_OCTDN	hold	as tap (no hold role on this page)	-PAGE	minus / plus a page
-SET	B_OCTDN	tap	inert on SET (one row of four; toast ONE ROW HERE)	-	nothing hidden
-SET	B_OCTDN	hold	inert	-	nothing hidden
-SCALE	B_OCTDN	tap	release: global OCTAVE -1 (-2..+2)	OCT-	printed OCT = octave
-SCALE	B_OCTDN	hold	as tap (no hold role on this page)	OCT-	printed OCT = octave
+SET	B_OCTDN	tap	release: global OCTAVE -1 (-2..+2); the tag column reads OCT -2..+2 (moved here from the SCALE page, which uses OCT- / OCT+ for PEDAL)	OCT-	printed OCT = octave
+SET	B_OCTDN	hold	as tap (no hold role on this page)	OCT-	printed OCT = octave
+SCALE	B_OCTDN	tap	release: PEDAL walks one candidate down (0 = OFF); the status line names the degree and marks clashes	OCT-	printed OCT override (owner decision 48), as on PERF; the pedal walk is shown beside it
+SCALE	B_OCTDN	hold	as tap (no hold role on this page)	OCT-	printed OCT override (owner decision 48)
 REC	B_OCTDN	tap	release: the REC keyboard octave -1 (same value as K4 OCT)	OCT-	printed OCT = octave
 REC	B_OCTDN	hold	as tap (no hold role on this page)	OCT-	printed OCT = octave
-RESET	B_OCTDN	tap	from PERF: reset the four morphs of ROW 1; from NOTE_EDIT: the step octave to AUTO; elsewhere inert; RESET closes; EDIT tap undoes	RST R1	hold EDIT then touch = back to default
+RESET	B_OCTDN	tap	from PERF: reset the four morphs of ROW 1; from NOTE_EDIT: the step octave to AUTO; from HARMONY: PEDAL OFF; elsewhere inert; RESET closes; EDIT tap undoes	RST R1	hold EDIT then touch = back to default
 RESET	B_OCTDN	hold	as tap	RST R1	one shot
 HELP	B_OCTDN	tap	explain this control on the page beneath (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
 HELP	B_OCTDN	hold	as tap (explain while HOME stays down); nothing else happens	?	HELP: touch to learn, nothing acts
@@ -241,13 +241,13 @@ NOTE_EDIT	B_OCTUP	tap	release: the edited step one octave up (OCT -2..+2), audit
 NOTE_EDIT	B_OCTUP	hold	as tap (no hold role on this page)	OCT+	printed OCT = octave
 CHAN	B_OCTUP	tap	release: LENGTH to the page boundary above (20 -> 32, 32 -> 48, max 64): a partial page is completed, a new page is a copy of the page before it (edits and source), a hidden page comes back as stored	+PAGE	minus / plus a page
 CHAN	B_OCTUP	hold	as tap (no hold role on this page)	+PAGE	minus / plus a page
-SET	B_OCTUP	tap	inert on SET (one row of four; toast ONE ROW HERE)	-	nothing hidden
-SET	B_OCTUP	hold	inert	-	nothing hidden
-SCALE	B_OCTUP	tap	release: global OCTAVE +1 (-2..+2)	OCT+	printed OCT = octave
-SCALE	B_OCTUP	hold	as tap (no hold role on this page)	OCT+	printed OCT = octave
+SET	B_OCTUP	tap	release: global OCTAVE +1 (-2..+2); the tag column reads OCT -2..+2 (moved here from the SCALE page, which uses OCT- / OCT+ for PEDAL)	OCT+	printed OCT = octave
+SET	B_OCTUP	hold	as tap (no hold role on this page)	OCT+	printed OCT = octave
+SCALE	B_OCTUP	tap	release: PEDAL walks one candidate up (14 = top); the status line names the degree and marks clashes	OCT+	printed OCT override (owner decision 48), as on PERF; the pedal walk is shown beside it
+SCALE	B_OCTUP	hold	as tap (no hold role on this page)	OCT+	printed OCT override (owner decision 48)
 REC	B_OCTUP	tap	release: the REC keyboard octave +1 (same value as K4 OCT)	OCT+	printed OCT = octave
 REC	B_OCTUP	hold	as tap (no hold role on this page)	OCT+	printed OCT = octave
-RESET	B_OCTUP	tap	from PERF: reset the four morphs of ROW 2; from NOTE_EDIT: the step octave to AUTO; elsewhere inert; RESET closes; EDIT tap undoes	RST R2	hold EDIT then touch = back to default
+RESET	B_OCTUP	tap	from PERF: reset the four morphs of ROW 2; from NOTE_EDIT: the step octave to AUTO; from HARMONY: PEDAL OFF; elsewhere inert; RESET closes; EDIT tap undoes	RST R2	hold EDIT then touch = back to default
 RESET	B_OCTUP	hold	as tap	RST R2	one shot
 HELP	B_OCTUP	tap	explain this control on the page beneath (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
 HELP	B_OCTUP	hold	as tap (explain while HOME stays down); nothing else happens	?	HELP: touch to learn, nothing acts

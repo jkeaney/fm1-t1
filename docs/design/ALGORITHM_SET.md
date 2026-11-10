@@ -362,3 +362,18 @@ updates the table. No change in this document requires touching algorithm code e
 | Shared primitives deduplicated | Section 6 |
 | Owner questions answered by recommendation | Section 8 (all 30 plus N1 to N3) |
 | Owner approval line | **Not present. Awaits the owner.** |
+
+## 12. HARMONY: the chord stage every algorithm passes through (P2-012; additive)
+
+Spec: [HARMONY.md](HARMONY.md). SP6 (scale quantise) is unchanged and still runs first. A new primitive **SP18 chord stage** runs after SP6 and before SP9, at emit time
+(ADR-0003 section 20), only for a note the algorithm generated (a step with a set PITCH is scale-only, never pulled). Its rule is HARMONY.md 4. Per algorithm:
+
+| Algorithm | Pull (0..8) from the existing pitch-width morph | Strong steps (pulled harder, +4) | Anchor (first hit of a chord = its root) | What the existing morphs mean under harmony |
+| --- | --- | --- | --- | --- |
+| `ACID` | `3 + JUMP * 3 / 20` (JUMP 0..20, default 5 gives 3) | accented steps and octave-jump notes | yes | the `PEDAL` morph (how much of the line is the repeated root) repeats the chord root; slide targets are pulled like any note |
+| `EUCLID` | `2 + SPAN * 6 / 24` (default 12 gives 5) | accented hits and hit ordinal 0 of each Euclid cycle | yes | the contour shape is built first, then pulled; ratchet repeats share the pulled pitch |
+| `SNAKE` | `2 + RANGE * 6 / 48` (default 12 gives 3) | lane notes with velocity >= 100 | yes | the traversal (PATH) is read first, then each lane note is pulled by its lane position, so a PATH change keeps each lane note's pulled pitch |
+| `STAGE` | `2 + RANGE * 6 / 36` (default 12 gives 4) | the first pulse of a stage and long holds (`I-`) | yes | a ratcheted stage shares one pulled pitch |
+
+Turning the pitch-width morph up widens the line and, by the same turn, raises the pull: the more freedom the line has, the more its strong notes land on the chord. No other morph, no dice
+layer and no knob row changes meaning. All four are inert (pull 0, no anchor) while HARMONY is inert (HARMONY.md 1).

@@ -147,6 +147,31 @@ for i, nm in enumerate(BLACK, 1):
     else:
         put(c, "RESET", "Key %s: nothing to reset" % nm, "EDIT cancels RESET")
 
+# ---- P2-012 HARMONY: the SCALE table page is the HARMONY screen; these override the SCALE / SET rows above -------------
+put("B_GLO", "PERF NOTE_EDIT CHAN", "GLO: tap = SET, hold = HARM", "tempo, swing | scale, key, chords")
+put("B_GLO", "SET", "GLO: back to PERF", "hold 0.4 s: switch to HARM")
+put("B_GLO", "SCALE", "GLO: back to PERF", "you are on HARMONY")
+put("B_SCL", "SCALE", "PROG: re-roll the chord loop", "SCL; EDIT = undo")
+put("B_LFO", "SCALE", "BARS: length of the chord loop", "1-8 bars; LFO")
+put("B_ARP", "SCALE", "ROLE: this channel's part", "OFF AUTO ROOT FULL; ARP")
+put("B_SEQ", "SCALE", "NEW: start a new progression", "then type chords 1-7 on keys")
+put("B_OCTDN", "SCALE", "OCT-: pedal tone one step down", "OFF at the bottom")
+put("B_OCTUP", "SCALE", "OCT+: pedal tone one step up", "clash marks show on screen")
+put("B_OCTDN", "SET", "OCT-: output octave down", "-2 to +2, all channels")
+put("B_OCTUP", "SET", "OCT+: output octave up", "-2 to +2, all channels")
+put("EN_K2", "SCALE", "K2: KEY, the root note", "the chords move with it")
+put("EN_K3", "SCALE", "K3: VOICE, the chord size", "0 root, 2 triad, 4 ninth, 6 wide")
+put("EN_K4", "SCALE", "K4: MOVE, voice-leading", "8 = root position, 0 = smoothest")
+for _i, _nm in enumerate(WHITE, 1):
+    _c = "KEY_W%02d_%s" % (_i, _nm)
+    if _i <= 7:
+        put(_c, "SCALE", "Key %s: chord %d" % (_nm, _i), "types it into the loop; sounds it")
+    else:
+        put(_c, "SCALE", "Key %s: not used here" % _nm, "the key is K2")
+for _i, _nm in enumerate(BLACK, 1):
+    put("KEY_B%02d_%s" % (_i, _nm), "SCALE", "Key %s: not used here" % _nm, "the key is K2")
+put("B_EDIT", DICE, "EDIT: tap = undo / redo", "also a HARM change; hold = RESET")
+
 if __name__ == "__main__":
     cm = list(csv.DictReader(open(os.path.join(D, "control_map.tsv")), delimiter="\t"))
     ctls = []
