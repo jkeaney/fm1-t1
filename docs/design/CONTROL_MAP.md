@@ -346,7 +346,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `EN_K1` | `MENU` | turn: change the selected row's value (Felucca menu rule) | `value` |
 | `EN_K2` | `PERF` | turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above): ACID SLIDE/PEDAL, EUCLID OFFSET/SPAN, SNAKE LEN/GLEN, STAGE TOTAL/RDIV | `morph` |
 | `EN_K2` | `NOTE_EDIT` | turn: note length of the edited step, x global GATE; top value TIE (holds into the next step) | `GATE` |
-| `EN_K2` | `CHAN` | turn: MIDI output channel of the selected channel | `MIDI` |
+| `EN_K2` | `CHAN` | turn: MIDI output channel of the selected channel (unique across the 4 channels: taking one another channel uses sets that channel to OFF; toast names it; one undo record) | `MIDI` |
 | `EN_K2` | `SET` | turn: odd steps late by 2*(swing-50) % of a step (decision 43); parity by pattern position | `SWING` |
 | `EN_K2` | `SCALE` | turn: global key (also: press any key) | `KEY` |
 | `EN_K2` | `REC` | turn: written notes get ACCENT (velocity 120) when ON; with force sensing the landing force sets the velocity and ACC forces 120 | `ACC` |

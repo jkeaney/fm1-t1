@@ -6,7 +6,7 @@ dice buttons, then perform it without leaving the main screen. Notation as S01.
 
 | Step | User action | Exact screen text | MIDI out | Row ids |
 | --- | --- | --- | --- | --- |
-| 1 | Turn ALGORITHM one detent counter-clockwise, then one clockwise (ACID is already the algorithm of CH1; this proves the encoder returns it) | HD `CH1 EUCL M2` then `CH1 ACID M2`; CHB cell 1 `1 EUCL` then `1 ACID`; K1R labels `HITS OFFSET RATCH ACCNT` then `DENS SLIDE JUMP ACCNT`; morphs and seeds of ACID are kept, so DENS reads `14` again | the algorithm lands at the next step; no note is cut; the pattern returns to the same ACID notes (deterministic) | EN_ALGO/PERF |
+| 1 | Turn ALGORITHM one detent counter-clockwise, then one clockwise (ACID is already the algorithm of CH1; this proves the encoder returns it) | HD `1 EUCL M2` then `1 ACID M2`; CHB cell 1 `1 EUCL` then `1 ACID`; K1R labels `HITS OFFSET RATCH ACCNT` then `DENS SLIDE JUMP ACCNT`; morphs and seeds of ACID are kept, so DENS reads `14` again | the algorithm lands at the next step; no note is cut; the pattern returns to the same ACID notes (deterministic) | EN_ALGO/PERF |
 | 2 | Turn K1 (DENS) four detents counter-clockwise | K1R `DENS 10` | from the next step: 10 hits in 16 steps | EN_K1/PERF |
 | 3 | Turn K3 (JUMP) four detents clockwise | K1R `JUMP 9` | register jumps (octave moves) appear in the `ch2 ON` notes from the next step | EN_K3/PERF |
 | 4 | Turn K4 (ACCNT) two detents clockwise | K1R `ACCNT 5` | more `ch2 ON` with velocity at or above 100, the TB-3 accent threshold | EN_K4/PERF |
@@ -26,10 +26,10 @@ dice buttons, then perform it without leaving the main screen. Notation as S01.
 | 18 | Press EDIT | Toast `UNDO` naming the dice-all; the previous line is back | previous line from the next step | B_EDIT/PERF |
 | 19 | Press EDIT again | Toast `REDO`; the dice-all line returns | the dice-all line from the next step | B_EDIT/PERF |
 | 20 | Press the black key F#4 (SOL) and hold it for one bar | key cell inverted; CUE `SOLO CH1: let go`; only CH1 sounds | only channel 2 notes (the other channels are muted already) | KEY_B06_F#4/PERF |
-| 21 | Hold black key G#4 (FIL) with a firm press, then release | cell inverted with the live amount `FILL 80%` (the only locked readout string; how the percentage maps to force is not specified, FINDINGS F-11); DENS rises toward the maximum while held; on release DENS reads `10` again | extra hits while held; none after release | KEY_B07_G#4/PERF |
+| 21 | Hold black key G#4 (FIL) with a firm press, then release | cell inverted with the live amount `FILL 80%` (the only locked readout string; the percentage is K1 + (max - K1) x p, p = 0.5 at a light press rising to 1.0 firm: SEQUENCER_UX 15, F-11); DENS rises toward the maximum while held; on release DENS reads `10` again | extra hits while held; none after release | KEY_B07_G#4/PERF |
 | 22 | Hold black key A#4 (ROL) with medium pressure, then release | `ROLL 3x`; CUE `ROLL 3x: let go to stop` | each step sends 3 `ch2 ON/OFF` pairs inside the step while held | KEY_B08_A#4/PERF |
 | 23 | Tap black key F#5 (RST) | playhead returns to step 1 at the next step | the pattern restarts from step 1 on the next step | KEY_B11_F#5/PERF |
-| 24 | Turn K1 down to zero (eleven detents counter-clockwise from DENS 10 with fast steps counted as one each) | K1R `DENS KEYS ONLY` (the value text is 62 px against a 51 px cell: FINDINGS F-04); CUE `TAP STEP=ON/OFF  HOLD=EDIT NOTE` | no generated hits; only steps turned on by hand play | EN_K1/PERF |
+| 24 | Turn K1 down to zero (eleven detents counter-clockwise from DENS 10 with fast steps counted as one each) | K1R `DENS KEYS` (the value `KEYS ONLY` was 62 px against a 51 px cell; the cell reads `KEYS`, 28 px: F-04 fixed); CUE `TAP STEP=ON/OFF  HOLD=EDIT NOTE` | no generated hits; only steps turned on by hand play | EN_K1/PERF |
 
 The performance loop used no menu and no page: 24 steps, each one gesture. Row 2 morphs need a latch tap first (two
 gestures for the first row 2 morph, then one per turn); that is the locked R-5 count.

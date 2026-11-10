@@ -343,9 +343,10 @@ Together about 24 B. The menu row `CLOCK` keeps its place; its values become the
 | R10 | EXT, user presses STOP while the host runs | the FM-1 stops locally; the source stays `EXT`; the next PLAY is R8. |
 | R11 | EXT, SET K1 | inert (locked, `knob_map.tsv`); the cell mirrors the host tempo; `bpm_own` is untouched and returns on R5. |
 | R12 | Clock out | on when the source is `INT` and the FM-1 is playing (M7); off in every EXT state and while stopped. No menu row. |
-| R13 | Host tempo outside 40..240 BPM | not accepted as a clock (treated as no clock); `EXT --` stays. |
+| R13 | Host tempo outside 40..240 BPM | not accepted as a clock (treated as no clock). The tempo is first known after 7 pulses, so the header shows `EXT --` for those 7 pulses (about 56 ms at 300 BPM) and then returns to `INT <bpm_own>`; a source that was already `EXT` stops advancing `clk_last`, so R5 / R6 apply after 500 ms. It never stays in `EXT --` (P2-011, F-18). |
 | R14 | A tempo jump over 25 % between pulses | PLL re-seeds `P` from the last two intervals; position is never touched (count-locked), so the sequence continues at the new tempo without a skip. |
 | R15 | TRS and USB both send clock | the first heard wins (R2); the other is ignored until silent. |
+| R16 | A host `0xFA` (or `0xFB`) arrives while **stopped** on `INT`, before any `0xF8` (P2-011, F-07) | the FM-1 latches a pending start (M12) and the source stays `INT`; the first `0xF8` that follows makes the source `EXT` (R2) and step 0 begins on that pulse. Nothing changes on screen until the pulse. If no `0xF8` arrives within 500 ms the pending start is dropped. |
 
 ### 4.3 Why the position stays locked
 
@@ -465,7 +466,7 @@ All use fake time (`fm1_ticks()` and the `tref` driven by the test), in the styl
 | release | M3: with a fake `fm1_ticks`, a packet is released within one 100 us tick of its due; 16 per transfer; ring at 128 never reorders; the reserve rule drops ONs before OFFs |
 | tempo constant | M10: 5 minutes of ticks at 40..240 BPM against 44117.65 Hz samples stay within 5 ppm of the ideal |
 | PLL | M11: a pulse train with ±0.5 ms uniform stamp noise has output jitter under 0.15 ms; a burst (4 pulses sharing a stamp) leaves the count right and the phase within 0.2 ms; a 1 BPM per beat ramp is tracked within 0.3 BPM; no pulse is lost or added over 10 minutes (T9) |
-| source rules | section 4: a table-driven test of R1..R15 with events in, state out |
+| source rules | section 4: a table-driven test of R1..R16 with events in, state out |
 | start | M12: a Start followed by pulses begins step 0 at the first pulse, not at the Start; SPP then Continue resumes the right step |
 | header strings | the strings of 5.2 and SCREEN_SPEC 6 against the slot widths with the real `text_w` (the measurement SCREEN_SPEC section 5 requires) |
 
@@ -492,7 +493,7 @@ Equipment: FM-1 on USB to the Mac, Ableton Live 12, `tools/fm1_timing.py`, then 
 | Nested release (M3) proves unsafe | fallback in M3 (release between audio interrupts); T1 becomes the render time; reassess `LEAD` |
 | Real sample rate is not 44117.65 Hz | M10 takes the measured value (a one-line flex row) |
 | Ring overflows (a host that stops reading) | ADR-0003 8.3 reserve rule: ONs dropped and counted, OFFs and clock kept, stuck notes impossible |
-| Host sends clock at 300 BPM | R13: not accepted as a clock; header stays `EXT --` |
+| Host sends clock at 300 BPM | R13: not accepted as a clock; header shows `EXT --` for 7 pulses, then `INT` |
 | A host loops our clock back | R3 and R12 (we send only while playing as master and ignore pulses then) |
 
 ## 8. Corrections to earlier documents (found while measuring)
@@ -542,25 +543,25 @@ Dev tasks (E4 / E5; P2-005 turns these into ready tasks with this document in Re
 
 ## 11. Questions for the owner
 
-1. **The CLOCK menu row after AUTO.** AUTO listens to USB and TRS and needs no setting. Options: (a) delete the row
+1. **ANSWERED 2026-11-10 (OWNER_QUESTIONS 76): (b) AUTO / INTERNAL ONLY.** **The CLOCK menu row after AUTO.** AUTO listens to USB and TRS and needs no setting. Options: (a) delete the row
    (no clock setting at all; a user whose host loops clock back has no escape except unplugging); (b) keep a single
    two-value row `CLOCK: AUTO / INTERNAL ONLY` for the rare looping or unwanted-follower case, default AUTO;
    (c) keep today's `INT / USB / TRS`. **Recommended: (b).** It does not add a row (the existing `CLOCK` row loses two
    values), so the tab row counts of `tests/ui_test.c` do not change.
-2. **Clock lost while playing (R6).** Options: (a) stop, as today and as specified; (b) keep playing on the internal clock
+2. **ANSWERED (76): (a) stop.** **Clock lost while playing (R6).** Options: (a) stop, as today and as specified; (b) keep playing on the internal clock
    at the user's tempo. **Recommended: (a):** a silent tempo jump mid-set is the failure the owner already rejected in
    SCREEN_SPEC question 3, and a stop is recoverable with one PLAY.
-3. **Escape from WAIT.** PLAY pressed while waiting for the host: (a) PLAY again cancels (specified); (b) in addition,
+3. **ANSWERED (76): (a) PLAY again cancels, nothing else.** **Escape from WAIT.** PLAY pressed while waiting for the host: (a) PLAY again cancels (specified); (b) in addition,
    hold PLAY to start on the internal clock immediately (a deliberate override, not a silent fall back). **Recommended:
    (a) only** for v1; (b) adds a gesture and a state to explain.
-4. **Take over from a playing internal clock (R3, R4).** A host `0xF8` while the FM-1 plays as master is ignored; a host
+4. **ANSWERED (76): as specified.** **Take over from a playing internal clock (R3, R4).** A host `0xF8` while the FM-1 plays as master is ignored; a host
    `0xFA` takes over. Accept, or (b) never take over while playing. **Recommended: as specified.**
-5. **PLAY green LED (5.4).** It becomes mid-level steady with a beat flash instead of steady. Accept, or keep it steady
+5. **ANSWERED (76): accept.** **PLAY green LED (5.4).** It becomes mid-level steady with a beat flash instead of steady. Accept, or keep it steady
    and let only the PLAY's own LED and the dot show tempo. **Recommended: accept**, falling back to "steady" if the
    device has no mid level on that LED.
-6. **Timing test image as a separate build (6.1)** rather than a hidden menu entry. **Recommended: separate build**
+6. **ANSWERED (76): separate build.** **Timing test image as a separate build (6.1)** rather than a hidden menu entry. **Recommended: separate build**
    (zero cost, proves the production path); the cost is flashing twice for a hardware session.
-7. **`LEAD`.** Constant 2.90 ms keeps MIDI aligned with the preview synth (M2). Accept, or shrink it after the first
+7. **ANSWERED (76): LEAD 2.90 ms.** **`LEAD`.** Constant 2.90 ms keeps MIDI aligned with the preview synth (M2). Accept, or shrink it after the first
    measurements to lower T4 (the table above stays valid; only T4 changes). **Recommended: accept for v1.**
 
 

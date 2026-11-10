@@ -1,0 +1,344 @@
+control	context	line1	line2
+B_FX	PERF	ALL: re-roll every layer	FX; edited steps are kept
+B_FX	NOTE_EDIT	FX: dice THIS step	new pitch, accent, slide, gate
+B_FX	CHAN	ALL: re-roll every layer	FX; edited steps are kept
+B_FX	SET	ALL: re-roll every layer	FX; edited steps are kept
+B_FX	SCALE	ALL: re-roll every layer	FX; edited steps are kept
+B_FX	REC	ALL: re-roll every layer	FX; edited steps are kept
+B_FX	RESET	RST AL: algorithm to factory	8 morphs and seeds; edits stay
+B_SCL	PERF	NOTES: re-roll the pitches	SCL; edited pitches stay
+B_SCL	NOTE_EDIT	SCL: dice this step's pitch	a new scale note; EDIT = undo
+B_SCL	CHAN	NOTES: re-roll the pitches	SCL; edited pitches stay
+B_SCL	SET	NOTES: re-roll the pitches	SCL; edited pitches stay
+B_SCL	SCALE	NOTES: re-roll the pitches	SCL; edited pitches stay
+B_SCL	REC	NOTES: re-roll the pitches	SCL; edited pitches stay
+B_SCL	RESET	RST NT: notes seeds to factory	edits stay; EDIT = undo
+B_ENV	PERF	ACCNT: re-roll which are loud	ENV; VELO edits stay
+B_ENV	NOTE_EDIT	ENV: accent on this step	120 or back; EDIT = undo
+B_ENV	CHAN	ACCNT: re-roll which are loud	ENV; VELO edits stay
+B_ENV	SET	ACCNT: re-roll which are loud	ENV; VELO edits stay
+B_ENV	SCALE	ACCNT: re-roll which are loud	ENV; VELO edits stay
+B_ENV	REC	ACCNT: re-roll which are loud	ENV; VELO edits stay
+B_ENV	RESET	RST AC: accent seeds to factory	edits stay; EDIT = undo
+B_LFO	PERF	SHAPE: re-roll the register	LFO; dim if this algo has none
+B_LFO	NOTE_EDIT	LFO: chance 100% / 50%	same draw every pass
+B_LFO	CHAN	SHAPE: re-roll the register	LFO; dim if this algo has none
+B_LFO	SET	SHAPE: re-roll the register	LFO; dim if this algo has none
+B_LFO	SCALE	SHAPE: re-roll the register	LFO; dim if this algo has none
+B_LFO	REC	SHAPE: re-roll the register	LFO; dim if this algo has none
+B_LFO	RESET	RST SH: shape seeds to factory	edits stay; EDIT = undo
+B_EDIT	PERF	EDIT: tap = undo / redo	hold 0.4 s: RESET what you touch
+B_EDIT	NOTE_EDIT	EDIT: undo this step's change	hold 0.4 s: property to AUTO
+B_EDIT	CHAN	EDIT: tap = undo / redo	hold 0.4 s: RESET what you touch
+B_EDIT	SET	EDIT: tap = undo / redo	hold 0.4 s: RESET what you touch
+B_EDIT	SCALE	EDIT: tap = undo / redo	hold 0.4 s: RESET what you touch
+B_EDIT	REC	EDIT: undo the last note	again = redo
+B_EDIT	RESET	EDIT: cancel RESET	nothing is reset
+B_GLO	PERF	GLO: tap = SET, hold = SCALE	tempo, swing | scale and key
+B_GLO	NOTE_EDIT	GLO: tap = SET, hold = SCALE	tempo, swing | scale and key
+B_GLO	CHAN	GLO: tap = SET, hold = SCALE	tempo, swing | scale and key
+B_GLO	SET	GLO: back to PERF	hold 0.4 s: switch to SCALE
+B_GLO	SCALE	GLO: back to PERF	you are on SCALE
+B_GLO	REC	GLO: not used while recording	tap REC to finish
+B_GLO	RESET	GLO: nothing to reset	EDIT cancels RESET
+B_HOME	PERF	HOME: already home	hold: HELP; let go untouched: MENU
+B_HOME	NOTE_EDIT	HOME: back to PERF	hold: HELP; let go untouched: MENU
+B_HOME	CHAN	HOME: back to PERF	hold: HELP; let go untouched: MENU
+B_HOME	SET	HOME: back to PERF	hold: HELP; let go untouched: MENU
+B_HOME	SCALE	HOME: back to PERF	hold: HELP; let go untouched: MENU
+B_HOME	REC	HOME: back to PERF	hold: HELP; let go untouched: MENU
+B_HOME	RESET	HOME: cancel RESET, to PERF	hold: HELP; let go untouched: MENU
+B_SAVE	PERF	SAVE: save to the header slot	hold 0.7 s: undo the last load
+B_SAVE	NOTE_EDIT	SAVE: save to the header slot	hold 0.7 s: undo the last load
+B_SAVE	CHAN	SAVE: save to the header slot	hold 0.7 s: undo the last load
+B_SAVE	SET	SAVE: save to the header slot	hold 0.7 s: undo the last load
+B_SAVE	SCALE	SAVE: save to the header slot	hold 0.7 s: undo the last load
+B_SAVE	REC	SAVE: save to the header slot	hold 0.7 s: undo the last load
+B_SAVE	RESET	SAVE: nothing to reset	EDIT cancels RESET
+B_ARP	PERF	ARTIC: re-roll gate and slide	ARP; edits stay
+B_ARP	NOTE_EDIT	ARP: SLIDE on this step	glides into the next step
+B_ARP	CHAN	ARTIC: re-roll gate and slide	ARP; edits stay
+B_ARP	SET	ARTIC: re-roll gate and slide	ARP; edits stay
+B_ARP	SCALE	ARTIC: re-roll gate and slide	ARP; edits stay
+B_ARP	REC	ARTIC: re-roll gate and slide	ARP; edits stay
+B_ARP	RESET	RST AR: artic seeds to factory	edits stay; EDIT = undo
+B_SEQ	PERF	HITS: re-roll where notes fall	SEQ; ON/OFF edits stay
+B_SEQ	NOTE_EDIT	SEQ: this step ON / OFF	same as tapping its key
+B_SEQ	CHAN	HITS: re-roll where notes fall	SEQ; ON/OFF edits stay
+B_SEQ	SET	HITS: re-roll where notes fall	SEQ; ON/OFF edits stay
+B_SEQ	SCALE	HITS: re-roll where notes fall	SEQ; ON/OFF edits stay
+B_SEQ	REC	HITS: re-roll where notes fall	SEQ; ON/OFF edits stay
+B_SEQ	RESET	RST HT: hits seeds to factory	edits stay; EDIT = undo
+B_PLAY	PERF	PLAY: start / stop everything	stop silences held notes
+B_PLAY	NOTE_EDIT	PLAY: start / stop everything	stop silences held notes
+B_PLAY	CHAN	PLAY: start / stop everything	stop silences held notes
+B_PLAY	SET	PLAY: start / stop everything	stop silences held notes
+B_PLAY	SCALE	PLAY: start / stop everything	stop silences held notes
+B_PLAY	REC	PLAY: start / stop everything	stop silences held notes
+B_PLAY	RESET	PLAY: start / stop everything	stop silences held notes
+B_REC	PERF	REC: play keys, write notes	tap REC again to finish
+B_REC	NOTE_EDIT	REC: write from this step	the cursor starts on it
+B_REC	CHAN	REC: play keys, write notes	tap REC again to finish
+B_REC	SET	REC: play keys, write notes	tap REC again to finish
+B_REC	SCALE	REC: play keys, write notes	tap REC again to finish
+B_REC	REC	REC: done, back to PERF	
+B_REC	RESET	RST PG: clear the page's edits	the page is pure generator
+B_OCTDN	PERF	OCT-: knob ROW 1 stays live	hold and turn: peek at ROW 1
+B_OCTDN	NOTE_EDIT	OCT-: this step an octave down	-2 to +2, auditioned
+B_OCTDN	CHAN	-PAGE: LENGTH down a page	hidden steps keep their edits
+B_OCTDN	SET	OCT-: not used on SET	one row of four knobs
+B_OCTDN	SCALE	OCT-: output octave down	-2 to +2, all channels
+B_OCTDN	REC	OCT-: keyboard octave down	same as K4 OCT
+B_OCTDN	RESET	RST R1: reset the ROW 1 morphs	NOTE EDIT: step octave to AUTO
+B_OCTUP	PERF	OCT+: knob ROW 2 stays live	hold and turn: peek at ROW 2
+B_OCTUP	NOTE_EDIT	OCT+: this step an octave up	-2 to +2, auditioned
+B_OCTUP	CHAN	+PAGE: LENGTH up a page	a new page is a copy
+B_OCTUP	SET	OCT+: not used on SET	one row of four knobs
+B_OCTUP	SCALE	OCT+: output octave up	-2 to +2, all channels
+B_OCTUP	REC	OCT+: keyboard octave up	same as K4 OCT
+B_OCTUP	RESET	RST R2: reset the ROW 2 morphs	NOTE EDIT: step octave to AUTO
+EN_SELECT	PERF	SELECT: pick CH1 to CH4	the channel the knobs act on
+EN_SELECT	NOTE_EDIT	SELECT: pick a channel	this closes NOTE EDIT
+EN_SELECT	CHAN	SELECT: pick CH1 to CH4	the channel the knobs act on
+EN_SELECT	SET	SELECT: pick CH1 to CH4	the channel the knobs act on
+EN_SELECT	SCALE	SELECT: pick CH1 to CH4	the channel the knobs act on
+EN_SELECT	REC	SELECT: pick a channel	the cursor returns to step 1
+EN_SELECT	RESET	SELECT: pick CH1 to CH4	the channel the knobs act on
+EN_ALGO	PERF	ALGO: this channel's algorithm	ACID EUCLID SNAKE STAGE
+EN_ALGO	NOTE_EDIT	ALGO: this channel's algorithm	ACID EUCLID SNAKE STAGE
+EN_ALGO	CHAN	ALGO: this channel's algorithm	ACID EUCLID SNAKE STAGE
+EN_ALGO	SET	ALGO: this channel's algorithm	ACID EUCLID SNAKE STAGE
+EN_ALGO	SCALE	ALGO: this channel's algorithm	ACID EUCLID SNAKE STAGE
+EN_ALGO	REC	ALGO: this channel's algorithm	ACID EUCLID SNAKE STAGE
+EN_ALGO	RESET	ALGO: not used in RESET	EDIT cancels RESET
+EN_PRESET	PERF	PRESETS: pick a slot P01-P16	loads in 1.5 s; SAVE = save here
+EN_PRESET	NOTE_EDIT	PRESETS: pick a slot P01-P16	loads in 1.5 s; SAVE = save here
+EN_PRESET	CHAN	PRESETS: pick a slot P01-P16	loads in 1.5 s; SAVE = save here
+EN_PRESET	SET	PRESETS: pick a slot P01-P16	loads in 1.5 s; SAVE = save here
+EN_PRESET	SCALE	PRESETS: pick a slot P01-P16	loads in 1.5 s; SAVE = save here
+EN_PRESET	REC	PRESETS: not used in REC	tap REC to finish
+EN_PRESET	RESET	PRESETS: not used in RESET	EDIT cancels RESET
+EN_K1	PERF	K1: {r1} (ROW 1)	OCT+ shows ROW 2: {r2}
+EN_K1	NOTE_EDIT	K1: PITCH of this step	one scale degree per detent
+EN_K1	CHAN	K1: LENGTH of this channel	1-64 steps; shrinking only hides
+EN_K1	SET	K1: BPM, your own tempo	inert while a host clock runs
+EN_K1	SCALE	K1: SCALE for every channel	all pitches snap to it
+EN_K1	REC	K1: CURSOR, the write position	stopped: the step sounds
+EN_K1	RESET	K1: back to its default	turn one detent to reset it
+EN_K2	PERF	K2: {r1} (ROW 1)	OCT+ shows ROW 2: {r2}
+EN_K2	NOTE_EDIT	K2: GATE of this step	10-100 %, the top value is TIE
+EN_K2	CHAN	K2: MIDI channel it sends on	1-16, or OFF
+EN_K2	SET	K2: SWING, odd steps late	50 is straight
+EN_K2	SCALE	K2: KEY, the root note	or just press a key
+EN_K2	REC	K2: ACC on written notes	harder play is louder
+EN_K2	RESET	K2: back to its default	turn one detent to reset it
+EN_K3	PERF	K3: {r1} (ROW 1)	OCT+ shows ROW 2: {r2}
+EN_K3	NOTE_EDIT	K3: VELO of this step	100 or more is an accent
+EN_K3	CHAN	K3: SOURCE of the viewed page	which notes this page plays
+EN_K3	SET	K3: GATE, the note length	50 % is neutral
+EN_K3	SCALE	K3: OCTAVE of the output	also OCT- / OCT+
+EN_K3	REC	K3: SLIDE on written notes	ON glides into the next step
+EN_K3	RESET	K3: back to its default	turn one detent to reset it
+EN_K4	PERF	K4: {r1} (ROW 1)	OCT+ shows ROW 2: {r2}
+EN_K4	NOTE_EDIT	K4: RATCH of this step	repeats inside the step, 1x-4x
+EN_K4	CHAN	K4: FOLLOW the playhead	the view turns with the page
+EN_K4	SET	K4: DIV, the step length	applies to every channel
+EN_K4	SCALE	K4: not used on SCALE	nothing global is left
+EN_K4	REC	K4: OCT of the keyboard	also OCT- / OCT+
+EN_K4	RESET	K4: back to its default	turn one detent to reset it
+MASTER	PERF	MASTER: preview and USB volume	no effect on MIDI out
+MASTER	NOTE_EDIT	MASTER: preview and USB volume	no effect on MIDI out
+MASTER	CHAN	MASTER: preview and USB volume	no effect on MIDI out
+MASTER	SET	MASTER: preview and USB volume	no effect on MIDI out
+MASTER	SCALE	MASTER: preview and USB volume	no effect on MIDI out
+MASTER	REC	MASTER: preview and USB volume	no effect on MIDI out
+MASTER	RESET	MASTER: preview and USB volume	no effect on MIDI out
+KEY_W01_F3	PERF	Step 1: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W01_F3	NOTE_EDIT	Step 1: tap = ON / OFF	hold: move NOTE EDIT here
+KEY_W01_F3	CHAN	Step 1: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W01_F3	SET	Step 1: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W01_F3	SCALE	Key F3: sets the KEY	the root of the scale
+KEY_W01_F3	REC	Key F3: plays and writes it	at the cursor or nearest step
+KEY_W01_F3	RESET	Step 1: CLR its edits	back to the generator
+KEY_W02_G3	PERF	Step 2: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W02_G3	NOTE_EDIT	Step 2: tap = ON / OFF	hold: move NOTE EDIT here
+KEY_W02_G3	CHAN	Step 2: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W02_G3	SET	Step 2: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W02_G3	SCALE	Key G3: sets the KEY	the root of the scale
+KEY_W02_G3	REC	Key G3: plays and writes it	at the cursor or nearest step
+KEY_W02_G3	RESET	Step 2: CLR its edits	back to the generator
+KEY_W03_A3	PERF	Step 3: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W03_A3	NOTE_EDIT	Step 3: tap = ON / OFF	hold: move NOTE EDIT here
+KEY_W03_A3	CHAN	Step 3: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W03_A3	SET	Step 3: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W03_A3	SCALE	Key A3: sets the KEY	the root of the scale
+KEY_W03_A3	REC	Key A3: plays and writes it	at the cursor or nearest step
+KEY_W03_A3	RESET	Step 3: CLR its edits	back to the generator
+KEY_W04_B3	PERF	Step 4: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W04_B3	NOTE_EDIT	Step 4: tap = ON / OFF	hold: move NOTE EDIT here
+KEY_W04_B3	CHAN	Step 4: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W04_B3	SET	Step 4: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W04_B3	SCALE	Key B3: sets the KEY	the root of the scale
+KEY_W04_B3	REC	Key B3: plays and writes it	at the cursor or nearest step
+KEY_W04_B3	RESET	Step 4: CLR its edits	back to the generator
+KEY_W05_C4	PERF	Step 5: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W05_C4	NOTE_EDIT	Step 5: tap = ON / OFF	hold: move NOTE EDIT here
+KEY_W05_C4	CHAN	Step 5: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W05_C4	SET	Step 5: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W05_C4	SCALE	Key C4: sets the KEY	the root of the scale
+KEY_W05_C4	REC	Key C4: plays and writes it	at the cursor or nearest step
+KEY_W05_C4	RESET	Step 5: CLR its edits	back to the generator
+KEY_W06_D4	PERF	Step 6: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W06_D4	NOTE_EDIT	Step 6: tap = ON / OFF	hold: move NOTE EDIT here
+KEY_W06_D4	CHAN	Step 6: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W06_D4	SET	Step 6: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W06_D4	SCALE	Key D4: sets the KEY	the root of the scale
+KEY_W06_D4	REC	Key D4: plays and writes it	at the cursor or nearest step
+KEY_W06_D4	RESET	Step 6: CLR its edits	back to the generator
+KEY_W07_E4	PERF	Step 7: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W07_E4	NOTE_EDIT	Step 7: tap = ON / OFF	hold: move NOTE EDIT here
+KEY_W07_E4	CHAN	Step 7: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W07_E4	SET	Step 7: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W07_E4	SCALE	Key E4: sets the KEY	the root of the scale
+KEY_W07_E4	REC	Key E4: plays and writes it	at the cursor or nearest step
+KEY_W07_E4	RESET	Step 7: CLR its edits	back to the generator
+KEY_W08_F4	PERF	Step 8: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W08_F4	NOTE_EDIT	Step 8: tap = ON / OFF	hold: move NOTE EDIT here
+KEY_W08_F4	CHAN	Step 8: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W08_F4	SET	Step 8: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W08_F4	SCALE	Key F4: sets the KEY	the root of the scale
+KEY_W08_F4	REC	Key F4: plays and writes it	at the cursor or nearest step
+KEY_W08_F4	RESET	Step 8: CLR its edits	back to the generator
+KEY_W09_G4	PERF	Step 9: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W09_G4	NOTE_EDIT	Step 9: tap = ON / OFF	hold: move NOTE EDIT here
+KEY_W09_G4	CHAN	Step 9: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W09_G4	SET	Step 9: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W09_G4	SCALE	Key G4: sets the KEY	the root of the scale
+KEY_W09_G4	REC	Key G4: plays and writes it	at the cursor or nearest step
+KEY_W09_G4	RESET	Step 9: CLR its edits	back to the generator
+KEY_W10_A4	PERF	Step 10: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W10_A4	NOTE_EDIT	Step 10: tap = ON / OFF	hold: move NOTE EDIT here
+KEY_W10_A4	CHAN	Step 10: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W10_A4	SET	Step 10: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W10_A4	SCALE	Key A4: sets the KEY	the root of the scale
+KEY_W10_A4	REC	Key A4: plays and writes it	at the cursor or nearest step
+KEY_W10_A4	RESET	Step 10: CLR its edits	back to the generator
+KEY_W11_B4	PERF	Step 11: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W11_B4	NOTE_EDIT	Step 11: tap = ON / OFF	hold: move NOTE EDIT here
+KEY_W11_B4	CHAN	Step 11: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W11_B4	SET	Step 11: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W11_B4	SCALE	Key B4: sets the KEY	the root of the scale
+KEY_W11_B4	REC	Key B4: plays and writes it	at the cursor or nearest step
+KEY_W11_B4	RESET	Step 11: CLR its edits	back to the generator
+KEY_W12_C5	PERF	Step 12: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W12_C5	NOTE_EDIT	Step 12: tap = ON / OFF	hold: move NOTE EDIT here
+KEY_W12_C5	CHAN	Step 12: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W12_C5	SET	Step 12: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W12_C5	SCALE	Key C5: sets the KEY	the root of the scale
+KEY_W12_C5	REC	Key C5: plays and writes it	at the cursor or nearest step
+KEY_W12_C5	RESET	Step 12: CLR its edits	back to the generator
+KEY_W13_D5	PERF	Step 13: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W13_D5	NOTE_EDIT	Step 13: tap = ON / OFF	hold: move NOTE EDIT here
+KEY_W13_D5	CHAN	Step 13: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W13_D5	SET	Step 13: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W13_D5	SCALE	Key D5: sets the KEY	the root of the scale
+KEY_W13_D5	REC	Key D5: plays and writes it	at the cursor or nearest step
+KEY_W13_D5	RESET	Step 13: CLR its edits	back to the generator
+KEY_W14_E5	PERF	Step 14: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W14_E5	NOTE_EDIT	Step 14: tap = ON / OFF	hold: move NOTE EDIT here
+KEY_W14_E5	CHAN	Step 14: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W14_E5	SET	Step 14: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W14_E5	SCALE	Key E5: sets the KEY	the root of the scale
+KEY_W14_E5	REC	Key E5: plays and writes it	at the cursor or nearest step
+KEY_W14_E5	RESET	Step 14: CLR its edits	back to the generator
+KEY_W15_F5	PERF	Step 15: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W15_F5	NOTE_EDIT	Step 15: tap = ON / OFF	hold: move NOTE EDIT here
+KEY_W15_F5	CHAN	Step 15: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W15_F5	SET	Step 15: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W15_F5	SCALE	Key F5: sets the KEY	the root of the scale
+KEY_W15_F5	REC	Key F5: plays and writes it	at the cursor or nearest step
+KEY_W15_F5	RESET	Step 15: CLR its edits	back to the generator
+KEY_W16_G5	PERF	Step 16: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W16_G5	NOTE_EDIT	Step 16: tap = ON / OFF	hold: move NOTE EDIT here
+KEY_W16_G5	CHAN	Step 16: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W16_G5	SET	Step 16: tap = ON / OFF	hold 0.4 s: edit that note
+KEY_W16_G5	SCALE	Key G5: sets the KEY	the root of the scale
+KEY_W16_G5	REC	Key G5: plays and writes it	at the cursor or nearest step
+KEY_W16_G5	RESET	Step 16: CLR its edits	back to the generator
+KEY_B01_F#3	PERF	M1: mute / unmute CH1	its phase keeps running
+KEY_B01_F#3	NOTE_EDIT	M1: mute / unmute CH1	its phase keeps running
+KEY_B01_F#3	CHAN	M1: mute / unmute CH1	its phase keeps running
+KEY_B01_F#3	SET	M1: mute / unmute CH1	its phase keeps running
+KEY_B01_F#3	SCALE	Key F#3: sets the KEY	the root of the scale
+KEY_B01_F#3	REC	Key F#3: plays and writes it	at the cursor or nearest step
+KEY_B01_F#3	RESET	Key F#3: nothing to reset	EDIT cancels RESET
+KEY_B02_G#3	PERF	M2: mute / unmute CH2	its phase keeps running
+KEY_B02_G#3	NOTE_EDIT	M2: mute / unmute CH2	its phase keeps running
+KEY_B02_G#3	CHAN	M2: mute / unmute CH2	its phase keeps running
+KEY_B02_G#3	SET	M2: mute / unmute CH2	its phase keeps running
+KEY_B02_G#3	SCALE	Key G#3: sets the KEY	the root of the scale
+KEY_B02_G#3	REC	Key G#3: plays and writes it	at the cursor or nearest step
+KEY_B02_G#3	RESET	Key G#3: nothing to reset	EDIT cancels RESET
+KEY_B03_A#3	PERF	M3: mute / unmute CH3	its phase keeps running
+KEY_B03_A#3	NOTE_EDIT	M3: mute / unmute CH3	its phase keeps running
+KEY_B03_A#3	CHAN	M3: mute / unmute CH3	its phase keeps running
+KEY_B03_A#3	SET	M3: mute / unmute CH3	its phase keeps running
+KEY_B03_A#3	SCALE	Key A#3: sets the KEY	the root of the scale
+KEY_B03_A#3	REC	Key A#3: plays and writes it	at the cursor or nearest step
+KEY_B03_A#3	RESET	Key A#3: nothing to reset	EDIT cancels RESET
+KEY_B04_C#4	PERF	M4: mute / unmute CH4	its phase keeps running
+KEY_B04_C#4	NOTE_EDIT	M4: mute / unmute CH4	its phase keeps running
+KEY_B04_C#4	CHAN	M4: mute / unmute CH4	its phase keeps running
+KEY_B04_C#4	SET	M4: mute / unmute CH4	its phase keeps running
+KEY_B04_C#4	SCALE	Key C#4: sets the KEY	the root of the scale
+KEY_B04_C#4	REC	Key C#4: plays and writes it	at the cursor or nearest step
+KEY_B04_C#4	RESET	Key C#4: nothing to reset	EDIT cancels RESET
+KEY_B05_D#4	PERF	CHN: open channel settings	LENGTH MIDI SOURCE FOLLOW
+KEY_B05_D#4	NOTE_EDIT	CHN: open channel settings	LENGTH MIDI SOURCE FOLLOW
+KEY_B05_D#4	CHAN	CHN: back to PERF	tap again to leave CHAN
+KEY_B05_D#4	SET	CHN: open channel settings	LENGTH MIDI SOURCE FOLLOW
+KEY_B05_D#4	SCALE	Key D#4: sets the KEY	the root of the scale
+KEY_B05_D#4	REC	Key D#4: plays and writes it	at the cursor or nearest step
+KEY_B05_D#4	RESET	COPY P: re-copy the page before	edits and source; EDIT = undo
+KEY_B06_F#4	PERF	SOL: hold = only this channel	release restores the mutes
+KEY_B06_F#4	NOTE_EDIT	SOL: hold = only this channel	release restores the mutes
+KEY_B06_F#4	CHAN	SOL: hold = only this channel	release restores the mutes
+KEY_B06_F#4	SET	SOL: hold = only this channel	release restores the mutes
+KEY_B06_F#4	SCALE	Key F#4: sets the KEY	the root of the scale
+KEY_B06_F#4	REC	Key F#4: plays and writes it	at the cursor or nearest step
+KEY_B06_F#4	RESET	Key F#4: nothing to reset	EDIT cancels RESET
+KEY_B07_G#4	PERF	FIL: hold = a denser pattern	press harder = denser
+KEY_B07_G#4	NOTE_EDIT	FIL: hold = a denser pattern	press harder = denser
+KEY_B07_G#4	CHAN	FIL: hold = a denser pattern	press harder = denser
+KEY_B07_G#4	SET	FIL: hold = a denser pattern	press harder = denser
+KEY_B07_G#4	SCALE	Key G#4: sets the KEY	the root of the scale
+KEY_B07_G#4	REC	Key G#4: plays and writes it	at the cursor or nearest step
+KEY_B07_G#4	RESET	Key G#4: nothing to reset	EDIT cancels RESET
+KEY_B08_A#4	PERF	ROL: hold = repeat every step	press harder = 2x 3x 4x
+KEY_B08_A#4	NOTE_EDIT	ROL: hold = repeat every step	press harder = 2x 3x 4x
+KEY_B08_A#4	CHAN	ROL: hold = repeat every step	press harder = 2x 3x 4x
+KEY_B08_A#4	SET	ROL: hold = repeat every step	press harder = 2x 3x 4x
+KEY_B08_A#4	SCALE	Key A#4: sets the KEY	the root of the scale
+KEY_B08_A#4	REC	Key A#4: plays and writes it	at the cursor or nearest step
+KEY_B08_A#4	RESET	Key A#4: nothing to reset	EDIT cancels RESET
+KEY_B09_C#5	PERF	PG-: view the page before	turns FOLLOW off
+KEY_B09_C#5	NOTE_EDIT	PG-: view the page before	turns FOLLOW off
+KEY_B09_C#5	CHAN	PG-: view the page before	turns FOLLOW off
+KEY_B09_C#5	SET	PG-: view the page before	turns FOLLOW off
+KEY_B09_C#5	SCALE	Key C#5: sets the KEY	the root of the scale
+KEY_B09_C#5	REC	Key C#5: plays and writes it	at the cursor or nearest step
+KEY_B09_C#5	RESET	Key C#5: nothing to reset	EDIT cancels RESET
+KEY_B10_D#5	PERF	PG+: next page, or add one	on the last page PG+ twice adds
+KEY_B10_D#5	NOTE_EDIT	PG+: next page, or add one	on the last page PG+ twice adds
+KEY_B10_D#5	CHAN	PG+: next page, or add one	on the last page PG+ twice adds
+KEY_B10_D#5	SET	PG+: next page, or add one	on the last page PG+ twice adds
+KEY_B10_D#5	SCALE	Key D#5: sets the KEY	the root of the scale
+KEY_B10_D#5	REC	Key D#5: plays and writes it	at the cursor or nearest step
+KEY_B10_D#5	RESET	Key D#5: nothing to reset	EDIT cancels RESET
+KEY_B11_F#5	PERF	RST: all channels to step 1	at the next step
+KEY_B11_F#5	NOTE_EDIT	RST: all channels to step 1	at the next step
+KEY_B11_F#5	CHAN	RST: all channels to step 1	at the next step
+KEY_B11_F#5	SET	RST: all channels to step 1	at the next step
+KEY_B11_F#5	SCALE	Key F#5: sets the KEY	the root of the scale
+KEY_B11_F#5	REC	Key F#5: plays and writes it	at the cursor or nearest step
+KEY_B11_F#5	RESET	Key F#5: nothing to reset	EDIT cancels RESET

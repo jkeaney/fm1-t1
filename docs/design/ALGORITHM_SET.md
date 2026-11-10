@@ -160,7 +160,7 @@ Every ROW 2 default is the neutral value, so the output equals the 4-morph desig
 
 | Algorithm | K1 DENSITY | K2 FORM | K3 PITCH | K4 SPICE |
 | --- | --- | --- | --- | --- |
-| `ACID` | `DENS` 0..16, default 12 | `PEDAL` (was `TYPE`) 0..12, default 6 | `JUMP` 0..20, default 5 | `ACCNT` 0..8, default 3 |
+| `ACID` | `DENS` 0..16, default 12 | `SLIDE` 0..8, default 4 (re-locked by P1-017, SEQUENCER_UX 4.2; `PEDAL` 0..12, default 6 moved to ROW 2 S2) | `JUMP` 0..20, default 5 | `ACCNT` 0..8, default 3 |
 | `EUCLID` | `HITS` 0..16, default 5 | `LEN` 2..16, default 16 | `SPAN` 0..24, default 12 | `ACCNT` 0..8, default 2 |
 | `SNAKE` | `DENS` 0..16, default 10 | `LEN` 1..16, default 7 | `RANGE` 0..48, default **12** (was 24) | `PATH` 1..14, default 7 |
 | `STAGE` | `DENS` 0..8, default 6 | `TOTAL` 8..64, default 16 | `RANGE` 0..36, default 12 | `RATCH` 0..8, default 2 |
@@ -169,7 +169,7 @@ Fit argument per cell (where it is not obvious):
 
 | Cell | Why it fits |
 | --- | --- |
-| ACID K2 `PEDAL` (was `TYPE`) as FORM | ACID is fixed at 16 steps, so FORM cannot be a length. PEDAL sets how much of the line is the repeated root versus the raw motif, which is the loop's character (0 = raw motif, 12 = hammering acid). |
+| ACID `PEDAL` (was `TYPE`; now ROW 2 S2, the argument is unchanged) as FORM | ACID is fixed at 16 steps, so FORM cannot be a length. PEDAL sets how much of the line is the repeated root versus the raw motif, which is the loop's character (0 = raw motif, 12 = hammering acid). |
 | ACID K3 `JUMP` as PITCH | Octave-jump probability is the only pitch-width control ACID has (register reach). |
 | SNAKE K2 `LEN` as FORM | Pitch-lane loop length against the fixed 16-step rhythm: how the loop is built (polymeter). |
 | SNAKE K4 `PATH` as SPICE | The most dramatic stepped change per detent (re-orders melody and rhythm at once), the "twist" control. |

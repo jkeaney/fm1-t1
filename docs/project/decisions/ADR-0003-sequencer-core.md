@@ -127,6 +127,13 @@ typedef struct {
 } ChanSave;
 _Static_assert(sizeof(ChanSave) == 102, "ChanSave");
 
+/* Owner ruling 2026-11-10 (MIDI channels unique): assigning a taken MIDI channel sets the other channel to OFF. The OFF channel keeps
+ * running (its lane, playhead, pattern and mute are untouched) but sq_emit sends nothing for it; the preview synth still plays the
+ * selected, unmuted channel (midi_ch == SQ_MIDI_OFF means "no MIDI out", ChanSave comment above). The reassignment is ONE undo step
+ * for both channels, so it has its own 4 B record beside the per-channel UndoRec; it stays the latest undoable action until the next
+ * one. +4 B .bss (SEQUENCER_UX 4.4, 9.4 headroom unchanged). */
+typedef struct { uint8_t ch, old_midi, other, other_old; } UndoMidi;      /* other = 0xFF when no channel was displaced */
+
 /* One undo/redo record per channel: the last dice / dice-all / pin edit / pin-clear / reset. Swapping it in again = redo. 48 B (P1-014) */
 typedef struct {
     uint8_t  what;                 /* 0 none, bit0 seeds, bit1 pins, bit2 morphs, bit3 one step record (P1-014) */
@@ -360,7 +367,7 @@ void    sq_dice_layer(uint8_t ch, uint8_t layer);
 void    sq_dice_all(uint8_t ch);
 void    sq_undo(uint8_t ch);                                      /* undo; again = redo */
 void    sq_set_algo(uint8_t ch, uint8_t algo);                    /* keeps st[]; clears UndoRec; lands at the next step */
-void    sq_set_midi(uint8_t ch, uint8_t midi_ch);                 /* 0..15, SQ_MIDI_OFF */
+int8_t  sq_set_midi(uint8_t ch, uint8_t midi_ch);                 /* 0..15, SQ_MIDI_OFF. MIDI channels are UNIQUE (owner ruling 2026-11-10): if another channel o holds midi_ch (not OFF), o is set to SQ_MIDI_OFF in the same call, one UndoMidi record is written, and o is returned (-1 = none displaced) so the UI can toast it */
 void    sq_set_mute(uint8_t ch, uint8_t on);
 void    sq_select(uint8_t ch);
 void    sq_pin_set(uint8_t ch, uint8_t pos, uint8_t semi);        /* pos 0..15, semi 0..96 */
@@ -560,7 +567,7 @@ applied after `step()`), so morphs and dice never disturb them.
 
 - A preset is a `SeqPreset` (420 B). `sq_preset_save()` copies `sq_ch`, `sq_g.s`, BPM. Slot storage (P01..P16 = 6720 B,
   the autosave, the "undo last load" copy) is E7 (project.c becomes the store); this ADR fixes only the byte layout.
-  `sq_preset_load()` **validates and clamps every field** (algo < 4, midi_ch <= 16, morph within `MorphDesc` min/max,
+  `sq_preset_load()` **validates and clamps every field** (algo < 4, midi_ch <= 16 and unique: if two channels hold the same non-OFF value the lower-numbered keeps it and the others load as OFF, morph within `MorphDesc` min/max,
   pin_note <= 96, scale < 16, ...); an invalid `version` or CRC loads the power-on defaults.
 - **Queued to the next loop start (owner decision 34):** "loop start" = the next tick where the global bar counter
   `sq_bar` (192-PPQN ticks since PLAY / restart) reaches a multiple of **768 ticks** (always one 4/4 bar, whatever DIV

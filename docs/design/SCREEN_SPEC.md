@@ -1,6 +1,6 @@
 # SCREEN_SPEC: the 240x240 screen, zone by zone (P2-003)
 
-Status: **proposed**, for the owner's human-review gate. Nothing here is approved until the owner writes it in the
+Status: **proposed**, for the owner's human-review gate. P2-011 applied the scenario findings F-01..F-19 (FINDINGS.md, scenarios/): the header slots H4 / H5, the Z1 cell line, the toast zone (2.7), the band status lines (7.1), the MENU roles (3) and the cue rows (6.6) changed; every string was re-measured by `tests/design/width_probe.sh`. Nothing here is approved until the owner writes it in the
 P2-003 log. It makes VISION rule 1 concrete: at every moment the screen shows what the device is **doing** and the
 current role of **every** knob and button. It adds pixels to the locked UX ([SEQUENCER_UX.md](SEQUENCER_UX.md), P1-017
 approved); it changes none of its decisions (SET K1 stays as locked: ignored while an external clock runs). Where a locked mock-up cannot be drawn as printed, section 9 lists the
@@ -55,8 +55,8 @@ Slots are contiguous from x=2 (a 2 px inner margin each side). Text is left-alig
 | H1 | 2,4,10,12 | transport: `>` playing, `.` stopped, `R` REC armed (T_REC); a lost external clock shows `.` too (6.2) | 1 glyph |
 | H2 | 12,4,56,12 | **clock dot (8x8 at x=12,y=6) and tempo source** (section 6): dot + text from x=23 | `EXT 126` 45 (23+45 = 68), `INT 120` 42, `EXT --` 34, `WAIT` 28 |
 | H3 | 68,4,28,12 | preset: `P01`, `P05?` pending, `P05>` loading | `P05?` 27 |
-| H4 | 96,4,76,12 | `CH1 ACID M1` channel, algorithm (4 letters), MIDI channel | `CH1 ACID M1` 72 |
-| H5 | 172,4,42,12 | page map `[1][2]. .` (viewed outlined, playing filled) | 38 |
+| H4 | 96,4,76,12 | `1 ACID M1` channel number, algorithm (4 letters), MIDI channel `M1`..`M16` or `MOFF` (no `CH` prefix: with it `CH1 ACID MOFF` is 87 px and `CH2 EUCL M12` 83 px, over the 76 px slot) | `1 ACID MOFF` 70, `1 ACID M12` 63, `4 STAG M16` under 76 |
+| H5 | 172,4,42,12 | **page map, drawn as graphics** (not text; four text cells `[1][2][3][4]` are 58 px, over 42): up to 4 cells, each 9 px wide and 11 tall at a 10 px pitch from x=174 (39 px in all), the page digit centred in the cell (AF_S digit 7 px). Viewed = outlined (T_TEXT), playing = filled (T_SEL fill, T_INK digit), a page that exists = a plain T_DIM outline, a hidden page that still holds stored content (1.5) = a dotted T_DIM outline, a page that never existed = a 2x2 dot at the cell centre, a partial last page (LENGTH not a multiple of 16) = its outline has the bottom edge dashed | 4 cells, 39 |
 | H6 | 214,4,24,12 | `L32` pattern length | `L64` 20 |
 
 The header is on every page except MENU (own title) and HELP's dimmed copy. 2+10+56+28+76+42+24 = 238, plus 2 inner
@@ -65,7 +65,7 @@ margin at the right = 240.
 ### 2.2 Z1 CHANNELS cells
 
 4 cells at x = 0, 60, 120, 180, each 60x28. Line 1 (y+2): channel number and algorithm name (`1 ACID`). Line 2 (y+14):
-`MIDI 2` and, when muted, `MUTE` (dim). The selected cell is drawn inverted (T_SEL fill, T_INK text); a 4x4 activity dot
+the MIDI channel: `MIDI 2` (33 px), `MIDI 12` (40), `MIDI OFF` (48). **OFF is the state of a channel that gave its MIDI channel away** (MIDI channels are unique, SEQUENCER_UX 4.4; owner ruling 2026-11-10) or that the user set to OFF: the cell shows `MIDI OFF` in T_ACCENT for 3 s after the displacement, then in T_TEXT; the lane and playhead of that channel keep running. A **muted** channel draws the whole cell dim and line 2 reads `MUTE 2`, `MUTE 12` (49) or `MUTE -` (MIDI OFF): the MIDI channel stays readable, and `MIDI 2 MUTE` (68 px) and `M12 MUTE` (59) do not fit the 56 px of ink (60 px cell less a 2 px margin each side). Three of the four channels are muted at power-on, so this is the default screen. The selected cell is drawn inverted (T_SEL fill, T_INK text); a 4x4 activity dot
 at the cell's right edge flashes on each note out. The SELECT encoder picks the cell, the ALGO encoder renames its
 algorithm field, the M1..M4 black keys mute a cell.
 
@@ -128,7 +128,24 @@ dash. A button whose tap label differs from the printed word (RST, CANCEL, BACK)
   between groups is 1 px of pitch gap plus 2 px = 3 px from one cell's right edge to the next group's left edge):
   `LEG_X` = 0, 21, 42, 65, 86, 109, 130, 151, 174, 195, 218 (cell 3 ends at 62, cell 4 starts at 65; the last cell ends at 238); each cell shows the page's label for that black key (max 6
   characters); inverted while the key is down; muted-channel cells dim.
-- Z6: one line, 34 characters, priority table SEQUENCER_UX 11.2 (plus the rows 8a, 13a, 13b added in section 6.6).
+- Z6: one line, 34 characters nominal (the binding limit is the 240 px width, measured), priority table SEQUENCER_UX 11.2 (plus the rows 8a, 10a, 10b added in section 6.6). **Toasts** (2.7) are drawn in the same rectangle and outrank the cue rows for 2 s.
+
+### 2.7 Toasts (the transient message, F-03)
+
+About 35 locked behaviours answer with a toast (`SAVED P03`, `UNDO: <what>`, `NO SHAPE IN EUCLID`, `ONE ROW HERE`,
+`PAST THE END: CHAN K1 = LENGTH`, `64 STEPS = MAX`, ...). There is **no separate toast zone**: a toast is drawn in the Z6
+rectangle (0,224,240,12) and temporarily replaces the cue strip.
+
+| Item | Specification |
+| --- | --- |
+| Where | Z6, the same 240x12 rectangle and AF_S font as the cue strip; text left-aligned at x=4; fill `T_TINT`, ink `T_ACCENT` (never a cue row's `T_TEXT`, so the user can tell a message from a hint) |
+| Duration | 2000 ms from the frame it appears, then the cue strip returns at its current priority row |
+| Priority | a toast outranks every cue row 2..15 (SEQUENCER_UX 11.2). It never outranks row 1 (HOME held: the HELP line is the answer to a touch); a toast raised while HOME is held is dropped |
+| Queue | none. A new toast replaces the one showing and restarts the 2000 ms; a repeat of the same text only restarts the timer. One toast is never shown for a control that did nothing and has no entry (the table rows say "inert" and give the toast text) |
+| Length | one line. Nominal 34 characters; the binding limit is 240 px, measured with the real `text_w` by the width test (`tests/design/widths.tsv`, section 9). The longest locked toast `PAGE 3 READS 17-32: NO PAGE BEFORE PLAYS IT` (263 px) is renamed `P3 READS 17-32: NO PAGE PLAYS IT` (194) |
+| Redraw | Z6 only, with the cue strip's blit (blit C); the Z6 signature gains the toast id and its expiry frame |
+| MIDI displacement | `CH2 IS MIDI OFF: CH1 TAKES 2` (163 px; worst case `CH4 IS MIDI OFF: CH3 TAKES 16` 170 px), raised when CHAN K2 settles on a MIDI channel another channel uses; undo says `UNDO: MIDI 2 BACK ON CH2` (151 px). Both rows are in `tests/design/widths.tsv` |
+| Not a toast | `CLOCK LOST: ...` (3 s, cue row 10b) and every first-run text are cue rows, not toasts |
 
 ## 3. Control labels: where every control shows its role
 
@@ -155,13 +172,13 @@ Per page (the nine contexts of the tables), the slots that change meaning:
 | --- | --- | --- | --- | --- | --- | --- |
 | PERF | 4 cells | lane + header | tag `OCT-`/`OCT+` `h:peek`; ROW 1 live (K1..K4) + ROW 2 dim (S1..S4) | dice row + holds | M1..M4 CHN SOL FIL ROL PG- PG+ RST | rows 13/14/15 of 11.2 |
 | NOTE_EDIT | banner replaces cells: `CH1 NOTE EDIT STEP 21` (`CH n` = the EN_SELECT label) | edited cell boxed | tag `OCT-`/`OCT+` (step octave); K1..K4 PITCH GATE VELO RATCH, value + `AUTO`/`*` | dice-this-step labels (ALL NOTE ACCENT PROB UNDO SET / HOME SAVE SLIDE ON/OFF PLAY REC) | as PERF | `STEP n: KNOBS EDIT  HOME=done` |
-| CHAN | 4 cells | page map cells (4) | tag `-PAGE`/`+PAGE`; K1..K4 LENGTH MIDI SOURCE FOLLOW; status lines: page-source summary, `D#4 = BACK` | as PERF | D#4 reads `BACK` | row 6 |
+| CHAN | 4 cells | page map cells (4) | tag `-PAGE`/`+PAGE`; K1..K4 LENGTH MIDI SOURCE FOLLOW; status lines: 7.1 | as PERF | D#4 reads `BACK` | row 6 |
 | SET | 4 cells | lane as PERF | tag `-`/`-` (inert); K1..K4 BPM SWING GATE DIV; **status lines: tempo source and clock out (6.5)** | `GLO` reads `BACK`, hold `SCALE` | as PERF | row 8 (or 8a, 6.6) |
 | SCALE | 4 cells | 27-key picture, scale tones lit, root boxed | tag `OCT-`/`OCT+` = `OCTAVE -`/`+`; K1..K4 SCALE KEY OCTAVE `-` | as SET | all 27 keys read `KEY` | row 7 |
 | REC | banner `CH1 REC writing to page 2` (T_REC; `CH n` = the EN_SELECT label) | write cursor `^` | tag `OCT-`/`OCT+` = `OCT -`/`+`; K1..K4 CURSOR ACC SLIDE OCT; status `KEYS = NOTES (all 27)` | dice labels live (performing while recording is allowed) | `KEYS = NOTES` | row 4 |
 | RESET | the page beneath, banner `RESET`; ALGO / PRESET encoders read `-` (no role) in the Z0 H3 / H4 slots | every resettable cell tagged `RST` | K1..K4 = `RST` over the value being reset; tag column BT: `RST R1` (OCT-) over `RST R2` (OCT+) | `RST AL`, `RST NT`... (two-line wrap, 9) | white keys `CLR`; D#4 = re-copy | row 2 |
 | HELP | the page beneath dimmed | dimmed | dimmed | dimmed | dimmed | 2-line help box over Z3..Z4 (y=108..212, x=8..232) naming the touched control | row 1 |
-| MENU | whole screen: Felucca menu. Control labels (control_map): OCT- / OCT+ and the page buttons read `close` (HOME), the SELECT encoder `tab`, the ALGO encoder `row`, K1..K4 the row's value; they are drawn by `ui_menu.c` in its footer line (AF_S, 12 px, y=224..236): `HOME close  SELECT tab  ALGO row`. | | | | | footer line above (the slot is the same Z6 rectangle) |
+| MENU | whole screen: the Felucca menu, drawn by `ui_menu.c`. **One reading of the control roles, the control map** (`control_map.tsv`, `knob_map.tsv`, which match the shipped menu code): ALGO = next / previous tab, PRESETS = next / previous row, K1..K4 and OCT- / OCT+ = change the selected row's value (previous / next; OCT+ also opens CALIBRATION, INFO, ABOUT), HOME = close (tap, or hold 0.7 s), PLAY = start / stop, the six page buttons (FX SCL ENV LFO EDIT GLO) and SAVE ARP SEQ REC = close, SELECT = keeps its page role (selects a channel; not visible until the menu closes) and the keys are inert. The menu draws its own key hints, unchanged from Felucca: `HOME CLOSE` in its header and `ALGO TAB  PRESETS ROW  OCT- / OCT+ VALUE` in its footer line (y=224..236, the Z6 rectangle). The earlier text of this row (`HOME close  SELECT tab  ALGO row`, OCT- / OCT+ reading `close`) was wrong on three controls and is withdrawn (P2-011, F-02). | | | | | footer line above (the slot is the Z6 rectangle) |
 
 ## 4. How modifier-held states relabel
 
@@ -170,7 +187,7 @@ the slot of a control is repainted with the held-role text, the page beneath is 
 
 | Held | Relabelled slots | Text |
 | --- | --- | --- |
-| `HOME` (HELP, 0.25 s after press) | all of Z3, Z4 dimmed; help box over y=108..212; Z6 | the touched control's line (`HITS: re-roll where notes fall`) |
+| `HOME` (HELP, 0.25 s after press) | all of Z3, Z4 dimmed; help box over y=108..212; Z6 | the touched control's line 1 in Z6, both lines in the help box: the text is the table `docs/design/help_text.tsv` (control x page; `HITS: re-roll where notes fall` is its SEQ row on PERF) |
 | `EDIT` hold 0.4 s (RESET) | every resettable cell gains a `RST` tag (T_ACCENT) in the corner of its slot; Z6 | `RESET: TOUCH WHAT TO RESET  EDIT=no` |
 | `GLO` hold 0.4 s (SCALE) | Z2 becomes the 27-key picture; Z3 becomes SCALE band | `SCALE: PRESS A KEY = KEY  HOME=back` |
 | `OCT-` / `OCT+` hold (peek) | the other knob row's cells are drawn filled for as long as the hold lasts | none |
@@ -185,16 +202,18 @@ the slot of a control is repainted with the held-role text, the page beneath is 
 | --- | --- | --- | --- | --- |
 | H2 tempo | AF_S | 7 | 45 (after the 8 px dot and 3 px gap) | the string table of 6.2 only; no other text |
 | H3 preset | AF_S | 4 | 28 | |
-| H4 | AF_S | 12 | 76 | algorithm name is the 4-letter short form |
-| H5 / H6 | AF_S | 9 / 3 | 42 / 24 | pages beyond 4 never occur |
-| Z1 cell line | AF_S | 8 | 56 | ellipsis glyph `\x85` after the cut |
+| H4 | AF_S | 11 | 76 | `1 ACID MOFF` 70; algorithm name is the 4-letter short form; no `CH` prefix (2.1) |
+| H5 | graphics | 4 cells | 42 (39 used) | not text (2.1) |
+| H6 | AF_S | 3 | 24 | `L64` 20 |
+| Z1 cell line | AF_S | 8 | 56 | ellipsis glyph `\x85` after the cut; line 2 `MIDI 12` 40, `MUTE 12` 49 |
 | Lane header | AF_S | 40 | 240 | |
 | Knob label | AF_S | 6 | 51 | locked by `check_sequencer_ux.py` (6 characters) |
-| Knob value | AF_S | 8 | 51 | |
+| Knob value | AF_S | 8 | 51 | the cell value of DENS / HITS at 0 is `KEYS` (28 px; the state is still called KEYS ONLY in cues and HELP); STAGE `TOTAL` reads `48 (32)` (38 px; the number in brackets is the count of steps heard, HELP explains it) |
 | Band status line | AF_S | 34 | 204 | |
 | Button tap / sub-label | AF_S | 6 | the cell width of 2.5 | a label with a space may wrap onto the two lines (9, F2) on pages that have no sub-labels |
 | Black-key label | AF_S | 6 | 20 | `RESTRT` is 42 px and does not fit a 20 px cell: labels over 20 px are cut to what fits plus the ellipsis glyph and the full word is in HELP (9, F3) |
-| Cue strip | AF_S | 34 | 240 | the widest locked strings, `TAP STEP=ON/OFF  HOLD=EDIT NOTE` is 203 px |
+| Cue strip | AF_S | 34 nominal | 240 | the widest locked strings: `CH1: K1 LENGTH  OCT=+-PAGE  D#4=back` 229 px (36 characters, so the pixel limit binds, not the character count), `RESET: TOUCH WHAT TO RESET  EDIT=no` 222 |
+| Toast | AF_S | 34 nominal | 240 | 2.7 |
 
 ## 6. Tempo source, clock out and the clock dot (FB-001; owner rulings 2026-11-10, final form from P2-010)
 
@@ -218,7 +237,7 @@ the slot of a control is repainted with the held-role text, the page beneath is 
 `CLK_TIMEOUT_MS = 500`, the value the firmware already uses to stop the transport when the cable is lost
 (`seq.c:1410`) [V]: 24 pulses at 120 BPM, 8 at 40 BPM, so a slow clock is never mistaken for a stop. The new
 derivation also runs while **stopped** (today it runs only while playing, `seq.c:1406-1416`), from the timestamp of the
-last accepted pulse. The rules that move the source between `INT` and `EXT` (R1..R15) are TIMING_SPEC 4.2; the three
+last accepted pulse. The rules that move the source between `INT` and `EXT` (R1..R16) are TIMING_SPEC 4.2; the three
 the user can observe: a clock heard while stopped makes the source `EXT`; 500 ms of silence returns it to `INT` at the
 user's own tempo; a clock that arrives while the FM-1 is playing as master is ignored.
 
@@ -270,12 +289,13 @@ state K1 does nothing and its cell is a read-only mirror. The user's own tempo i
 
 | State | K1 cell | Status line 1 (y=136) | Status line 2 (y=148) |
 | --- | --- | --- | --- |
-| INT | `BPM` / `120` | `TEMPO INT 120` (84)    `OUT MASTER` (72) | `host clock takes over` (109) |
+| INT, playing | `BPM` / `120` | `TEMPO INT 120` (84)    `OUT MASTER` (72) | `host clock takes over` (109) |
+| INT, stopped | `BPM` / `120` | `TEMPO INT 120` (84)    `OUT ON PLAY` (65) | `host clock takes over` (109) |
 | EXT SYNC | `BPM` / `EXT --` | `TEMPO EXT -- USB` (101)    `OUT FOLLOW` (73) | `waiting for the tempo` (110) |
 | EXT LIVE | `BPM` / `EXT 126` (read-only, T_ACCENT; K1 ignored) | `TEMPO EXT 126 USB` (112)    `OUT FOLLOW` (73) | `K1 off: the host sets tempo` |
 | WAIT | `BPM` / `EXT 126` or `EXT --` | `TEMPO EXT 126 USB`    `OUT FOLLOW` | `WAITING FOR HOST START` (144, T_ACCENT) |
 
-`USB` is `TRS` when the clock comes from the 3.5 mm jack (`TEMPO EXT 126 TRS`, 111). Turning K1 in an EXT state changes
+`OUT MASTER` is shown only while the FM-1 is playing as the master, because it sends nothing while stopped (TIMING_SPEC M7, rule R12; F-08); while stopped it reads `OUT ON PLAY` (clock goes out when PLAY starts). `USB` is `TRS` when the clock comes from the 3.5 mm jack (`TEMPO EXT 126 TRS`, 111). Turning K1 in an EXT state changes
 nothing and shows nothing new; the cue strip (8a) says why.
 
 ### 6.6 Cue strip rows added (SEQUENCER_UX 11.2)
@@ -283,8 +303,10 @@ nothing and shows nothing new; the cue strip (8a) says why.
 | Priority | State | Text |
 | --- | --- | --- |
 | 8a | SET page, any EXT state | `EXT: K1 OFF, HOST SETS TEMPO` (28 characters) |
-| 13a | `clk_armed` (any page except the ones above it) | `WAIT FOR HOST START  PLAY=cancel` (32 characters, 198 px) |
-| 13b | the clock was lost, 3 s after R6 / R9 | `CLOCK LOST: STOPPED` while playing, `CLOCK LOST: PLAY TO START` when armed |
+| 10a | `clk_armed` (any page except the ones above it) | `WAIT FOR HOST START  PLAY=cancel` (32 characters, 198 px) |
+| 10b | the clock was lost, for 3 s after R6 / R9 | `CLOCK LOST: STOPPED` when the clock stopped while playing (R6), `CLOCK LOST: PLAY TO START` when it was lost while armed (R9) |
+
+**Rows 10a and 10b sit above the first-run row (12) and the stopped row (13) of SEQUENCER_UX 11.2.** They were first numbered 13a / 13b, below row 13 (`PLAY: start   K1-K4: morph`, matched whenever the transport is stopped), so first-match-wins could never show them (F-01). Both are states of the transport, so the page rows 4..8 still outrank them (the header shows `WAIT` on every page). Row 10b outranks row 10a and the first-run row: a lost clock is news.
 
 ### 6.7 Main-screen rule
 
@@ -294,19 +316,21 @@ blinks on the beat of whichever clock is in charge.
 
 ## 7. Mock-ups (40 columns; section 2 holds the pixels)
 
+The mock-ups are sketches. The header page map `[1][2]. .` stands for the H5 graphics of 2.1 (outlined / filled / dotted cells); the header channel reads `1 ACID M1` without the old `CH` prefix; a muted channel cell line 2 reads `MUTE n` (2.2).
+
 PERF, INT (power-on):
 
 ```
 +----------------------------------------+ y
-|. oINT 120 P01 CH1 ACID M1 [1][2]. . L32| 0..20   H1 H2 (o = amber clock dot) H3 H4 H5 H6
+|. oINT 120 P01 1 ACID M1 [1][2]. . L32| 0..20   H1 H2 (o = amber clock dot) H3 H4 H5 H6
 |[1 ACID ]| 2 EUCL  | 3 SNAK  | 4 STAG   | 20..48  Z1 (selected inverted; line 2 MIDI n / MUTE)
 | PG 1/2  FOLLOW  hold=EDIT        >P2   | 48..62
 | #  .  #' #  .  #! .  #~ #  .  #  .  #x2 | 62..108 16 cells of 15 px
 |OCT-|DENS 12|SLIDE 4|JUMP 5 |ACCNT 3|   | 108..134 tag + ROW 1
 |h:pk|OFFS 0 |PEDAL 6|PUNCH40|DIR FWD|   | 134..160 tag + ROW 2 (dim)
-| ALL |NOTES|ACCNT|OCTAVE|UNDO| SET      | 160..186 row 1 taps
-|     |notes|acc  |oct   |h:RST|h:SCALE  | (hold mark in place of h:)
-| HOME  SAVE  ARTIC HITS PLAY REC        | 186..212 row 2
+| ALL |NOTES|ACCNT|SHAPE |UNDO| SET      | 160..186 row 1 taps
+|  -  |NOTES|ACCNT|OCTAVE|RST |SCALE    | (dice sub-labels of ALGORITHM_SET 4.4 for ACID; hold mark in place of h:)
+| HOME  SAVE  ARTIC HITS PLAY REC        | 186..212 row 2 (sub-labels HLP/MN, UNDO L, GT+SLD, HITS)
 | M1 M2 M3|M4 CHN|SOL FIL ROL|PG- PG+|RST| 212..224
 | PLAY: start   K1-K4: morph             | 224..236
 +----------------------------------------+ 236..240 blank
@@ -316,7 +340,7 @@ SET, EXT LIVE (Ableton over USB):
 
 ```
 +----------------------------------------+
-|> oEXT 126  P01 CH1 ACID M1 [1][2]. . L32|   H2 = cyan clock dot with a hole + accent text
+|> oEXT 126  P01 1 ACID M1 [1][2]. . L32|   H2 = cyan clock dot with a hole + accent text
 |[1 ACID ]| 2 EUCL  | 3 SNAK  | 4 STAG   |
 | lane as PERF (steps stay live)         |
 | ...                                    |
@@ -332,11 +356,29 @@ SET, EXT LIVE (Ableton over USB):
 SET, WAIT (PLAY pressed while a host clock is heard and the host has not started):
 
 ```
-|. oWAIT     P01 CH1 ACID M1 [1][2]. . L32|   o = cyan ring blinking 2 Hz, transport not yet running
+|. oWAIT     P01 1 ACID M1 [1][2]. . L32|   o = cyan ring blinking 2 Hz, transport not yet running
 | TEMPO EXT 126 USB      OUT FOLLOW       |
 | WAITING FOR HOST START                  |   (T_ACCENT)
-| WAIT FOR HOST START  PLAY=cancel        |   cue strip 13a
+| WAIT FOR HOST START  PLAY=cancel        |   cue strip 10a
 ```
+
+### 7.1 Band status lines and the page-map cells of the single-row pages (F-05)
+
+The single-row pages (2.4) have two status lines (AF_S, y=136 and y=148, x=36..240, **204 px**). PERF has none (two knob
+rows) and SET is in 6.5. The strings below are table data; every width is measured and is in `tests/design/widths.tsv`.
+
+| Page | Status line 1 (y=136) | Status line 2 (y=148) |
+| --- | --- | --- |
+| NOTE_EDIT | `AUTO = generated: F2  50%  96  1x` (183): the generated PITCH, GATE, VELO, RATCH of the edited step, in knob order; a field the user has set is shown bright with `*` in its knob cell instead | `* = set by you (EDIT: undo)` (138) |
+| CHAN | `PAGES  1 OWN  2 P1  3 hidden  4 -` (179): per page, the source it reads (`OWN`, `Pm`) or `hidden` / `-` (never existed) | `D#4 = BACK` (65), then `OCT- / OCT+ = PAGE BOUNDARY` (174) after 2 s |
+| REC | `WRITING TO PAGE 2   CURSOR 5` (171) | `KEYS = NOTES (all 27)` (117) |
+| SCALE | `C MINPEN   OCT 0` (97): key, scale, octave in effect | `OCT- / OCT+ = OCTAVE -1 / +1` (163) |
+
+NOTE_EDIT knob cells: label (y+2) and value (y+16). The value of a field that follows the generator is the word `AUTO`
+(dim); a set value is bright with `*`. The mock-up of SEQUENCER_UX 2.2 that printed `(gen F2)` under each AUTO cell is
+replaced by status line 1, because the cell has only two lines. **CHAN page map** (the four large cells of Z2, each
+60x46): label `1 OWN`, `2 P1`; viewed = outlined, playing = filled, hidden = dotted outline with the word `hidden`, never
+existed = empty frame with `-`, a partial last page = a dashed bottom edge with `20/32` (steps shown / page size).
 
 ## 8. Flex points (table edits, no code)
 
@@ -353,7 +395,8 @@ SET, WAIT (PLAY pressed while a host clock is heard and the host has not started
 | The hold mark (2.5) | `h:` text instead of the glyph (9 px instead of 6: row 2 no longer fits; needs a label edit, see F2) |
 | Row padding (2.5) | 1 px on PERF row 2, 3 px on row 1 |
 | Theme colour per element | any `T_*` token |
-| Cue strip rows 8a, 13a | text and priority |
+| Cue strip rows 8a, 10a, 10b | text and priority |
+| Toast duration (2.7) | 2000 ms, one constant |
 
 Code (not a table edit): the fonts, the 240x124 canvas, the 3-blit structure, the order of redraw.
 
@@ -369,10 +412,15 @@ decision; each is resolved here and the owner may overrule.
 | F3 | black-key label `RESTRT` is 42 px; the legend pitch is 21 px (PERFORMANCE_DESIGN 6 expected P2-003 to check this) | labels over 20 px are cut to what fits plus the ellipsis glyph in the legend and shown in full by HELP; the locked labels in `key_map.tsv` are unchanged. Owner may prefer a taller legend (it would cost the cue strip or band 12 px) |
 | F4 | header text of the locked mock-up is 202 px with `120`; adding the source word and the clock dot needs the slot widths of 2.1 | measured: all six slots fit in 238 px |
 | F5 | lane glyphs `x2` fit a 15 px cell (AF_S 12 px); the velocity bar uses the other 32 px | as 2.3 |
+| F6 | (P2-011, scenario finding F-04) `MIDI 2 MUTE` is 68 px in a 56 px cell; `KEYS ONLY` 62 in 51; `48 (32 heard)` 71 in 51; H4 `CH2 EUCL M12` 83 and `CH1 ACID MOFF` 87 in 76; H5 `[1][2][3][4]` 58 in 42; the toast `PAGE 3 READS 17-32: NO PAGE BEFORE PLAYS IT` 263 in 240 | Z1 line 2 `MUTE 2` (2.2); value `KEYS` and `48 (32)` (5); H4 without the `CH` prefix, 70 px at worst (2.1); H5 drawn as graphics (2.1); the toast renamed `P3 READS 17-32: NO PAGE PLAYS IT` 194 (2.7) |
 
-The widths come from a probe built on the real `text_w` and `ui_fonts.h`. **The implementing task must add a host test
-that runs the same measurement over every label of `control_map.tsv` and every string of 6.2, 6.5 and 6.6 against the
-slot widths of this spec** (otherwise a longer label silently breaks a row).
+The widths come from a probe built on the real `text_w` and `ui_fonts.h`. The probe is now in the repository:
+`sh tests/design/width_probe.sh [file.tsv]` extracts `glyph_at .. text_w` from `firmware/src/gfx.c` and measures the strings of
+`tests/design/widths.tsv` (FONT, limit in px, string, where) against their slots; it exits 1 if any string is over. That
+file holds every string this spec fixed or added (the F-04 set, the status lines of 7.1, the cue rows, the toasts).
+**The implementing task must still add a firmware host test that runs the same measurement over every label of
+`control_map.tsv` and every string of 6.2, 6.5 and 6.6 against the slot widths of this spec** (otherwise a longer label
+silently breaks a row); `widths.tsv` is its starting table.
 
 ## 10. Boot and first use (owner decision 32b)
 

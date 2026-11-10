@@ -1,0 +1,111 @@
+# FONT	LIMIT_PX	STRING	WHERE   (read by tests/design/width_probe.sh; P2-011)
+S	56	MIDI 2	Z1 cell line 2 (2.2): 60 px cell, 56 px of ink
+S	56	MIDI 12	Z1 cell line 2 (2.2): 60 px cell, 56 px of ink
+S	56	MIDI 16	Z1 cell line 2 (2.2): 60 px cell, 56 px of ink
+S	56	MIDI OFF	Z1 cell line 2 (2.2): 60 px cell, 56 px of ink
+S	56	MUTE 2	Z1 cell line 2 (2.2): 60 px cell, 56 px of ink
+S	56	MUTE 12	Z1 cell line 2 (2.2): 60 px cell, 56 px of ink
+S	56	MUTE 16	Z1 cell line 2 (2.2): 60 px cell, 56 px of ink
+S	56	MUTE -	Z1 cell line 2 (2.2): 60 px cell, 56 px of ink
+S	51	KEYS	knob cell value / label (2.4): 51 px
+S	51	48 (32)	knob cell value / label (2.4): 51 px
+S	51	64 (16)	knob cell value / label (2.4): 51 px
+S	51	32 (16)	knob cell value / label (2.4): 51 px
+S	51	TOTAL	knob cell value / label (2.4): 51 px
+S	51	FOLLOW	knob cell value / label (2.4): 51 px
+S	51	SOURCE	knob cell value / label (2.4): 51 px
+S	51	OFFSET	knob cell value / label (2.4): 51 px
+S	51	ACCNT	knob cell value / label (2.4): 51 px
+S	76	1 ACID M1	H4 (2.1): 76 px
+S	76	1 ACID M12	H4 (2.1): 76 px
+S	76	1 ACID MOFF	H4 (2.1): 76 px
+S	76	2 EUCL M12	H4 (2.1): 76 px
+S	76	3 SNAK M16	H4 (2.1): 76 px
+S	76	4 STAG MOFF	H4 (2.1): 76 px
+S	76	4 STAG M16	H4 (2.1): 76 px
+S	9	1	H5 page digit in a 9 px cell (2.1)
+S	9	2	H5 page digit in a 9 px cell (2.1)
+S	9	3	H5 page digit in a 9 px cell (2.1)
+S	9	4	H5 page digit in a 9 px cell (2.1)
+S	24	L16	H6 (2.1)
+S	24	L64	H6 (2.1)
+S	45	EXT 126	H2 text after the dot (6.2)
+S	45	EXT --	H2 text after the dot (6.2)
+S	45	INT 120	H2 text after the dot (6.2)
+S	45	WAIT	H2 text after the dot (6.2)
+S	28	P05?	H3 (2.1)
+S	28	P05>	H3 (2.1)
+S	204	TEMPO INT 120    OUT MASTER	band status line (6.5, 7.1): 204 px
+S	204	TEMPO INT 120    OUT ON PLAY	band status line (6.5, 7.1): 204 px
+S	204	TEMPO EXT 126 USB    OUT FOLLOW	band status line (6.5, 7.1): 204 px
+S	204	TEMPO EXT 126 TRS    OUT FOLLOW	band status line (6.5, 7.1): 204 px
+S	204	TEMPO EXT -- USB    OUT FOLLOW	band status line (6.5, 7.1): 204 px
+S	204	host clock takes over	band status line (6.5, 7.1): 204 px
+S	204	waiting for the tempo	band status line (6.5, 7.1): 204 px
+S	204	K1 off: the host sets tempo	band status line (6.5, 7.1): 204 px
+S	204	WAITING FOR HOST START	band status line (6.5, 7.1): 204 px
+S	204	AUTO = generated: F2  50%  96  1x	band status line (6.5, 7.1): 204 px
+S	204	* = set by you (EDIT: undo)	band status line (6.5, 7.1): 204 px
+S	204	PAGES  1 OWN  2 P1  3 hidden  4 -	band status line (6.5, 7.1): 204 px
+S	204	D#4 = BACK	band status line (6.5, 7.1): 204 px
+S	204	OCT- / OCT+ = PAGE BOUNDARY	band status line (6.5, 7.1): 204 px
+S	204	WRITING TO PAGE 2   CURSOR 5	band status line (6.5, 7.1): 204 px
+S	204	KEYS = NOTES (all 27)	band status line (6.5, 7.1): 204 px
+S	204	C MINPEN   OCT 0	band status line (6.5, 7.1): 204 px
+S	204	OCT- / OCT+ = OCTAVE -1 / +1	band status line (6.5, 7.1): 204 px
+S	240	HOME: touch=HELP  let go=MENU	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	RESET: TOUCH WHAT TO RESET  EDIT=no	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	ADD PAGE 2 = COPY OF 1? PG+ = yes	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	SHOW PAGE 3 (HIDDEN)? PG+ = yes	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	SHOW ALL OF PAGE 2 (L32)? PG+ = yes	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	REC: PLAY KEYS TO WRITE  REC=done	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	STEP 21: KNOBS EDIT  HOME=done	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	K2: MIDI CHANNEL  HOME=done	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	PRESS PLAY	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	CH1: K1 LENGTH  OCT=+-PAGE  D#4=back	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	SCALE: PRESS A KEY = KEY  HOME=back	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	SET: GLO hold=SCALE  HOME=back	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	EXT: K1 OFF, HOST SETS TEMPO	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	ROLL 3x: let go to stop	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	P05: SAVE = save here	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	P05 AT BAR  SAVE = save here	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	EDIT takes it back	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	WAIT FOR HOST START  PLAY=cancel	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	CLOCK LOST: STOPPED	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	CLOCK LOST: PLAY TO START	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	D#4 K2: MIDI CHANNEL	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	TURN K1 TO MORPH IT	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	PRESS FX: NEW PATTERN  EDIT=undo	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	TAP A WHITE KEY: STEP ON/OFF	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	HOLD A WHITE KEY: EDIT THAT NOTE	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	PG+ TWICE: ADD PAGE 2 (A COPY)	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	PLAY: start   K1-K4: morph	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	TAP STEP=ON/OFF  HOLD=EDIT NOTE	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	FX=dice  EDIT=undo  PG+=page	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	HARD TAP = ACCENT	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	ROW 2: OCT- = back to row 1	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	P3 READS 17-32: NO PAGE PLAYS IT	toast (2.7): 240 px
+S	240	PAGE 2 = COPY OF PAGE 1: CHANGE IT	toast (2.7): 240 px
+S	240	PAST THE END: CHAN K1 = LENGTH	toast (2.7): 240 px
+S	240	17-32 NOT HEARD: D#4 K3 = OWN	toast (2.7): 240 px
+S	240	17-32 +1 NOT HEARD	toast (2.7): 240 px
+S	240	HIDDEN, NOT LOST: turn K1 back	toast (2.7): 240 px
+S	240	STEP 5 CLEARED  EDIT=undo	toast (2.7): 240 px
+S	240	ONE PAGE: K1 = SHORTER	toast (2.7): 240 px
+S	240	ONE ROW HERE	toast (2.7): 240 px
+S	240	VIEW P2 . FOLLOW OFF	toast (2.7): 240 px
+S	240	ACID REPEATS EVERY 16	toast (2.7): 240 px
+S	240	NO SHAPE IN EUCLID	toast (2.7): 240 px
+S	240	LOAD UNDONE: P03	toast (2.7): 240 px
+S	240	LOAD REDONE: P02	toast (2.7): 240 px
+S	240	SAVED P05	toast (2.7): 240 px
+S	240	64 STEPS = MAX	toast (2.7): 240 px
+S	240	NOTHING TO RESET	toast (2.7): 240 px
+S	240	P09 EMPTY: NOTHING LOADED	toast (2.7): 240 px
+S	240	LEAVE REC FIRST	toast (2.7): 240 px
+S	240	REC: tap REC to finish	toast (2.7): 240 px
+S	240	UNDO: pattern	toast (2.7): 240 px
+S	240	HOME	toast (2.7): 240 px
+S	240	CH2 IS MIDI OFF: CH1 TAKES 2	toast, MIDI displacement (2.7)
+S	240	CH4 IS MIDI OFF: CH3 TAKES 16	toast, worst case
+S	240	UNDO: MIDI 2 BACK ON CH2	toast, undo of a displacement

@@ -1,5 +1,5 @@
 page	context	knob	label	action	range_default
-PERF	ACID	K1	DENS	turn: morph DENS of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	den 0..16 def 12; 0 = KEYS ONLY
+PERF	ACID	K1	DENS	turn: morph DENS of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	den 0..16 def 12; 0 = KEYS ONLY (the cell value reads KEYS)
 PERF	ACID	K2	SLIDE	turn: morph SLIDE of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	sl 0..8 def 4 (was S2)
 PERF	ACID	K3	JUMP	turn: morph JUMP of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	jmp 0..20 def 5
 PERF	ACID	K4	ACCNT	turn: morph ACCNT of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	acc 0..8 def 3
@@ -7,7 +7,7 @@ PERF	ACID	S1	OFFSET	turn: morph OFFSET of the selected channel (ROW 2 (live afte
 PERF	ACID	S2	PEDAL	turn: morph PEDAL of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	typ 0..12 def 6 (was K2)
 PERF	ACID	S3	PUNCH	turn: morph PUNCH of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	pun 0..47 def 40 fast 4
 PERF	ACID	S4	DIR	turn: morph DIR of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	dir FWD BWD PEND
-PERF	EUCLID	K1	HITS	turn: morph HITS of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	hit 0..16 def 5; 0 = KEYS ONLY
+PERF	EUCLID	K1	HITS	turn: morph HITS of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	hit 0..16 def 5; 0 = KEYS ONLY (the cell value reads KEYS)
 PERF	EUCLID	K2	OFFSET	turn: morph OFFSET of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	off 0..15 def 0 (rotation; was S1)
 PERF	EUCLID	K3	RATCH	turn: morph RATCH of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	rat 0..8 def 4 (was S2)
 PERF	EUCLID	K4	ACCNT	turn: morph ACCNT of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	acc 0..8 def 2
@@ -15,7 +15,7 @@ PERF	EUCLID	S1	LEN	turn: morph LEN of the selected channel (ROW 2 (live after OC
 PERF	EUCLID	S2	SPAN	turn: morph SPAN of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	spn 0..24 def 12 (was K3)
 PERF	EUCLID	S3	PUNCH	turn: morph PUNCH of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	pun 0..47 def 40 fast 4
 PERF	EUCLID	S4	CURVE	turn: morph CURVE of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	crv AUTO SINE TRI SAW+ SAW- ARCH INV
-PERF	SNAKE	K1	DENS	turn: morph DENS of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	den 0..16 def 10; 0 = KEYS ONLY
+PERF	SNAKE	K1	DENS	turn: morph DENS of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	den 0..16 def 10; 0 = KEYS ONLY (the cell value reads KEYS)
 PERF	SNAKE	K2	LEN	turn: morph LEN of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	len 1..16 def 7
 PERF	SNAKE	K3	RANGE	turn: morph RANGE of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	rng 0..48 def 12 fast 4
 PERF	SNAKE	K4	PATH	turn: morph PATH of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	shp 1..14 def 7
@@ -23,8 +23,8 @@ PERF	SNAKE	S1	OFFSET	turn: morph OFFSET of the selected channel (ROW 2 (live aft
 PERF	SNAKE	S2	GLEN	turn: morph GLEN of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	gl 1..16 def 16
 PERF	SNAKE	S3	DYN	turn: morph DYN of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	dyn 0..10 def 10
 PERF	SNAKE	S4	DIR	turn: morph DIR of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	dir FWD BWD PEND
-PERF	STAGE	K1	DENS	turn: morph DENS of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	den 0..8 def 6; 0 = KEYS ONLY
-PERF	STAGE	K2	TOTAL	turn: morph TOTAL of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	tot 8..64 def 16 fast 4; cell adds (n heard) when the pages read fewer pulses than TOTAL
+PERF	STAGE	K1	DENS	turn: morph DENS of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	den 0..8 def 6; 0 = KEYS ONLY (the cell value reads KEYS)
+PERF	STAGE	K2	TOTAL	turn: morph TOTAL of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	tot 8..64 def 16 fast 4; cell adds (n), the number of steps heard, when the pages read fewer pulses than TOTAL (value reads 48 (32))
 PERF	STAGE	K3	DIR	turn: morph DIR of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	dir FWD BWD PEND (was S4)
 PERF	STAGE	K4	RATCH	turn: morph RATCH of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	rat 0..8 def 2
 PERF	STAGE	S1	OFFSET	turn: morph OFFSET of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	off 0..63 def 0 fast 4
@@ -36,7 +36,7 @@ NOTE_EDIT	*	K2	GATE	note length of the edited step, x global GATE; top value TIE
 NOTE_EDIT	*	K3	VELO	velocity of the edited step; value reads ACC at >= ACC_THR 100 (TB-3 accent)	AUTO, 1..127, step 1 fast 8
 NOTE_EDIT	*	K4	RATCH	repeats inside the step (SP5 spacing)	AUTO, 1x 2x 3x 4x
 CHAN	*	K1	LENGTH	pattern length of the selected channel; crossing into a new page fills it (copy of the page before, or the stored page); shrinking hides, never deletes	1..64, default 16, step 1 fast 4
-CHAN	*	K2	MIDI	MIDI output channel of the selected channel	1..16, OFF; defaults CH1..CH4 = MIDI 1..4; first-run step 1 prompts `D#4 K2: MIDI CHANNEL`
+CHAN	*	K2	MIDI	MIDI output channel of the selected channel; unique across the 4 channels: taking a MIDI channel another channel uses sets that channel to OFF (toast names it, one undo record)	1..16, OFF; defaults CH1..CH4 = MIDI 1..4; first-run step 1 prompts `D#4 K2: MIDI CHANNEL`
 CHAN	*	K3	SOURCE	generator source of the VIEWED page k: offers only the blocks the pages before it play now, each labelled Pm by the first page m that plays it (so Pm = the notes page m plays), then OWN = its own positions (the algorithm continues past it); a block no earlier page plays any more stays as the current value shown by its positions (17-32, dim) until turned away; page 1 is always OWN (cell dim); a new page inherits the source of the page before, so a copy is exact	the distinct blocks of the pages before (labelled P1..P3 by the first page playing each), OWN; a new page: the source of the page before; page 1: OWN fixed
 CHAN	*	K4	FOLLOW	the lane view follows the playhead page while playing	ON OFF; default ON (PG- / PG+ set OFF)
 SET	*	K1	BPM	tempo (internal clock; ignored while an external MIDI clock runs, value shows EXT)	40..240, default 120, step 1 fast 5

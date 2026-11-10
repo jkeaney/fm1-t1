@@ -5,7 +5,7 @@ Notation as S01. Keys are named by the printed key and its number n on the lane 
 
 | Step | User action | Exact screen text | MIDI out | Row ids |
 | --- | --- | --- | --- | --- |
-| 1 | Turn K1 twelve detents counter-clockwise | K1R `DENS KEYS ONLY` (62 px in a 51 px cell, FINDINGS F-04); lane empty; HD unchanged | none | EN_K1/PERF |
+| 1 | Turn K1 twelve detents counter-clockwise | K1R `DENS KEYS` (`KEYS ONLY` was 62 px in a 51 px cell; F-04 fixed); lane empty; HD unchanged | none | EN_K1/PERF |
 | 2 | Tap white key 1 (F3) | Lane cell 1 filled with a corner tick (an edit); CUE keeps `PLAY: start   K1-K4: morph` | stopped: `ch2 ON n v` for step 1 now, `ch2 OFF n` after its gate | KEY_W01_F3/PERF |
 | 3 | Tap white keys 5 (C4), 9 (G4) and 13 (D5) | Lane cells 5, 9 and 13 filled with corner ticks | each tap sounds its step once, as step 2 | KEY_W05_C4/PERF, KEY_W09_G4/PERF, KEY_W13_D5/PERF |
 | 4 | Press PLAY | HD `>`; the playhead underline walks the lane; CUE `TAP STEP=ON/OFF  HOLD=EDIT NOTE` | `FA`, `F8` stream; `ch2 ON/OFF` on steps 1, 5, 9, 13 only | B_PLAY/PERF |
@@ -28,7 +28,7 @@ Notation as S01. Keys are named by the printed key and its number n on the lane 
 | 21 | Tap white key 2 (G3) | cell 2 fills; the editor stays on step 13 | next pass: step 2 sounds | KEY_W02_G3/NOTE_EDIT |
 | 22 | Tap HOME | PERF; CUE `TAP STEP=ON/OFF  HOLD=EDIT NOTE` | none | B_HOME/NOTE_EDIT |
 | 23 | Tap black key D#5 (PG+) on page 1 of 1 | CUE `ADD PAGE 2 = COPY OF 1? PG+ = yes`; ghost page cell in the lane header row | none | KEY_B10_D#5/PERF |
-| 24 | Tap D#5 (PG+) again | Page 2 appears: HD `[1][2]. .` `L32`; LN `PG 2/2` then the FOLLOW word (whether adding a page sets FOLLOW off is not locked, FINDINGS F-13) and `hold=EDIT`; toast `PAGE 2 = COPY OF PAGE 1: CHANGE IT`; the lane shows the copy | none audible: page 2 plays the same as page 1 | KEY_B10_D#5/PERF |
+| 24 | Tap D#5 (PG+) again | Page 2 appears: HD `[1][2]. .` `L32`; LN `PG 2/2` then the FOLLOW word (adding a page sets FOLLOW off, like PG-/PG+: SEQUENCER_UX 15, F-13) and `hold=EDIT`; toast `PAGE 2 = COPY OF PAGE 1: CHANGE IT`; the lane shows the copy | none audible: page 2 plays the same as page 1 | KEY_B10_D#5/PERF |
 | 25 | Tap white key 4 (B3) | cell 4 filled on page 2 (step 20) | next pass of page 2: step 20 sounds | KEY_W04_B3/PERF |
 | 26 | Tap black key C#5 (PG-) | the lane shows page 1; toast `VIEW P1 . FOLLOW OFF` | none | KEY_B09_C#5/PERF |
 | 27 | Tap black key D#4 (CHN) | CHAN: pages `[1 OWN][2 P1][  ][  ]`; K1R `LENGTH 32` `MIDI 2` `SOURCE OWN` `FOLLOW OFF` | none | KEY_B05_D#4/PERF |
@@ -43,7 +43,7 @@ Notation as S01. Keys are named by the printed key and its number n on the lane 
 | 36 | Tap D#5 (PG+) on page 2 | CUE `SHOW ALL OF PAGE 2 (L32)? PG+ = yes` (a partial page is completed before a page 3 is added) | none | KEY_B10_D#5/PERF |
 | 37 | Tap CHN, then hold white key 3 for 0.4 s (NOTE EDIT from CHAN) | NOTE_EDIT on step 3 of the viewed page; banner `CH1 NOTE EDIT STEP 3` | audition | KEY_W03_A3/CHAN |
 
-Observed: step 1 `KEYS ONLY` overflows the knob cell (F-04). Step 9 and step 10 start the cell from AUTO and no
-locked text says which value the first detent shows (F-12). Step 7 NOTE_EDIT draws `(gen ...)` readouts in the
-mock-up (SEQUENCER_UX 2.2) but SCREEN_SPEC has no slot or string for them (F-05). Step 14 off direction (ENV toggled
-off) is "back to 80 / AUTO" in the locked row and does not say which (F-10). The page-map glyphs for partial and hidden pages are not drawn in any locked mock-up (F-05).
+Observed (all fixed by P2-011, see FINDINGS): step 1 `KEYS ONLY` overflowed the knob cell (F-04, now `KEYS`). Step 9 and step 10 start the cell from AUTO and no
+text said which value the first detent shows (F-12, SEQUENCER_UX 15). Step 7 NOTE_EDIT drew `(gen ...)` readouts in the
+mock-up (SEQUENCER_UX 2.2) with no slot or string in SCREEN_SPEC (F-05, now the status line 1 of SCREEN_SPEC 7.1). Step 14 off direction (ENV toggled
+off) was "back to 80 / AUTO" and did not say which (F-10, SEQUENCER_UX 15). The page-map glyphs for partial and hidden pages are now drawn (F-05, SCREEN_SPEC 2.1 and 7.1).

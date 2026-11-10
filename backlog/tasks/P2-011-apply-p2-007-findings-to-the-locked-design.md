@@ -3,7 +3,7 @@ id: P2-011
 title: Apply the P2-007 scenario findings to the locked design docs
 phase: P2
 type: task
-status: todo
+status: review
 priority: 0
 executor: sonnet
 depends_on: [P2-007]
@@ -24,9 +24,9 @@ The scenario walkthroughs (P2-007) found 19 defects (F-01..F-19) in the locked d
 - Checks stay green: tools/check_sequencer_ux.py, tools/check_control_map.py, tests/design/check_scenarios.py, backlog.py check.
 
 ## Acceptance criteria
-- [ ] All 19 defects marked fixed or raised as an owner question, none left open silently
-- [ ] No owner decision (OWNER_QUESTIONS 65-76) changed
-- [ ] The three check scripts and `backlog.py check` pass
+- [x] All 19 defects marked fixed or raised as an owner question, none left open silently (FINDINGS status table; one new owner question, 79)
+- [x] No owner decision (OWNER_QUESTIONS 65-76) changed (77 and 78 are new owner rulings, recorded)
+- [x] The three check scripts and `backlog.py check` pass
 - [ ] Owner approval
 
 ## Verification
@@ -43,3 +43,28 @@ python3 tools/backlog.py check
 - 2026-11-10 created by the orchestrator from the P2-007 findings.
 
 (Owner 2026-11-10, P2-007 gate: 1B approve P2-007 together with P2-011; 2A two gestures allowed for setup functions; 3 MIDI channels unique per sequencer channel: assigning a used MIDI channel removes it from the other (OFF); 4B push after P2-011; 5A P0-005 deferred; 6A Ableton Sync check to be done by owner later.)
+
+### 2026-11-10 executor (sonnet)
+Fixed F-01..F-19 in SCREEN_SPEC (2.1, 2.2, 2.7 toasts, 3 MENU row, 5, 6.5, 6.6, 7, 7.1, 9), SEQUENCER_UX (11.1 to 11.3, new 4.4 and 15, U40, U58),
+TIMING_SPEC (R13, R16, section 11 marked answered), ALGORITHM_SET 5.2, knob_map / control_map / CONTROL_MAP (MIDI row, KEYS, TOTAL), ADR-0003
+(`sq_set_midi` returns the displaced channel, `UndoMidi` 4 B, preset validation), VISION (gesture budget, unique MIDI channels), the scenarios and
+FINDINGS (status table, method disclosures). New: docs/design/help_text.tsv (343 rows), tests/design/{width_probe.c,width_probe.sh,widths.tsv,
+gen_help.py,check_help.py}. Mid-task owner rulings applied: Q1 option a (OWNER_QUESTIONS 78), unique MIDI channels with OFF displacement (77).
+Judgement calls the owner may overrule: header H4 drops the `CH` prefix; muted cell reads `MUTE n`; cue rows renumbered 10a / 10b and 5a;
+the MIDI assignment commits after 0.6 s of stillness so turning across a taken channel does not displace it (SEQUENCER_UX 4.4); F-13 reading
+(adding a page sets FOLLOW off); empty preset slot = owner question 79 (recommended: load nothing).
+```
+$ python3 tools/check_sequencer_ux.py && python3 tools/check_control_map.py
+OK / OK
+$ python3 tests/design/check_scenarios.py
+scenarios: 17 files, 441 control-map rows, 0 with no scenario, 268 only in a sweep
+$ python3 tests/design/check_help.py
+OK: 343 help rows, 1733 strings measured
+$ sh tests/design/width_probe.sh
+110 strings, 0 over
+$ python3 tools/backlog.py check
+43 items, 0 errors
+$ grep -rEn 'TBD|choose|e\.g\.' docs/design/scenarios || echo clean
+clean
+```
+Scores: U40 stays 2 gestures (score 10); the displacement adds no gesture, its undo is the existing EDIT tap; no score recomputed. No Approved line written; the last criterion (owner approval) is left unticked.

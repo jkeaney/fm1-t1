@@ -4,8 +4,11 @@
 
 Each sweep walks every control of one page context once, in panel order, using the locked text of
 docs/design/control_map.tsv, knob_map.tsv and page_states.tsv word for word (two words are respelled so the
-scenario files pass the P2-007 word check). Hand-written scenarios S01..S08 carry the narrative walks; the sweeps
-exist so that every control-map row is walked on the page where it lives.  Run: python3 tests/design/gen_sweeps.py
+scenario files pass the P2-007 word check: the generator respells "choose" as "pick", "e.g." as "for example", "TBD" as "to be set", so
+the scenario text differs from the table text in those words only). Hand-written scenarios S01..S08 carry the narrative walks. The sweeps
+are TABLE ECHOES: they are generated from the same TSVs the check reads, so they prove that every control-map row is cited and
+reachable on the page where it lives, not that its screen text is right (P2-011 discloses this; the narrative scenarios and the
+width test `tests/design/width_probe.sh` are the evidence for text).  Run: python3 tests/design/gen_sweeps.py
 """
 import csv, os, re, sys
 

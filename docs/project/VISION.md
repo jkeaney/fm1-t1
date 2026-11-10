@@ -11,11 +11,12 @@ raise it as feedback (see [PROCESS.md](PROCESS.md)), don't silently pick one.
    - The screen always shows what the device is **doing** (transport, channel, algorithm, what is playing) and what
      it **can do** right now: the current role of every knob and button, labelled on screen.
    - A control whose role changes (for example with a held modifier) shows its new role while it is changed.
+   - Gesture budget (owner ruling 2026-11-10): a **setup** function (MIDI channel, length, tempo, scale, adding a page and the like) may take two gestures, a page open plus one control; a **performance** function (morph, dice, mute, undo) takes one. Neither needs the menu.
 2. **A sequencer first, not a synth.** The internal synth exists only to preview sequences. Synth editing,
    sampling, effects authoring and sound design are out of scope unless they serve previewing.
 3. **Channels drive MIDI.**
    - The sequencer has channels, and each channel sends MIDI out.
-   - A channel's only setting is its MIDI output channel.
+   - A channel's only setting is its MIDI output channel. MIDI channels are unique across the four channels: giving a channel one that another channel uses turns that other channel's MIDI to OFF (owner ruling 2026-11-10).
    - A channel's sequence comes from steps entered on the 16 white keys, or from an algorithm.
 4. **Algorithms are dialled in and performed.**
    - Each channel picks an algorithm.
