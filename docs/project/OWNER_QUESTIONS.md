@@ -197,3 +197,5 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 72 | Accept the restated L rule (SEQUENCER_UX 8.1): a role reached through a hold scores L2 when the hold is named permanently on the page where it starts and opens a labelled page. |
 | 73 | REJECTED the 2..5 default. Default MIDI channels stay CH1..CH4 = MIDI 1..4 (channels aligned with channel numbers), and step 1 of the first run is 'D#4 K2: MIDI CHANNEL', a visible prompt on the main screen. VISION.md keeps its original wording. |
 | 74 | v1 sends MIDI clock out (FM-1 as master): YES; see FB-001. |
+
+| 75 | P2-003 screen spec | Approved. Tempo source AUTO (internal default with own tempo kept separately; a heard MIDI clock becomes the source; back to internal when it stops); K1 inert in EXT; clock out automatic, no menu row; PLAY on EXT waits for the clock to start; clock/source shown by blinking colour-coded dots; hold-mark glyph accepted | owner 2026-11-10 | decided, to be specified in P2-010 |

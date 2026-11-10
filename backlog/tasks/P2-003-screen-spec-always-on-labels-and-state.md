@@ -3,7 +3,7 @@ id: P2-003
 title: Screen spec: always-on labels and state
 phase: P2
 type: task
-status: review
+status: done
 priority: 2
 executor: sonnet
 depends_on: [P2-001, P1-013, P1-014, P1-017]
@@ -93,3 +93,5 @@ All six previous findings verified fixed:
 5. Locked SET K1 restored (K1 inert in EXT; knob_map.tsv line 42 unchanged). The only TSV change in the whole task is additive screen text in page_states.tsv (PERF/SET screen fields); no locked decision altered. Alternative raised as owner question 5.
 6. MENU footer line, RESET `RST R1`/`RST R2` and `-` encoders, `CH n` in NOTE_EDIT and REC banners, 3 px group gap (LEG_X 42+20=62 -> 65) all present.
 Awaiting owner: read docs/design/SCREEN_SPEC.md (zones, PERF cell layout, section 6 tempo-source states, section 11 questions 3-5) and add an `Approved` log line. Notable owner decision: question 5 (keep the internal BPM separate from the host tempo; K1 stays inert during EXT).
+
+- Approved: owner 2026-11-10, with rulings recorded in SCREEN_SPEC (before section 11) and OWNER_QUESTIONS 75; clock details finalised in P2-010.

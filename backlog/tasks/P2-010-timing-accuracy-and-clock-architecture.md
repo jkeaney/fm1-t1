@@ -30,6 +30,12 @@ Owner requirement (2026-11-10): "make sure our code has all the tools to ensure 
   7. RAM/CPU cost and which dev tasks (E4/E5) must implement it.
 - Owner questions listed with options.
 
+## Owner rulings to implement in the spec (2026-11-10)
+- Tempo source AUTO: internal by default (own tempo kept separately, never overwritten); if a MIDI clock is heard it becomes the tempo source, and when it stops return to internal.
+- K1 inert while external clock drives. Clock out automatic when internal master, no menu row.
+- PLAY with external source and no host start = labelled wait for the clock to start.
+- Visibility: blinking, colour-coded dots showing tempo (blink on the beat) and source (internal vs external). Specify colours, size, placement on every page, and the LED behaviour. Supersedes SCREEN_SPEC section 6 where they differ (update SCREEN_SPEC/page_states.tsv/ADR-0003 7.4 to match).
+
 ## Acceptance criteria
 - [ ] The five areas above are specified with numbers (block length, jitter target, clock-out accuracy), not adjectives
 - [ ] Every claim about current behaviour cites source lines

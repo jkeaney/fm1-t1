@@ -387,6 +387,12 @@ slot widths of this spec** (otherwise a longer label silently breaks a row).
 | First-run cue strip (once) | `D#4 K2: MIDI CHANNEL`, then `PRESS PLAY`, `TURN K1 TO MORPH IT`, `PRESS FX: NEW PATTERN  EDIT=undo`, `TAP A WHITE KEY: STEP ON/OFF`, `HOLD A WHITE KEY: EDIT THAT NOTE`, `PG+ TWICE: ADD PAGE 2 (A COPY)`; HOME skips | SEQUENCER_UX 11.3 |
 | The tempo | power-on is INT, so the header reads `INT 120` with the out-mark; a host that sends clock is picked up only after the one-time setting MENU > CLOCK (`USB` or `TRS`); then the header shows `EXT --` and `EXT <bpm>` | 6 |
 
+> **Owner rulings 2026-11-10 (override anything below that disagrees; P2-010 turns them into the final clock spec):**
+> 1. Tempo source is AUTO. Default is the internal clock (the user's own tempo, kept separately and never overwritten). If a MIDI clock is heard, that clock becomes the tempo source; when it stops, return to internal at the user's own tempo. K1 stays inert while external clock drives.
+> 2. Clock out is automatic: sent whenever the FM-1 is the tempo master (internal). No CLOCK OUT menu row.
+> 3. PLAY while the source is external and the host has not started = a labelled wait for the clock to start (no silent fall back).
+> 4. Clock visibility is BLINKING DOTS: a dot that blinks on the beat, coloured to show the source (internal vs external) and pulsing at the tempo. Replaces the text out-mark proposal; exact colours and placement are specified in P2-010. The hold-mark glyph (question 4) stays as proposed.
+
 ## 11. Questions for the owner (new; the locked questions 65-73 are untouched)
 
 1. **Header tempo word.** On the main screen INT is shown as `INT 120` with an out-mark. The out-mark can instead be
