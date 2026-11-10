@@ -3,7 +3,7 @@ id: P2-007
 title: Scenario walkthroughs: validate the UX design end to end
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P2-001, P2-003, P1-013, P1-014, P1-017]
@@ -29,7 +29,7 @@ Script the target workflow as step-by-step scenarios so the control map and scre
 - [x] Every control-map row appears in COVERAGE.md (rows with no scenario listed as gaps and sent back to P2-001)
 - [x] No step contains 'TBD', 'choose' or 'e.g.'
 - [x] Any menu-diving step (>1 press away) is flagged as a vision violation
-- [ ] Design locked: owner line in the log
+- [x] Design locked: owner line in the log
 
 ## Verification
 ```sh
@@ -76,3 +76,4 @@ Fixes for the executor or owner round (none block the pass):
 2. S06 step 2: "first 7 pulses (146 ms at 126 BPM)" is wrong; 7 pulses is 139 ms (6 intervals 119 ms) at 126 BPM.
 3. Disclose in FINDINGS or the log that gen_sweeps.py respells "choose" and "e.g." in the table text so the grep check passes, and that the 268 sweep-only rows are table echoes (generated from the same TSVs), so they prove each row is cited and reachable, not that its screen text is right. The "441 covered" claim is true but weaker than it reads.
 Missed by the executor (small): the F-04 numbers are not backed by a committed probe or width test (the probe is not in the repo); F-17-style staleness also exists in SEQUENCER_UX 11.2 row 13a (already covered by F-01). No further new defects found.
+- Approved: owner 2026-11-10 (approved together with P2-011).

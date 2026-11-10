@@ -3,7 +3,7 @@ id: P2-011
 title: Apply the P2-007 scenario findings to the locked design docs
 phase: P2
 type: task
-status: review
+status: done
 priority: 0
 executor: sonnet
 depends_on: [P2-007]
@@ -27,7 +27,7 @@ The scenario walkthroughs (P2-007) found 19 defects (F-01..F-19) in the locked d
 - [x] All 19 defects marked fixed or raised as an owner question, none left open silently (FINDINGS status table; one new owner question, 79)
 - [x] No owner decision (OWNER_QUESTIONS 65-76) changed (77 and 78 are new owner rulings, recorded)
 - [x] The three check scripts and `backlog.py check` pass
-- [ ] Owner approval
+- [x] Owner approval
 
 ## Verification
 ```sh
@@ -77,3 +77,4 @@ Scores: U40 stays 2 gestures (score 10); the displacement adds no gesture, its u
 - Extra rules: 0.6 s MIDI settle (commits also on leaving CHAN), H4 without `CH`, page-add sets FOLLOW off (consistent with 1.3/U34), renames 10a/10b/5a are sound and do not conflict with VISION or decisions 73/77.
 - Minor, non-blocking: SEQUENCER_UX 4.4 says the MIDI channel commits on 0.6 s stillness or leaving CHAN but not on PLAY or a page-button press from another page; the implementer should commit on any exit. No edits made to design docs.
 - Owner to decide: judgement calls (MIDI settle 0.6 s, `MUTE n` wording, row renames) and question 79 (empty preset slot; recommended option a).
+- Approved: owner 2026-11-10: executor judgement calls kept (0.6 s MIDI settle, `MUTE n`, rows 10a/10b/5a); MIDI channel commits on any exit from CHAN (PLAY or page button included), to be written into the P2-005 dev task; question 79 decided (a).
