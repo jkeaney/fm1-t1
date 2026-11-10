@@ -26,6 +26,7 @@ New algorithm ARP: uses the chord feature (P2-012) and produces an arpeggio of t
 
 ## Deliverable
 - docs/design/algorithms/arp/SPEC.md in the same table form as the other v1 algorithms: parameters (range, default), the five dice layers mapped, up to 8 morphs (shape, direction, speed/rate, octave span, gate, swing/humanise, note order, hold/latch), what chord voicing it follows, and behaviour on chord change mid-pattern
+- Which chord voicing the arp follows, including the P2-012 VOICE, MOVE and PEDAL dials (a pedal tone as part of the arp cycle), and what the arp adds on top of them
 - Direction set (up, down, up-down, random, as-played, chord-order), shape set, rate set tied to the global clock (including triplets), and how the pattern length (1..64 steps) interacts with the arp cycle
 - UX: knob and button roles per row, screen labels, performance gestures; additions to the TSV tables and help_text.tsv; L rubric score
 - Interaction with a single held note when HARMONY is `1----`

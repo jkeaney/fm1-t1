@@ -15,7 +15,13 @@ Design a new global mode, HARMONY, that sets key, scale and a chord progression 
 ## Owner brief (2026-11-10, verbatim intent)
 Global mode with Key, Scale and chord progression: phrase length, number of chords, and the progression written as scale-degree numbers (for example 1-3-5-3). The producer can change the progression with dice rolls. Default is a single chord, `1----` (root held for the whole phrase). Every channel is quantised to the current chord. By default a channel plays the chord's bottom root note and uses the other chord tones depending on its algorithm. Morphing prioritises moving notes onto the chord's voicing (chord tones win over passing scale tones).
 
-## Read first
+### Addition (owner, 2026-11-10): VOICING dials
+HARMONY also has a small set of voicing dials, simple and mathematical, performable live:
+- VOICE (spread/density): dials the chord's voicing up or down, from root-only through triad to extended tones (7th, 9th), and close to open spread.
+- MOVE (voice-leading distance): dials how far notes may jump between consecutive chords; low values keep common tones and move each voice the smallest step, high values allow full root-position jumps. This sets the difference between chords.
+- PEDAL: dials in a pedal tone, the one note held across the progression. The dial walks the pedal through candidate scale degrees (and octaves) so the producer finds the alignment by ear; show which degree it sits on and mark clashes with the current chord.
+
+
 - docs/project/VISION.md (rules 1-4) and docs/project/decisions/ADR-0004-design-lock.md
 - docs/design/SEQUENCER_UX.md, SCREEN_SPEC.md, ALGORITHM_SET.md and the TSV tables (page_states, button_modes, knob_map, key_map, control_map)
 - docs/project/decisions/ADR-0003-sequencer-core.md (ChanRT is 24 B; RAM headroom and pool budget in HANDOFF.md)
@@ -24,6 +30,7 @@ Global mode with Key, Scale and chord progression: phrase length, number of chor
 ## Deliverable
 - docs/design/HARMONY.md: data model (key, scale, phrase length in bars, chord count, per-slot degree and quality, how `1----` is stored), chord change timing on the 768-tick bar grid, how it composes with the existing global scale/key on the SET page (replace or extend: state which, and what the old rows become)
 - The quantise rule every algorithm uses: root-note default, chord-tone priority, scale-tone fallback, octave handling, and what happens for a channel with a fixed octave range
+- Voicing dials: define VOICE, MOVE and PEDAL as integer-valued formulas (tables, not prose): inputs, ranges, defaults (neutral = plain root-position triads, no pedal), the exact note-selection and voice-leading algorithm, and how they combine with the morph bias. Include golden worked examples for 1-4-5-1 in C major and a minor key. Assign them to knobs/rows with screen labels, the 2-gesture rule, and add them to knob_map.tsv, help_text.tsv and page_states.tsv. Say whether each channel can follow the voicing differently (for example bass takes the root, a pad takes the full voicing).
 - Morph rule: how each algorithm's morphs bias toward chord voicing (a per-algorithm table, ACID/EUCLID/SNAKE/STAGE)
 - Dice rule: a PROG dice layer that re-rolls the progression (degrees, length, chord count) within musical limits (always starts or ends on degree 1 option, no more than N distinct chords); how it relates to the five shared dice layers plus ALL
 - UX: where HARMONY lives (a global page reached in one gesture, screen labels, knob and button roles, a main-screen chord indicator), fully specified per the L (learnability) rubric; additions to page_states.tsv / button_modes.tsv / knob_map.tsv / help_text.tsv
@@ -33,6 +40,7 @@ Global mode with Key, Scale and chord progression: phrase length, number of chor
 
 ## Acceptance criteria
 - [ ] HARMONY.md has no 'TBD'; the default (`1----`) behaves as one chord for every channel
+- [ ] VOICE, MOVE and PEDAL are each defined by a formula with worked examples, defaults that leave the sound unchanged, and are mapped to controls
 - [ ] Every algorithm in the v1 set has a stated chord-quantise and morph rule
 - [ ] Every new page, button mode and knob role is in the TSV tables, and tests/design check scripts pass
 - [ ] L rubric score shown for each new function; any exception justified
