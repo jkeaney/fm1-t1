@@ -58,3 +58,12 @@ check_help.py -> OK: 392 help rows, 2695 strings measured
 check_sequencer_ux.py -> OK (10 pages, 490 control rows)
 width_probe.sh -> 268 strings, 0 over
 ```
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS on all checkable criteria; gate is human-review, so the task stays at `review`.
+- Re-ran check_scenarios (23 files, 0 unwalked), check_help (392 rows OK), check_sequencer_ux (OK), width probe (268 strings, 0 over), backlog index and check (0 errors): all pass.
+- tb3.tsv holds 11 CCs with kind/link/layer/form/move, four sets (BITE WET PADS PUSH), names at most 5 letters, provenance level 2; TB3_PROFILE.md states nothing is copied from the midi.guide CSV.
+- LOWLEVEL 9.4 has three options with mockups, gesture counts, V/I/O/L scores and a recommendation (1 + 3); 9.8 H-RIG20; 9.9 owner questions A-I with lettered options. 4.2/4.3 mockups now show CUT/RESO/ENV-X/ENV-Y.
+- Scope: only P2-021 files in the commit; P3-002/FB-003 left untouched.
+- Minor: Option 3 at 3 gestures (R10) exceeds the setup cap and is flagged as owner question G, which is honest.
+Awaiting owner: read LOWLEVEL 9.4 mockups and decide owner questions A-I (esp. A sets on ALGO, C FOLLOW, G swap gesture count).
