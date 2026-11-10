@@ -3,7 +3,7 @@ id: P2-013
 title: Design the ARP algorithm over the chord progression
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P2-012]
@@ -40,7 +40,7 @@ v1 has six algorithms. Show the algorithm picker screen with all six, and confir
 - [x] SPEC.md has no 'TBD', parameters and morph and dice mappings as a table the prototype will read
 - [x] All new pages, modes and knob roles in the TSV tables; design check scripts pass
 - [x] Prototype and golden outputs are scheduled as an addition to P2-008 (update P2-008 scope), not done here
-- [ ] Design locked: owner line in the log
+- [x] Design locked: owner line in the log
 
 ## Verification
 ```sh
@@ -72,3 +72,6 @@ Verdict: PASS on the checkable criteria; gate is human-review, so the task stays
 Re-ran: check_scenarios.py (20 files, 0 FAIL/GAP), backlog.py check (109 items, 0 errors), check_help.py OK, width_probe.sh (162 strings, 0 over; picker line 185/240), `grep -i tbd` on SPEC.md (no match). Commit touches only docs, tests/design scripts and the task file (docs-only; no firmware). SPEC has the parameter, 8-morph and 5-dice tables, direction/shape/rate sets, chord/ROLE/DRONE behaviour, single-note case, cost, UX roles; S19 and the ALGO_PICK page state exist; P2-008 and P2-017 scope lines updated.
 Note: `tools/check.sh` ends CHECK FAIL: tests (clang link error). The working tree has uncommitted edits to firmware/src (seq.c, torso_t1.c, ui.c) and two other task files that are not part of this commit, so the failure is not attributable to P2-013. Build line: RAM .data+.bss 55744 B of 73728 (17984 B headroom); pool 342876 of 368640.
 Awaiting owner: read SPEC 8 and 11 (the six open points: DIR names ASPL/CHORD, default DENS 12, figure restarts with the loop, always-on chord chip, AM-1..AM-4 core additions, PATT short form) and write the "Design locked" line.
+
+### 2026-11-11 orchestrator
+- Approved: owner 2026-11-11 (open-items 2A): design locked, ASPL/CHORD names kept; ADR-0003 amendment for AM-1..AM-4 to be written as a follow-up task.

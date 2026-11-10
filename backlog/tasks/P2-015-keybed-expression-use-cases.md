@@ -3,7 +3,7 @@ id: P2-015
 title: Keybed expression: use cases for velocity and pressure that change the sound
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P2-012]
@@ -37,7 +37,7 @@ Keep force sensing in v1, but it needs really good use cases for how it elevates
 - [x] TB-3 MIDI facts carry sources and tags
 - [x] TSV tables updated; `python3 tests/design/check_scenarios.py` and `python3 tools/backlog.py check` pass
 - [x] RAM cost stated (target: no new per-step data)
-- [ ] Design locked: owner line in the log
+- [x] Design locked: owner line in the log
 
 ## Verification
 ```sh
@@ -64,3 +64,6 @@ python3 tools/backlog.py check
 - Notes (non-blocking): UC5 channel aftertouch is TB-3-ignored (poly only) and OFF by default, flagged as first to cut. If H0 shows the TB-3 accents at 100, algorithm tasks must move their flat velocity 100 to 90.
 - Build was not applicable (design only); ./build.sh printed no RAM line when filtered, headroom not re-measured.
 - Awaiting owner: read docs/design/KEYBED_USE_CASES.md, decide whether to keep UC5, and add the design-lock line; HT-FORCE items H0-H5 are judged later on the TB-3.
+
+### 2026-11-11 orchestrator
+- Approved: owner 2026-11-11 (open-items 4): design locked with four use cases (UC1-UC4). UC5 (REC channel aftertouch) PARKED to v2; get the core workflow working first. H0 (TB-3 accent threshold by ear) runs in the flash session (open-items 5A).

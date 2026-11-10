@@ -217,3 +217,8 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 89 | P2-012 | ROLE (OFF AUTO ROOT FULL) is a per-channel setting beyond VISION rule 3. A) accept as a harmony-page setting, B) drop it. Recommend A. **Decided 2026-11-10: A** |
 | 90 | PATTERNS famous-song patterns (open-items 1B): ship the exact notes under style names (for example `FUNK 3`), never song titles; references only in RESEARCH.md. |
 | 91 | P2-012 | Extends decision 46: EDIT tap also undoes the last HARMONY change (the later of channel and HARMONY wins). A) accept, B) channel only. Recommend A. **Decided 2026-11-10: A** |
+| 92 | P2-013 | ARP design locked (open-items 2A): ASPL/CHORD names kept; ADR-0003 amendment for the four core additions to be written as a follow-up task | owner 2026-11-11 | decided |
+| 93 | P2-014 | PATTERNS design locked (open-items 3A): categories and tags confirmed; the 13 idiom patterns accepted and judged by ear on live hardware | owner 2026-11-11 | decided |
+| 94 | P2-015 | Keybed use cases locked with UC1-UC4. UC5 (REC channel aftertouch) parked to v2; core workflow first | owner 2026-11-11 | decided |
+| 95 | P2-015 | TB-3 accent threshold test H0 is run by ear in the P0-005 flash session; the flat velocity 100 vs 90 is set from the result | owner 2026-11-11 | decided |
+| 96 | New | Hardware support model: the sequencer drives per-channel hardware parameters (CC, accents, slides, filter, resonance on dice and morph), starting with the TB-3. Owner wants a high-level design and UX first, then a lower-level design, then TB-3 specifics. Reference: midi.guide (CC BY-SA 4.0), cdm.link AIRA article | owner 2026-11-11 | open: design requested (FB-004) |

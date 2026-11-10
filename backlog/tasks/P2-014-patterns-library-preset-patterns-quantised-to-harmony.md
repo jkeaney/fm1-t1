@@ -3,7 +3,7 @@ id: P2-014
 title: Design the PATTERNS library: top-20 preset patterns quantised to scale and chords
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P2-012]
@@ -53,9 +53,9 @@ Each shipped pattern is **built to be morphed and tuned**: mark in the data whic
 - [x] 20 patterns for each confirmed category listed in a TSV the prototype and firmware can read
 - [x] Every pattern passes a scale/range check in all 12 keys for the supported scales (script in tests/design)
 - [x] Storage cost stated and within budget, or an overrun and proposal given
-- [ ] Owner confirmed the category list (record it in the log)
+- [x] Owner confirmed the category list (record it in the log)
 - [x] All new UX in the TSV tables; check scripts pass; no 'TBD'
-- [ ] Design locked: owner line in the log
+- [x] Design locked: owner line in the log
 
 ## Verification
 ```sh
@@ -101,3 +101,6 @@ Verdict: PASS on all checkable criteria; gate is human-review, so left at `revie
 - Caveat: the 13 `F` patterns are reconstructions from memory (O1), so the owner should decide whether to accept them as idiom under decision 90.
 
 Awaiting owner: (1) confirm the six-category list and 3-letter tags (O2), (2) accept or verify the F-pattern notes (O1), (3) accept PICK on ROW 2 and no bake gesture (O3, O4), (4) add the design-lock line.
+
+### 2026-11-11 orchestrator
+- Approved: owner 2026-11-11 (open-items 3A): category list and 3-letter tags confirmed; the 13 F patterns accepted as idiom and to be checked by ear on live hardware; design locked.
