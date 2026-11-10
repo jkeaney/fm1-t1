@@ -208,7 +208,7 @@ Listed from `tests/run_tests.sh` (suite = one run step). "go" = deleted with the
 | mod_test, sound14_test (ANALOG SYNC/SUB stay, matrix S&H stay while mod stays), sound15_test (ANALOG filter TYPE), mod_test demos | stay / trim non-ANALOG cases | R6 |
 | regress (golden renders, CPU budget), union_test, tests/golden.txt, cpu_baseline.txt, target_budget.txt | change: ANALOG only; `GOLDEN_UPDATE=1`, `BUDGET_UPDATE=1` re-baseline; union_test goes (one engine) | R6 |
 | ui_test, ui_render (+PNG sweeps), ui155_test, detail_test, step15_test, v156_test, v16_test, drumfuzz_test (+ song variant) | ui_test and ui_render change to the new menu and the T-1 screen; the others go | R3 |
-| seq155_test, ratchet_test, fun10_test, motion_test, project_test, chord_test, perform_test | go (groovebox features) | R4 |
+| seq155_test, ratchet_test, fun10_test, motion_test, project_test, chord_test | go (groovebox features) | R4 |
 | slicer_test, perform_test (moved here from R4: it needs the slicer and the buses) | go | R5a (P3-002) |
 | insert_test, reverb_test | go | R5b (P3-014) |
 | swing_test | change: the slicer part goes, the sequencer swing parts stay | R5a |
