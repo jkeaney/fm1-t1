@@ -134,12 +134,12 @@ EN_SELECT	REC	turn: select channel; the cursor goes to step 1	CH n	page	see SEQU
 EN_SELECT	RESET	turn: select channel CH1..CH4 (clamped, no wrap)	CH n	page	see SEQUENCER_UX 8
 EN_SELECT	HELP	turn: explain SELECT	?	page	see SEQUENCER_UX 8
 EN_SELECT	MENU	turn: select channel CH1..CH4	CH n	page	see SEQUENCER_UX 8
-EN_ALGO	PERF	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	owns	see SEQUENCER_UX 8
-EN_ALGO	NOTE_EDIT	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	page	see SEQUENCER_UX 8
-EN_ALGO	CHAN	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	page	see SEQUENCER_UX 8
-EN_ALGO	SET	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	page	see SEQUENCER_UX 8
-EN_ALGO	SCALE	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	page	see SEQUENCER_UX 8
-EN_ALGO	REC	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	page	see SEQUENCER_UX 8
+EN_ALGO	PERF	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	owns	see SEQUENCER_UX 8
+EN_ALGO	NOTE_EDIT	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	page	see SEQUENCER_UX 8
+EN_ALGO	CHAN	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	page	see SEQUENCER_UX 8
+EN_ALGO	SET	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	page	see SEQUENCER_UX 8
+EN_ALGO	SCALE	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	page	see SEQUENCER_UX 8
+EN_ALGO	REC	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	page	see SEQUENCER_UX 8
 EN_ALGO	RESET	turn: inert (toast NOTHING TO RESET)	-	page	see SEQUENCER_UX 8
 EN_ALGO	HELP	turn: explain ALGORITHM	?	page	see SEQUENCER_UX 8
 EN_ALGO	MENU	turn: next / previous menu tab	tab	page	see SEQUENCER_UX 8

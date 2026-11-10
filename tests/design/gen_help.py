@@ -83,7 +83,7 @@ put("B_OCTUP", "RESET", "RST R2: reset the ROW 2 morphs", "NOTE EDIT: step octav
 put("EN_SELECT", "PERF CHAN SET SCALE RESET", "SELECT: pick CH1 to CH4", "the channel the knobs act on")
 put("EN_SELECT", "NOTE_EDIT", "SELECT: pick a channel", "this closes NOTE EDIT")
 put("EN_SELECT", "REC", "SELECT: pick a channel", "the cursor returns to step 1")
-put("EN_ALGO", "PERF NOTE_EDIT CHAN SET SCALE REC", "ALGO: this channel's algorithm", "ACID EUCLID SNAKE STAGE")
+put("EN_ALGO", "PERF NOTE_EDIT CHAN SET SCALE REC", "ALGO: this channel's algorithm", "ACID EUCL SNAK STAG ARP PATT")
 put("EN_ALGO", "RESET", "ALGO: not used in RESET", "EDIT cancels RESET")
 put("EN_PRESET", "PERF NOTE_EDIT CHAN SET SCALE", "PRESETS: pick a slot P01-P16", "loads in 1.5 s; SAVE = save here")
 put("EN_PRESET", "REC", "PRESETS: not used in REC", "tap REC to finish")

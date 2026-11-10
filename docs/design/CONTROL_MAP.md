@@ -317,12 +317,12 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `EN_SELECT` | `RESET` | turn: select channel CH1..CH4 (clamped, no wrap) | `CH n` |
 | `EN_SELECT` | `HELP` | turn: explain SELECT | `?` |
 | `EN_SELECT` | `MENU` | turn: select channel CH1..CH4 | `CH n` |
-| `EN_ALGO` | `PERF` | turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept | `ALGO` |
-| `EN_ALGO` | `NOTE_EDIT` | turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept | `ALGO` |
-| `EN_ALGO` | `CHAN` | turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept | `ALGO` |
-| `EN_ALGO` | `SET` | turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept | `ALGO` |
-| `EN_ALGO` | `SCALE` | turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept | `ALGO` |
-| `EN_ALGO` | `REC` | turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept | `ALGO` |
+| `EN_ALGO` | `PERF` | turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept | `ALGO` |
+| `EN_ALGO` | `NOTE_EDIT` | turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept | `ALGO` |
+| `EN_ALGO` | `CHAN` | turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept | `ALGO` |
+| `EN_ALGO` | `SET` | turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept | `ALGO` |
+| `EN_ALGO` | `SCALE` | turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept | `ALGO` |
+| `EN_ALGO` | `REC` | turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept | `ALGO` |
 | `EN_ALGO` | `RESET` | turn: inert (toast NOTHING TO RESET) | `-` |
 | `EN_ALGO` | `HELP` | turn: explain ALGORITHM | `?` |
 | `EN_ALGO` | `MENU` | turn: next / previous menu tab | `tab` |

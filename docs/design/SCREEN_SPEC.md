@@ -69,6 +69,11 @@ the MIDI channel: `MIDI 2` (33 px), `MIDI 12` (40), `MIDI OFF` (48). **OFF is th
 at the cell's right edge flashes on each note out. The SELECT encoder picks the cell, the ALGO encoder renames its
 algorithm field, the M1..M4 black keys mute a cell.
 
+**Algorithm picker with six algorithms (P2-013, owner decision 82).** The ALGO encoder renames the selected channel's algorithm in this cell (line 1) and in H4; the 4-letter short forms are `ACID` `EUCL` `SNAK` `STAG` `ARP` `PATT`
+(`PATT` is PATTERNS' placeholder short form until P2-014 confirms its own, at most 4 letters). For 2 s after the last detent the cue strip (Z6) lists all six with the current one in brackets, `ACID EUCL SNAK STAG [ARP] PATT` (185 px of 240); this is the page state `ALGO_PICK`
+(page_states.tsv), drawn over any page that has a cue strip, ended at once by HOME or another control. Worst cases measured with `tests/design/width_probe.sh`: H4 `1 PATT MOFF` 71 px of 76, cell `1 PATT` 37 px of 56, strip 185 px of 240.
+When the selected channel runs ARP, the chord chip of the lane header (HARMONY.md 5.4) is drawn always, not only while HARMONY is active, because the arpeggio follows the chord (ARP SPEC 7.1).
+
 ### 2.3 Z2 LANE
 
 - Lane header line, y=48..62: `PG 1/2  FOLLOW  hold=EDIT        >P2` (viewed page / pages, FOLLOW, the white-key hold,
@@ -394,8 +399,8 @@ Zones, all inside the existing zone grid (nothing is added to the 240 x 240 budg
 | Z4 | row 1 `ALL PROG ACCNT BARS UNDO HARM`; row 2 `HOME SAVE ROLE NEW PLAY REC` (PERF sub-labels dropped on this page) |
 | Z6 | `HARM: KEYS F3-E4 = CHORD 1-7` (29 characters) |
 
-PERF chord chip (only while HARMONY is active, HARMONY.md 1.2): in the Z2 lane header, right-aligned just left of `>P2`, the roman numeral of the
-playing chord (`I`, `ii`, `V`, `vii`; at most 4 characters): measured 11 px for `vii`, budget 34 px (AF_S). Nothing is drawn while HARMONY is inert.
+PERF chord chip (only while HARMONY is active, HARMONY.md 1.2; also always while the selected channel runs ARP, P2-013): in the Z2 lane header, right-aligned just left of `>P2`, the roman numeral of the
+playing chord (`I`, `ii`, `V`, `vii`; at most 4 characters): measured 11 px for `vii`, budget 34 px (AF_S). Nothing is drawn while HARMONY is inert, except for an ARP channel, where the chip names the chord the arpeggio follows (the key's degree-1 chord when inert).
 
 ## 8. Flex points (table edits, no code)
 

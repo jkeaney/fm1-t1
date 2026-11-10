@@ -3,7 +3,7 @@ id: P2-013
 title: Design the ARP algorithm over the chord progression
 phase: P2
 type: task
-status: in_progress
+status: review
 priority: 1
 executor: sonnet
 depends_on: [P2-012]
@@ -37,9 +37,9 @@ v1 has six algorithms. Show the algorithm picker screen with all six, and confir
 - Scenario S19; ALGORITHM_SET.md updated (v1 set is 6 algorithms, owner decision 82; confirm channel/algorithm picker still fits the screen)
 
 ## Acceptance criteria
-- [ ] SPEC.md has no 'TBD', parameters and morph and dice mappings as a table the prototype will read
-- [ ] All new pages, modes and knob roles in the TSV tables; design check scripts pass
-- [ ] Prototype and golden outputs are scheduled as an addition to P2-008 (update P2-008 scope), not done here
+- [x] SPEC.md has no 'TBD', parameters and morph and dice mappings as a table the prototype will read
+- [x] All new pages, modes and knob roles in the TSV tables; design check scripts pass
+- [x] Prototype and golden outputs are scheduled as an addition to P2-008 (update P2-008 scope), not done here
 - [ ] Design locked: owner line in the log
 
 ## Verification
@@ -52,3 +52,17 @@ python3 tools/backlog.py check
 - Prototype code (P2-008), firmware.
 
 ## Log
+
+### 2026-11-10 executor (sonnet)
+Delivered docs/design/algorithms/arp/SPEC.md (parameters, 8 morphs, 5 dice layers, direction/shape/rate sets, chord-voicing and ROLE behaviour, chord change, pattern length, single held note, cost, UX roles, L rubric, picker), scenario S19, the knob_map.tsv ARP rows, the `ALGO_PICK` page state, widths.tsv rows, ALGORITHM_SET.md (six algorithms, section 13), SCREEN_SPEC.md (picker, always-on chord chip for ARP), the `EN_ALGO` text in control_map/knob_map/CONTROL_MAP/help (six names), gen_help.py, check_scenarios.py (S18 onward are narrative), and the P2-008 / P2-017 scope lines (P2-008: core additions AM-1 to AM-4 in sq_types/sq_prims; P2-017: the ARP golden cases). Worked examples come from a throwaway Python transcription (not committed); P2-017 produces the real goldens.
+Commands and decisive output:
+```
+python3 tests/design/check_scenarios.py   -> scenarios: 20 files, 441 control-map rows, 0 with no scenario, 265 only in a sweep   (exit 0, no FAIL/GAP)
+python3 tools/backlog.py check            -> 109 items, 0 errors
+python3 tests/design/check_help.py        -> OK: 343 help rows, 2597 strings measured
+sh tests/design/width_probe.sh            -> 162 strings, 0 over   (1 PATT MOFF 71/76, ACID EUCL SNAK STAG [ARP] PATT 185/240)
+python3 tests/design/harmony_proto.py --check -> CHECK OK
+grep -in tbd docs/design/algorithms/arp/SPEC.md -> no match
+```
+Not ticked: "Design locked: owner line" (human-review gate; the owner writes it).
+For the owner (SPEC 8 and 11): (1) the DIR names and meanings `ASPL` (root-first, voiced order) and `CHORD` (stack order), since no held keys exist; (2) default DENS 12; (3) the figure restarts with the loop, not with the chord (stateless; matches ADR-0003's loop rule); (4) the chord chip is always drawn for an ARP channel; (5) four core additions AM-1 to AM-4 (chord argument to `step`, `sub_note` hook, `AF_CHORD`, `SQ_NALGO` 6) need the ADR-0003 amendment that P2-005 plans; (6) `PATT` is a placeholder short form for PATTERNS (P2-014 owns the real one; strip has room for 7 letters). Also noted: S18 shows the chord chip `I` for the minor tonic while HARMONY.md 2.4 says lower case (`i`); S19 follows 2.4, S18 was not edited.
