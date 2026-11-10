@@ -5,8 +5,8 @@ phase: P3
 type: bug
 status: todo
 priority: 3
-executor: sonnet
-depends_on: []
+executor: haiku
+depends_on: [P3-001]
 gate: none
 severity: low
 found_in: bea0fd3 (+ working tree, T1_ISSUES review 2026-11-09)

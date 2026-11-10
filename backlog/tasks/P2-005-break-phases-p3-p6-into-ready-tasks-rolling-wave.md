@@ -3,10 +3,10 @@ id: P2-005
 title: Break phases P3–P6 into ready tasks (rolling-wave planning)
 phase: P2
 type: task
-status: todo
+status: review
 priority: 1
 executor: sonnet
-depends_on: [P2-001, P2-002, P2-003, P2-004, P2-006, P2-007, P2-008, P2-009, P2-010, P2-011, P2-012, P2-013, P2-014, P2-015]
+depends_on: [P2-001, P2-002, P2-003, P2-004, P2-006, P2-007, P2-009, P2-010, P2-011]
 gate: human-review
 ---
 ## Goal
@@ -50,3 +50,9 @@ python3 tools/backlog.py list --phase P3
 - Executing any of the new tasks.
 
 ## Log
+### 2026-11-10 orchestrator (Opus, technical architect)
+- Deliverable written: docs/project/PROGRAM_PLAN.md (architecture, phase tables, critical path, budgets, risks) and docs/project/ORCHESTRATOR.md (Sonnet runbook).
+- Tasks created (Definition of Ready content, depends_on chains): P2-008 (rewritten: harness + ACID), P2-016, P2-017; P3-001..P3-013; P4-001..P4-022; P5-001..P5-009; P6-001..P6-008; P7-001..P7-004; P8-001..P8-004. BUG-001/BUG-002 scheduled after P3-001. E3..E8 closed with their breakdown; E9 stays (memory trigger). FB-001 triaged and closed.
+- Covers every P2-005 must-have: host-test link first (P3-001), fx-bus removal first (P3-002, decision 80), RAM line on every dev review (criterion in each dev task), TB-3 hardware gates (P3-013, P4-021, P4-022, P5-009, P6-007, P6-008, P7-004, P8-004), timing image + tool (P4-019, P4-008), clock out/AUTO/dots (P4-007, P4-009, P4-016), E5 split (decision 82), CHAN commit on any exit (P4-015).
+- Dev tasks whose design is not locked yet (ARP, PATTERNS, force) depend on the design task, so they become ready only after the owner locks it (ADR-0004).
+- `python3 tools/backlog.py check`: 0 errors. Awaiting owner approval of the plan.

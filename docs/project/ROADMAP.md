@@ -1,6 +1,6 @@
 # Roadmap
 
-> **Status 2026-11-10: PAUSED.** P0, P1 done; P2 design done except P2-007/P2-011 sign-off, P2-008 and P2-005. Resume per docs/project/HANDOFF.md.
+> **Status 2026-11-10:** P2 design finishing (P2-012 at review; P2-013/014/015/008/016/017 next). P3-P8 are fully broken into tasks: see [PROGRAM_PLAN.md](PROGRAM_PLAN.md). Runbook: [ORCHESTRATOR.md](ORCHESTRATOR.md).
 
 
 Phases run in order. Each ends at a **gate**, and the next phase's tasks are only broken down once that gate passes

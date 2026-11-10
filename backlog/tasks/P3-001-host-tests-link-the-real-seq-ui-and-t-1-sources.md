@@ -1,0 +1,44 @@
+---
+id: P3-001
+title: Host tests link the real seq, ui and T-1 sources
+phase: P3
+type: task
+status: todo
+priority: 1
+executor: sonnet
+depends_on: [P2-005]
+gate: none
+---
+## Goal
+Owner decision 42 and ADR-0003 §16.1: today the host tests build seq.c/ui*.c with `t1_mode` stubbed to 0, so none of the T-1 path is tested. Make the host tests compile the real T-1 sources (torso_t1*.c, t1_glue.c, ui_t1.c) with host hooks, before any removal, so every later removal is guarded by tests.
+
+## Read first
+- docs/project/decisions/ADR-0003-sequencer-core.md §13 (last row), §14
+- docs/design/SYSTEM_MAP.md §7 (last paragraph), §8
+- tests/run_tests.sh, tests/ui_test.c, tests/torso_phase*_test.c
+- firmware/src/seq.c lines around the `#ifndef T1_DEVICE` stubs (t1_block, t1_mode), firmware/src/ui.c stubs
+
+## Deliverable
+- A host-hook header tests/host_t1_hooks.h (or equivalent) supplying what the T-1 needs from the device (midi_out_event capture, beat_samples) so `seq.c`, `ui*.c` and the T-1 files link in host tests
+- The `#ifndef T1_DEVICE` stubs in seq.c/ui.c replaced by the real symbols in host builds (keep the guard only where a device-only header is involved)
+- A new host test tests/t1_link_test.c: run `events_block` for 2 bars with T-1 on, assert that channel-2 note-ons reach the captured `midi_out_event` log, and that stop emits CC123
+- tests/run_tests.sh step for it
+
+## Acceptance criteria
+- [ ] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
+- [ ] `grep -n 't1_mode' firmware/src/seq.c firmware/src/ui.c` shows no `#define t1_mode 0` stub left
+- [ ] tests/t1_link_test.c passes and is in run_tests.sh
+- [ ] The build line `image ... RAM .data+.bss N of 73728; pool ...` is pasted into the Log; RAM headroom (73728 - N) is at least 8192 B, else stop and file an FB (E9 trigger)
+
+## Verification
+```sh
+sh tools/check.sh            # last line: CHECK PASS
+./build.sh | grep 'RAM'      # paste into the Log
+```
+
+## Out of scope
+- Any removal (P3-002 onwards)
+- Changing T-1 behaviour
+- Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).
+
+## Log

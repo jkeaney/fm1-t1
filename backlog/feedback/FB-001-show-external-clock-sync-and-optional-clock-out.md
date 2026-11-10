@@ -3,7 +3,7 @@ id: FB-001
 title: Screen must show when tempo is set by external MIDI clock (and decide on clock out)
 phase: P2
 type: feedback
-status: todo
+status: done
 priority: 2
 executor: sonnet
 depends_on: []
@@ -42,3 +42,4 @@ python3 tools/backlog.py check
 - 2026-11-10 executor: criterion 1 (EXT state on main screen + SET, timeout rule, in the spec and page tables) done in SCREEN_SPEC 6, SEQUENCER_UX 2.8, page_states.tsv. Criterion 2 design part done (SEQUENCER_UX 2.8, ADR-0003 section 5 row + 7.4, SCREEN_SPEC 6.3). Still open for the orchestrator: the hardware-test gate (Ableton + TB-3) and the E4 dev task, and criterion 3 (converting to backlog ids). Not closed.
 
 - 2026-11-10 PAUSED: design done (SCREEN_SPEC 6, TIMING_SPEC, ADR-0003 19). Close this item when P2-005 creates the E4 dev task and the hardware-test gate for it.
+- 2026-11-10 orchestrator triage: covered by owner decisions 74-76 and the build tasks P4-007 (clock out at exact positions, M7), P4-009 (AUTO source, PLL), P4-016 (header text and clock dot, T-E) and P4-022 (hardware gate). Closed.

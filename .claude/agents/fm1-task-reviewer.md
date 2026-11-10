@@ -21,3 +21,5 @@ You review ONE task the executor has set to `review`. Be sceptical: verify, don'
      follow.
 6. Then run `python3 tools/backlog.py index` and commit the task file and BACKLOG.md with the message
    `<ID>: review`. Report the verdict in at most 6 lines.
+
+For every task that changes firmware, re-run `./build.sh`, quote the `RAM .data+.bss N of 73728` line in your report and Log entry, and fail the review if the headroom (73728 - N) is under 8192 B (E9 memory trigger, docs/project/ORCHESTRATOR.md section 5).

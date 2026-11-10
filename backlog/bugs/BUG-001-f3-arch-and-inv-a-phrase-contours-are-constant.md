@@ -6,7 +6,7 @@ type: bug
 status: todo
 priority: 2
 executor: sonnet
-depends_on: []
+depends_on: [P3-001]
 gate: none
 severity: medium
 found_in: bea0fd3 (+ working tree, T1_ISSUES review 2026-11-09)

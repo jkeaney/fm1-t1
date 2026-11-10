@@ -34,7 +34,7 @@ v1 has six algorithms. Show the algorithm picker screen with all six, and confir
 - UX: knob and button roles per row, screen labels, performance gestures; additions to the TSV tables and help_text.tsv; L rubric score
 - Interaction with a single held note when HARMONY is `1----`
 - Cost: ChanRT / pool impact
-- Scenario S19; ALGORITHM_SET.md updated (v1 set becomes 5 algorithms; confirm channel/algorithm picker still fits the screen)
+- Scenario S19; ALGORITHM_SET.md updated (v1 set is 6 algorithms, owner decision 82; confirm channel/algorithm picker still fits the screen)
 
 ## Acceptance criteria
 - [ ] SPEC.md has no 'TBD', parameters and morph and dice mappings as a table the prototype will read

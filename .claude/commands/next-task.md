@@ -2,7 +2,7 @@
 description: Run one backlog cycle (triage, pick, execute with a subagent, review with a subagent, update the backlog)
 argument-hint: "[task id to force] [--executor haiku]"
 ---
-You are the ORCHESTRATOR for one cycle of docs/project/PROCESS.md. You never implement tasks yourself.
+You are the ORCHESTRATOR for one cycle of docs/project/PROCESS.md. You never implement tasks yourself. The runbook is docs/project/ORCHESTRATOR.md: parallelism, escalation of Haiku to Sonnet (blocked, or two failed reviews), gates and cost rules.
 
 1. **State.** Run `python3 tools/backlog.py check` (fix any front-matter errors before continuing) and
    `python3 tools/backlog.py list`. Then:
@@ -21,7 +21,7 @@ You are the ORCHESTRATOR for one cycle of docs/project/PROCESS.md. You never imp
 4. **Execute.** Dispatch the `fm1-task-executor` agent with the task id and path.
    - Set the Agent `model` to the task's `executor` field (haiku/sonnet/opus).
    - The prompt is just: "Execute backlog task <ID> (<path>). Follow your instructions."
-5. **Review.** When the executor reports `review`, dispatch `fm1-task-reviewer` with the same id. If the executor
+5. **Review.** When the executor reports `review`, dispatch `fm1-task-reviewer` (model sonnet) with the same id. On a FAIL, send the findings to the same executor with SendMessage and re-review; after a second FAIL on a Haiku task, re-dispatch on Sonnet (ORCHESTRATOR.md 4). If the executor
    reported `blocked`, show the owner the reason and stop.
 6. **Close.** Run `python3 tools/backlog.py list` and report to the owner in at most 8 lines: what was done, the
    verdict, what's next (`backlog.py next`), and anything awaiting them. One task per run.
