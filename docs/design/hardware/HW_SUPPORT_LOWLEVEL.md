@@ -3,7 +3,7 @@
 Task P2-019 (owner decision 96; phase 1 approved 2026-11-11 as decisions 97-100). Status: **for owner review** (gate `human-review`).
 Design only: no firmware. The table rows of section 5 are real and checked (`check_scenarios.py`, `check_help.py`,
 `tools/check_sequencer_ux.py` pass). The TB-3 specifics (wire list, lane mapping, accent and slide behaviour) are phase 3, task P2-020;
-every device name, wire name and number below is a **placeholder that illustrates the format**, and is marked so.
+every device name, wire name and number in sections 1-8 is a **placeholder that illustrates the format** (P2-020 filled in the TB-3 and P2-021 extended the format: section 9; the mock-ups of 4.2 and 4.3 now show the real TB-3 names).
 
 Tags: **[V]** verified in a document or on hardware, **[I]** inferred, **(warning)** unconfirmed, a hypothesis for an H-test (section 6.3).
 
@@ -25,7 +25,7 @@ Refinements (found while making HL buildable; none changes a locked decision; th
 | RF1 | `Rig` lives inside `ChanSave` (344 -> 372 B) | `RigSave rig[4]` is a **sibling array** of `HarmonySave` in `SeqPreset` v4; `ChanSave` stays 344 B | the `sizeof(ChanSave) == 344` and `UndoRec == 92` asserts, the per-channel page-copy code and every P4-001..P4-006 test stay untouched; the preset total is the same 1508 B |
 | RF2 | .bss 184 B | **274 B** (section 1.6) | the runtime table has to remember the CC, MIDI channel and neutral of what it last sent, or a rewire or a preset swap cannot park the old parameter |
 | RF3 | `~` appended to dice sub-labels and morph cells (`ACCNT~`) | a 3x3 px **ride dot** in the cell corner (graphics, 0 px of text width) | measured: with `~` the PERF button row 2 needs 247 px of ink against 240 (`GT+SLD~` 50, `ROTATE~` 49) |
-| RF4 | profile header: acc / slide fields | also the four **suggested wires with their layer, form and MOVE defaults** (HwProf 192 B) | "a device starts its wires in HAND" (decision 100) needs the starting configuration somewhere; it is the profile |
+| RF4 | profile header: acc / slide fields | also the four **suggested wires with their layer, form and MOVE defaults** (HwProf 192 B; **superseded by RF9, P2-021: per-parameter lanes and named wire sets, HwProf 316 B**) | "a device starts its wires in HAND" (decision 100) needs the starting configuration somewhere; it is the profile |
 | RF5 | RST R3 "as one undo record" | RST R3 is **not undoable** (it is a LEVEL/MOVE/state edit) | decision 100 (undo = seeds only); the RESET page already cancels with EDIT before anything is reset |
 | RF6 | lane CCs all stamped before their note | 2 CCs ahead, the rest after the note, 1 ms apart (3.5) | a DIN link needs 0.96 ms per 3-byte message [V: MIDI spec]; 8 CCs ahead of a note would delay it by up to 7 ms |
 | RF7 | wire names "illustrative" | names **at most 5 letters and 38 px** (AF_S), enforced by the profile generator | the compact ROW 3 cell is chip + name in 49 px (4.1) |
@@ -98,7 +98,7 @@ retries from the main loop until it is accepted (at most 8 outstanding, one per 
 `rig_chip[4]` (per-channel chip cache: 0 none, 1 H, 2 ~) + `rig_toast_id`. Two **persistent** bits go into `ui_prefs2` (they survive power-off, like the first-run bit): `PREF2_RIG_INTRO`
 (the one-time "4 KNOBS ON ROW 3" toast was shown) and `PREF2_RIG_ROW3SEEN` (ROW 3 was visited once; the `OCT+ TWICE` cue stops). P4-030 checks that two bits are free.
 
-### 1.5 Profiles (flash, const): see section 2 (`HwParam` 10 B, `HwProf` 192 B, `HwProv` 76 B).
+### 1.5 Profiles (flash, const): see section 2 (`HwParam` 14 B, `HwSet` 10 B, `HwProf` 316 B, `HwProv` 76 B; P2-021 v2, section 9).
 
 ### 1.6 Where it lives, and the numbers
 
@@ -111,7 +111,7 @@ retries from the main loop until it is accepted (at most 8 outstanding, one per 
 | **Total new .bss** | | **274** | HL said 184 (RF2) |
 | Undo | .bss | 0 | `UndoRec` stays 92 B: seeds are the undo unit (decision 100) |
 | `SeqPreset` v4 = 1396 + 112 | pool | 1508 B x 18 copies = 27144 B | was 25128 B: **+2016 B** |
-| Profile table (8 profiles x 192) + provenance (8 x 76) | flash | 1536 + 608 = 2144 | plus about 1.5 KB of code and 2 KB of strings: about 6 KB in all |
+| Profile table (8 profiles x 316) + provenance (8 x 76) | flash | 2528 + 608 = 3136 (P2-021; was 2144) | plus about 1.7 KB of code and 2 KB of strings: about 7 KB in all |
 | CPU | ISR | about 40 integer operations per SEQ wire per step; `rig_block` about 70 operations per 725 us block | 8 wires = 320 operations per step instant, inside the +5 % of ADR-0003 |
 
 Checks against the budgets: **.bss** headroom is 17984 B before the removals; SEQUENCER_UX 9.4 leaves 11123 B after its own 6861 B, so the rig leaves **10849 B**: above the owner's
@@ -138,7 +138,8 @@ _Static_assert(sizeof(Wire) == 6 && offsetof(Wire, cc) == 0 && offsetof(Wire, cf
 _Static_assert(sizeof(Rig) == 28 && offsetof(Rig, w) == 2 && offsetof(Rig, rsv1) == 26, "Rig");
 _Static_assert(sizeof(RigSave) == 4 * 28, "RigSave");
 _Static_assert(sizeof(RigRT) == 8 && offsetof(RigRT, tick) == 6, "RigRT");
-_Static_assert(sizeof(HwParam) == 10 && sizeof(HwProf) == 192 && offsetof(HwProf, prm) == 32 && sizeof(HwProv) == 76, "Hw*");
+_Static_assert(sizeof(HwParam) == 14 && offsetof(HwParam, kind) == 10 && offsetof(HwParam, link) == 11 && offsetof(HwParam, dcfg) == 12 && offsetof(HwParam, dmove) == 13
+               && sizeof(HwSet) == 10 && sizeof(HwProf) == 316 && offsetof(HwProf, nset) == 15 && offsetof(HwProf, prm) == 32 && offsetof(HwProf, set) == 256 && sizeof(HwProv) == 76, "Hw* v2");
 _Static_assert(sizeof(ChanSave) == 344 && sizeof(UndoRec) == 92, "rig must not change these");        /* in sq_types.h, already there */
 _Static_assert(sizeof(SeqPreset) == 1396 + sizeof(RigSave), "SeqPreset v4");                            /* 1508 */
 _Static_assert(SQ_NWIRE * SQ_NCH <= 16 && RIG_SEQ_CAP <= 16 && (1 << 7) > 127, "rig limits");
@@ -150,8 +151,18 @@ Host tests (P4-025/P4-027) add: every enum fits its bit field; a random `Rig` ro
 ### 2.1 Records (flash, `const`, generated; no pointers, so there are no relocations)
 
 ```c
-typedef struct { uint8_t cc, lo, hi, home; char nm[6]; } HwParam;   /* 10 B: nm is at most 5 letters + NUL; lo..hi the legal range sent; home the neutral */
-typedef struct {            /* 192 B */
+typedef struct {            /* 14 B (v2, P2-021; v1 was 10 B: cc lo hi home nm[6]) */
+    uint8_t cc, lo, hi, home;   /* @0  lo..hi the legal range sent; home the neutral (a SELECT: the CC at the centre of its home zone) */
+    char    nm[6];          /* @4  at most 5 letters + NUL */
+    uint8_t kind;           /* @10 bits0..1 KIND (0 CONT, 1 SEL; 2, 3 load as CONT); bits4..7 = zones - 1 for SEL (2..16 zones), 0 for CONT */
+    uint8_t link;           /* @11 bits0..4 index of the partner in prm[] (0x1F = none); bit5 GATED (a depth that matters only when its type is not in zone 1 = OFF);
+                                   bit6 RESEND (re-send the depth 1 ms after each type change); bit7 DUCK (send the depth as 0 first, the type, then the depth again);
+                                   bits 5..7 are 0 until H-RIG20 says otherwise */
+    uint8_t dcfg;           /* @12 the lane this parameter gets when a wire takes it: cfg bits 2..6 (FORM, LAYER); for SEL the FORM field is DICE 0 / LOOP 1 (2.6) */
+    uint8_t dmove;          /* @13 the MOVE it gets (a SEL: the spread, 0..127) */
+} HwParam;
+typedef struct { char nm[6]; uint8_t p[4]; } HwSet;     /* 10 B: a named WIRE SET (4.9): the four parameters (indexes into prm[], 0xFF = empty) that wires 1..4 take */
+typedef struct {            /* 316 B (v2; v1 was 192 B) */
     char    name[9];        /* @0  device name, at most 8 characters + NUL: the toast, the RIG banner, the picker */
     uint8_t id;             /* @9  stable forever; 0 NONE and 1 GENERIC are reserved */
     uint8_t n;              /* @10 parameters in use, 0..16 (GENERIC: 0) */
@@ -159,13 +170,12 @@ typedef struct {            /* 192 B */
     uint8_t acc_arg;        /* @12 VEL: the accent velocity threshold (0 = the global ACC_VEL); CC: the CC number */
     uint8_t slide_mode;     /* @13 0 OVERLAP (default = today's behaviour), 1 CC, 2 NONE */
     uint8_t slide_arg;      /* @14 CC mode: the CC number */
-    uint8_t sug[4];         /* @15 the four suggested wires: indexes into prm[] (0xFF = none) */
-    uint8_t sug_cfg[4];     /* @19 their layer and form, cfg bits 2..6 (state bits 0) */
-    uint8_t sug_move[4];    /* @23 their MOVE */
-    uint8_t prov;           /* @27 index into the provenance table */
-    uint8_t flags;          /* @28 bit0 GENERIC (raw CC: the name is `CCnn`, range 0..127, home 64) */
-    uint8_t rsv[3];         /* @29 */
-    HwParam prm[16];        /* @32 */
+    uint8_t nset;           /* @15 wire sets in use, 0..6; set 0 is what a freshly picked device starts with (v1: sug[4]) */
+    uint8_t prov;           /* @16 index into the provenance table */
+    uint8_t flags;          /* @17 bit0 GENERIC (raw CC: the name is `CCnn`, range 0..127, home 64) */
+    uint8_t rsv[14];        /* @18 */
+    HwParam prm[16];        /* @32 ... @256 */
+    HwSet   set[6];         /* @256 ... @316 (v1: the four suggested wires' layer, form and MOVE lived in sug_cfg[]/sug_move[]; now per parameter, in HwParam) */
 } HwProf;
 typedef struct {            /* 76 B, per profile: who says so (decision 99) */
     char    src[24];        /* where the facts come from, for example "vendor MIDI chart" or "own test" */
@@ -201,7 +211,7 @@ Rules the generator (2.4) enforces so that the statement stays true:
 | --- | --- |
 | Every profile has all three provenance strings, a level and a date | `tools/gen_hwprof.py` fails on an empty field |
 | The data is ours | a profile file may not name `tb3-midi-guide.csv` or any `docs/design/hardware/*.csv` as input; the generator never opens them; `src` may mention midi.guide only as "cross-checked", never as the sole source (a profile whose only source is a database is level 0 and fails the build for the suggested wires) |
-| Every suggested wire has two sources or a hardware check | `level >= 1` for any param named in `sug[]` |
+| Every wired parameter has two sources or a hardware check | `level >= 1` for any param named in a `set` line |
 | The CSV stays reference | `docs/design/hardware/README.md` keeps the CC BY-SA 4.0 attribution (already there); the CSV is never read by `gen_ui_tables.py` or `gen_hwprof.py` |
 | Names fit the screen | at most 5 letters, uppercase, digits and `-`/`+` only, and at most 38 px in AF_S, measured through `width_probe.sh` (the compact cell is chip + space + name in 49 px; `H ` is 11 px) |
 
@@ -210,9 +220,11 @@ does not show provenance (screen space is for the rig).
 
 ### 2.4 Source files and generator
 
-`tools/hwprof/<name>.tsv` (one file per profile, hand-written, reviewed once) with two blocks: a header (`id name acc_mode acc_arg slide_mode slide_arg prov.src prov.how prov.cred prov.level prov.date`) and one
-line per parameter (`cc lo hi home name`, then optionally `sug <slot> <layer> <form> <move>`). `tools/gen_hwprof.py` writes `build/gen/hwprof_tab.h` (the const arrays) and fails on: a duplicate id, a duplicate CC inside a
-profile, more than 16 params, a name over budget, `home` outside `lo..hi`, a missing provenance field, a suggested wire at level 0. The tool lives in P4-024; P2-020 supplies `tb3.tsv`.
+`tools/hwprof/<name>.tsv` (one file per profile, hand-written, reviewed once) with three blocks (v2, P2-021): a header (`id name acc_mode acc_arg slide_mode slide_arg prov.src prov.how prov.cred prov.level prov.date`),
+one line per parameter (`cc lo hi home name kind link layer form move`; `kind` is `C` or `S<n>`; `link` is `-` or the partner's name with optional `:G` `:R`; `layer form move` is the lane the parameter gets when a wire takes it)
+and up to six `set NAME p1 p2 p3 p4` lines (parameter names). `tools/hwprof/tb3.tsv` is the worked example. `tools/gen_hwprof.py` writes `build/gen/hwprof_tab.h` (the const arrays) and fails on: a duplicate id, a duplicate CC or name inside a
+profile, more than 16 params or 6 sets, a name over budget, `home` outside `lo..hi`, a SEL with fewer than 2 or more than 16 zones, a `link` that is not mutual or names an unknown parameter, a SEL form other than DICE / LOOP,
+a CONT form other than RAND / WALK / RAMP / ACC, a set naming an unknown parameter, a set name over 5 letters or 38 px, a missing provenance field, a wired parameter at level 0. The tool lives in P4-024; P2-020 supplies `tb3.tsv`, P2-021 extends it.
 
 ### 2.5 Lookup (pure, host-testable)
 
@@ -221,6 +233,10 @@ const HwProf  *hw_prof(uint8_t id);                           /* 0 and unknown i
 const HwParam *hw_param(uint8_t id, uint8_t cc);               /* NULL for GENERIC or an unknown cc */
 void           hw_range(uint8_t id, uint8_t cc, uint8_t *lo, uint8_t *hi, uint8_t *home);   /* GENERIC/unknown: 0, 127, 64 */
 uint8_t        hw_next_cc(uint8_t id, uint8_t cc, int8_t dir);   /* K1 PARAM: the next listed cc (wrapping), or cc +/- 1 on GENERIC */
+const HwSet   *hw_set(uint8_t id, uint8_t i);                     /* P2-021: wire set i of the profile, NULL past nset */
+uint8_t        hw_zones(const HwParam *p);                        /* P2-021: 1 for CONT, n for SEL */
+uint8_t        hw_zone_cc(const HwParam *p, uint8_t z);           /* P2-021: SEL zone z (1..n) -> the CC at its centre: lo + (2*z - 1) * (hi - lo + 1) / (2*n) */
+uint8_t        hw_cc_zone(const HwParam *p, uint8_t v);           /* P2-021: a CC value -> its zone: (v - lo) * n / (hi - lo + 1) + 1 */
 ```
 
 ## 3. Engine integration
@@ -396,8 +412,8 @@ ROW 1 live (rig on CH1; ROW 3 is the device)            ROW 3 live (HAND turn in
 | #  .  #' #  .  #! .  #~ #  .  #  .  #  |              | #  .  #' #  .  #! .  #~ #  .  #  .  #  |
 |ROW |DENS 12 |SLIDE 4 |JUMP 5 |ACCNT 3 |              |  1 |DENS    |SLIDE   |JUMP    |ACCNT   |
 |1/3 |        |        |        |        |              |  2 |OFFSET  |PEDAL   |PUNCH   |DIR     |
-|  2 |OFFSET  |PEDAL   |PUNCH   |DIR     |              |ROW |CUT     |RESO    |ENV     |TUNE    |
-|  3 |~ CUT   |H RESO  |H ENV   |H TUNE  |              |3/3 | 74 ~   | 43 H   | 64 H   | 64 H   |
+|  2 |OFFSET  |PEDAL   |PUNCH   |DIR     |              |ROW |CUT     |RESO    |ENV-X   |ENV-Y   |
+|  3 |~ CUT   |H RESO  |H ENV-X |H ENV-Y |              |3/3 | 74 ~   | 43 H   | 64 H   | 64 H   |
 | ALL  NOTES ACCNT SHAPE UNDO  SET       |              | ALL  NOTES ACCNT SHAPE UNDO  SET       |
 |  ... buttons as PERF ...               |              |  ... buttons as PERF ...               |
 | M1 M2 M3|M4 CHN|SOL FIL ROL|PG- PG+|RST|              | M1 M2 M3|M4 CHN|SOL FIL ROL|PG- PG+|RST|
@@ -431,7 +447,7 @@ Geometry (zones of SCREEN_SPEC 2; Z2 and Z3 change, the rest is PERF's):
 | Zone | y,h | Content on the RIG page |
 | --- | --- | --- |
 | Z0 HEAD, Z1 CHANNELS | 0..48 | unchanged; the cell of the selected channel is the rig being edited; line 2 of any cell with a rig carries a chip: `MIDI 2 ~` (some SEQ), `MIDI 2 H` (HAND only); a muted cell drops the chip |
-| Z2 (replaces the lane) | 48,14 banner; 62..108 four wire rows of 12, 12, 11, 11 px | banner: `RIG CH1  TB-3` left in `T_ACCENT` on `T_TINT`, `WIRE 1/4` right |
+| Z2 (replaces the lane) | 48,14 banner; 62..108 four wire rows of 12, 12, 11, 11 px | banner: `RIG CH1  TB-3 BITE` (device and set; `TB-3 CUSTOM` once the four wires no longer match a set) left in `T_ACCENT` on `T_TINT`, `WIRE 1/4` right |
 | Z3 BAND (single-row page) | 108,52 | tag column `RIDE-` / `RIDE+`; K1..K4 cells `PARAM`, `LAYER`, `FORM`, `MOVE` with the selected wire's values; two status lines (204 px) |
 | Z4 buttons, Z5 legend, Z6 cue | as PERF | dice buttons keep their roles and labels (you hear the lanes change while setting up); the legend shows `BACK` on D#4 |
 
@@ -439,14 +455,14 @@ Wire row columns (AF_S, x of the left edge, widths binding): key digit `1` at x=
 the lane form at x=164 (`RAND` `WALK` `RAMP` `ACC`; 34 column); MOVE as `M48` at x=200 (`M127` 31). The selected wire is inverted (`T_SEL`/`T_INK`); DEV rows dim; SEQ rows have the state word in `T_ACCENT`.
 
 ```
-+----------------------------------------+   TB-3 chosen, wire 1 selected (placeholder names)
++----------------------------------------+   TB-3 BITE chosen, wire 1 selected (P2-020 names, P2-021 banner)
 |> 120 P01  1 ACID M2  [1]           L16 |
 |[1 ACID ] 2 EUCL m  3 SNAK m  4 STAG m  |   cell 1 line 2: MIDI 2 ~
-| RIG CH1  TB-3                  WIRE 1/4|   banner (accent on tint)
+| RIG CH1  TB-3 BITE             WIRE 1/4|   banner (accent on tint)
 |>1 CUT   64 SEQ~ ACCNT ACC   M48        |   selected row inverted
 | 2 RESO  43 HAND ARTIC WALK  M24        |
-| 3 ENV   64 HAND SHAPE RAMP  M32        |
-| 4 TUNE  64 DEV  -     RAND  M0         |
+| 3 ENV-X 64 HAND SHAPE RAMP  M32        |
+| 4 ENV-Y 64 HAND -     RAND  M0         |
 |RIDE-|PARAM CUT|LAYER ACCNT|FORM ACC|MOVE 48|
 |RIDE+|CC74  LEVEL 64  MIDI 2                |
 |     |RIDE -  OCT- / OCT+                   |
@@ -647,3 +663,208 @@ now lists RIG in its matrix and treats S22 as a sweep; `check_help.py` and `gen_
   (hence the hold is named in the lane header); the cue `ROW 3 OF 3 GENERIC: ...` is 246 px (hence no device name in the cue).
 - `python3 tools/backlog.py check`: see the P2-019 Log.
 - No firmware, no `tools/check.sh`, no build (the build directory is in use by another task).
+
+## 9. P2-021: profile v2 (parameter kinds, linked parameters, wire sets) and the alignment of 11 parameters onto 4 wires
+
+Task P2-021 (owner decision 106). Status: **for owner review** (gate `human-review`). Design and data only: no firmware. Nothing in sections 1-8 that the owner locked (decisions 96-101) is changed; every change below is a refinement marked RF9..RF13 or an owner question (9.9).
+Section 2.1 (records), 2.4 (source file), 2.5 (lookups), 1.6 (flash) and 1.8 (asserts) above were edited in place to the v2 layout; this section says why and adds what they refer to. The TB-3 data is `tools/hwprof/tb3.tsv`; the TB-3 facts and the family maps are in [TB3_PROFILE.md](TB3_PROFILE.md).
+
+**Why.** Decision 106: all 11 TB-3 CCs move their parameter by ear. The P2-020 profile had 7 entries and 4 suggested wires. Eleven parameters have to share four wires (decision 100), one of them (scatter type, CC 68) is a **mode select** and not a knob, and it is **linked** to another (scatter depth, CC 69). The owner's emphasis: *the key is aligning them into the sequencer so that we can control the ones we need and want.*
+(Count note: 7 of the 11 were already in the P2-020 table from the vendor chart; they are upgraded from [I] to [V-ear]. The **new** entries are 4: CC 1, 11, 68, 69.)
+
+### 9.1 Refinements
+
+| # | v1 said | v2 says | Why |
+| --- | --- | --- | --- |
+| RF9 | the profile names four suggested wires, each with its layer, form and MOVE (`sug[4]`, `sug_cfg[4]`, `sug_move[4]`, HwProf 192 B) | the **lane lives on the parameter** (`HwParam.dcfg`, `dmove`: the lane it gets when any wire takes it) and the profile carries up to six named **wire sets** (`HwSet`: a 5-letter name and four parameter indexes); a freshly picked device starts with set 0 | with 11 parameters the old shape cannot say what each one does when it is swapped onto a wire; a set is then only four indexes |
+| RF10 | `HwParam` is `cc lo hi home nm` (10 B) | `kind` (CONT or SEL with 2..16 zones), `link` (partner, GATED, RESEND, DUCK), `dcfg`, `dmove` (14 B) | scatter type is a select, scatter depth belongs to it |
+| RF11 | FORM RAND / WALK / RAMP / ACC for every wire | for a **SEL** parameter the FORM field reads DICE (0) or BAR (1); 2 and 3 load as DICE (the loader rule of 1.1 already maps invalid fields) | a select must not sweep through modes (9.2); the `Wire` struct is unchanged |
+| RF12 | `RigRT.rsv` is spare | `RigRT.rsv` holds the time of the last HAND turn in 16 ms units (`turn16`) for the SEL settle | `sizeof(RigRT)` stays 8, so the assert of 1.8 stays |
+| RF13 | `sq_rig_set_prof(c, id)` fills the four suggestions | `sq_rig_set_prof(c, id, set)`; a new hook `rig_bar(bar)` latches every SEL wire at each 768-tick bar line (9.3) | sets; SEL changes only on a boundary |
+
+Budget of v2: `HwParam` +4 B x 16 x 8 profiles = 512 B, `HwSet` 60 B x 8 = 480 B, minus the 12 B x 8 of `sug*` = **+992 B flash** (3136 B in all; 1.6). .bss: **0 B** (RF12 reuses a byte; the `sets` are const). CPU: a SEL wire is evaluated once per bar, not per step: cheaper than any CONT wire. The static asserts are in 1.8 (edited).
+`HwParam.nm`, set names: at most 5 letters, 38 px (AF_S) through `width_probe.sh`: PAD-Y 33, PAD-Z 34, SCTYP 37, SCDEP 37, BITE 24, WET 25, PADS 29, PUSH 31 (rows of `tests/design/widths.tsv`).
+
+### 9.2 Parameter kinds: CONT and SEL
+
+| | CONT (continuous) | SEL (mode select, n equal zones over `lo..hi`) |
+| --- | --- | --- |
+| Example | CUT, RESO, SCDEP | SCTYP (CC 68) |
+| What a knob turn does (HAND) | LEVEL moves one step per detent (fast 8), a CC is sent at once, at most one per 10 ms | LEVEL moves **one zone per detent**, no acceleration; the **cell shows the target zone at once** (`#3`), the CC is sent **150 ms after the last detent** (`SEL_SETTLE_MS`, [I] to be tuned in H-RIG20), so spinning from `#1` to `#6` sends one CC, the CC of `#6`, and no mode in between is ever selected |
+| What is sent | any 0..127 | **the CC at the centre of the zone**: `hw_zone_cc(p, z) = lo + (2z - 1) * (hi - lo + 1) / (2n)` (n = 8: 8, 24 ... 120), never an edge value, so an error in the device's zone edges costs nothing until it is larger than half a zone |
+| LEVEL stores | the CC | the centre CC of the base zone (the `Wire` byte is unchanged; `hw_cc_zone` converts back) |
+| FORM | RAND WALK RAMP ACC | **DICE** (the zone is a pure function of the layer seed: it changes only when the layer is diced) or **BAR** (the zone also depends on the bar number mod 4: up to four zones over a four-bar cycle) |
+| MOVE | lane depth | **spread**: how many zones above the base zone the lane may visit, `spread = (MOVE * (n - 1) + 63) / 127` (MOVE 40 on 8 zones = 2; MOVE 0 = never leaves the base zone; this keeps "0 = the lane is silent") |
+| When SEQ changes it | any step (at most one CC per step) | **only on a bar line** (768 ticks): `rig_bar` recomputes the zone from the seed and sends if it changed; a dice press between bar lines is announced at once (toast `HITS + SCTYP`) and lands on the next bar line (the cell shows `#3>5` until then) |
+| Dedupe, park, undo, preset | as 3.3, 3.4, 1.7 | the same code paths: the value is a CC, so dedupe, park (`home` = the centre of the home zone), SEQ cap 8 and "undo = seeds" all hold |
+
+The lane (all integers, a pure function, so a golden can fix it):
+```c
+/* SEL lane, called by rig_bar(bar) for every SEQ wire whose parameter is SEL */
+n = hw_zones(p);  base = hw_cc_zone(p, level);                       /* 1..n */
+spread = (move * (n - 1) + 63) / 127;                                /* 0..n-1 */
+h = rig_mix(seed, ch, wi, form == BAR ? (bar & 3) : 0, 4);          /* salt 4: the CONT forms use salts 1..3 */
+zone = (base - 1 + h % (spread + 1)) % n + 1;                       /* wraps past n */
+value = hw_zone_cc(p, zone);                                        /* then the send path of 3.3, prio 0, due = the bar line */
+```
+`seed` is the seed of the riding layer or `RIG_SEED0` (LAYER NONE or absent: the zone freezes at the base zone shifted by one constant, honestly). It touches no algorithm state, so goldens are unchanged (T-RIG1/T-RIG2 hold).
+
+Why no chaos: (1) a select is never swept; (2) it changes at most once per bar; (3) MOVE bounds the choice to a window of zones, so the owner dials "a little variety" or "any type"; (4) at MOVE 0 it never moves; (5) the device sees one CC, not a burst.
+
+### 9.3 Linked parameters (scatter type 68 and scatter depth 69)
+
+What the owner established [V-ear, decision 106]: both CCs work; 68 is a mode select, 69 the depth of that effect; they are linked. What is **not** known (each one is a `link` bit or a TSV field, so the answer is data and not code; H-RIG20, 9.8):
+
+| # | Unknown | If yes | Where it goes |
+| --- | --- | --- | --- |
+| U1 | how many types the TB-3 has and where the zone edges of CC 68 are (equal splits assumed; 8 zones is a placeholder) | the TSV `S<n>` and, if the edges are not equal, a one-line follow-up (an edge table, 17 B) | `kind` |
+| U2 | depth 0 means "no effect" | `home` of SCDEP = 0 stays | `home` |
+| U3 | zone 1 (or CC 0..x) of the type means OFF, and then the depth is ignored | `:G`: the depth cell is drawn dim while the type sits in zone 1 (UI only; nothing is withheld) | `link` bit5 |
+| U4 | a type change with the depth up makes a click, a hang or a restart | `:D` (duck): the engine sends depth 0, the type, then the depth again, 1 ms apart | `link` bit7 |
+| U5 | the device needs the depth re-sent after a type change | `:R` (resend): the depth is sent again 1 ms after the type | `link` bit6 |
+| U6 | the effect is tempo-synced and needs MIDI clock | a note in the profile and the H-RIG sheet (the FM-1 sends clock when it is master) | text |
+| U7 | the type change lands at once or on the device's next beat | decides whether "next bar line" can be pre-stamped earlier | `RIG_PRE_N` |
+
+Rules that are true whatever the answers are (the **linked pair**):
+1. A linked pair is two ordinary wires. The profile sets put them side by side (wires 3 and 4 of WET), so they sit next to each other on ROW 3 and on the RIG page. One wire cannot carry two CCs (the `Wire` struct is locked, decision 101), and a "compound" single control would hide which of the two knobs does what.
+2. **The pair never half-exists silently.** If K1 puts a SEL parameter on a wire and its partner is not on any wire of the channel, the toast reads `SCTYP NEEDS SCDEP ON A WIRE` (177 px); it is a hint, nothing is added behind the player's back (four wires, decision 100). Putting the depth parameter alone raises no toast (a depth with no type is the type the device already has).
+3. The type goes **before** the depth in the same tick (3.5 stamps: the type at `due_note - 1 ms`, a resent or ducked depth at `+1 ms`, so the depth always follows the type).
+4. On ROW 3 the pair is identified by the names (`SCTYP`, `SCDEP`), by the adjacency and by the RIG status line `RIDE -  PAIRS WITH SCDEP` (140 px). No new glyph (the compact cell has no room, 4.1).
+5. HAND works as for the others: turn the type knob (zone steps, 150 ms settle), turn the depth knob (continuous).
+6. K1 on the RIG page **walks past parameters that already sit on another wire of the channel** (a duplicate would send two lanes to one CC); taking a parameter off a wire (K1 moves on) whose partner is wired raises the same toast `SCTYP NEEDS SCDEP ON A WIRE`.
+
+### 9.4 Aligning 11 parameters onto 4 wires: the options
+
+The problem in the owner's words: *control the ones we need and want.* What the player wants to say: "give me the filter set", "give me the scatter pair", "swap just this one knob for that one". Three designs, scored with the rubric of SEQUENCER_UX 8.1 (the designer's scores, not machine-checked; a setup function needs 10 with no sub-score under 2 and at most 2 gestures).
+
+#### Option 1: WIRE SETS on ALGO (device and set in one list)
+
+The profile names up to six sets (`HwSet`). On the RIG page the ALGO list becomes `NONE GENERIC TB-3 BITE WET PADS PUSH`: a device is its first set; the list is device + set. Turning ALGO moves a *pending* choice; it applies 0.6 s after the last detent (`SET_SETTLE_MS`, the same pattern as the preset load, decision 71) so spinning through the list does not rewrite and re-park the wires on the way. Applying is `sq_rig_set_prof(c, id, set)`: the four wires take the set's parameters, each with its own lane (`dcfg`, `dmove`), all in HAND, nothing is sent; old SEQ wires are parked as for a device change (3.4).
+```
+RIG page, ALGO just turned to WET                  after 0.6 s (applied)
++----------------------------------------+         +----------------------------------------+
+|> 120 P01  1 ACID M2  [1]           L16 |         |> 120 P01  1 ACID M2  [1]           L16 |
+|[1 ACID ] 2 EUCL m  3 SNAK m  4 STAG m  |         |[1 ACID ] 2 EUCL m  3 SNAK m  4 STAG m  |
+| RIG CH1  TB-3 BITE             WIRE 1/4|         | RIG CH1  TB-3 WET              WIRE 1/4|
+|>1 CUT   64 HAND ACCNT ACC   M48        |         |>1 CUT   64 HAND ACCNT ACC   M48        |
+| 2 RESO  40 HAND ARTIC WALK  M24        |         | 2 EFFEC  0 HAND -     RAND  M0         |
+| 3 ENV-X 64 HAND SHAPE RAMP  M32        |         | 3 SCTYP #1 HAND HITS  DICE  M40        |
+| 4 ENV-Y 64 HAND -     RAND  M0         |         | 4 SCDEP  0 HAND ACCNT ACC   M40        |
+|RIDE-|PARAM CUT|LAYER ACCNT|FORM ACC|MOVE 48|     |RIDE-|PARAM CUT|LAYER ACCNT|FORM ACC|MOVE 48|
+|RIDE+|CC74  LEVEL 64  MIDI 2                |     |RIDE+|SET WET: CUT EFFEC SCTYP SCDEP         |
+|     |RIDE -  OCT- / OCT+                   |     |     |SCTYP + SCDEP WORK AS A PAIR          |
+| ALL  NOTES ACCNT SHAPE UNDO  SET       |         | ALL  NOTES ACCNT SHAPE UNDO  SET       |
+|  ... buttons as PERF ...               |         |  ... buttons as PERF ...               |
+| M1 M2 M3|M4 BACK|SOL FIL ROL|PG- PG+|RST|         | M1 M2 M3|M4 BACK|SOL FIL ROL|PG- PG+|RST|
+|NONE GENERIC TB-3 BITE [WET] PADS PUSH  |         | TB-3 WET: CUT EFFEC SCTYP SCDEP        |
++----------------------------------------+         +----------------------------------------+
+```
+(the right side's status lines show for 2 s after the apply, then the normal `CC74 ...` lines.) The banner reads `TB-3 CUSTOM` as soon as the four wires differ from every set (a comparison of four CC numbers).
+Gestures from PERF: **2** (hold CHN, turn ALGO). Scores: V 3 (banner, list, wire rows), I 2, O 3, L 2 (the CHN hold is named in the lane header, R-8) = **10, pass**. Strength: the whole character of the sound in two gestures; a set is a *musical* name, not a CC list. Weakness: it replaces all four wires (guarded by the settle; the previous rig is gone, since undo is seeds only, decision 100; a preset carries it).
+
+#### Option 2: SWAP one wire from ROW 3 (a latch on the last row)
+
+On ROW 3, `OCT+` (inert today: toast `LAST ROW`) toggles SWAP for 4 s: the cells show the parameter names inverted, K1..K4 pick the parameter of their wire from the profile list, OCT+ or 4 s without a turn leaves it.
+```
+ROW 3, SWAP latched (OCT+ tap)
+|SWAP|[CUT]   |[RESO]  |[SCTYP] |[ENV-Y] |      the rail cell reads SWAP; the names are inverted
+|3/3 | 74 ~   | 43 H   | #3 H   | 64 H   |
+| SWAP: TURN A KNOB TO PICK ITS KNOB     |
+```
+Gestures: **2** (OCT+, turn) once on ROW 3; from ROW 1 it is two OCT+ more. Scores: V 3, I 2, O 3, **L 1** (the role of OCT+ on the last row is found only by trying it; nothing names it on the page before the press, and the cue strip never lifts L) = **9, fails the setup bar**; to pass it needs a permanent name on ROW 3, and there is no room (the rail cell is `ROW 3/3`). It also **changes a locked row** (`OCT+ on ROW 3: stays` in 4.2). A latched sub-mode inside a performance row is the mode trap the owner warned against (VISION rule 1). Not recommended.
+
+#### Option 3: PALETTE and FOLLOW on the RIG page (K1 picks from all eleven)
+
+Two changes to the page that already exists. (a) **FOLLOW:** the RIG page opens with the wire selected that belongs to the ROW 3 knob the player touched last (the selected-wire index is today "kept"; now it is also set by a ROW 3 turn), so "I am turning the knob that is wrong, I want another" is hold CHN, turn K1: nothing to select. (b) **PALETTE:** for 2 s after every K1 turn the two status lines show **all eleven names**, the wired ones in the accent colour and the cursor inverted, so the player sees what exists and what is on a wire.
+```
+RIG page, wire 3 selected (FOLLOW), K1 turned to SCTYP (palette shown for 2 s)
++----------------------------------------+
+|> 120 P01  1 ACID M2  [1]           L16 |
+|[1 ACID ] 2 EUCL m  3 SNAK m  4 STAG m  |
+| RIG CH1  TB-3 CUSTOM           WIRE 3/4|
+| 1 CUT   74 SEQ~ ACCNT ACC   M48        |
+| 2 RESO  43 HAND ARTIC WALK  M24        |
+|>3 SCTYP #3 HAND HITS  DICE  M40        |
+| 4 ENV-Y 64 HAND -     RAND  M0         |
+|RIDE-|PARAM SCTYP|LAYER HITS|FORM DICE|MOVE 40|
+|RIDE+|CUT RESO ENV-X ENV-Y PAD-Y PAD-Z      |      * the 4 wired names in T_ACCENT, the cursor SCTYP inverted
+|     |ACC EFFEC TUNE [SCTYP] SCDEP          |      * 201 px and 174 px of 204
+| ALL  NOTES ACCNT SHAPE UNDO  SET       |
+|  ... buttons as PERF ...               |
+| M1 M2 M3|M4 BACK|SOL FIL ROL|PG- PG+|RST|
+| SCTYP NEEDS SCDEP ON A WIRE            |      toast: the partner is on no wire
++----------------------------------------+
+```
+Gestures: **2** when FOLLOW matches (hold CHN, turn K1); **3** for a wire that was not the last touched (hold CHN, tap or hold its key to select, turn K1). Scores at 2 gestures: V 3, I 2, O 3, L 2 = **10, pass**; at 3 gestures the same total but over the gesture cap (P2-019 R3 counted "select + turn" as one; counted strictly it is 3; owner question G). Strength: precise, shows the whole menu, no locked row changes beyond the select rule; weakness: it is a page visit, not a performance gesture.
+
+#### Comparison and recommendation
+
+| Option | What it gives | Gestures | V I O L | Total | Verdict |
+| --- | --- | ---: | --- | ---: | --- |
+| 1 SETS on ALGO | the sound character, 4 wires at once | 2 | 3 2 3 2 | 10 | pass |
+| 2 SWAP on ROW 3 | one wire, no page change | 2 (+2 to reach ROW 3) | 3 2 3 1 | 9 | **fails**, changes a locked row |
+| 3 PALETTE + FOLLOW | one wire, with the whole menu in view | 2 (3 if not the last-touched wire) | 3 2 3 2 | 10 | pass at 2 |
+
+**Recommendation: Option 1 + Option 3.** *Hold CHN and turn ALGO to pick a named wire set (TB-3: BITE, WET, PADS, PUSH) in two gestures, then correct any single wire with K1 against a visible eleven-name palette on the RIG page, which opens on the knob you touched last.* Sets answer "which four do I want" (11 parameters become 4 musical choices and every parameter is in at least one set; TUNE is in none, by design: an unmusical live move, still one K1 turn away); the palette answers "just this one is wrong". Option 2 stays a later possibility (owner question I).
+
+#### Scores of the new and changed functions
+
+| Function | Class | Gestures | V | I | O | L | Total | Verdict |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| R8 pick a wire set (hold CHN, turn ALGO) | S | 2 | 3 | 2 | 3 | 2 | 10 | pass |
+| R9 swap the wire I just turned (FOLLOW, K1) | S | 2 | 3 | 2 | 3 | 2 | 10 | pass |
+| R10 swap another wire (tap its key, K1) | S | 3 | 3 | 2 | 3 | 2 | 10 | over the cap (owner question G); R3 of 4.8 counted it as 2 |
+| R11 see all 11 knobs and which are wired (palette) | S | 0 (rides R9) | 3 | 3 | 3 | 2 | 11 | pass |
+| R12 pick a scatter type live (ROW 3 latched, turn Kn) | P | 1 | 3 | 2 | 3 | 3 | 11 | pass (as R4) |
+| R13 dice a layer that drives a select (HITS) | P | 1 | 3 | 3 | 3 | 2 | 11 | pass (as R5) |
+
+### 9.5 Which layer and morph drive what, per algorithm family (summary; full tables in TB3_PROFILE.md section 13)
+
+Rule: **the dice layer is the cause, the lane is the effect, and a select is driven by the layer that is present in every algorithm.** ACCNT, HITS and NOTES exist in all six algorithms; ARTIC is absent in SNAKE, SHAPE in EUCLID (ALGORITHM_SET 4.2). Therefore the lanes that must always work use ACCNT (CUT, PAD-Z, SCDEP) and HITS (SCTYP); the lanes that may freeze use ARTIC (RESO) or SHAPE (ENV-X, PAD-Y), and then the dice button is dim and the lane is honest (3.1). **Set application resolves an absent layer once** to its stand-in (ARTIC -> SHAPE, SHAPE -> HITS) and writes the *real* layer into the wire, so nothing is hidden at run time and no locked rule changes; a later algorithm change does not re-resolve (owner question B).
+SCTYP is driven by **HITS** ("where" the music falls decides "how" it scatters; one press re-rolls the rhythm and the scatter flavour together), spread 2 zones at MOVE 40, bar-latched. SCDEP rides **ACCNT** (accent steps get the deeper scatter, the same idea as CUT). RIDE (morph scaling of MOVE) defaults to none everywhere (S21's numbers hold); TB3_PROFILE 13.3 lists the suggested RIDE per family for the player.
+
+### 9.6 Screens: what is added (all strings measured; rows `P2-021` of `tests/design/widths.tsv`)
+
+| Where | Text |
+| --- | --- |
+| RIG banner | `RIG CH1  TB-3 BITE` (device and set), `RIG CH1  TB-3 CUSTOM` |
+| Cue while ALGO moves (2 s) | `NONE GENERIC TB-3 BITE WET PADS PUSH` with the current in brackets (239 of 240 px; a second device will need a windowed list: the current one centred) |
+| Toast on apply | `TB-3 WET: CUT EFFEC SCTYP SCDEP` (200 px), `TB-3 BITE: 4 KNOBS ON ROW 3` for the first device ever |
+| ROW 3 cell of a SEL wire | name `SCTYP`, value `#3 H` (zone, then the chip); pending `#3>5 ~` on the value line while a dice waits for the bar line; compact `~ SCTYP` is 47 of 49 px |
+| RIG status lines (SEL wire) | `CC68  #4 OF 8  SPREAD 2 ZONES` (177 px) and `RIDE -  PAIRS WITH SCDEP` (140 px) |
+| Toasts | `SCTYP NEEDS SCDEP ON A WIRE`, the dice toast `HITS + SCTYP` |
+| RIG page palette | status lines 1 and 2 for 2 s after a K1 turn (201 px and 174 px) |
+
+### 9.7 Table rows and scenarios
+
+Edited in place (no new control, so the 490-row matrices keep their shape): `knob_map.tsv` RIG ALGO (device and set), K1 (palette, SEL zones), K3 (the SEL forms), K4 (spread), PERF R1..R4 (a SEL steps one zone per detent); `control_map.tsv` EN_ALGO, EN_K1, EN_K3, EN_K4 on RIG; `page_states.tsv` RIG screen text; `gen_help.py` and the regenerated `help_text.tsv` for the same rows; `widths.tsv` +P2-021 block. Scenario S21 re-walked (set names), new **S23** (`scenarios/S23-rig-sets-scatter.md`): pick the WET set, hand-turn a select, play, dice HITS, undo, palette swap. S22 is regenerated.
+
+### 9.8 H-RIG20: scatter linkage by ear (about 15 minutes; the owner runs it)
+
+Rig of H-RIG1 (TB-3 on channel 2, a held or repeating note, host box in the path). Use any tool that sends single CCs (the same `rtmidi` one-liners as 2026-11-11).
+1. **Zones (U1).** Depth CC 69 at 100. Send CC 68 from 0 to 127 in steps of 1 every 400 ms, repeating one note. Write down the CC values where the sound changes: those are the zone edges; count the sounds: that is `n`.
+2. **Depth (U2).** Type at a middle zone. CC 69 = 0, 32, 64, 96, 127: does 0 mean no effect? Is the change smooth or stepped?
+3. **Off (U3).** Type CC 68 = 0 and CC 69 = 127: any effect? Then CC 68 = a mid zone with CC 69 = 0: any effect? Write which of the two silences it.
+4. **Change under load (U4).** Depth 100. Switch the type between two far zones, three times each. Click, hang, restart, silence?
+5. **Resend (U5).** Depth 100, switch the type, then send CC 69 = 100 again: does anything change?
+6. **Clock (U6, U7).** Repeat step 4 with the FM-1 as clock master, stopped, playing: does the change wait for a beat? Does the effect need clock?
+7. **Both ends.** CC 68 = 0 and 127, CC 69 = 0 and 127, four corners: anything stuck after the test? Set both back to 0.
+Write into `tb3.tsv`: the zone count and edges (`S<n>`, an edge table if not equal), `:G` (U3), `:D` (U4), `:R` (U5); each is a one-token change. Until then the TSV carries `S8` equal zones, no flags: the placeholder that cannot do harm (centre values, one CC per bar).
+
+### 9.9 Owner questions (none changes a locked decision)
+
+| # | Question | Options | Recommendation |
+| --- | --- | --- | --- |
+| A | Wire sets: how does the player pick them? | A) in the ALGO list with the device (`TB-3 BITE`, `TB-3 WET` ...), applied 0.6 s after the last detent; B) a separate control on the RIG page (it has no free encoder, so a knob would lose a job); C) no sets: K1 only (3 gestures per wire) | **A** |
+| B | A set whose wire rides a layer the algorithm lacks (RESO on SNAKE, ENV-X on EUCLID) | A) the set application writes the stand-in layer (ARTIC -> SHAPE, SHAPE -> HITS) once; B) it writes the layer as defined and the lane freezes (as 3.1); C) A at application **and** re-resolved on every algorithm change | **A** (honest, no run-time magic; the RIG page shows the real layer) |
+| C | The RIG page opens on the wire of the ROW 3 knob touched last (FOLLOW) | A) yes; B) keep the old "kept index" | **A** |
+| D | SEL behaviour: DICE and BAR forms, changes only on a bar line, MOVE = spread, HAND settle 150 ms | A) as 9.2; B) change on the step; C) change on the pattern loop start | **A** (a bar line is the one boundary every channel and length shares; step-wise changes are the chaos the owner asked to avoid) |
+| E | Scatter zone count and edges are unknown (8 equal zones is a placeholder) | A) run H-RIG20 (15 minutes) before P4-024 and fix the TSV; B) ship the placeholder and tune in P5-010 | **A** |
+| F | The TB-3 sets: BITE (CUT RESO ENV-X ENV-Y), WET (CUT EFFEC SCTYP SCDEP), PADS (PAD-Y PAD-Z CUT RESO), PUSH (CUT ACC EFFEC RESO); TUNE in none | A) accept; B) other members or names | **A** |
+| G | Swapping a wire that was not the last touched costs 3 strict gestures (hold CHN, select key, K1); P2-019 counted it as 2 | A) accept as one listed exception (a rare correction, sets cover the common case); B) hold a wire key and turn K1 (a modifier, I1: worse) | **A** |
+| H | Provenance level of the TB-3 profile: all 11 CCs heard by a named person is level 2 of the HwProv scale | A) set level 2 now (`L2 JK 2611`); B) wait for H-RIG2 (the resting values) | **A** |
+| I | Option 2 (SWAP latch on ROW 3, scores 9) | A) not now; B) reopen OCT+ on the last row after H-RIG17 | **A** |
+
+### 9.10 Checks run for this section
+
+`python3 tests/design/check_scenarios.py`, `python3 tests/design/check_help.py`, `python3 tools/check_sequencer_ux.py`, `sh tests/design/width_probe.sh` and `python3 tools/backlog.py check`: see the P2-021 Log. No firmware, no `tools/check.sh`, no build.

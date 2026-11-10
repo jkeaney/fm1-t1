@@ -236,3 +236,36 @@ S	204	RIDE DIR  OCT- / OCT+	RIG status line 2
 S	204	MIDI OFF: THE RIG IS SILENT	RIG status line 1 (MIDI OFF)
 S	240	HOLD CHN + TURN ALGO: PICK DEVICE	first-run style hint
 S	240	ROW 3 OF 3: ~=SEQ  H=HAND  -=DEV	cue row 15a (the device name is in the toast and the channel cell, not in the cue)
+# ---- P2-021 (profile v2: kinds, linked parameters, wire sets); limits as the rows above
+S	38	PAD-Y	profile name (LOWLEVEL 9.1)
+S	38	PAD-Z	profile name
+S	38	SCTYP	profile name
+S	38	SCDEP	profile name
+S	38	BITE	wire set name
+S	38	WET	wire set name
+S	38	PADS	wire set name
+S	38	PUSH	wire set name
+S	49	~ SCTYP	ROW 3 compact cell (chip + name)
+S	49	H SCDEP	ROW 3 compact cell
+S	49	H PAD-Y	ROW 3 compact cell
+S	49	H EFFEC	ROW 3 compact cell
+S	51	#4>5 ~	ROW 3 live cell, SEL value line, dice pending
+S	21	#12	RIG wire row LEVEL column (SEL zone)
+S	34	DICE	RIG wire row form column (SEL)
+S	34	BAR	RIG wire row form column (SEL)
+S	240	RIG CH1  TB-3 BITE	RIG banner (device and set)
+S	240	RIG CH1  TB-3 CUSTOM	RIG banner
+S	240	NONE GENERIC [TB-3 BITE] WET PADS PUSH	cue while ALGO moves
+S	240	NONE GENERIC TB-3 BITE [WET] PADS PUSH	cue while ALGO moves
+S	240	NONE GENERIC TB-3 BITE WET [PADS] PUSH	cue while ALGO moves
+S	240	NONE GENERIC TB-3 BITE WET PADS [PUSH]	cue while ALGO moves
+S	240	TB-3 BITE: 4 KNOBS ON ROW 3	toast, first device ever
+S	240	TB-3 WET: CUT EFFEC SCTYP SCDEP	toast on a set apply
+S	240	SCTYP NEEDS SCDEP ON A WIRE	toast, linked partner not wired
+S	240	HITS + SCTYP	toast, dice that drove a select
+S	204	CUT RESO ENV-X ENV-Y PAD-Y PAD-Z	RIG palette line 1
+S	204	ACC EFFEC TUNE SCTYP SCDEP	RIG palette line 2
+S	204	SET WET: CUT EFFEC SCTYP SCDEP	RIG status line 1 after a set apply
+S	204	SCTYP + SCDEP WORK AS A PAIR	RIG status line 2 after a set apply
+S	204	CC68  #4 OF 8  SPREAD 2 ZONES	RIG status line 1, SEL wire
+S	204	RIDE -  PAIRS WITH SCDEP	RIG status line 2, linked wire

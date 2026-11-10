@@ -1,18 +1,31 @@
 # SPDX-License-Identifier: GPL-3.0-only
-# Roland TB-3 profile (P2-020), format of docs/design/hardware/HW_SUPPORT_LOWLEVEL.md 2.4. Fields are TAB separated.
-# Own notes: written from the vendor's published MIDI chart (Roland, TB-3 MIDI Implementation v1.10, 2014-07-04) and the owner's by-ear tests of 2026-11-11 (decisions 104, 105).
-# Nothing here is read from docs/design/hardware/tb3-midi-guide.csv (midi.guide, CC BY-SA 4.0, reference only).
+# Roland TB-3 profile v2 (P2-021), format of docs/design/hardware/HW_SUPPORT_LOWLEVEL.md 2.4 (v2: kind, link, per-param lane, wire sets).
+# Own notes: written from the vendor's published MIDI chart (Roland, TB-3 MIDI Implementation v1.10, 2014-07-04) and the owner's by-ear tests of 2026-11-11 (decisions 104, 105, 106).
+# All 11 CCs below were heard moving the named parameter on the owner's TB-3 (decision 106). CC 1, 11, 68, 69 are known from the owner's own test; nothing is read from docs/design/hardware/tb3-midi-guide.csv (midi.guide, CC BY-SA 4.0, reference only).
 # Tags in docs/design/hardware/TB3_PROFILE.md. acc_mode 0 VEL / 1 CC / 2 NONE; slide_mode 0 OVERLAP / 1 CC / 2 NONE.
-# layer: NONE NOTES HITS ACCNT ARTIC SHAPE; form: RAND WALK RAMP ACC.
+# layer: NONE NOTES HITS ACCNT ARTIC SHAPE. form: RAND WALK RAMP ACC for kind C; DICE BAR for kind S (SELECT).
 #
 # header: id name acc_mode acc_arg slide_mode slide_arg prov.src prov.how prov.cred prov.level prov.date
-2	TB-3	0	100	0	0	vendor MIDI chart+own test	chart; accent+slide by ear	J. Keaney	1	2026-11
+2	TB-3	0	100	0	0	vendor chart+own tests	11 CCs+acc+slide by ear	J. Keaney	2	2026-11
 #
-# params: cc lo hi home name [sug slot layer form move]
-74	0	127	64	CUT	sug	0	ACCNT	ACC	48
-71	0	127	40	RESO	sug	1	ARTIC	WALK	24
-12	0	127	64	ENV-X	sug	2	SHAPE	RAMP	32
-13	0	127	64	ENV-Y	sug	3	NONE	RAND	0
-16	0	127	64	ACC
-17	0	127	0	EFFEC
-104	0	127	64	TUNE
+# params: cc lo hi home name kind link layer form move
+#   kind: C = continuous; S<n> = SELECT, n equal zones over lo..hi (2..16); the zone count and edges are [I] until H-RIG20
+#   link: - or the NAME of the partner; an optional :G (gated: the depth matters only when the type is not in zone 1 = OFF) and :R (resend the depth 1 ms after each type change) and :D (duck: depth 0, type, depth) follow; all three unknown and off until H-RIG20
+#   layer form move: the lane this parameter gets when a wire takes it (a wire keeps what the player later changes); MOVE for a SELECT is the spread (0 = stay in the LEVEL zone)
+74	0	127	64	CUT	C	-	ACCNT	ACC	48
+71	0	127	40	RESO	C	-	ARTIC	WALK	24
+12	0	127	64	ENV-X	C	-	SHAPE	RAMP	32
+13	0	127	64	ENV-Y	C	-	NONE	RAND	0
+11	0	127	64	PAD-Y	C	-	SHAPE	WALK	32
+1	0	127	0	PAD-Z	C	-	ACCNT	ACC	40
+16	0	127	64	ACC	C	-	NONE	RAND	0
+17	0	127	0	EFFEC	C	-	NONE	RAND	0
+104	0	127	64	TUNE	C	-	NONE	RAND	0
+68	0	127	8	SCTYP	S8	SCDEP	HITS	DICE	40
+69	0	127	0	SCDEP	C	SCTYP	ACCNT	ACC	40
+#
+# sets: set NAME p1 p2 p3 p4   (names of at most 5 letters; at most 6 sets; the first is what a freshly picked device starts with; every wire starts in HAND)
+set	BITE	CUT	RESO	ENV-X	ENV-Y
+set	WET	CUT	EFFEC	SCTYP	SCDEP
+set	PADS	PAD-Y	PAD-Z	CUT	RESO
+set	PUSH	CUT	ACC	EFFEC	RESO

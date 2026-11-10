@@ -176,11 +176,11 @@ put("B_EDIT", "PERF CHAN SET SCALE", "EDIT: tap = undo / redo", "also a HARM cha
 put("B_EDIT", "RIG", "EDIT: undo the last dice", "seeds only; knobs by hand")
 put("B_OCTDN", "RIG", "OCT-: RIDE one morph down", "the wire's MOVE follows that morph")
 put("B_OCTUP", "RIG", "OCT+: RIDE one morph up", "0 = none; the wire's MOVE is fixed")
-put("EN_ALGO", "RIG", "ALGO: pick the device", "NONE GENERIC TB-3; wires: HAND")
-put("EN_K1", "RIG", "K1: PARAM this wire drives", "a device name; a CC on GENERIC")
+put("EN_ALGO", "RIG", "ALGO: pick device and wire set", "TB-3 BITE/WET/PADS/PUSH; in 0.6 s")
+put("EN_K1", "RIG", "K1: PARAM this wire drives", "a name; the palette lists all")
 put("EN_K2", "RIG", "K2: LAYER, the dice that re-rolls", "NOTES HITS ACCNT ARTIC SHAPE, none")
-put("EN_K3", "RIG", "K3: FORM of the moving value", "RAND WALK RAMP ACC")
-put("EN_K4", "RIG", "K4: MOVE, how far SEQ goes", "0 = still; HAND ignores it")
+put("EN_K3", "RIG", "K3: FORM of the moving value", "RAND WALK RAMP ACC | DICE BAR")
+put("EN_K4", "RIG", "K4: MOVE, how far SEQ goes", "0 = still; a select: its spread")
 for _i, _nm in enumerate(WHITE, 1):
     _c = "KEY_W%02d_%s" % (_i, _nm)
     if _i <= 4:

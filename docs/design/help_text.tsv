@@ -126,7 +126,7 @@ EN_ALGO	SET	ALGO: this channel's algorithm	ACID EUCL SNAK STAG ARP PATT
 EN_ALGO	SCALE	ALGO: this channel's algorithm	ACID EUCL SNAK STAG ARP PATT
 EN_ALGO	REC	ALGO: this channel's algorithm	ACID EUCL SNAK STAG ARP PATT
 EN_ALGO	RESET	ALGO: not used in RESET	EDIT cancels RESET
-EN_ALGO	RIG	ALGO: pick the device	NONE GENERIC TB-3; wires: HAND
+EN_ALGO	RIG	ALGO: pick device and wire set	TB-3 BITE/WET/PADS/PUSH; in 0.6 s
 EN_PRESET	PERF	PRESETS: pick a slot P01-P16	loads in 1.5 s; SAVE = save here
 EN_PRESET	NOTE_EDIT	PRESETS: pick a slot P01-P16	loads in 1.5 s; SAVE = save here
 EN_PRESET	CHAN	PRESETS: pick a slot P01-P16	loads in 1.5 s; SAVE = save here
@@ -142,7 +142,7 @@ EN_K1	SET	K1: BPM, your own tempo	inert while a host clock runs
 EN_K1	SCALE	K1: SCALE for every channel	all pitches snap to it
 EN_K1	REC	K1: CURSOR, the write position	stopped: the step sounds
 EN_K1	RESET	K1: back to its default	turn one detent to reset it
-EN_K1	RIG	K1: PARAM this wire drives	a device name; a CC on GENERIC
+EN_K1	RIG	K1: PARAM this wire drives	a name; the palette lists all
 EN_K2	PERF	K2: {r1} (ROW 1)	OCT+: {r2}; twice: device
 EN_K2	NOTE_EDIT	K2: GATE of this step	10-100 %, the top value is TIE
 EN_K2	CHAN	K2: MIDI channel it sends on	1-16, or OFF
@@ -158,7 +158,7 @@ EN_K3	SET	K3: GATE, the note length	50 % is neutral
 EN_K3	SCALE	K3: VOICE, the chord size	0 root, 2 triad, 4 ninth, 6 wide
 EN_K3	REC	K3: SLIDE on written notes	ON glides into the next step
 EN_K3	RESET	K3: back to its default	turn one detent to reset it
-EN_K3	RIG	K3: FORM of the moving value	RAND WALK RAMP ACC
+EN_K3	RIG	K3: FORM of the moving value	RAND WALK RAMP ACC | DICE BAR
 EN_K4	PERF	K4: {r1} (ROW 1)	OCT+: {r2}; twice: device
 EN_K4	NOTE_EDIT	K4: RATCH of this step	repeats inside the step, 1x-4x
 EN_K4	CHAN	K4: FOLLOW the playhead	the view turns with the page
@@ -166,7 +166,7 @@ EN_K4	SET	K4: DIV, the step length	applies to every channel
 EN_K4	SCALE	K4: MOVE, voice-leading	8 = root position, 0 = smoothest
 EN_K4	REC	K4: OCT of the keyboard	also OCT- / OCT+
 EN_K4	RESET	K4: back to its default	turn one detent to reset it
-EN_K4	RIG	K4: MOVE, how far SEQ goes	0 = still; HAND ignores it
+EN_K4	RIG	K4: MOVE, how far SEQ goes	0 = still; a select: its spread
 MASTER	PERF	MASTER: preview and USB volume	no effect on MIDI out
 MASTER	NOTE_EDIT	MASTER: preview and USB volume	no effect on MIDI out
 MASTER	CHAN	MASTER: preview and USB volume	no effect on MIDI out
