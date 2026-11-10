@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Roland TB-3 profile (P2-020), format of docs/design/hardware/HW_SUPPORT_LOWLEVEL.md 2.4. Fields are TAB separated.
+# Own notes: written from the vendor's published MIDI chart (Roland, TB-3 MIDI Implementation v1.10, 2014-07-04) and the owner's by-ear tests of 2026-11-11 (decisions 104, 105).
+# Nothing here is read from docs/design/hardware/tb3-midi-guide.csv (midi.guide, CC BY-SA 4.0, reference only).
+# Tags in docs/design/hardware/TB3_PROFILE.md. acc_mode 0 VEL / 1 CC / 2 NONE; slide_mode 0 OVERLAP / 1 CC / 2 NONE.
+# layer: NONE NOTES HITS ACCNT ARTIC SHAPE; form: RAND WALK RAMP ACC.
+#
+# header: id name acc_mode acc_arg slide_mode slide_arg prov.src prov.how prov.cred prov.level prov.date
+2	TB-3	0	100	0	0	vendor MIDI chart+own test	chart; accent+slide by ear	J. Keaney	1	2026-11
+#
+# params: cc lo hi home name [sug slot layer form move]
+74	0	127	64	CUT	sug	0	ACCNT	ACC	48
+71	0	127	40	RESO	sug	1	ARTIC	WALK	24
+12	0	127	64	ENV-X	sug	2	SHAPE	RAMP	32
+13	0	127	64	ENV-Y	sug	3	NONE	RAND	0
+16	0	127	64	ACC
+17	0	127	0	EFFEC
+104	0	127	64	TUNE
