@@ -26,3 +26,8 @@ Orchestrator-maintained. Add a line whenever a cycle stalls, bounces or surprise
 - **Owner challenge (eighth round):** performance-first design (P1-014): all controls accounted for, buttons align to algorithm controls, keys to performance + step controls, never lost, no manual. Extended rubric adds L (learnable without a manual); pass >= 11/12.
 - **Tenth-round rethink (owner):** step-centric model (dial algorithm, then edit steps; 16 -> 64 steps by duplicate-then-edit pages; hold step = NOTE EDIT page), no scenes/tap tempo, force sensing in v1, framework: every state a page, buttons have modes, every screen shows what knobs control. P1-017 (Opus) locks it. P1-016 dropped.
 - **pgrep -f in a wait loop matches its own shell:** an until-loop waiting on pgrep -f <name> never exits because the loop's own command line contains <name>. Wait on a PID or use a pattern like [c]ap2.py.
+
+## 2026-11-10 (pause)
+- A scenario walkthrough task (P2-007) found 19 real defects in documents that had already passed three reviews. Keep walking designs against the tables literally before the design lock is declared complete; budget a fix pass (P2-011) after every walkthrough.
+- Owner answers given while an executor runs: forward them by SendMessage to the running agent rather than waiting; it saved a full revision round (unique MIDI channels).
+- Before pausing, delete the watchdog cron first so it cannot dispatch new work, then wait for the in-flight agent.

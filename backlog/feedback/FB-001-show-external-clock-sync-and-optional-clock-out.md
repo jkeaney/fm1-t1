@@ -41,3 +41,4 @@ python3 tools/backlog.py check
 - 2026-11-10 owner answered YES to clock out in v1. Triage must add the design item (P2) and an E4 dev task.
 - 2026-11-10 executor: criterion 1 (EXT state on main screen + SET, timeout rule, in the spec and page tables) done in SCREEN_SPEC 6, SEQUENCER_UX 2.8, page_states.tsv. Criterion 2 design part done (SEQUENCER_UX 2.8, ADR-0003 section 5 row + 7.4, SCREEN_SPEC 6.3). Still open for the orchestrator: the hardware-test gate (Ableton + TB-3) and the E4 dev task, and criterion 3 (converting to backlog ids). Not closed.
 
+- 2026-11-10 PAUSED: design done (SCREEN_SPEC 6, TIMING_SPEC, ADR-0003 19). Close this item when P2-005 creates the E4 dev task and the hardware-test gate for it.

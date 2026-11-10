@@ -1,5 +1,8 @@
 # Roadmap
 
+> **Status 2026-11-10: PAUSED.** P0, P1 done; P2 design done except P2-007/P2-011 sign-off, P2-008 and P2-005. Resume per docs/project/HANDOFF.md.
+
+
 Phases run in order. Each ends at a **gate**, and the next phase's tasks are only broken down once that gate passes
 (rolling wave). Task-level order and dependencies live in the task files; `python3 tools/backlog.py list` shows them.
 
