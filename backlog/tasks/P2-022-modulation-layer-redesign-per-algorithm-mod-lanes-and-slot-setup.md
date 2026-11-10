@@ -56,3 +56,13 @@ sh tests/design/width_probe.sh -> 286 strings, 0 over
 python3 tools/backlog.py check -> 117 items, 0 errors
 ```
 Reviewer: check the ROW 3 = MOD page gestures (K pick, hold OCT+ depth, hold OCT- level, ALGO = device) and the shared SHAPE+MOD dice (owner Q1/Q2). Decisions 97-101 reconciliation is MODULATION.md 5.3; Q5 and Q6 reopen decision 100's start state and VISION rule 3 wording.
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS on all checkable criteria; gate is human-review, so left at `review`.
+- Re-ran the five verification commands: scenarios 0 unmapped, help OK (392 rows), check_sequencer_ux OK, width_probe 286 strings 0 over, backlog check 0 errors.
+- Scope: commit touches only design docs, widths.tsv and the task file; P3-002/P3-014/FB-003 untouched; no firmware.
+- All six algorithms (ACID, EUCLID, SNAKE, STAGE, ARP, PATTERNS) have lane A and B rows in MODULATION.md section 4, plus worked ACID example (4.1).
+- Decisions 97-101 reconciled row by row in 5.3 (kept/dropped stated); 102-107 honoured; 5B scatter placeholder kept; setup is K turn to pick by name, 2 gestures.
+- Remote vs mod (section 2) tags [V-ear]/[V-doc]/[I]/[D] correctly: CC receive of the 11 is verified, knob-vs-CC overwrite and no read-back of TB-3 OUT are [I] until H-MOD1/3.
+- Minor nit (not blocking): MODULATION.md section 1 table row 3 describes ENV-X as "lane B" use, but 6.1 puts ENV-X on slot 3 = lane A. Align the wording.
+Awaiting owner: review MODULATION.md section 10 questions 1-9 (esp. Q1 shared SHAPE+MOD dice, Q2 DEPTH on hold OCT+, Q6 VISION rule 3 wording) and sign off in this log.
