@@ -361,8 +361,9 @@ int8_t t1_fm_voice_alloc(uint8_t note, uint8_t velocity)
     return (int8_t)steal_idx;
 }
 
-/* Default FM voice trigger stubs for the host tests; on the FM-1, t1_glue.c plays them on track 1 */
-#ifndef T1_DEVICE
+/* Default FM voice trigger stubs for standalone host tests; on the FM-1 and in the host tests that link the real
+ * t1_glue.c (tests/host_t1_hooks.h: T1_HOST_GLUE), t1_glue.c plays them on track 1 */
+#if !defined(T1_DEVICE) && !defined(T1_HOST_GLUE)
 __attribute__((weak)) void synth_note_on(uint8_t voice, uint8_t note, uint8_t velocity)
 {
     (void)voice;

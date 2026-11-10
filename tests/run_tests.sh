@@ -325,6 +325,8 @@ if [ -f build/gen/felucca_tables.h ]; then
     run "settings: PER1..PER4 migration, palette ids and preference preservation" "$OUT/settings_test"
     $CC -w -Ibuild/gen -Ifirmware/src -o "$OUT/ui_test" tests/ui_test.c -lm
     run "UI: sounds keep steps, undo, recording, MIDI overflow, pending saves, panel recovery, drum grid, song chain, GREY gray, MONO neutral" "$OUT/ui_test"
+    $CC -w -Ibuild/gen -Ifirmware/src -o "$OUT/t1_link_test" tests/t1_link_test.c -lm
+    run "T-1 link (P3-001): the real seq.c + torso_t1*.c + t1_glue.c + ui_t1.c: 2 bars on MIDI channel 2, STOP sends CC123" "$OUT/t1_link_test"
     $CC -DPREEMPT -g -fwrapv -fsanitize=address,undefined -fno-sanitize=shift -fno-sanitize-recover=all -w \
         -Ibuild/gen -Ifirmware/src -o "$OUT/drumfuzz" tests/drumfuzz_test.c -lm
     run "DRUM grid stress (#211, ASan / UBSan): random grid editing, locks, undo, engines over a playing synth, the ISR anywhere" \
@@ -486,6 +488,8 @@ run "regression: target cost of the render loops (pi32v2 disassembly)" python3 t
     build/felucca.dis tests/target_budget.txt
 
 run "installer CLI (fm1_install.py) against a simulated FM-1" python3 tests/install_test.py
+
+run "timing tool self-test (P4-008): synthetic logs through the TIMING_SPEC 6.2 verdicts" python3 tests/fm1_timing_selftest.py
 
 if command -v node >/dev/null 2>&1; then
     run "web pages: editor protocol + samples, package builder, update protocol" node web/test_web.mjs

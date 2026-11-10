@@ -3,7 +3,7 @@ id: P3-001
 title: Host tests link the real seq, ui and T-1 sources
 phase: P3
 type: task
-status: todo
+status: review
 priority: 1
 executor: sonnet
 depends_on: [P2-005]
@@ -25,10 +25,10 @@ Owner decision 42 and ADR-0003 §16.1: today the host tests build seq.c/ui*.c wi
 - tests/run_tests.sh step for it
 
 ## Acceptance criteria
-- [ ] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
-- [ ] `grep -n 't1_mode' firmware/src/seq.c firmware/src/ui.c` shows no `#define t1_mode 0` stub left
-- [ ] tests/t1_link_test.c passes and is in run_tests.sh
-- [ ] The build line `image ... RAM .data+.bss N of 73728; pool ...` is pasted into the Log; RAM headroom (73728 - N) is at least 8192 B, else stop and file an FB (E9 trigger)
+- [x] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
+- [x] `grep -n 't1_mode' firmware/src/seq.c firmware/src/ui.c` shows no `#define t1_mode 0` stub left
+- [x] tests/t1_link_test.c passes and is in run_tests.sh
+- [x] The build line `image ... RAM .data+.bss N of 73728; pool ...` is pasted into the Log; RAM headroom (73728 - N) is at least 8192 B, else stop and file an FB (E9 trigger)
 
 ## Verification
 ```sh
@@ -42,3 +42,10 @@ sh tools/check.sh            # last line: CHECK PASS
 - Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).
 
 ## Log
+
+### 2026-11-10 executor (sonnet)
+- Added tests/host_t1_hooks.h (real torso_t1*.c + t1_glue.c, T1_HOST_GLUE) included by tests/hostsim.c after seq.c; ui_t1.c added to tests/ui_test.c and web/emu/felucca_web.c. seq.c/ui.c stubs removed (declarations unconditional); torso_t1.c weak synth stubs skipped under T1_HOST_GLUE. midi_out_event capture = usb.c's own midi_out_q ring with usb.config = 1.
+- tests/t1_link_test.c (in run_tests.sh): 2 bars, `t1_link: 2 bars: ch2 note-ons 15, note-offs 14`, nothing on other channels, STOP CC123 on ch 2, `all checks ok`.
+- `sh tools/check.sh` -> `CHECK PASS` (tests.log: ALL HOST TESTS PASSED)
+- `grep -n 'define t1_mode' firmware/src/seq.c firmware/src/ui.c` -> no match
+- Build line: `image 523224 B; RAM .data+.bss 55744 B of 73728; pool 342876 B of 368640` (headroom 17984 B >= 8192)

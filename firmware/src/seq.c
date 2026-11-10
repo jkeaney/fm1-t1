@@ -55,21 +55,13 @@ static volatile uint8_t midi_seen;       /* 1.5.5 (#208): bit per track, a MIDI 
                                           * looked (ui_input.c midi_follow: the track's light, AUTO SELECT;
                                           * ui.c scr_input: MENU > MIDI > SCREEN WAKE +MIDI) */
 
-/* Torso T-1 (t1_glue.c, included after this file in the firmware; the host tests build seq.c without it: no T-1) */
-#ifdef T1_DEVICE
+/* Torso T-1 (t1_glue.c, included after this file in the firmware and, with the real torso_t1*.c, in the host tests:
+ * tests/host_t1_hooks.h) */
 static volatile uint8_t t1_mode, t1_off_req;
 static void t1_on_start(void);
 static void t1_on_stop(void);
 static void t1_all_off(void);
 static void t1_block(uint32_t n);
-#else
-#define t1_mode 0
-#define t1_off_req 0
-static void t1_on_start(void) {}
-static void t1_on_stop(void) {}
-static void t1_all_off(void) {}
-static void t1_block(uint32_t n) { (void)n; }
-#endif
 
 static uint32_t trk_index(const track_t *t) { return (uint32_t)(t - trk); }
 
@@ -1417,12 +1409,10 @@ static void events_block(uint32_t n)
     if (aud_req)
         seq_audition();                               /* (STEP PREVIEW: a step sounds, stopped) */
     chain_tick(seq_n);
-#ifdef T1_DEVICE
     if (t1_off_req) {                               /* T1 mode turned off: its notes end */
         t1_off_req = 0;
         t1_all_off();
     }
-#endif
     if (t1_mode)                                    /* T1 mode: the T-1 tracks play in place of the patterns */
         t1_block(seq_n);
     else
