@@ -6,7 +6,7 @@ type: task
 status: todo
 priority: 1
 executor: sonnet
-depends_on: [P2-001, P2-002, P2-003, P2-004, P2-006, P2-007, P2-008, P2-009, P2-010]
+depends_on: [P2-001, P2-002, P2-003, P2-004, P2-006, P2-007, P2-008, P2-009, P2-010, P2-011, P2-012, P2-013, P2-014]
 gate: human-review
 ---
 ## Goal

@@ -43,6 +43,13 @@ approved). P1-016 dropped.
   extra rules listed in its Log: MIDI commit after 0.6 s still, H4 without `CH`, page-add sets FOLLOW off, row renames 10a/10b/5a).
 Owner then writes the Approved line on both (or says approve and the orchestrator writes it as before).
 
+**New design work added while paused (owner request 2026-11-10), not started:**
+- P2-012 HARMONY: global key, scale and chord progression (1-3-5-3 style, default `1----`, dice on the progression, every channel
+  quantised to the chord, morphs favour chord voicing). Depends on P2-011.
+- P2-013 ARP algorithm over the chord progression (shape, direction, speed performable). Depends on P2-012.
+- P2-014 PATTERNS library (top 20 each: ACID, BASS, MELODY, others) quantised to scale/chords. Depends on P2-012.
+P2-008 and P2-005 now depend on all three, so the order is P2-011 review/approval -> P2-012 -> P2-013 + P2-014 -> P2-008 -> P2-005.
+
 **Open owner question 79** (OWNER_QUESTIONS): turning PRESETS to a never-saved slot loads nothing and toasts
 `P09 EMPTY: NOTHING LOADED` (recommended; owner may overrule).
 

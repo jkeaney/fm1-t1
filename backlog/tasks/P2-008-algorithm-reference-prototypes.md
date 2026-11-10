@@ -6,7 +6,7 @@ type: task
 status: todo
 priority: 1
 executor: sonnet
-depends_on: [P1-010, P2-004, P1-013, P1-014, P1-017]
+depends_on: [P1-010, P2-004, P1-013, P1-014, P1-017, P2-012, P2-013, P2-014]
 gate: human-review
 ---
 ## Goal
@@ -28,7 +28,7 @@ Prove each v1 algorithm in a seeded host prototype and check in its golden outpu
 - tests/design/run_protos.sh running all prototypes against golden
 
 ## Acceptance criteria
-- [ ] One folder per v1 algorithm
+- [ ] One folder per v1 algorithm (now includes ARP from P2-013 and PATTERNS from P2-014; chord-quantise cases use the P2-012 HARMONY rules)
 - [ ] Same seed gives byte-identical output on two runs
 - [ ] Morph at min/mid/max and each dice layer each have golden cases
 - [ ] Music-theory checks (scale, range) pass; theory beats the fixture
