@@ -1,0 +1,53 @@
+# FINDINGS: gaps and defects the scenario walk found in the locked design (P2-007)
+
+Nothing here changes a locked decision. Each item is a **defect** (the locked documents disagree with each other or cannot
+be drawn as written) or an **owner question** (the tables are silent and the answer is a product decision). Per ADR-0004,
+changes go through an amended spec and an owner re-lock, then a small table task. Severity: A = blocks a development
+task from being written without guessing; B = a visible rough edge; C = wording.
+
+Method: the scenarios S01 to S17 walk the locked tables word for word (`control_map.tsv`, `knob_map.tsv`,
+`key_map.tsv`, `page_states.tsv`, SEQUENCER_UX, SCREEN_SPEC, TIMING_SPEC). Widths were measured with the real `text_w`
+and `AF_S` glyph tables (a probe built from `firmware/src/gfx.c` and `build/gen/ui_fonts.h`; it reproduces the 45, 42,
+34 and 28 px of SCREEN_SPEC 6.2).
+
+## Defects in the locked documents
+
+| Id | Sev | Finding | Evidence | Suggested table or text fix |
+| --- | --- | --- | --- | --- |
+| F-01 | A | **Cue-strip rows 13 / 13a / 13b contradict each other and two of them can never show.** SEQUENCER_UX 11.2 still lists row 13a `EXT CLOCK: WAITING FOR USB` (the state P2-010 removed); SCREEN_SPEC 6.6 adds a different 13a (`WAIT FOR HOST START  PLAY=cancel`) and a 13b (`CLOCK LOST: ...`). Both new rows sit after row 13 (`PLAY: start   K1-K4: morph`, matched whenever the transport is stopped), and both apply only while stopped or just after a stop, so first-match-wins shows row 13 and never 13a or 13b. | S06 steps 8 and 10 | Delete the stale 13a from 11.2. Put the new 13a and 13b above row 13 (and say whether 13b outranks first-run row 12). |
+| F-02 | B | **MENU controls are described three ways.** `control_map.tsv` / `knob_map.tsv`: ALGORITHM = next / previous tab, PRESETS = next / previous row, SELECT = select a channel, OCT- / OCT+ = previous / next value, the six page buttons close. SCREEN_SPEC 3 (MENU row) and the footer: `HOME close  SELECT tab  ALGO row`, and OCT- / OCT+ "read `close`". A SELECT that both selects a channel and switches tabs, and an OCT that is both previous value and close, cannot both be true. | S08 steps 26 and 27 | Pick one reading per control and make the two documents match; the control map is the older lock. |
+| F-03 | A | **No toast exists in the screen spec.** About 35 locked behaviours rely on a toast (`SAVED P03`, `UNDO`, `NO SHAPE IN EUCLID`, `ONE ROW HERE`, `PAST THE END: ...`). SCREEN_SPEC 2 has no toast zone, duration, font, queueing or priority against the cue strip, and the cue-strip table 11.2 does not list toasts. | S01 step 8, S02 steps 12 to 19, S03, S05 | Add a toast row to the zone table (for example: it replaces the cue strip Z6 for 1.5 s, the cue strip priority returns after) and a width rule. |
+| F-04 | A | **Strings wider than their slots** (px measured with the real `text_w`, AF_S). Z1 cell line 2 `MIDI 2 MUTE` 68 against a 60 px cell (three of the four channels are muted at power-on, so this is the default screen); K1 value `KEYS ONLY` 62 against the 51 px knob cell (the value limit is 8 characters); STAGE `TOTAL` value `48 (32 heard)` 71 against 51; header slot H4 (76 px) holds `CH1 ACID M1` at 72 but `CH2 EUCL M12` is 83, `CH4 STAG M16` 82 and `CH1 ACID MOFF` 87; header slot H5 (42 px) holds `[1][2]. .` at 38 but three pages are 47 and four pages `[1][2][3][4]` 58; the toast `PAGE 3 READS 17-32: NO PAGE BEFORE PLAYS IT` is 263 against 240. SCREEN_SPEC 9 requires the implementing task to add a host width test; these strings would fail it today. | S01 reference frame, S02 step 24, S04 step 18, S03 step 24 | Shorten (`KEYS`, `48 (32)`, `NO PAGE PLAYS IT`), or widen the slots (H4 and H5 can borrow from H2 once `EXT 126` is the only long text), or draw H5 as graphics and give its width. |
+| F-05 | B | **Several page bands have no locked text.** SCREEN_SPEC 7 draws PERF and SET only. NOTE_EDIT shows the generated value under an AUTO cell in the mock-up (`(gen F2)`, `(gen 50%)`, `(gen 1x)`) but the band has two lines per cell and the two status lines are not assigned. The CHAN status lines ("page-source summary") and the REC / SCALE / NOTE_EDIT status lines have no strings; the glyphs for a partial or hidden page in the page map are not drawn. | S01 step 2, S03 steps 7 and 29 to 31, S07 steps 11 and 19 | Add the missing strings to the page tables (SCREEN_SPEC 6.5 style). |
+| F-06 | A | **The HELP texts do not exist.** U62 says "table lookup of the control's help line on the page beneath"; `control_map.tsv` rows for HELP say only "explain this control". Two sample lines are locked (`HITS: re-roll where notes fall`, the two-line `SEQ = HITS ...` box); the other 440 control and page pairs have no text, so HELP cannot be implemented or checked. | S08 step 22 | A table `help_text.tsv` (control, context, two lines of at most 34 characters). |
+| F-07 | C | **Rule gap in the clock model.** R2 starts a host clock only on a `0xF8`, R4 handles `0xFA` only while playing as INT. A host Start received while the FM-1 is stopped on its own clock, before any pulse, has no rule (M12 describes the latch, the state table does not). | S06 step 2 | Add a row: `0xFA` while stopped on INT arms a start and the first `0xF8` makes the source EXT. |
+| F-08 | C | **`OUT MASTER` is shown while stopped**, but TIMING_SPEC M7 and SCREEN_SPEC 6.4 send nothing while stopped. | S07 step 1 | Show `OUT MASTER` only while playing, or rename it `CLOCK OUT WHEN PLAYING`. |
+| F-09 | B | **The first-run prompt vanishes on the page where it applies.** Step 1 `D#4 K2: MIDI CHANNEL` is shown by row 12; on CHAN, row 6 (`CH1: K1 LENGTH  OCT=+-PAGE  D#4=back`) outranks it, so the user who just followed the prompt sees a strip that talks about K1, and the next prompt `PRESS PLAY` is hidden until HOME. | S01 steps 2 to 4 | Put the first-run text above row 6 for step 1, or let the CHAN strip say `K2 MIDI` first. |
+| F-10 | C | NOTE_EDIT ENV: "velocity to ACC_VEL 120, or back to 80 / AUTO" does not say which; U23 says "80-or-AUTO". | S03 step 14 | State: back to AUTO when the generator is not an accent, else to 80. |
+| F-11 | C | FILL: the live readout `FILL 80%` has no stated mapping from key force to the percentage (light = halfway, firm = maximum are given in density terms). | S02 step 21 | State the formula. |
+| F-12 | C | NOTE_EDIT K2 / K3 / K4: the value of the first detent from AUTO is specified for PITCH only. Turning GATE from AUTO to TIE takes an unstated number of detents. | S03 steps 9 to 11 | State the first value (the generated value rounded to the step grid). |
+| F-13 | C | Adding a page moves the view to the new page; whether that sets FOLLOW off (a hand view change does, 1.3) is not said. | S03 step 24 | State it. |
+| F-14 | B | **Two channels can sit on the same MIDI channel with no cue.** CH2 defaults to MIDI 2, the TB-3's factory channel, and CH1 is set to 2 in the target workflow, so the first unmute of CH2 sends a second line to the TB-3. Neither the header nor the channel band marks a duplicate. | S04 steps 1 and 2 | A cue-strip row or a marker on the MIDI cell when two unmuted channels share a MIDI channel (this is a polyphony warning, it may also be wanted: ask the owner). |
+| F-15 | B | Preset corner cases are unspecified: loading a never-saved slot (S05 step 12); what the device shows after a power cycle (ADR-0003 12.6 restores a clean-shutdown autosave, SEQUENCER_UX and SCREEN_SPEC say nothing). | S05 | Add both to 11.1. |
+| F-16 | C | The toast for a redo of a load (`SAVE` hold twice) is not given; `LOAD UNDONE: P03` is. | S05 step 8 | Add `LOAD REDONE: P02`. |
+| F-17 | C | Stale text in earlier documents: ALGORITHM_SET 5.2 still lists ACID K2 as PEDAL (re-locked to SLIDE in SEQUENCER_UX 4.2); SCREEN_SPEC 7 draws ACID button sub-labels `notes` `acc` `oct`, ALGORITHM_SET 4.4 gives `NOTES HITS ACCNT GT+SLD OCTAVE`. | S01 reference frame | Point ALGORITHM_SET 5.2 and SCREEN_SPEC 7 at the lock. |
+| F-18 | C | TIMING_SPEC R13 says a tempo outside 40..240 is "not accepted as a clock" and that "`EXT --` stays": a clock that is not accepted cannot leave the source in EXT. | S06 | Say whether the header shows `EXT --` or stays `INT`. |
+| F-19 | C | RESET: `OCT-` / `OCT+` "elsewhere inert" (CHAN, SET, SCALE) has no toast, unlike every other inert control; MENU keys are inert with no toast. | S15, S17 | Add `NOTHING TO RESET`. |
+
+## Owner questions
+
+| Id | Question | Why it comes up | Options and recommendation |
+| --- | --- | --- | --- |
+| Q1 | **Is "one press, hold or turn away" (VISION rule 1) met by "at most two gestures" (R-5)?** No function needs the menu, but these need two gestures, which the task rule reads as a vision violation: MIDI channel (D#4, K2), pattern length (D#4, K1), tempo (GLO, K1), scale or key (hold GLO, K1 or a key), first ROW 2 morph (OCT+, knob), edit a note (hold a key, knob), toggle a slide or accent on one step (hold, button), add a page (PG+, PG+), save to another slot (turn, SAVE), reset one morph (hold EDIT, knob), ask what a control does (hold HOME, touch). | S01, S02, S03, S05, S06, S07, S08 | (a) accept R-5 as the meaning, record it in VISION (recommended: every item is a page open plus one control, never a menu); (b) make the MIDI channel one gesture, the only setup step of the reference workflow, for example a held SELECT. |
+| Q2 | **WAIT has no exit except the host or PLAY again** (TIMING_SPEC question 3, left open). Pressing PLAY mid-song while Ableton runs leaves the FM-1 silent until the host sends another Start, with no way to start on the internal clock. | S06 step 8 | (a) as specified (recommended for v1); (b) hold PLAY starts on the internal clock. |
+| Q3 | **The CLOCK menu row after AUTO** (TIMING_SPEC question 1) is still open; S06 step 13 shows the only case it exists for (a host that loops the clock back while the FM-1 is stopped). | S06 | (b) AUTO / INTERNAL ONLY, as recommended there. |
+| Q4 | **Duplicate MIDI channels** (F-14): warn, or allow silently? | S04 | warn with a marker (recommended), or allow. |
+
+## Result
+
+- Reference workflow (TB-3 on channel 1): playable in 3 to 4 gestures from power-on, every step has a screen cue; the
+  defects that touch it are F-04 (default screen overflow), F-09 and F-14.
+- Clock scenario: all four source states and R1 to R10 are readable on the screen and on the LEDs; the defects are F-01,
+  F-07, F-08, F-18 and the owner questions Q2, Q3.
+- Gaps in the control map itself: none (every one of 441 rows is cited by at least one scenario, see COVERAGE.md);
+  the gaps are in the screen spec and the string tables (F-03, F-05, F-06).
