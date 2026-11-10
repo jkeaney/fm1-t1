@@ -3,7 +3,7 @@ id: P2-018
 title: Hardware support model: high-level design and UX (phase 1)
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: []
@@ -55,3 +55,7 @@ Verdict: PASS on the checkable criteria; gate is human-review, so the task stays
 - Verified: HW_SUPPORT_HIGHLEVEL.md has the required sections (problem, model, dice/morph mapping 3.1, data model and byte costs 7, profiles and licensing 8, three options 6, recommendation 6.4, edge behaviours 9, failure modes 5, H-tests 10, impact 11, questions A..M with recommendations 12). Exactly three options, each with a mock-up, gesture counts and an L-score table; the totals (59 / 63 / 56) re-add correctly. Byte costs are stated for .bss (184), pool (+2016, with the fx-bus-removal prerequisite) and flash. TB-3 and CDM claims are tagged [V] / [I] / warning. Licensing is flagged (8.2, question E) and nothing is copied into firmware. `python3 tools/backlog.py check`: 113 items, 0 errors. Commit touches only the task file and docs/design/hardware/; no firmware or control_map changes. Build and check.sh not run, as instructed.
 - Minor, not blocking: the one-line mock-up rows are schematic and exceed the width probe (disclosed in section 13). Option B amends two locked decisions (questions B and C), which the owner must approve.
 Awaiting owner: read HW_SUPPORT_HIGHLEVEL.md sections 6 and 12 and answer questions A..M ("Approved: <name> <date>" in this Log).
+
+### 2026-11-11 orchestrator
+- Approved: owner 2026-11-11 (open-items 1A 2A 3A 4A): Option B (RIG row + page); optional device per channel; own profile data; F-M all A.
+- Owner conditions carried into phase 2 (P2-019): (1) the screen must make it obvious that there are THREE knob rows, show the change when the row changes, and always show which row/page the user is on; (2) hardware references and profile data credit the community and hardware owners: the device belongs to its user, not the manufacturer; profile data is written from owner-verifiable facts (own tests, public charts, community databases like midi.guide cited as references), with provenance recorded per profile.

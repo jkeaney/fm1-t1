@@ -221,4 +221,10 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 93 | P2-014 | PATTERNS design locked (open-items 3A): categories and tags confirmed; the 13 idiom patterns accepted and judged by ear on live hardware | owner 2026-11-11 | decided |
 | 94 | P2-015 | Keybed use cases locked with UC1-UC4. UC5 (REC channel aftertouch) parked to v2; core workflow first | owner 2026-11-11 | decided |
 | 95 | P2-015 | TB-3 accent threshold test H0 is run by ear in the P0-005 flash session; the flat velocity 100 vs 90 is set from the result | owner 2026-11-11 | decided |
-| 96 | New | Hardware support model: the sequencer drives per-channel hardware parameters (CC, accents, slides, filter, resonance on dice and morph), starting with the TB-3. Owner wants a high-level design and UX first, then a lower-level design, then TB-3 specifics. Reference: midi.guide (CC BY-SA 4.0), cdm.link AIRA article | owner 2026-11-11 | open: design requested (FB-004) |
+| 96 | New | Hardware support model: the sequencer drives per-channel hardware parameters (CC, accents, slides, filter, resonance on dice and morph), starting with the TB-3. Owner wants a high-level design and UX first, then a lower-level design, then TB-3 specifics. Reference: midi.guide (CC BY-SA 4.0), cdm.link AIRA article | owner 2026-11-11 | decided, see 97-100 |
+
+| 97 | P2-018 | Hardware support UX = Option B (third knob row on PERF + RIG page via hold CHN). CONDITION: the screen must show clearly that there are three knob rows, show the change when the row changes, and always show which row/page the user is on | owner 2026-11-11 | decided |
+| 98 | P2-018 | A channel may carry an optional device (RIG); amends VISION rule 3; inert with no device | owner 2026-11-11 | decided |
+| 99 | P2-018 | Profile data is our own (built-in table + GENERIC); midi.guide is a cited reference only. Docs and profiles say hardware is owned by its users, not the manufacturer, and credit community-gathered data with per-profile provenance | owner 2026-11-11 | decided |
+| 100 | P2-018 | Questions F-M accepted as recommended: STOP parks SEQ wires at LEVEL; 4 wires; undo = seeds only; no per-step lock in v1; chosen device starts wires in HAND; SEQ-wire cap 8; no REC of ROW 3 in v1; phase 2 = low-level design of the model and Option B | owner 2026-11-11 | decided |
+
