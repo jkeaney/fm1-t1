@@ -31,6 +31,22 @@ PERF	STAGE	S1	OFFSET	turn: morph OFFSET of the selected channel (ROW 2 (live aft
 PERF	STAGE	S2	RDIV	turn: morph RDIV of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	rdiv 1..4 def 4
 PERF	STAGE	S3	DYN	turn: morph DYN of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	dyn 0..10 def 10
 PERF	STAGE	S4	RANGE	turn: morph RANGE of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	rng 0..36 def 12 fast 4 (was K3)
+PERF	ARP	K1	DENS	turn: morph DENS of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	den 0..16 def 12; 0 = KEYS ONLY (the cell value reads KEYS)
+PERF	ARP	K2	SHAPE	turn: morph SHAPE of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame; the turn toasts FIGURE n STEPS (or FIGURE n: LENGTH m CUTS IT)	shp 0..5 def 0 LINE SKIP THUMB OCTV REPT WAVE
+PERF	ARP	K3	SPAN	turn: morph SPAN of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame; the turn toasts the figure length	spn 1..4 def 2 (cell reads 1 OCT..4 OCT)
+PERF	ARP	K4	RATE	turn: morph RATE of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame; the turn toasts the figure length	rat 0..5 def 2 1/4 1/2 1X 2X 3T 4X
+PERF	ARP	S1	OFFSET	turn: morph OFFSET of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	off 0..15 def 0
+PERF	ARP	S2	LEGATO	turn: morph LEGATO of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	lg 0..8 def 3
+PERF	ARP	S3	DYN	turn: morph DYN of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	dyn 0..10 def 10
+PERF	ARP	S4	DIR	turn: morph DIR of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame; the turn toasts the figure length	dir UP DOWN UPDN RAND ASPL CHORD def UP
+PERF	PATTERNS	K1	DENS	turn: morph DENS (thin the decoration notes below 8, add the optional notes above 8) of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	dens 0..16 def 8 (as written); 0 = KEYS ONLY (the cell reads KEYS); 1 = anchors only
+PERF	PATTERNS	K2	VARY	turn: morph VARY (replace decoration notes by a scale neighbour) of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	vary 0..8 def 0
+PERF	PATTERNS	K3	SPAN	turn: morph SPAN (octaves the pattern may reach; higher notes fold down) of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	span 1..4 def 4 (as written)
+PERF	PATTERNS	K4	ACCNT	turn: morph ACCNT (below 4 removes accents, above 4 adds them) of the selected channel (ROW 1 (live after OCT- tap; power-on)); next-step commit; cell shows the value in the same frame	acc 0..8 def 4 (as written)
+PERF	PATTERNS	S1	PICK	turn: PICK a library pattern (one detent = next pattern; detents under 40 ms apart jump to the first pattern of the next or previous category) of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	pick 1..120 def 1 fast = category; the cell reads CAT nn, for example HOUSE 3
+PERF	PATTERNS	S2	SLIDE	turn: morph SLIDE (below 4 removes slides, above 4 adds them) of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	sl 0..8 def 4 (as written)
+PERF	PATTERNS	S3	DYN	turn: morph DYN (below 10 flattens the velocity, above 10 adds a fixed per-step humanise) of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	dyn 0..14 def 10
+PERF	PATTERNS	S4	CTONE	turn: morph CTONE (chord-tone bias: 0 none, 2 the flagged notes, 8 every note); only audible while HARMONY is active of the selected channel (ROW 2 (live after OCT+ tap, or while OCT+ held)); next-step commit; cell shows the value in the same frame	ct 0..8 def 2
 NOTE_EDIT	*	K1	PITCH	one scale degree per detent from the current note; every detent sounds the note (MIDI + preview); the first detent turns AUTO into a set pitch	AUTO, then 0..96 semitones above 36+key (stored unsnapped, played snapped)
 NOTE_EDIT	*	K2	GATE	note length of the edited step, x global GATE; top value TIE (holds into the next step)	AUTO, 10..100 % in 10 % steps, TIE
 NOTE_EDIT	*	K3	VELO	velocity of the edited step; value reads ACC at >= ACC_THR 100 (TB-3 accent)	AUTO, 1..127, step 1 fast 8
@@ -68,29 +84,29 @@ PERF	*	K2	morph	turn: the live row (ROW 1 or ROW 2) morph in this column of the 
 PERF	*	K3	morph	turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above)	per algorithm
 PERF	*	K4	morph	turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above)	per algorithm
 PERF	*	SELECT	CH n	turn: select channel CH1..CH4 (clamped, no wrap)	CH1..CH4
-PERF	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	4 algorithms
+PERF	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	6 algorithms
 PERF	*	PRESET	Pnn	turn: choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: on the first 768-tick bar that starts at least SQ_LOAD_SETTLE 1.5 s after the last detent (header Pnn? then Pnn>), so a SAVE tap always has at least 1.5 s; SAVE tap while pending saves there instead (no load); turning back to the current slot cancels	P01..P16
 NOTE_EDIT	*	SELECT	CH n	turn: select channel CH1..CH4; closes NOTE EDIT (the edited step belongs to the old channel)	CH1..CH4
-NOTE_EDIT	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	4 algorithms
+NOTE_EDIT	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	6 algorithms
 NOTE_EDIT	*	PRESET	Pnn	turn: choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: on the first 768-tick bar that starts at least SQ_LOAD_SETTLE 1.5 s after the last detent (header Pnn? then Pnn>), so a SAVE tap always has at least 1.5 s; SAVE tap while pending saves there instead (no load); turning back to the current slot cancels	P01..P16
 CHAN	*	SELECT	CH n	turn: select channel CH1..CH4 (clamped, no wrap)	CH1..CH4
-CHAN	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	4 algorithms
+CHAN	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	6 algorithms
 CHAN	*	PRESET	Pnn	turn: choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: on the first 768-tick bar that starts at least SQ_LOAD_SETTLE 1.5 s after the last detent (header Pnn? then Pnn>), so a SAVE tap always has at least 1.5 s; SAVE tap while pending saves there instead (no load); turning back to the current slot cancels	P01..P16
 SET	*	SELECT	CH n	turn: select channel CH1..CH4 (clamped, no wrap)	CH1..CH4
-SET	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	4 algorithms
+SET	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	6 algorithms
 SET	*	PRESET	Pnn	turn: choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: on the first 768-tick bar that starts at least SQ_LOAD_SETTLE 1.5 s after the last detent (header Pnn? then Pnn>), so a SAVE tap always has at least 1.5 s; SAVE tap while pending saves there instead (no load); turning back to the current slot cancels	P01..P16
 SCALE	*	SELECT	CH n	turn: select channel CH1..CH4 (clamped, no wrap)	CH1..CH4
-SCALE	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	4 algorithms
+SCALE	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	6 algorithms
 SCALE	*	PRESET	Pnn	turn: choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: on the first 768-tick bar that starts at least SQ_LOAD_SETTLE 1.5 s after the last detent (header Pnn? then Pnn>), so a SAVE tap always has at least 1.5 s; SAVE tap while pending saves there instead (no load); turning back to the current slot cancels	P01..P16
 REC	*	SELECT	CH n	turn: select channel; the cursor goes to step 1	CH1..CH4
-REC	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	4 algorithms
+REC	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	6 algorithms
 REC	*	PRESET	-	turn: inert in REC (toast REC: tap REC to finish)	P01..P16
 RESET	*	SELECT	CH n	turn: select channel CH1..CH4 (clamped, no wrap)	CH1..CH4
-RESET	*	ALGO	-	turn: inert (toast NOTHING TO RESET)	4 algorithms
+RESET	*	ALGO	-	turn: inert (toast NOTHING TO RESET)	6 algorithms
 RESET	*	PRESET	-	turn: inert (toast NOTHING TO RESET)	P01..P16
 HELP	*	SELECT	?	turn: explain SELECT	CH1..CH4
-HELP	*	ALGO	?	turn: explain ALGORITHM	4 algorithms
+HELP	*	ALGO	?	turn: explain ALGORITHM	6 algorithms
 HELP	*	PRESET	?	turn: explain PRESETS	P01..P16
 MENU	*	SELECT	CH n	turn: select channel CH1..CH4	CH1..CH4
-MENU	*	ALGO	tab	turn: next / previous menu tab	4 algorithms
+MENU	*	ALGO	tab	turn: next / previous menu tab	6 algorithms
 MENU	*	PRESET	row	turn: next / previous menu row	P01..P16

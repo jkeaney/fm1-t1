@@ -118,3 +118,46 @@ S	51	VOICE	HARMONY knob label cell (51 px)
 S	26	F#	HARMONY chord name under a 28 px strip cell (P2-012)
 S	26	Bb	HARMONY chord name under a 28 px strip cell (P2-012)
 S	26	F3	HARMONY key legend cell (P2-012)
+S	47	ACD 20	PICK cell value, 3-letter category tag (P2-014 SPEC 5.1): 51 px cell, 47 px ink
+S	47	HSE 20	PICK cell value (P2-014)
+S	47	FNK 20	PICK cell value (P2-014)
+S	47	TEC 20	PICK cell value (P2-014)
+S	47	DUB 20	PICK cell value (P2-014)
+S	47	MEL 20	PICK cell value (P2-014)
+S	47	CTONE	PATTERNS knob label (P2-014)
+S	47	PICK	PATTERNS knob label (P2-014)
+S	47	VARY	PATTERNS knob label (P2-014)
+S	76	1 PATT MOFF	H4 (2.1): 76 px (P2-014)
+S	76	4 PATT M16	H4 (2.1): 76 px (P2-014)
+S	40	ACID	ALGO picker slot (P2-014 SPEC 5.5): 6 slots of 40 px
+S	40	EUCL	ALGO picker slot
+S	40	SNAK	ALGO picker slot
+S	40	STAG	ALGO picker slot
+S	40	ARP	ALGO picker slot
+S	40	PATT	ALGO picker slot
+S	224	PATTERNS: HOUSE 12  LEN 16	PICK toast (P2-014 SPEC 5.2)
+S	204	HOUSE 12   16 STEPS   NEW LEN 16	band status line (P2-014)
+S	204	MELODY 18  32 STEPS  LENGTH 32	band status line (P2-014)
+S	224	PICK: HOLD OCT+ AND TURN K1	cue strip (P2-014)
+S	42	VARY	PATTERNS dice sub-label under NOTES (P2-014; the widest existing one is GT+SLD 43)
+S	42	ORDER	PATTERNS dice sub-label under SEQ (P2-014)
+S	42	SLIDES	PATTERNS dice sub-label under ARP (P2-014)
+S	42	UP/DN	PATTERNS dice sub-label under LFO (P2-014)
+S	76	1 ARP M16	H4 (2.1), ARP (P2-013): 76 px
+S	76	1 PATT M16	H4 (2.1), PATTERNS short form (P2-013 picker): 76 px
+S	76	1 PATT MOFF	H4 (2.1), worst case of the six algorithm names (P2-013 picker): 76 px
+S	56	1 ARP	Z1 cell line 1 (2.2), ARP (P2-013): 56 px of ink
+S	56	1 PATT	Z1 cell line 1 (2.2), PATTERNS short form (P2-013): 56 px of ink
+S	240	ACID EUCL SNAK STAG [ARP] PATT	ALGO_PICK cue strip, six algorithms (P2-013)
+S	240	ACID EUCL SNAK STAG ARP [PATT]	ALGO_PICK cue strip, six algorithms (P2-013)
+S	240	[ACID] EUCL SNAK STAG ARP PATT	ALGO_PICK cue strip, six algorithms (P2-013)
+S	51	SHAPE	ARP knob label (P2-013): 51 px
+S	51	LEGATO	ARP knob label (P2-013): 51 px
+S	51	OFFSET	ARP knob label (P2-013): 51 px
+S	51	THUMB	ARP knob value (P2-013): 51 px
+S	51	CHORD	ARP knob value (P2-013): 51 px
+S	51	4 OCT	ARP knob value (P2-013): 51 px
+S	51	1/4	ARP knob value (P2-013): 51 px
+S	240	FIGURE 6 STEPS	ARP toast (P2-013)
+S	240	FIGURE 10: LENGTH 16 CUTS IT	ARP toast (P2-013)
+S	240	FIGURE 138: LENGTH 64 CUTS IT	ARP toast (P2-013)

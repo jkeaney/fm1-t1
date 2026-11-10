@@ -1,5 +1,7 @@
 # Algorithm set for v1, the shared layer vocabulary and the knob convention
 
+> Change note (P2-013, ARP; for owner review): **ARP is promoted to a v1 algorithm** (owner decisions 81/82: six algorithms, ACID, EUCLID, SNAKE, STAGE, ARP, PATTERNS). Its spec is [algorithms/arp/SPEC.md](algorithms/arp/SPEC.md); its layer mapping, knob rows and picker check are in section 13 here. The deferred-ARP lines of sections 1, 3, 7 and 8 (questions 13 to 15) are updated; nothing else in this document changes, and ARP adds no sixth layer.
+
 > Change note (P1-017, sequencer UX lock; for owner review): (1) **steps are owned after the algorithm is dialled in**: each channel has a pattern LENGTH 1..64 (up to 4 pages of 16) and a per-step **edit layer** (ON, PITCH, OCT, GATE / TIE, VELO, RATCH, SLIDE, PROB; each AUTO or set) that replaces the pins. A dice or a morph rewrites only the generated layer; set fields are never touched (SEQUENCER_UX 1.2). (2) The algorithm is evaluated at the **generator position** `g(p) = 16 * src(k) + p % 16`: each page `k` reads the generator block `src(k)` in `0..k` (positions `16 src(k)..16 src(k)+15`; revision 1; revision 2: the CHAN `K3` list offers only blocks that earlier pages play, labelled by the first page that plays each, plus `OWN`); a new page inherits the source of the page before (an exact copy), `OWN` (`src(k) = k`, so `g = p`) lets the algorithm continue; each algorithm still reduces the position by its own loop (ACID 16, EUCLID `LEN`, SNAKE lanes, STAGE `TOTAL`), and the channel loop restarts the generator at LENGTH. Generation stays deterministic. (3) Every algorithm's `step()` must fill `note` for non-hit positions too (a step turned ON by hand plays the note the algorithm has there). (4) Knob rows re-locked (3B): ACID K2 SLIDE / S2 PEDAL; EUCLID K2 OFFSET, K3 RATCH, S1 LEN, S2 SPAN; STAGE K3 DIR / S4 RANGE (FULL_CONTROL 4.2). (5) In NOTE EDIT the layer buttons act on the edited step (SCL a new note, SEQ on/off, ENV accent, ARP slide, LFO chance, FX all); the 4.2 seed matrix is unchanged.
 
 > Change note (P1-014 revision, scheme B2; for owner review): the dice positions **return to the P1-012 / P1-013 ones**, chosen from the printed words: `FX` ALL, `SCL` NOTES, `SEQ` HITS, `ENV` ACCNT, `ARP` ARTIC, `LFO` SHAPE, all acting on press (SCL gives up its hold role: scale and key are on the SET page, opened by `GLO`). UNDO is `EDIT` tap, a hold of EDIT opens the RESET layer. MUTATE is removed. The layer vocabulary, the 4.2 seed matrix, the 4.4 absent-layer rule and the sub-labels are unchanged. The next note (the first P1-014 version, layer-order top row) is withdrawn for button positions only.
@@ -34,10 +36,10 @@ Source assessments call them sting, t1, snake, ml185.
 
 | # | Decision | Section |
 | --- | --- | --- |
-| 1 | v1 ships **4 algorithms**: ACID, EUCLID, SNAKE, STAGE. Deferred: ARP, RHYTHM, MELODY. | 2, 3 |
+| 1 | v1 ships **6 algorithms** (owner decision 82): ACID, EUCLID, SNAKE, STAGE, ARP (P2-013, the chord arpeggio), PATTERNS (P2-014). Deferred: RHYTHM, MELODY. | 2, 3, 13 |
 | 2 | **5 shared layers** (dice buttons): NOTES, HITS, ACCNT, ARTIC, SHAPE. Every v1 algorithm maps onto them; unmapped layer = dimmed, inert. | 4 |
 | 3 | **Knob convention:** K1 = DENSITY, K2 = FORM, K3 = PITCH, K4 = SPICE. Four of the algorithms need small reorder edits (not EUCLID). K1 = 0 means `KEYS ONLY` (P1-012). | 5 |
-| 4 | Implementation order: shared primitives, then ACID, EUCLID, SNAKE, STAGE. | 7 |
+| 4 | Implementation order: shared primitives, then ACID, EUCLID, SNAKE, STAGE, then ARP (after HARMONY and the core additions AM-1 to AM-4 of ARP SPEC 6.10). | 7 |
 | 5 | 15 shared primitives are specified once; no algorithm re-specifies them. | 6 |
 | 6 | SLIDE keeps its own seed and its own undo, and is dice-grouped with GATE under `ARTIC` (one ARP press). Resolved as S1 in UX_REVIEW.md 5.3 by score (one press 9; a slide-only hold 7 fails). | 4.3, 9 |
 | 7 | Physical binding of the 7 dice inputs and every other control: UX_REVIEW.md section 1 and control_map.tsv. | 4.3 |
@@ -55,7 +57,7 @@ Scores are the 0 to 3 "fit against the vision" totals from the assessments (5 cr
 
 Notes:
 - All four INCLUDE verdicts are in v1, so criterion 1 of the task holds. No INCLUDE is deferred.
-- 4 is inside the 3 to 6 limit. Reasons not to go to 5 or 6 (ARP, MELODY, RHYTHM): section 3.
+- 6 is the top of the 3 to 6 limit (owner decision 82); RHYTHM and MELODY stay deferred (section 3).
 - Total channel state if every channel stored all four algorithms is about 700 B; storing only the active algorithm
   is about 260 B. Either way it goes in `.pool` (360 KB, initialised explicitly), so the 4 KB `.bss` headroom rule is
   untouched. How many channels and whether state is per algorithm is for the engine ADR (P2-004); see section 9.
@@ -64,7 +66,7 @@ Notes:
 
 | Item | Verdict | Reason | Revisit trigger |
 | --- | --- | --- | --- |
-| `ARP` (steparp) | LATER | Defining input (held keys) does not exist; rhythm half (HITS, VEL, RATCH) duplicates SNAKE/STAGE; new content is only CHORD, ORDER, OCT. A 2 to 4 note pool is repetitive as a bass. Stateless, ~170 B, so promotion is cheap later. | Hardware test says the four algorithms are too melodically flat for chord work. Starting code is `t1_harmony_eval_chord/_voicing/_style` (t1 6.8). |
+| `ARP` (steparp) | **INCLUDE in v1 (P2-013, owner decision 82)** | Promoted: the held-key input it lacked is now the HARMONY chord progression, so the CHORD/ORDER content is new and the rhythm half is deliberately shared. Redesigned in [algorithms/arp/SPEC.md](algorithms/arp/SPEC.md) (6 shapes, 6 directions, 6 rates, 8 morphs, 5 dice layers; cache 48 B, ChanRT unchanged). | n/a (shipped) |
 | `RHYTHM` (rhythmic-steps) | LATER | Pitchless drum-voice use only (scores 1 on the TB-3 workflow); mechanisms are re-skins of rank-order density, ratchet, velocity lane, lane length; has no Euclidean placement (EUCLID covers that). | Owner makes a drum-voice channel a goal (question 20). |
 | `MELODY` (melodic-steps) | LATER | Lane-per-parameter polymeter already in SNAKE/STAGE/ACID; velocity, gate, octave, rest lanes are re-skins of shared primitives. Its two genuinely new things (contour walk, per-note lane clock) are deferred, see below. | Hardware test says uniform-random or EUCLID-contour pitches are not bass-like enough (question 5, 22). |
 | Contour **walk** (LEAP/SPAN) as a NOTES pitch source | LATER (post-v1) | Needs a morph slot on SNAKE/STAGE and K2/K3 are taken; v1 already has contour **shapes** in EUCLID (existing code). Adds a second contour primitive for little gain before hardware feedback. | Question 5 fails on the TB-3. Declared as primitive SP10 mode `WALK`, off in v1. |
@@ -129,7 +131,7 @@ second binding row (for example `ARTIC` long press = SLIDE only), which costs no
 | Case | Behaviour (normative) |
 | --- | --- |
 | Algorithm lacks layer L (EUCLID `SHAPE`; SNAKE `ARTIC`) | The button label is drawn dimmed with a dash after it (`SHAPE -`). Pressing it changes nothing: no seed changes, no undo entry, no sound change. A 0.5 s toast reads `NO SHAPE IN EUCLID`. LED unchanged. Dice-all and undo skip it. |
-| Sub-label (P1-012, S2) | Under every dice button's shared name the screen draws the algorithm's own layer name, max 6 characters: ACID `NOTES HITS ACCNT GT+SLD OCTAVE`; EUCLID `NOTES ROTATE ACCNT RATCH -`; SNAKE `NOTES GATES VELO - DRIFT`; STAGE `NOTES RESTS VELO RT+HLD LONG`. A sub-label equal to the main label is drawn once. |
+| Sub-label (P1-012, S2) | Under every dice button's shared name the screen draws the algorithm's own layer name, max 6 characters: ACID `NOTES HITS ACCNT GT+SLD OCTAVE`; EUCLID `NOTES ROTATE ACCNT RATCH -`; SNAKE `NOTES GATES VELO - DRIFT`; STAGE `NOTES RESTS VELO RT+HLD LONG`; ARP `VARY RESTS VELO LENGTH PHASE`. A sub-label equal to the main label is drawn once. |
 | Why not hide or remap it | Rule 1: a control keeps its position and meaning; a missing layer is honest and learnable. Never remap a button to a different layer per algorithm. |
 | Switching algorithm while a layer is dimmed | The label un-dims when the new algorithm has the layer. The layer table is the only thing read (`layer_present[algo][layer]`). |
 
@@ -164,6 +166,7 @@ Every ROW 2 default is the neutral value, so the output equals the 4-morph desig
 | `EUCLID` | `HITS` 0..16, default 5 | `LEN` 2..16, default 16 | `SPAN` 0..24, default 12 | `ACCNT` 0..8, default 2 |
 | `SNAKE` | `DENS` 0..16, default 10 | `LEN` 1..16, default 7 | `RANGE` 0..48, default **12** (was 24) | `PATH` 1..14, default 7 |
 | `STAGE` | `DENS` 0..8, default 6 | `TOTAL` 8..64, default 16 | `RANGE` 0..36, default 12 | `RATCH` 0..8, default 2 |
+| `ARP` | `DENS` 0..16, default 12 | `SHAPE` 0..5, default 0 (LINE) | `SPAN` 1..4 octaves, default 2 | `RATE` 0..5, default 2 (1X) |
 
 Fit argument per cell (where it is not obvious):
 
@@ -186,6 +189,7 @@ Fit argument per cell (where it is not obvious):
 | `EUCLID` | `OFFSET` 0..15, 0 | `RATCH` 0..8, 4 | `PUNCH` 0..47, 40 | `CURVE` 0..6, 0 |
 | `SNAKE` | `OFFSET` 0..15, 0 | `GLEN` 1..16, 16 | `DYN` 0..10, 10 | `DIR` 0..2, 0 |
 | `STAGE` | `OFFSET` 0..63, 0 | `RDIV` 1..4, 4 | `DYN` 0..10, 10 | `DIR` 0..2, 0 |
+| `ARP` | `OFFSET` 0..15, 0 | `LEGATO` 0..8, 3 | `DYN` 0..10, 10 | `DIR` 0..5, 0 (UP) |
 
 Formulas, restored source parameters and the list of parameters that stay cut: FULL_CONTROL.md section 3.
 
@@ -258,7 +262,8 @@ order. Each step ends with its golden test passing before the next starts.
 | 2 | `EUCLID` (+ SP5, SP10 SHAPES, SP11) | step 1; F3 fixed first | Smallest delta: existing verified code, rhythm-first alternative to ACID's random-order hits, first test of an absent layer (`SHAPE -`). |
 | 3 | `SNAKE` (+ 14 traversal tables) | step 1 | Adds table data and lane lengths, no new core mechanism; second absent-layer case (`ARTIC -`). |
 | 4 | `STAGE` | steps 1 to 3 | Most complex: variable loop length 8 to 64, cumulative-sum lookup, long holds, TOTAL knob step sizes, SP5 as pulse re-fire, within-one-pulse commit. Built last on a proven core. |
-| 5 (not v1) | `ARP`, `RHYTHM`, `MELODY`, WALK, NUDGE | step 4 + hardware feedback | Section 3. |
+| 5 | `ARP` (P2-013) | HARMONY (P2-012) and core additions AM-1 to AM-4 | Reads the chord through the HARMONY query interface, so it follows the four algorithms; adds only a `step` argument, a sub-note hook and the always-on chord chip. Stateless, cache 48 B. |
+| 6 (not v1) | `RHYTHM`, `MELODY`, WALK, NUDGE | step 5 + hardware feedback | Section 3. |
 
 ## 8. The 30 owner questions: recommendations
 
@@ -279,9 +284,9 @@ table already answers it. "Hardware" means it cannot be answered without the dev
 | 10 | STAGE pins reach pulses 0..15 only | Yes, accept for v1. | Long loops come from the generator; a page/shift on the keys would be a menu (rule 1). Revisit with P2-003 only if hardware shows a need. | Recommend yes |
 | 11 | STAGE long holds ignore GATE | Yes, accept; keep a table constant to flip it. | A hold that follows GATE would no longer be a "long" note. | Recommend yes |
 | 12 | STAGE defaults good on a TB-3? | Keep (TOTAL 16, DENS 6, RATCH 2, RANGE 12, base C2); tune at hardware test. Note: with the convention swap (5.2) K1 is DENS=6. | Table values, a cheap edit. | Hardware |
-| 13 | Promote ARP to a fourth algorithm? | No. ARP stays LATER; CHORD/ORDER are not offered as a pitch option to other algorithms in v1. | EUCLID is the better fourth algorithm (question 30); ARP duplicates the rhythm half. | Recommend no |
-| 14 | 2..4-note chord pool enough? | Moot while ARP is LATER. | n/a | Deferred |
-| 15 | Chord snap on sparse scales turns major to minor | Moot while ARP is LATER; revisit when ARP is promoted. | n/a | Deferred |
+| 13 | Promote ARP to a fourth algorithm? | **Yes, as the fifth** (owner decision 82; P2-013): the chord progression of HARMONY replaces the held-key input. | EUCLID was the better fourth algorithm (question 30) and shipped; ARP now adds the one thing none of the four has, pitches from the progression. | Decided |
+| 14 | 2..4-note chord pool enough? | Resolved by P2-013: the pool is the HARMONY voiced chord (1 to 5 tones plus the drone) stacked over SPAN 1 to 4 octaves, so 2 to 24 tones. | A triad over two octaves is six tones; VOICE and SPAN widen it. | Decided |
+| 15 | Chord snap on sparse scales turns major to minor | Resolved by HARMONY.md 2.4 (chords are stacked thirds snapped to the scale, so a pentatonic gives C Eb G) and used unchanged by ARP. | n/a | Decided |
 | 16 | Chord-tone snap direction | **Nearest, ties to lower**, for the shared quantiser (SP6) so it behaves the same everywhere. | "Down only" flattens low SPAN values on sparse scales (t1 risk 7). | Recommend |
 | 17 | RHYTHM fixed base note 36 / alt +12 | Moot while RHYTHM is LATER; base 36 + alt +12 stays the proposal. | n/a | Deferred |
 | 18 | Pin at or past LEN silent | Yes, accept (same shape as 10). The key shows dimmed while its step is past the loop length. | Keeps pins without a menu. | Recommend yes |
@@ -374,6 +379,28 @@ Spec: [HARMONY.md](HARMONY.md). SP6 (scale quantise) is unchanged and still runs
 | `EUCLID` | `2 + SPAN * 6 / 24` (default 12 gives 5) | accented hits and hit ordinal 0 of each Euclid cycle | yes | the contour shape is built first, then pulled; ratchet repeats share the pulled pitch |
 | `SNAKE` | `2 + RANGE * 6 / 48` (default 12 gives 3) | lane notes with velocity >= 100 | yes | the traversal (PATH) is read first, then each lane note is pulled by its lane position, so a PATH change keeps each lane note's pulled pitch |
 | `STAGE` | `2 + RANGE * 6 / 36` (default 12 gives 4) | the first pulse of a stage and long holds (`I-`) | yes | a ratcheted stage shares one pulled pitch |
+| `ARP` | not used: the chord stage is bypassed (`AF_CHORD`), the pool is the voiced chord | n/a | n/a | the channel ROLE picks the pool: AUTO and FULL the voiced chord, OFF a fixed degree-1 triad, ROOT the root only (ARP SPEC 6.4) |
 
 Turning the pitch-width morph up widens the line and, by the same turn, raises the pull: the more freedom the line has, the more its strong notes land on the chord. No other morph, no dice
 layer and no knob row changes meaning. All four are inert (pull 0, no anchor) while HARMONY is inert (HARMONY.md 1).
+
+## 13. ARP in v1 (P2-013; additive)
+
+Spec: [algorithms/arp/SPEC.md](algorithms/arp/SPEC.md). ARP adds no layer, no primitive besides the hash `mix` and a seeded shuffle (SP1), and one reading of SP2/SP4 (cell 0 first, `first_fixed`).
+
+| Item | ARP |
+| --- | --- |
+| Layer map (4.2) | NOTES = `s_notes` (octave hops and RAND order, sub-label `VARY`); HITS = `s_hits` (`RESTS`); ACCNT = `s_vel` (`VELO`); ARTIC = `s_gate` (`LENGTH`); SHAPE = `s_rot` (figure start phase, `PHASE`). 5 of 5 layers present, 5 seeds, none dimmed |
+| Knob rows (5.2, 5.2b) | ROW 1 `DENS` `SHAPE` `SPAN` `RATE`; ROW 2 `OFFSET` `LEGATO` `DYN` `DIR` (ranges and defaults in SPEC 6.1) |
+| Picker (owner decision 82) | Six algorithms: header H4 `1 PATT MOFF` is 71 px of 76, the channel cell `1 PATT` 37 px of 56, and the 2 s picker strip `ACID EUCL SNAK STAG [ARP] PATT` is 185 px of 240 (`tests/design/widths.tsv`, `width_probe.sh`); the page state is `ALGO_PICK` in page_states.tsv. The short form of PATTERNS is P2-014's to confirm (4 letters assumed) |
+
+
+## PATTERNS (P2-014): the sixth v1 algorithm (owner decisions 81, 82, 90)
+
+Full design: [algorithms/patterns/SPEC.md](algorithms/patterns/SPEC.md) (research in RESEARCH.md, data in patterns.tsv, goldens in patterns_golden.txt, scenario S20). Summary against this document's vocabulary:
+
+- **Screen name `PATT`** (menu/toast `PATTERNS`). A library of 120 patterns (`ACID HOUSE FUNK TECHNO DUB MELODY`, 20 each), degree-relative, with anchor / decoration / optional steps; `static const` flash, 4544 B, 0 B RAM.
+- **Layers (4.2 matrix):** `NOTES` = `s_notes` (which decoration notes vary), `HITS` = `s_hits` (thinning order), `ACCNT` = `s_acc`, `ARTIC` = `s_art` (slides), `SHAPE` = `s_shape` (up / down of each variation). 5 of 5 present; sub-labels `VARY ORDER ACCNT SLIDES UP/DN`. The pick is never diced.
+- **Knobs (5.2 / 5.2b):** ROW 1 `DENS` 0..16 def 8, `VARY` 0..8 def 0, `SPAN` 1..4 def 4, `ACCNT` 0..8 def 4; ROW 2 `PICK` 1..120 def 1, `SLIDE` 0..8 def 4, `DYN` 0..14 def 10, `CTONE` 0..8 def 2. Every default reproduces the stored pattern. Deviations from the convention: S1 is `PICK` (not `OFFSET`) and S4 is `CTONE` (not `READ`); reasons in SPEC 4.2.
+- **State:** the existing `AlgoState` (8 morphs incl. PICK, 6 seeds); stateless evaluation. Chord pull uses the HARMONY interface (`harm_snap`, HARMONY 9) and replaces the generic AUTO pull for this algorithm.
+- **Section 2 / 3 reading:** PATTERNS is a preset library, not a generator; it needs no new shared primitive beyond SP6 (scale snap), SP9 (note mapper) and the HARMONY query interface.

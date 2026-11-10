@@ -3,7 +3,7 @@ id: P2-014
 title: Design the PATTERNS library: top-20 preset patterns quantised to scale and chords
 phase: P2
 type: task
-status: todo
+status: review
 priority: 1
 executor: sonnet
 depends_on: [P2-012]
@@ -47,14 +47,14 @@ Each shipped pattern is **built to be morphed and tuned**: mark in the data whic
 - TSV table additions, help_text.tsv, L rubric score, scenario S20, ALGORITHM_SET.md update
 
 ## Acceptance criteria
-- [ ] RESEARCH.md lists reference patterns with sources for every category, and separately the common starter patterns
-- [ ] Every shipped pattern marks anchor versus decoration steps, and morph/tune behaviour has golden cases
-- [ ] No shipped pattern is a transcription of a protected melody (check recorded in the log)
-- [ ] 20 patterns for each confirmed category listed in a TSV the prototype and firmware can read
-- [ ] Every pattern passes a scale/range check in all 12 keys for the supported scales (script in tests/design)
-- [ ] Storage cost stated and within budget, or an overrun and proposal given
+- [x] RESEARCH.md lists reference patterns with sources for every category, and separately the common starter patterns
+- [x] Every shipped pattern marks anchor versus decoration steps, and morph/tune behaviour has golden cases
+- [x] No shipped pattern is a transcription of a protected melody (check recorded in the log)
+- [x] 20 patterns for each confirmed category listed in a TSV the prototype and firmware can read
+- [x] Every pattern passes a scale/range check in all 12 keys for the supported scales (script in tests/design)
+- [x] Storage cost stated and within budget, or an overrun and proposal given
 - [ ] Owner confirmed the category list (record it in the log)
-- [ ] All new UX in the TSV tables; check scripts pass; no 'TBD'
+- [x] All new UX in the TSV tables; check scripts pass; no 'TBD'
 - [ ] Design locked: owner line in the log
 
 ## Verification
@@ -67,3 +67,27 @@ python3 tools/backlog.py check
 - Firmware, and prototype code (add to P2-008 scope).
 
 ## Log
+
+### 2026-11-10 executor (sonnet)
+
+Delivered: docs/design/algorithms/patterns/{SPEC.md, RESEARCH.md, patterns.tsv, patterns_golden.txt}, tests/design/patterns_proto.py, docs/design/scenarios/S20-patterns.md, PATTERNS rows in knob_map.tsv, strings in tests/design/widths.tsv, a PATTERNS section in ALGORITHM_SET.md, regenerated help_text.tsv and COVERAGE.md.
+
+Commands and decisive output:
+```
+$ python3 tests/design/patterns_proto.py --check
+library: 120 patterns, 1996 steps, step blob 3992 B + index 480 B = 4472 B flash
+OK: library, neutral identity, 492000 note checks over 16 scales x 12 keys x 5 octaves, goldens, 13 song titles absent from firmware strings
+$ python3 tests/design/check_scenarios.py --write      -> scenarios: 19 files, 441 control-map rows, 0 with no scenario
+$ python3 tests/design/check_help.py                   -> OK: 343 help rows, 2597 strings measured
+$ sh tests/design/width_probe.sh                        -> 0 over (all PATTERNS strings)
+$ python3 tools/backlog.py check                       -> 109 items, 0 errors
+```
+
+Protected-melody check: every pattern is 1 or 2 bars (one is 12 steps) of bass or riff ostinato authored as degree/semitone data with altered notes and added decoration; none is a melody of a song; the 13 `F` patterns are idiom reconstructions (RESEARCH.md 2). The title grep over patterns.tsv, firmware sources and design TSVs passes.
+
+Open items for the owner (not ticked):
+- O1 (decision 90 versus the exact-notes line): the `F` patterns are reconstructed from memory, not verified transcriptions. Verify or accept as idiom.
+- O2: confirm the category list (six x 20) and the 3-letter cell tags.
+- O3: no "bake the pattern into steps" gesture in v1.
+- O4: PICK is on ROW 2 (OCT+ tap, turn K1: 2 gestures, L score 10), not on ROW 1, so DENS keeps K1; S1 OFFSET and S4 READ give way (SPEC 4.2).
+- Parallel work: P2-013 edited the shared EN_ALGO strings and check_scenarios.py; this task did not touch them. The six-algorithm picker strip is SPEC 5.5.
