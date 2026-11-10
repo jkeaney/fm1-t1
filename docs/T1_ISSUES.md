@@ -68,6 +68,8 @@ Counts: 19 issues: 3 fixed (F1, F4, F18), 2 partial (F2, F13), 14 open. The 14 o
 <a id="f2"></a>
 ## F2. Scale names and engine order disagreed: PARTIAL
 
+**Triage (P2-006):** Tracked as BUG-002 (backlog/bugs/BUG-002-f2-stale-t1-scale-names-array-and-range-comment.md). `torso_t1_algo.c` survives; ADR-0003 section 13 reuses `T1_SCALE_MASKS` and deletes `T1_SCALE_NAMES`.
+
 - **Severity / area:** High, harmony and UI.
 - **Original problem:** the on-screen names (`torso_t1_ui.c` line 22) and the guide listed CHROM, MAJOR, MINOR, DORIAN, PHRYG, LYDIAN, MIXOL, AEOL, LOCR, P-MAJ, P-MIN, BLUES, WHOLE, H-MIN, M-MIN, DIM, but the masks and names in `torso_t1_algo.c` were in a different order for ids 4 to 15.
   Ids 4 to 15 displayed one name and played another.
@@ -81,6 +83,8 @@ Counts: 19 issues: 3 fixed (F1, F4, F18), 2 partial (F2, F13), 14 open. The 14 o
 
 <a id="f3"></a>
 ## F3. ARCH and INV A phrase contours are broken: OPEN
+
+**Triage (P2-006):** Tracked as BUG-001 (backlog/bugs/BUG-001-f3-arch-and-inv-a-phrase-contours-are-constant.md). ADR-0003 section 13 reuses `t1_harmony_eval_phrase` after this fix (section 16 prerequisite 4).
 
 - **Severity / area:** Medium, harmony.
 - **Where:** `torso_t1_algo.c` `t1_harmony_eval_phrase`, case 5 (line ~363) and case 6 (line ~370).
@@ -107,6 +111,8 @@ Counts: 19 issues: 3 fixed (F1, F4, F18), 2 partial (F2, F13), 14 open. The 14 o
 <a id="f5"></a>
 ## F5. Arpeggio style is applied unexpectedly: OPEN
 
+**Triage (P2-006):** Dropped: `t1_harmony_eval_style` is dropped ([ADR-0003 section 13](project/decisions/ADR-0003-sequencer-core.md): arp/chords/LFSR/p-locks are out of v1), so there is nothing to fix.
+
 - **Severity / area:** Medium, harmony.
 - **Where:** `torso_t1_pipeline.c` line 237 (`note += t1_harmony_eval_style(cp->style, rt->pulse_counter, 7u)`) and line 311 (`rep_base += … style(pulse_counter * repeats + k)`); `torso_t1_algo.c` `t1_harmony_eval_style`.
 - **What:**
@@ -125,6 +131,8 @@ Counts: 19 issues: 3 fixed (F1, F4, F18), 2 partial (F2, F13), 14 open. The 14 o
 <a id="f6"></a>
 ## F6. GLOBAL mode edits the wrong parameter: OPEN
 
+**Triage (P2-006):** Dropped: `torso_t1_ui.c` and its GLOBAL mode are dropped at R8 ([ADR-0003 section 13](project/decisions/ADR-0003-sequencer-core.md)); the control map replaces them.
+
 - **Severity / area:** High, UI.
 - **Where:** `torso_t1_ui.c` `t1_ui_on_encoder_turn`, GLOBAL branch, line 143: `T1ParameterID pid = T1_PARAM_STEPS;`, with unmapped knobs falling through.
 - **What:** knobs with no mapping keep `pid = STEPS` and change the **step count of all six tracks**. Affected: MOD/CC page knobs 1, 3 (no shift) and 4, and RHYTHM page knob 4.
@@ -137,6 +145,8 @@ Counts: 19 issues: 3 fixed (F1, F4, F18), 2 partial (F2, F13), 14 open. The 14 o
 
 <a id="f7"></a>
 ## F7. Selecting a cycle with the keys does not refresh the rhythm: OPEN
+
+**Triage (P2-006):** Dropped: `t1_ui_select_cycle` and the cached Euclid mask live in `torso_t1_ui.c` and `t1_pipeline_invalidate_masks`, both dropped/rewritten ([ADR-0003 section 13](project/decisions/ADR-0003-sequencer-core.md)); cycles do not exist in the new design.
 
 - **Severity / area:** High, UI and engine.
 - **Where:** `torso_t1_ui.c` `t1_ui_select_cycle` (line 79) sets `active_cycle` but does not call `t1_pipeline_invalidate_masks()`. It is called from the white keys 7 to 12 in `ui_t1.c` (line 98).
@@ -151,6 +161,8 @@ Counts: 19 issues: 3 fixed (F1, F4, F18), 2 partial (F2, F13), 14 open. The 14 o
 <a id="f8"></a>
 ## F8. Single-detent turns reach only one bit: OPEN
 
+**Triage (P2-006):** Dropped: the RND TGT and STEP MOD knob code is in `torso_t1_ui.c`, dropped at R8 ([ADR-0003 section 13](project/decisions/ADR-0003-sequencer-core.md)).
+
 - **Severity / area:** Medium, UI.
 - **Where:** `torso_t1_ui.c` line 407 (`random_targets ^= 1 << (|steps| % 8)`) and the STEP MOD line (about 276, `active_mask_lo ^= 1 << (|steps| % 32)`).
 - **What:** the bit toggled is chosen by the **size** of the turn, not by the knob position. A single detent (±1) always toggles bit 1. Faster turns reach other bits (8 detents in one frame wraps to bit 0).
@@ -162,6 +174,8 @@ Counts: 19 issues: 3 fixed (F1, F4, F18), 2 partial (F2, F13), 14 open. The 14 o
 
 <a id="f9"></a>
 ## F9. The event queue drops events silently: OPEN
+
+**Triage (P2-006):** Dropped: `t1_micro_queue_push` is dropped and replaced by the `evq[96]` queue whose pair-or-nothing rule and note-off guarantee are specified in ADR-0003 section 8.2 and 8.4; the timed release ring is specified in [TIMING_SPEC](design/TIMING_SPEC.md) (M2, M3, M5) and ADR-0003 section 19.
 
 - **Severity / area:** Medium, dispatch.
 - **Where:** `torso_t1.c` `t1_micro_queue_push` (line ~257: `dropped_events++`, returns false); callers in `torso_t1_pipeline.c` (lines 337, 351, 373) ignore the result.
@@ -175,6 +189,8 @@ Counts: 19 issues: 3 fixed (F1, F4, F18), 2 partial (F2, F13), 14 open. The 14 o
 <a id="f10"></a>
 ## F10. Muting freezes a track's phase: OPEN
 
+**Triage (P2-006):** Dropped: the muted-track skip is in `t1_pipeline_tick`, which is rewritten as `sq_tick` ([ADR-0003 section 13](project/decisions/ADR-0003-sequencer-core.md)).
+
 - **Severity / area:** Low, engine.
 - **Where:** `torso_t1_pipeline.c` line 169 (`if (trk->muted) continue;`) runs before the step counters advance.
 - **What:** a muted track stops counting, so when un-muted it resumes where it stopped, behind its siblings.
@@ -186,6 +202,8 @@ Counts: 19 issues: 3 fixed (F1, F4, F18), 2 partial (F2, F13), 14 open. The 14 o
 
 <a id="f11"></a>
 ## F11. Controls that do nothing or cannot be reached: OPEN
+
+**Triage (P2-006):** Dropped: every listed control belongs to `CycleParams`/`Pattern` and the T-1 UI, all dropped ([ADR-0003 section 13](project/decisions/ADR-0003-sequencer-core.md)); the new interface has no unreachable fields.
 
 - **Severity / area:** Medium, engine and UI.
 
@@ -209,6 +227,8 @@ Counts: 19 issues: 3 fixed (F1, F4, F18), 2 partial (F2, F13), 14 open. The 14 o
 <a id="f12"></a>
 ## F12. Patterns are not saved; p-locks unreachable: OPEN
 
+**Triage (P2-006):** Dropped: `t1_glue.c` and the T-1 `Pattern` are dropped; persistence is replaced by `SeqPreset` and the preset store (ADR-0003 section 10), and p-locks are dropped ([ADR-0003 section 13](project/decisions/ADR-0003-sequencer-core.md)).
+
 - **Severity / area:** High, product.
 - **Where:** `t1_glue.c` header comment ("Nothing here touches the flash"); `torso_t1_ui.c` `t1_ui_set_edit_step` (line 127, never called by `ui_t1.c`); `t1_plock_clear` (no UI caller).
 - **What:**
@@ -222,6 +242,8 @@ Counts: 19 issues: 3 fixed (F1, F4, F18), 2 partial (F2, F13), 14 open. The 14 o
 
 <a id="f13"></a>
 ## F13. Documentation versus code: PARTIAL
+
+**Triage (P2-006):** Dropped: the guide and plan describe the T-1 code that is being replaced ([ADR-0003 section 13](project/decisions/ADR-0003-sequencer-core.md)); the new design docs supersede them. The timing rows (192 PPQN timer ISR, 0.7 ms granularity) are superseded by [TIMING_SPEC](design/TIMING_SPEC.md) and ADR-0003 section 19. The stale `range` comment in `torso_t1_algo.h` is tracked in BUG-002.
 
 - **Severity / area:** Medium, docs. (`TORSO_T1_GUIDE.md`, `PLAN.md`)
 
@@ -245,6 +267,8 @@ Counts: 19 issues: 3 fixed (F1, F4, F18), 2 partial (F2, F13), 14 open. The 14 o
 <a id="f14"></a>
 ## F14. Duplicate dead code with different policies: OPEN
 
+**Triage (P2-006):** Dropped: the duplicate `t1_micro_queue_dispatch`, `t1_fm_voice_alloc` and `t1_timer_192ppqn_isr` are all in the dropped list of [ADR-0003 section 13](project/decisions/ADR-0003-sequencer-core.md); the clock is `events_block` with the exact-tick scheduling of [TIMING_SPEC](design/TIMING_SPEC.md).
+
 - **Severity / area:** Low, code.
 - **Where:** `torso_t1.c`: `t1_micro_queue_dispatch` (line 383), `t1_fm_voice_alloc` (323), `t1_timer_192ppqn_isr` (153), the task table, timing statistics.
 - **What:** the device uses the pipeline's own dispatcher and allocator. The copies in `torso_t1.c` are compiled into the firmware but never called, and differ:
@@ -258,6 +282,8 @@ Counts: 19 issues: 3 fixed (F1, F4, F18), 2 partial (F2, F13), 14 open. The 14 o
 <a id="f15"></a>
 ## F15. Flash bank erase vs sector size: OPEN (latent)
 
+**Triage (P2-006):** Dropped: `torso_t1_state.c` flash banks are dropped at R8 ([ADR-0003 section 13](project/decisions/ADR-0003-sequencer-core.md)); the preset store (ADR-0003 section 10) uses its own layout.
+
 - **Severity / area:** Low, storage. Unused on the device.
 - **Where:** `torso_t1_state.c` `t1_flash_save_bank` (line 345, one `erase_sector(bank_offset)` call); `torso_t1_state.h` `T1_FLASH_SECTOR_SIZE` (line 111) is 64 KB while banks sit every 32 KB.
 - **What:** two banks share each 64 KB erase sector (banks 0 and 1, 2 and 3, 4 and 5). The test's simulated driver erases only the 32 KB around the offset, so the sharing case is never exercised. A real 64 KB sector erase would wipe the neighbouring bank.
@@ -268,6 +294,8 @@ Counts: 19 issues: 3 fixed (F1, F4, F18), 2 partial (F2, F13), 14 open. The 14 o
 <a id="f16"></a>
 ## F16. LFSR modulation range: OPEN
 
+**Triage (P2-006):** Dropped: `t1_lfsr_modulate` is dropped; SP1 xorshift replaces the LFSR ([ADR-0003 section 13](project/decisions/ADR-0003-sequencer-core.md)).
+
 - **Severity / area:** Low, random.
 - **Where:** `torso_t1_algo.c` `t1_lfsr_modulate`, line 534.
 - **What:** `(rnd % (depth + 1)) − depth/2` is slightly asymmetric for odd depths: measured **−60 to +64 at depth 127**, −12 to +12 at depth 24. At high depths a pitch can move by tens of semitones before the scale snap.
@@ -277,6 +305,8 @@ Counts: 19 issues: 3 fixed (F1, F4, F18), 2 partial (F2, F13), 14 open. The 14 o
 
 <a id="f17"></a>
 ## F17. Zero-filled p-lock arena refuses locks: OPEN (latent)
+
+**Triage (P2-006):** Dropped: `t1_plock_*` is dropped ([ADR-0003 section 13](project/decisions/ADR-0003-sequencer-core.md)); p-locks are out of v1.
 
 - **Severity / area:** Low, p-locks.
 - **Where:** `torso_t1_algo.c` `t1_plock_set` (line 559 looks for `step_idx == 0xFF`).
@@ -300,6 +330,8 @@ Counts: 19 issues: 3 fixed (F1, F4, F18), 2 partial (F2, F13), 14 open. The 14 o
 
 <a id="f19"></a>
 ## F19. Consecutive LFSR draws are dependent: OPEN (new)
+
+**Triage (P2-006):** Dropped: `t1_lfsr_*` is dropped and SP1 replaces the LFSR with per-decision salts ([ADR-0003 section 13](project/decisions/ADR-0003-sequencer-core.md)).
 
 - **Severity / area:** Medium, random.
 - **Where:** `torso_t1_pipeline.c` draws for probability (line 232), pitch (250), velocity (275) and CC (370) use `t1_lfsr_next`/`t1_lfsr_modulate`. `t1_lfsr_next` advances the register **one bit** per call. A newly added `t1_lfsr_byte` helper (line 164) fixes this for the accent draw only, and its own comment states the problem.
