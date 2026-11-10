@@ -31,10 +31,10 @@ Design docs only (no firmware): update or replace docs/design/hardware/*, algori
 8. Owner question sheet, lettered options with a recommendation.
 
 ## Acceptance criteria
-- [ ] All eight deliverables present
-- [ ] Every algorithm has mod lane(s) listed
-- [ ] Design checkers pass: tests/design/check_scenarios.py, check_help.py, tools/check_sequencer_ux.py, tests/design/width_probe.sh, backlog.py check
-- [ ] Decisions 97-101, 103-107 honoured or explicitly reopened in the owner sheet
+- [x] All eight deliverables present
+- [x] Every algorithm has mod lane(s) listed
+- [x] Design checkers pass: tests/design/check_scenarios.py, check_help.py, tools/check_sequencer_ux.py, tests/design/width_probe.sh, backlog.py check
+- [x] Decisions 97-101, 103-107 honoured or explicitly reopened in the owner sheet
 
 ## Verification
 ```sh
@@ -45,3 +45,14 @@ python3 tests/design/check_scenarios.py; python3 tests/design/check_help.py; pyt
 - Firmware changes. Do not touch P3-002, P3-014 or FB-003 files (another agent owns them). Do not run tools/check.sh.
 
 ## Log
+
+### 2026-11-11 executor (sonnet)
+Deliverable: new docs/design/MODULATION.md (sections 1-11 cover deliverables 1-8: settings model, remote vs mod control, mod gen + dice/morph, per-algorithm lanes table + worked ACID/TB-3 example, MOD page setup UX + reconciliation of 97-101, TB-3 default slots + scatter pair, budget + task list, owner sheet of 9 questions). SUPERSEDED banners on HW_SUPPORT_HIGHLEVEL/LOWLEVEL, TB3_PROFILE, S21-S23; change notes in ALGORITHM_SET.md, algorithms/snake.md, hardware/README.md; 18 measured strings added to tests/design/widths.tsv. No firmware, no control_map or scenario rows touched.
+```
+python3 tests/design/check_scenarios.py -> scenarios: 23 files, 490 control-map rows, 0 with no scenario
+python3 tests/design/check_help.py -> OK: 392 help rows, 2695 strings measured
+python3 tools/check_sequencer_ux.py -> OK
+sh tests/design/width_probe.sh -> 286 strings, 0 over
+python3 tools/backlog.py check -> 117 items, 0 errors
+```
+Reviewer: check the ROW 3 = MOD page gestures (K pick, hold OCT+ depth, hold OCT- level, ALGO = device) and the shared SHAPE+MOD dice (owner Q1/Q2). Decisions 97-101 reconciliation is MODULATION.md 5.3; Q5 and Q6 reopen decision 100's start state and VISION rule 3 wording.
