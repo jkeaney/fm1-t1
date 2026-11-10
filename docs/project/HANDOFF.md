@@ -20,13 +20,12 @@ Branch: `t1-hardware-bringup`, remote `origin` = jkeaney/fm1-t1. Pushed through 
 
 ## Where we are (2026-11-10, end of the Opus planning session)
 - Done: P0-001..004, P1 (all), P2-001..004, P2-006, P2-007, P2-009, P2-010, P2-011. E3-E8 broken down (closed). FB-001 closed.
-- **At review, waiting for the owner:** P2-012 HARMONY (independent review PASS; owner questions 85-89 and 91 in
-  OWNER_QUESTIONS); P2-005 the program plan (PROGRAM_PLAN.md + ORCHESTRATOR.md).
-- **Next once P2-012 is approved:** P2-013 ARP, P2-014 PATTERNS, P2-015 keybed use cases in parallel (Sonnet), and P2-008
-  (prototype harness + ACID). **Once P2-005 is approved:** P3-001 (host tests link the T-1) starts the clean house, and
-  P4-008 (timing tool) can run alongside.
+- P2-012 HARMONY approved and done (85A 86A 87B 88A 89A 91A; the HARMONY dial is named `DRONE`). P2-005 program plan approved and done.
+- **Ready now:** P2-013 ARP, P2-014 PATTERNS, P2-015 keybed (Sonnet, run in parallel); P2-008 prototype harness + ACID (Sonnet);
+  P3-001 host tests link the T-1 (Sonnet, the first dev task: run it alone); P4-008 timing tool (Haiku, may run alongside).
+  Suggested first wave: P2-013 + P2-014 + P2-015 in parallel, then P3-001 + P4-008, then P2-008.
 - Owner, 2026-11-11: Ableton Sync check on the JIANT FM port plus P0-005 TB-3 listening test on the current build.
-- Last push: 166ebcd. Later commits are local; ask before pushing.
+- Last push: 6f91357 (2026-11-10). Ask before every push.
 
 ## Owner decisions to remember (full list: OWNER_QUESTIONS.md)
 4 channels; 4 v1 algorithms ACID/EUCLID/SNAKE/STAGE (ARP, RHYTHM, MELODY deferred, specs complete); each algorithm has up to
