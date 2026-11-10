@@ -3,7 +3,7 @@ id: P2-012
 title: Design the global HARMONY mode: key, scale and chord progression
 phase: P2
 type: task
-status: review
+status: in_progress
 priority: 1
 executor: sonnet
 depends_on: [P2-011]
@@ -82,3 +82,20 @@ python3 tests/design/harmony_proto.py --check -> CHECK OK
 No firmware changed, so `tools/check.sh` (a build) was not run.
 
 Open (not ticked): "Design locked: owner line in the log" needs the owner's Approved line; the executor does not write it. Five owner questions (85-89, each with a recommendation) are in HARMONY.md 11 and OWNER_QUESTIONS.md.
+
+### 2026-11-10 review (Sonnet 5.5)
+
+Verdict: FAIL (narrow: stale text in locked docs plus an incomplete section 8). The design itself holds. No edits made by the reviewer.
+
+Re-run and passing: check_scenarios.py (18 files, 441 rows), backlog.py check (0 errors), check_control_map.py OK, check_sequencer_ux.py OK, check_help.py OK, width_probe.sh (0 over), harmony_proto.py --check CHECK OK.
+Hand-checked: VOICE 3/5/6 goldens (C major and MINPEN), PEDAL clash marks, 4.2 hash and nearest-tone table, chord start table 2.3, RAM 16+1+14+9+1+1 = 42 B and pool 18 x 8 = 144 B. Rulings: (a) deferred with a single hook paragraph (7.6), OK. (b) inert definition and H-INERT test OK, entered steps scale-only OK. (c) no new page, all controls one gesture after hold GLO, OK (ROLE/NEW/BARS are extra surface but flagged in Q89). (d) OK. (e) section 9 interface is clear and pure. OWNER_QUESTIONS 85-89 are well formed (real alternatives, recommendations); 90 is intact.
+
+Findings (fix these):
+1. docs/design/page_states.tsv:4 (CHAN row, opener column) still says "(on SCALE D#4 sets the KEY)". Contradicts key_map.tsv:250 (SCALE D#4 "not used") and ruling on key-press-sets-KEY removal. Fix: delete the parenthesis, or say D#4 is inert on SCALE.
+2. docs/design/CONTROL_MAP.md:117 (workflow row 6) still reads "row 2 SCALE, OCTAVE, MIDI, LENGTH (any key sets the KEY)". Now wrong on both counts (OCTAVE is on SET, KEY is K2 only). Fix the text and re-run check_control_map.py.
+3. Historic-looking workflows still describe the removed behaviour: docs/design/UX_REVIEW.md:190 (W9 "Press any key for the KEY; turn K2 (OCTAVE)") and docs/design/PERFORMANCE_DESIGN.md:432 (F18 "press any key"). Either update them to K2 KEY / OCT on SET, or add a one-line "superseded by P2-012" note, and list the choice in section 8.
+4. HARMONY.md section 8 is not the complete change list the task demands: row 14 names S01/S06/S07 but the commit also edits S09, S10, S11, S12, S13 and S15; the commit also edits CONTROL_MAP.md, widths.tsv, gen_help.py and check_scenarios.py (the last two are mentioned only in the task log). Add them as rows (or one row with the file list), plus rows for findings 1-3 once fixed.
+5. Decision 69 (P1-017 question 69) approved "scale, key and octave on the hold-GLO page"; octave now leaves it (SET row, 8 item 4). This is listed and covered by Q86, but Q86 should say so explicitly ("reverses part of 69") so the owner sees it; also decision 46 (one undo record per channel) is extended by 8 item 6 and Q86-89 do not ask about it. Add a sentence in section 11 or a sixth question.
+Note (no change needed): undo of a HARMONY change from PERF gives a toast only for PROG; typing, VOICE and BARS undo toasts are not specified (7.3 / 5.5). Consider specifying so the screen says what EDIT just did.
+
+Gate human-review: no Approved line written. Status set back to in_progress.
