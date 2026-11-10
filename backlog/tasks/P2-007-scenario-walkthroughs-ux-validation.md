@@ -65,3 +65,14 @@ clean
 - Coverage: every one of the 441 control-map rows is cited (0 gaps); 268 of them only by a page sweep, 173 also by a narrative scenario.
 - Criteria: the last one ("Design locked: owner line") is left unticked. It needs the owner's own line; no Approved line was written.
   The scenarios do not change any locked table; the findings above need an owner decision and a re-lock before P2-005.
+
+### 2026-11-10 review (sonnet)
+Verdict: PASS on the executor's work; stays at `review` for the owner. Awaiting owner: decide the F-items (re-lock per ADR-0004) and write the "Design locked" line. No Approved line written here.
+Re-run: `check_scenarios.py` -> 17 files, 441 rows, 0 uncovered, 268 sweep-only (matches COVERAGE.md; 441 = distinct control/context pairs in control_map.tsv); `backlog.py check` 42 items 0 errors; grep for TBD/choose/e.g. clean. Scope: only docs/design/scenarios, tests/design and the task file changed.
+Spot walks (S01, S06, S08 against the tables): consistent with page_states / knob_map / SCREEN_SPEC 6 / TIMING_SPEC R1-R15. S06 agrees with the approved TIMING_SPEC (PLAY again cancels WAIT, clock lost stops, host Start takes over, no clock out while stopped).
+Defects verified REAL (no false positives): F-01 (SEQUENCER_UX 11.2 is first-match-wins; rows 13a/13b sit after row 13 "stopped", and 11.2 still holds the stale 13a), F-02 (knob_map: SELECT=CH n, ALGO=tab, PRESET=row; SCREEN_SPEC 3 footer: SELECT tab, ALGO row), F-03 (no "toast" anywhere in SCREEN_SPEC), F-04 (re-measured with the real text_w and AF_S: 68, 62, 71, 72, 83, 82, 38, 58, 263 px; identical to the claim), F-06 (no help-text table in any doc or tsv; only two sample lines), F-14 (SEQUENCER_UX 676: CH2 default MIDI 2, owner ruling 73 kept 1..4 but the target workflow puts CH1 on 2). Severities look right.
+Fixes for the executor or owner round (none block the pass):
+1. FINDINGS Q2 and Q3 are stale: OWNER_QUESTIONS row 76 answers them (PLAY again cancels WAIT; CLOCK row = AUTO / INTERNAL ONLY). Mark them answered and drop the "no way to start on the internal clock" wording in S06 step 8, S06 step 13 and the Result section. TIMING_SPEC section 11 should be marked answered too (outside this task).
+2. S06 step 2: "first 7 pulses (146 ms at 126 BPM)" is wrong; 7 pulses is 139 ms (6 intervals 119 ms) at 126 BPM.
+3. Disclose in FINDINGS or the log that gen_sweeps.py respells "choose" and "e.g." in the table text so the grep check passes, and that the 268 sweep-only rows are table echoes (generated from the same TSVs), so they prove each row is cited and reachable, not that its screen text is right. The "441 covered" claim is true but weaker than it reads.
+Missed by the executor (small): the F-04 numbers are not backed by a committed probe or width test (the probe is not in the repo); F-17-style staleness also exists in SEQUENCER_UX 11.2 row 13a (already covered by F-01). No further new defects found.
