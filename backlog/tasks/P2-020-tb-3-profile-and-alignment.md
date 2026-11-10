@@ -15,7 +15,7 @@ Fill the hardware support model with its first device: the Roland TB-3 as a buil
 ## Read first
 - docs/design/hardware/HW_SUPPORT_LOWLEVEL.md (profile format, section 2; engine hooks, section 3; H-tests, section 6)
 - docs/design/hardware/HW_SUPPORT_HIGHLEVEL.md (8.3 what is and is not known about accent and slide), docs/design/hardware/tb3-midi-guide.csv (reference only)
-- docs/project/OWNER_QUESTIONS.md decisions 95, 99, 100; docs/design/KEYBED_USE_CASES.md (accent threshold H0)
+- docs/project/OWNER_QUESTIONS.md decisions 95, 99, 100, 104, 105 (104 and 105 are hardware facts measured by ear on the owner's TB-3 on 2026-11-11: accent at velocity >= 100; slide = overlap; accent on a slide destination inaudible; tag them [V], owner's unit); docs/design/KEYBED_USE_CASES.md (accent threshold H0)
 - The TB-3 owner's manual and MIDI implementation chart (Roland, public); https://midi.guide/ and the CDM article as cross-checks
 
 ## Deliverable
