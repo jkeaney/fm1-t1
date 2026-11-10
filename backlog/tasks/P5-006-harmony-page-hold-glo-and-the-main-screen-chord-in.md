@@ -10,7 +10,7 @@ depends_on: [P5-005, P4-016]
 gate: none
 ---
 ## Goal
-Make HARMONY performable in one gesture: the hold-GLO page with K2 KEY, K3 VOICE, K4 MOVE, OCT-/OCT+ PEDAL walk, F3-E4 chord keys, SCL = PROG dice, ROLE per channel, and the chord indicator on PERF.
+Make HARMONY performable in one gesture: the hold-GLO page with K2 KEY, K3 VOICE, K4 MOVE, OCT-/OCT+ DRONE walk, F3-E4 chord keys, SCL = PROG dice, ROLE per channel, and the chord indicator on PERF.
 
 ## Read first
 - docs/design/HARMONY.md §5 (placement, controls, typing, indicator, strings, L scores), §6
