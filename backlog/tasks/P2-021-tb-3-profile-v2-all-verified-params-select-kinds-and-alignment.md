@@ -3,7 +3,7 @@ id: P2-021
 title: TB-3 profile v2: all verified params, select kinds and alignment
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: []
@@ -67,3 +67,6 @@ Verdict: PASS on all checkable criteria; gate is human-review, so the task stays
 - Scope: only P2-021 files in the commit; P3-002/FB-003 left untouched.
 - Minor: Option 3 at 3 gestures (R10) exceeds the setup cap and is flagged as owner question G, which is honest.
 Awaiting owner: read LOWLEVEL 9.4 mockups and decide owner questions A-I (esp. A sets on ALGO, C FOLLOW, G swap gesture count).
+
+### 2026-11-11 orchestrator
+Owner review: partly accepted (3A 4A 7A 8A 9A, 5B). Wire sets on ALGO (1, 2, 6) redirected to the new modulation-layer redesign P2-022 (decision 107). Approved as input: owner 2026-11-11.
