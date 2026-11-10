@@ -3,7 +3,7 @@ id: P2-020
 title: TB-3 profile and alignment (phase 3 of the hardware support model)
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P2-019]
@@ -62,3 +62,6 @@ Minor, non-blocking:
 - TB3_PROFILE.md section 4 defers "accent on a slide destination is inaudible" to a P4 UI note. The ACC form on CUT still opens the filter on such a note (it is a CC, not velocity), so the lane design is fine, but a sentence saying so would close the point.
 - HW_SUPPORT_LOWLEVEL.md lines 399-449 still show the old ENV/TUNE placeholder mockups (out of scope here; update in a later pass).
 Awaiting owner: confirm the wire choice (CUT/RESO/ENV-X/ENV-Y with ACC, WALK, RAMP, RAND-0), the placeholder homes (RESO 40, EFFEC 0), and that level 1 provenance and the H-RIG TB-3 sheet (section 10) are acceptable.
+
+### 2026-11-11 orchestrator
+- Approved: owner 2026-11-11 (open-items 1A): TB-3 profile locked as designed. Owner asked to validate CC receive live against the TB-3 now (H-RIG1); results to be logged below.
