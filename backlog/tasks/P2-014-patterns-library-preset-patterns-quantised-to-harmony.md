@@ -91,3 +91,13 @@ Open items for the owner (not ticked):
 - O3: no "bake the pattern into steps" gesture in v1.
 - O4: PICK is on ROW 2 (OCT+ tap, turn K1: 2 gestures, L score 10), not on ROW 1, so DENS keeps K1; S1 OFFSET and S4 READ give way (SPEC 4.2).
 - Parallel work: P2-013 edited the shared EN_ALGO strings and check_scenarios.py; this task did not touch them. The six-algorithm picker strip is SPEC 5.5.
+
+### 2026-11-10 review (sonnet)
+
+Verdict: PASS on all checkable criteria; gate is human-review, so left at `review`.
+- Re-ran: patterns_proto.py --check OK (120 patterns, 6 x 20, 4472 B flash, 492000 note checks, 13 titles absent); check_scenarios.py OK (0 uncovered); backlog check 0 errors; no TBD in patterns docs/S20.
+- Build: RAM .data+.bss 55744 of 73728 (17984 B headroom, no firmware RAM added); pool 342876 of 368640.
+- Scope: design docs, TSVs, test script only; no firmware changed.
+- Caveat: the 13 `F` patterns are reconstructions from memory (O1), so the owner should decide whether to accept them as idiom under decision 90.
+
+Awaiting owner: (1) confirm the six-category list and 3-letter tags (O2), (2) accept or verify the F-pattern notes (O1), (3) accept PICK on ROW 2 and no bake gesture (O3, O4), (4) add the design-lock line.

@@ -21,6 +21,7 @@ Build the host prototype harness the dev tasks will copy from, and prove ACID in
 - docs/t1-algorithms/verification/ (probe pattern to copy)
 
 ## Deliverable
+- **Added by P2-013 (ARP):** `sq_types.h` and `sq_prims` carry the four core additions of docs/design/algorithms/arp/SPEC.md 6.10 so P2-017 only fills ARP: `AF_CHORD 0x02`, `step(cache, g, const HarmChord *hc, PulseOut *out)` (ignored by ACID, EUCLID, SNAKE, STAGE), `AlgoDesc.sub_note`, `harm_chord_at_bar` reachable from the step test harness, the `mix` hash and a seeded 24-element shuffle in `sq_prims`; the purity test also varies `hc`. The ARP prototype and goldens themselves are P2-017 (SPEC 11 lists the golden cases).
 - docs/design/algorithms/common/sq_types.h: every constant, struct and `_Static_assert` of ADR-0003 §3 as amended by SEQUENCER_UX 9.1 and HARMONY 2; `SQ_NALGO` 6 (decision 82) with ARP/PATTERNS fields marked `/* P2-017 fills */` where unknown
 - docs/design/algorithms/common/sq_prims.h + sq_prims.c: SP1 xorshift + salts, SP2, SP3, SP4, SP5 `sq_ratchet`, SP6/SP7/SP9 `sq_gbuild`/`sq_note`/`sq_snap_abs`, `<stdint.h>` only
 - docs/design/algorithms/common/harm.c: `harm_apply()` and the HARMONY.md §9 query functions in C, compared bit for bit against harmony_proto.py tables (H-GOLDEN)

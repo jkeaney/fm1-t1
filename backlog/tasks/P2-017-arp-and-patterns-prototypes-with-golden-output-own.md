@@ -20,6 +20,7 @@ Prototype ARP and PATTERNS against the locked P2-013/P2-014 designs, finalise `s
 
 ## Deliverable
 - docs/design/algorithms/arp/ and patterns/: SPEC.md, proto.c, golden.txt; patterns/ also holds the pattern data as a C const table (degree-relative, structural/decoration flags) and a generator script if the data is produced from RESEARCH.md
+- ARP golden cases (scheduled by P2-013, SPEC 11): the default of SPEC 10.1; every DIR x SHAPE x RATE at SPAN 1..4 for chord I and the `1451` bars of 6.7; the single-note cases of 6.8; ROLE OFF and ROOT; each dice layer from a fixed seed; the RAND permutation property for P = 1..24; cache 48 B and the cost bounds of SPEC 9; the picker strings of SPEC 7.3 stay in tests/design/widths.tsv
 - docs/design/algorithms/common/sq_types.h final for six algorithms (SQ_NSEED, cache sizes, any ChanSave field PATTERNS needs); every `/* P2-017 fills */` resolved
 - A one-page LOCK.md in docs/design/algorithms/: the six algorithms, their RAM/pool/flash cost, the picker screen with six names (width_probe), and what the owner is approving
 

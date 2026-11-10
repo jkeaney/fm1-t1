@@ -3,7 +3,7 @@ id: P2-013
 title: Design the ARP algorithm over the chord progression
 phase: P2
 type: task
-status: todo
+status: in_progress
 priority: 1
 executor: sonnet
 depends_on: [P2-012]
