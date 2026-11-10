@@ -79,10 +79,10 @@ MENU	*	K1	value	turn: change the selected row's value (Felucca menu rule)	row ra
 MENU	*	K2	value	turn: change the selected row's value (Felucca menu rule)	row range
 MENU	*	K3	value	turn: change the selected row's value (Felucca menu rule)	row range
 MENU	*	K4	value	turn: change the selected row's value (Felucca menu rule)	row range
-PERF	*	K1	morph	turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above)	per algorithm
-PERF	*	K2	morph	turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above)	per algorithm
-PERF	*	K3	morph	turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above)	per algorithm
-PERF	*	K4	morph	turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above)	per algorithm
+PERF	*	K1	morph	turn: the live row (ROW 1 or ROW 2) morph, or on ROW 3 the LEVEL of the RIG wire in this column in this column of the selected channel's algorithm (rows above)	per algorithm
+PERF	*	K2	morph	turn: the live row (ROW 1 or ROW 2) morph, or on ROW 3 the LEVEL of the RIG wire in this column in this column of the selected channel's algorithm (rows above)	per algorithm
+PERF	*	K3	morph	turn: the live row (ROW 1 or ROW 2) morph, or on ROW 3 the LEVEL of the RIG wire in this column in this column of the selected channel's algorithm (rows above)	per algorithm
+PERF	*	K4	morph	turn: the live row (ROW 1 or ROW 2) morph, or on ROW 3 the LEVEL of the RIG wire in this column in this column of the selected channel's algorithm (rows above)	per algorithm
 PERF	*	SELECT	CH n	turn: select channel CH1..CH4 (clamped, no wrap)	CH1..CH4
 PERF	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	6 algorithms
 PERF	*	PRESET	Pnn	turn: choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: on the first 768-tick bar that starts at least SQ_LOAD_SETTLE 1.5 s after the last detent (header Pnn? then Pnn>), so a SAVE tap always has at least 1.5 s; SAVE tap while pending saves there instead (no load); turning back to the current slot cancels	P01..P16
@@ -110,3 +110,14 @@ HELP	*	PRESET	?	turn: explain PRESETS	P01..P16
 MENU	*	SELECT	CH n	turn: select channel CH1..CH4	CH1..CH4
 MENU	*	ALGO	tab	turn: next / previous menu tab	6 algorithms
 MENU	*	PRESET	row	turn: next / previous menu row	P01..P16
+PERF	*	R1	WIRE1	turn (ROW 3, the RIG row, live): LEVEL of wire 1 of the selected channel's device: HAND sends the CC at once (at most one per 10 ms); SEQ moves the centre of its lane from the next step; DEV: inert, toast names it; the cell shows the device's name for the parameter	0..127, step 1 fast 4; default = the parameter's neutral
+PERF	*	R2	WIRE2	turn (ROW 3, the RIG row, live): LEVEL of wire 2 of the selected channel's device: HAND sends the CC at once (at most one per 10 ms); SEQ moves the centre of its lane from the next step; DEV: inert, toast names it; the cell shows the device's name for the parameter	0..127, step 1 fast 4; default = the parameter's neutral
+PERF	*	R3	WIRE3	turn (ROW 3, the RIG row, live): LEVEL of wire 3 of the selected channel's device: HAND sends the CC at once (at most one per 10 ms); SEQ moves the centre of its lane from the next step; DEV: inert, toast names it; the cell shows the device's name for the parameter	0..127, step 1 fast 4; default = the parameter's neutral
+PERF	*	R4	WIRE4	turn (ROW 3, the RIG row, live): LEVEL of wire 4 of the selected channel's device: HAND sends the CC at once (at most one per 10 ms); SEQ moves the centre of its lane from the next step; DEV: inert, toast names it; the cell shows the device's name for the parameter	0..127, step 1 fast 4; default = the parameter's neutral
+RIG	*	K1	PARAM	PARAM of the selected wire: walks the device profile's parameter list (a name of at most 5 letters, its CC shown on the status line); GENERIC: the raw CC number 1..127; the wire keeps its state; the old parameter is parked at its neutral first if the wire was SEQ; LEVEL restarts at the parameter's neutral	profile list, or CC 1..127 on GENERIC
+RIG	*	K2	LAYER	LAYER of the selected wire: - NOTES HITS ACCNT ARTIC SHAPE, the dice layer whose seed makes its lane (a layer the algorithm lacks is dim and freezes the lane); the dice button of that layer then re-rolls the wire too	- NOTES HITS ACCNT ARTIC SHAPE; default per profile
+RIG	*	K3	FORM	FORM of the selected wire's lane: RAND (a new value each step), WALK (smooth drift), RAMP (a sweep over the loop), ACC (open on accented steps)	RAND WALK RAMP ACC; default per profile
+RIG	*	K4	MOVE	MOVE of the selected wire, 0..127: how far the SEQ lane moves from LEVEL (0 = the lane is silent); HAND wires ignore it	0..127, step 1 fast 8; default per profile
+RIG	*	SELECT	CH n	select channel CH1..CH4 (clamped, no wrap); the page shows that channel's device and wires; the selected wire index is kept	CH1..CH4
+RIG	*	ALGO	DEVICE	device of the selected channel from the built-in list NONE GENERIC TB-3 (the cue strip lists them for 2 s, the current one in brackets); a device fills the four suggested wires in HAND at their neutral LEVEL and sends nothing; changing or clearing it first parks the old SEQ wires at their LEVEL; takes effect at once	NONE GENERIC TB-3
+RIG	*	PRESET	Pnn	choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: on the first 768-tick bar that starts at least SQ_LOAD_SETTLE 1.5 s after the last detent (header Pnn? then Pnn>), so a SAVE tap always has at least 1.5 s; SAVE tap while pending saves there instead (no load); turning back to the current slot cancels	P01..P16

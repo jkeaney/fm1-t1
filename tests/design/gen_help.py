@@ -12,7 +12,7 @@ import csv, os
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 D = os.path.join(ROOT, "docs", "design")
-PAGES = ["PERF", "NOTE_EDIT", "CHAN", "SET", "SCALE", "REC", "RESET"]
+PAGES = ["PERF", "NOTE_EDIT", "CHAN", "SET", "SCALE", "REC", "RESET", "RIG"]
 H = {}  # (control, page) -> (line1, line2)
 
 
@@ -24,7 +24,7 @@ def put(ctl, pages, l1, l2):
 
 
 ALL = " ".join(PAGES)
-DICE = "PERF CHAN SET SCALE"
+DICE = "PERF CHAN SET SCALE RIG"
 
 # ---- the six dice buttons and EDIT / GLO -------------------------------------------------------------------------
 put("B_FX", DICE + " REC", "ALL: re-roll every layer", "FX; edited steps are kept")
@@ -43,16 +43,16 @@ put("B_EDIT", DICE, "EDIT: tap = undo / redo", "hold 0.4 s: RESET what you touch
 put("B_EDIT", "NOTE_EDIT", "EDIT: undo this step's change", "hold 0.4 s: property to AUTO")
 put("B_EDIT", "REC", "EDIT: undo the last note", "again = redo")
 put("B_EDIT", "RESET", "EDIT: cancel RESET", "nothing is reset")
-put("B_GLO", "PERF NOTE_EDIT CHAN", "GLO: tap = SET, hold = SCALE", "tempo, swing | scale and key")
+put("B_GLO", "PERF NOTE_EDIT CHAN RIG", "GLO: tap = SET, hold = SCALE", "tempo, swing | scale and key")
 put("B_GLO", "SET", "GLO: back to PERF", "hold 0.4 s: switch to SCALE")
 put("B_GLO", "SCALE", "GLO: back to PERF", "you are on SCALE")
 put("B_GLO", "REC", "GLO: not used while recording", "tap REC to finish")
 put("B_GLO", "RESET", "GLO: nothing to reset", "EDIT cancels RESET")
 # ---- the second row ---------------------------------------------------------------------------------------------
 put("B_HOME", "PERF", "HOME: already home", "hold: HELP; let go untouched: MENU")
-put("B_HOME", "NOTE_EDIT CHAN SET SCALE REC", "HOME: back to PERF", "hold: HELP; let go untouched: MENU")
+put("B_HOME", "NOTE_EDIT CHAN SET SCALE REC RIG", "HOME: back to PERF", "hold: HELP; let go untouched: MENU")
 put("B_HOME", "RESET", "HOME: cancel RESET, to PERF", "hold: HELP; let go untouched: MENU")
-put("B_SAVE", "PERF NOTE_EDIT CHAN SET SCALE REC", "SAVE: save to the header slot", "hold 0.7 s: undo the last load")
+put("B_SAVE", "PERF NOTE_EDIT CHAN SET SCALE REC RIG", "SAVE: save to the header slot", "hold 0.7 s: undo the last load")
 put("B_SAVE", "RESET", "SAVE: nothing to reset", "EDIT cancels RESET")
 put("B_ARP", DICE + " REC", "ARTIC: re-roll gate and slide", "ARP; edits stay")
 put("B_ARP", "NOTE_EDIT", "ARP: SLIDE on this step", "glides into the next step")
@@ -65,8 +65,8 @@ put("B_REC", DICE, "REC: play keys, write notes", "tap REC again to finish")
 put("B_REC", "NOTE_EDIT", "REC: write from this step", "the cursor starts on it")
 put("B_REC", "REC", "REC: done, back to PERF", "")
 put("B_REC", "RESET", "RST PG: clear the page's edits", "the page is pure generator")
-put("B_OCTDN", "PERF", "OCT-: knob ROW 1 stays live", "hold and turn: peek at ROW 1")
-put("B_OCTUP", "PERF", "OCT+: knob ROW 2 stays live", "hold and turn: peek at ROW 2")
+put("B_OCTDN", "PERF", "OCT-: back to knob ROW 1", "hold and turn: peek at ROW 1")
+put("B_OCTUP", "PERF", "OCT+: next knob row (2, then 3)", "hold and turn: peek at ROW 2")
 put("B_OCTDN", "NOTE_EDIT", "OCT-: this step an octave down", "-2 to +2, auditioned")
 put("B_OCTUP", "NOTE_EDIT", "OCT+: this step an octave up", "-2 to +2, auditioned")
 put("B_OCTDN", "CHAN", "-PAGE: LENGTH down a page", "hidden steps keep their edits")
@@ -80,18 +80,18 @@ put("B_OCTUP", "REC", "OCT+: keyboard octave up", "same as K4 OCT")
 put("B_OCTDN", "RESET", "RST R1: reset the ROW 1 morphs", "NOTE EDIT: step octave to AUTO")
 put("B_OCTUP", "RESET", "RST R2: reset the ROW 2 morphs", "NOTE EDIT: step octave to AUTO")
 # ---- encoders -----------------------------------------------------------------------------------------------------
-put("EN_SELECT", "PERF CHAN SET SCALE RESET", "SELECT: pick CH1 to CH4", "the channel the knobs act on")
+put("EN_SELECT", "PERF CHAN SET SCALE RESET RIG", "SELECT: pick CH1 to CH4", "the channel the knobs act on")
 put("EN_SELECT", "NOTE_EDIT", "SELECT: pick a channel", "this closes NOTE EDIT")
 put("EN_SELECT", "REC", "SELECT: pick a channel", "the cursor returns to step 1")
 put("EN_ALGO", "PERF NOTE_EDIT CHAN SET SCALE REC", "ALGO: this channel's algorithm", "ACID EUCL SNAK STAG ARP PATT")
 put("EN_ALGO", "RESET", "ALGO: not used in RESET", "EDIT cancels RESET")
-put("EN_PRESET", "PERF NOTE_EDIT CHAN SET SCALE", "PRESETS: pick a slot P01-P16", "loads in 1.5 s; SAVE = save here")
+put("EN_PRESET", "PERF NOTE_EDIT CHAN SET SCALE RIG", "PRESETS: pick a slot P01-P16", "loads in 1.5 s; SAVE = save here")
 put("EN_PRESET", "REC", "PRESETS: not used in REC", "tap REC to finish")
 put("EN_PRESET", "RESET", "PRESETS: not used in RESET", "EDIT cancels RESET")
 # ---- the four knobs -----------------------------------------------------------------------------------------------
 for n in "1234":
     k = "EN_K" + n
-    put(k, "PERF", "K%s: %s (ROW 1)" % (n, "{r1}"), "OCT+ shows ROW 2: {r2}")
+    put(k, "PERF", "K%s: %s (ROW 1)" % (n, "{r1}"), "OCT+: {r2}; twice: device")
     put(k, "RESET", "K%s: back to its default" % n, "turn one detent to reset it")
 put("EN_K1", "NOTE_EDIT", "K1: PITCH of this step", "one scale degree per detent")
 put("EN_K2", "NOTE_EDIT", "K2: GATE of this step", "10-100 %, the top value is TIE")
@@ -125,7 +125,7 @@ for i, nm in enumerate(WHITE, 1):
     put(c, "REC", "Key %s: plays and writes it" % nm, "at the cursor or nearest step")
     put(c, "RESET", "Step %d: CLR its edits" % i, "back to the generator")
 MOVE = {
-    5: ("CHN: open channel settings", "LENGTH MIDI SOURCE FOLLOW"),
+    5: ("CHN: tap = settings, hold = RIG", "LENGTH MIDI | the device knobs"),
     6: ("SOL: hold = only this channel", "release restores the mutes"),
     7: ("FIL: hold = a denser pattern", "press harder = denser"),
     8: ("ROL: hold = repeat every step", "press harder = 2x 3x 4x"),
@@ -136,9 +136,9 @@ MOVE = {
 for i, nm in enumerate(BLACK, 1):
     c = "KEY_B%02d_%s" % (i, nm)
     if i <= 4:
-        put(c, "PERF NOTE_EDIT CHAN SET", "M%d: mute / unmute CH%d" % (i, i), "its phase keeps running")
+        put(c, "PERF NOTE_EDIT CHAN SET RIG", "M%d: mute / unmute CH%d" % (i, i), "its phase keeps running")
     else:
-        put(c, "PERF NOTE_EDIT SET", MOVE[i][0], MOVE[i][1])
+        put(c, "PERF NOTE_EDIT SET RIG", MOVE[i][0], MOVE[i][1])
         put(c, "CHAN", *(MOVE[i] if i != 5 else ("CHN: back to PERF", "tap again to leave CHAN")))
     put(c, "SCALE", "Key %s: sets the KEY" % nm, "the root of the scale")
     put(c, "REC", "Key %s: plays and writes it" % nm, "at the cursor or nearest step")
@@ -170,7 +170,26 @@ for _i, _nm in enumerate(WHITE, 1):
         put(_c, "SCALE", "Key %s: not used here" % _nm, "the key is K2")
 for _i, _nm in enumerate(BLACK, 1):
     put("KEY_B%02d_%s" % (_i, _nm), "SCALE", "Key %s: not used here" % _nm, "the key is K2")
-put("B_EDIT", DICE, "EDIT: tap = undo / redo", "also a HARM change; hold = RESET")
+put("B_EDIT", "PERF CHAN SET SCALE", "EDIT: tap = undo / redo", "also a HARM change; hold = RESET")
+
+# ---- hardware support model (P2-019): the RIG page; these override the rows above for the RIG page -----------------------
+put("B_EDIT", "RIG", "EDIT: undo the last dice", "seeds only; knobs by hand")
+put("B_OCTDN", "RIG", "OCT-: RIDE one morph down", "the wire's MOVE follows that morph")
+put("B_OCTUP", "RIG", "OCT+: RIDE one morph up", "0 = none; the wire's MOVE is fixed")
+put("EN_ALGO", "RIG", "ALGO: pick the device", "NONE GENERIC TB-3; wires: HAND")
+put("EN_K1", "RIG", "K1: PARAM this wire drives", "a device name; a CC on GENERIC")
+put("EN_K2", "RIG", "K2: LAYER, the dice that re-rolls", "NOTES HITS ACCNT ARTIC SHAPE, none")
+put("EN_K3", "RIG", "K3: FORM of the moving value", "RAND WALK RAMP ACC")
+put("EN_K4", "RIG", "K4: MOVE, how far SEQ goes", "0 = still; HAND ignores it")
+for _i, _nm in enumerate(WHITE, 1):
+    _c = "KEY_W%02d_%s" % (_i, _nm)
+    if _i <= 4:
+        put(_c, "RIG", "Key %s: wire %d, who drives" % (_nm, _i), "DEV > HAND > SEQ; hold = select")
+    else:
+        put(_c, "RIG", "Key %s: not used here" % _nm, "keys 1-4 are the wires")
+put("KEY_B05_D#4", "RIG", "CHN: back to PERF", "tap again to leave the RIG page")
+put("KEY_B09_C#5", "RIG", "PG-: not used on the RIG page", "there is no lane to page")
+put("KEY_B10_D#5", "RIG", "PG+: not used on the RIG page", "there is no lane to page")
 
 if __name__ == "__main__":
     cm = list(csv.DictReader(open(os.path.join(D, "control_map.tsv")), delimiter="\t"))

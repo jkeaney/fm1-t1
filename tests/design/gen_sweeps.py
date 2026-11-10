@@ -16,7 +16,8 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 D = os.path.join(ROOT, "docs", "design")
 OUT = os.path.join(D, "scenarios")
 
-PAGES = ["PERF", "NOTE_EDIT", "CHAN", "SET", "SCALE", "REC", "RESET", "HELP", "MENU"]
+PAGES = ["PERF", "NOTE_EDIT", "CHAN", "SET", "SCALE", "REC", "RESET", "HELP", "MENU", "RIG"]
+NUM = {"RIG": 22}   # S18..S21 are hand-written walks; the RIG sweep (P2-019) is S22
 ORDER = (["B_FX", "B_SCL", "B_ENV", "B_LFO", "B_EDIT", "B_GLO", "B_HOME", "B_SAVE", "B_ARP", "B_SEQ", "B_PLAY", "B_REC",
           "B_OCTDN", "B_OCTUP", "EN_SELECT", "EN_ALGO", "EN_PRESET", "EN_K1", "EN_K2", "EN_K3", "EN_K4"]
          + [])
@@ -30,6 +31,7 @@ ENTER = {
     "RESET": "hold EDIT 0.4 s from PERF (one shot: the first control touched resets and RESET closes)",
     "HELP": "hold HOME on PERF and keep it down while each control is touched",
     "MENU": "hold HOME 0.7 s touching nothing, release",
+    "RIG": "hold black key D#4 (CHN) 0.4 s from PERF (latched; the key can be released)",
 }
 SUBS = [("choose", "pick"), ("e.g.", "for example"), ("TBD", "to be set"), ("Choose", "Pick")]
 
@@ -112,7 +114,7 @@ def main():
     ps = {r["state"]: r for r in read("page_states.tsv")}
     os.makedirs(OUT, exist_ok=True)
     for n, page in enumerate(PAGES):
-        num = 9 + n
+        num = NUM.get(page, 9 + n)
         fn = os.path.join(OUT, "S%02d-sweep-%s.md" % (num, page.lower().replace("_", "-")))
         st = ps[page]
         L = ["# S%02d: sweep of every control on the %s page" % (num, page), ""]

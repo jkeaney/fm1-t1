@@ -161,3 +161,78 @@ S	51	1/4	ARP knob value (P2-013): 51 px
 S	240	FIGURE 6 STEPS	ARP toast (P2-013)
 S	240	FIGURE 10: LENGTH 16 CUTS IT	ARP toast (P2-013)
 S	240	FIGURE 138: LENGTH 64 CUTS IT	ARP toast (P2-013)
+# P2-019 hardware support (HW_SUPPORT_LOWLEVEL 4): the rail, ROW 3, the RIG page, cues and toasts
+S	36	ROW	rail live cell line 1 (36 px rail)
+S	36	3/3	rail live cell line 2
+S	36	1/3	rail live cell line 2
+S	49	~ CUT	ROW 3 compact cell: chip + name (51 px cell, 1 px margin each side)
+S	49	H RESO	ROW 3 compact cell
+S	49	H ENV	ROW 3 compact cell
+S	49	H TUNE	ROW 3 compact cell
+S	49	H DECAY	ROW 3 compact cell (the longest name allowed: 38 px)
+S	49	- RESO	ROW 3 compact cell
+S	49	127 ~	ROW 3 live cell line 2: LEVEL + chip
+S	49	127 H	ROW 3 live cell line 2
+S	49	127 -	ROW 3 live cell line 2
+S	51	CUTOFF	ROW 3 live cell line 1 (the longest 6-letter label in the live row)
+S	240	PG 1/2  FOLLOW  hold=EDIT  h:CHN=RIG >P2	PERF lane header with the CHN hold named (R-8)
+S	240	ROW 1 OF 3: PLAY MORPHS	toast
+S	240	ROW 2 OF 3: DIAL-IN MORPHS	toast
+S	240	ROW 3 OF 3: TB-3 KNOBS	toast
+S	240	ROW 3 OF 3: GENERIC KNOBS	toast (longest device name GENERIC)
+S	240	ROW 3 NEEDS A WIRE: HOLD CHN	toast
+S	240	LAST ROW: OCT- = ROW 1	toast
+S	240	ROW 2 OF 3: OCT- = ROW 1  OCT+ = ROW 3	cue row 15 with a rig
+S	240	OCT+ TWICE = ROW 3: TB-3 KNOBS	cue row 13a (first use)
+S	240	RIG: TURN ALGO TO PICK THE DEVICE	cue row 4a
+S	240	RIG: TAP 1-4 = WHO DRIVES  HOLD = PICK	cue row 4b
+S	240	RIG: MIDI OFF, NOTHING IS SENT	cue row 4c
+S	240	SEQ: MOVES WITH THE MUSIC	toast
+S	240	HAND: YOUR KNOB, SENT WHEN TURNED	toast
+S	240	DEV: THE DEVICE KNOB, NOT SENT	toast
+S	240	8 SEQ WIRES MAX	toast
+S	240	PICK A PARAM FIRST: K1	toast, empty wire
+S	240	RIG SENDS ONLY: CHECK THE DEVICE	toast, first send after power-on
+S	240	TB-3: 4 KNOBS ON ROW 3	toast, device picked the first time
+S	240	ACCNT + CUT	toast, dice that moved a wire
+S	240	CUT: LEVEL 74  MOVE 48  SEQ	cue while a ROW 3 knob is hot
+S	240	SEQ WIRES CAPPED AT 8	toast, preset load
+S	240	RIG CH1  NO DEVICE	RIG banner
+S	240	RIG CH1  GENERIC	RIG banner
+S	240	RIG CH1  TB-3	RIG banner
+S	60	WIRE 1/4	RIG banner right (60 px)
+S	240	TURN ALGO TO PICK A DEVICE	RIG card line
+S	240	[NONE] GENERIC TB-3	RIG device list
+S	240	NONE [GENERIC] TB-3	RIG device list
+S	240	NONE GENERIC [TB-3]	RIG device list
+S	40	ENV	wire name column (40 px)
+S	40	RESO	wire name column
+S	40	TUNE	wire name column
+S	24	1	wire key digit column
+S	24	127	LEVEL column (right-aligned)
+S	34	HAND	state column
+S	34	SEQ~	state column
+S	34	DEV	state column
+S	42	ACCNT	layer column
+S	42	ARTIC	layer column
+S	42	NOTES	layer column
+S	42	SHAPE	layer column
+S	34	RAMP	form column
+S	34	WALK	form column
+S	34	M127	MOVE column
+S	56	MIDI 12 ~	Z1 cell line 2 with the rig chip
+S	56	MIDI 12 H	Z1 cell line 2 with the rig chip
+S	51	PARAM	RIG band label
+S	51	LAYER	RIG band label
+S	51	FORM	RIG band label
+S	51	MOVE	RIG band label
+S	36	RIDE-	RIG tag column
+S	36	RIDE+	RIG tag column
+S	204	CC74  LEVEL 64  MIDI 2	RIG status line 1
+S	204	CC127  LEVEL 127  MIDI 16	RIG status line 1 worst case
+S	204	RIDE -  OCT- / OCT+	RIG status line 2
+S	204	RIDE PUNCH  OCT- / OCT+	RIG status line 2
+S	204	RIDE DIR  OCT- / OCT+	RIG status line 2
+S	204	MIDI OFF: THE RIG IS SILENT	RIG status line 1 (MIDI OFF)
+S	240	HOLD CHN + TURN ALGO: PICK DEVICE	first-run style hint
+S	240	ROW 3 OF 3: ~=SEQ  H=HAND  -=DEV	cue row 15a (the device name is in the toast and the channel cell, not in the cue)

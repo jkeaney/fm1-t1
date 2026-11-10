@@ -6,6 +6,7 @@ B_FX	SET	tap: press: DICE ALL layers present in the algorithm (generated layer o
 B_FX	SCALE	tap: press: DICE ALL layers present in the algorithm (generated layer only; every step edit is kept) // hold: no hold role: acted once on press	ALL	page	see SEQUENCER_UX 8
 B_FX	REC	tap: press: DICE ALL layers present in the algorithm (generated layer only; every step edit is kept) (performing while recording is allowed) // hold: no hold role: acted once on press	ALL	page	see SEQUENCER_UX 8
 B_FX	RESET	tap: press: from PERF/CHAN/SET/SCALE: the whole algorithm to factory (8 morphs + every seed; edits kept); from NOTE_EDIT: every edit of the edited step to AUTO; RESET closes; EDIT tap undoes // hold: no hold role: acted once on press	RST AL	page	see SEQUENCER_UX 8
+B_FX	RIG	tap: press: DICE ALL layers present in the algorithm (generated layer only; every step edit is kept); the RIG wires that ride this layer (the LAYER column of the wire list) re-roll in the same press // hold: no hold role: acted once on press	ALL	page	see SEQUENCER_UX 8
 B_FX	HELP	tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens	?	page	see SEQUENCER_UX 8
 B_FX	MENU	tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	page	see SEQUENCER_UX 8
 B_SCL	PERF	tap: press: dice the NOTES layer (new pitches in the scale; edited pitches kept); algorithm sub-label under it // hold: no hold role: acted once on press	NOTES	owns	see SEQUENCER_UX 8
@@ -15,6 +16,7 @@ B_SCL	SET	tap: press: dice the NOTES layer (new pitches in the scale; edited pit
 B_SCL	SCALE	tap: press: dice the PROGRESSION: new chord degrees, bars and chord count within the musical limits (HARMONY 6); KEY, SCALE, VOICE, MOVE, DRONE and the channel dice layers are kept; EDIT tap undoes // hold: no hold role: acted once on press	PROG	page	see SEQUENCER_UX 8
 B_SCL	REC	tap: press: dice the NOTES layer (new pitches in the scale; edited pitches kept) (performing while recording is allowed) // hold: no hold role: acted once on press	NOTES	page	see SEQUENCER_UX 8
 B_SCL	RESET	tap: press: from PERF/CHAN/SET: that layer's seeds to factory; from HARMONY: the progression back to 1--- (4 bars, one chord, degree 1); from NOTE_EDIT: that property of the edited step to AUTO (NOTE); RESET closes; EDIT tap undoes // hold: no hold role: acted once on press	RST NT	page	see SEQUENCER_UX 8
+B_SCL	RIG	tap: press: dice the NOTES layer (new pitches in the scale; edited pitches kept); algorithm sub-label under it; the RIG wires that ride this layer (the LAYER column of the wire list) re-roll in the same press // hold: no hold role: acted once on press	NOTES	page	see SEQUENCER_UX 8
 B_SCL	HELP	tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens	?	page	see SEQUENCER_UX 8
 B_SCL	MENU	tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	page	see SEQUENCER_UX 8
 B_ENV	PERF	tap: press: dice the ACCNT layer (which generated steps are loud; VELO edits kept); algorithm sub-label under it // hold: no hold role: acted once on press	ACCNT	owns	see SEQUENCER_UX 8
@@ -24,6 +26,7 @@ B_ENV	SET	tap: press: dice the ACCNT layer (which generated steps are loud; VELO
 B_ENV	SCALE	tap: press: dice the ACCNT layer (which generated steps are loud; VELO edits kept); algorithm sub-label under it // hold: no hold role: acted once on press	ACCNT	page	see SEQUENCER_UX 8
 B_ENV	REC	tap: press: dice the ACCNT layer (which generated steps are loud; VELO edits kept) (performing while recording is allowed) // hold: no hold role: acted once on press	ACCNT	page	see SEQUENCER_UX 8
 B_ENV	RESET	tap: press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (ACCENT); RESET closes; EDIT tap undoes // hold: no hold role: acted once on press	RST AC	page	see SEQUENCER_UX 8
+B_ENV	RIG	tap: press: dice the ACCNT layer (which generated steps are loud; VELO edits kept); algorithm sub-label under it; the RIG wires that ride this layer (the LAYER column of the wire list) re-roll in the same press // hold: no hold role: acted once on press	ACCNT	page	see SEQUENCER_UX 8
 B_ENV	HELP	tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens	?	page	see SEQUENCER_UX 8
 B_ENV	MENU	tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	page	see SEQUENCER_UX 8
 B_LFO	PERF	tap: press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent; algorithm sub-label under it // hold: no hold role: acted once on press	SHAPE	owns	see SEQUENCER_UX 8
@@ -33,6 +36,7 @@ B_LFO	SET	tap: press: dice the SHAPE layer (register jumps, slot lengths, drift)
 B_LFO	SCALE	tap: press: BARS, the phrase length: 1..8 bars, one step per press, wrapping after 8 to the chord count (never fewer bars than chords); heard at the next phrase start // hold: no hold role: acted once on press	BARS	page	see SEQUENCER_UX 8
 B_LFO	REC	tap: press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent (performing while recording is allowed) // hold: no hold role: acted once on press	SHAPE	page	see SEQUENCER_UX 8
 B_LFO	RESET	tap: press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (PROB); RESET closes; EDIT tap undoes // hold: no hold role: acted once on press	RST SH	page	see SEQUENCER_UX 8
+B_LFO	RIG	tap: press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent; algorithm sub-label under it; the RIG wires that ride this layer (the LAYER column of the wire list) re-roll in the same press // hold: no hold role: acted once on press	SHAPE	page	see SEQUENCER_UX 8
 B_LFO	HELP	tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens	?	page	see SEQUENCER_UX 8
 B_LFO	MENU	tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	page	see SEQUENCER_UX 8
 B_EDIT	PERF	tap: UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel, or the last HARMONY change when that came later (PROG dice, typed progression, BARS, VOICE, MOVE, DRONE) // hold: 0.4 s: open RESET (latched, one shot): the next control touched goes back to its default	UNDO	owns	see SEQUENCER_UX 8
@@ -42,6 +46,7 @@ B_EDIT	SET	tap: UNDO / REDO the last dice, dice-all, step edit, page add, page c
 B_EDIT	SCALE	tap: UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel, or the last HARMONY change when that came later (PROG dice, typed progression, BARS, VOICE, MOVE, DRONE) // hold: 0.4 s: open RESET (latched, one shot): the next control touched goes back to its default	UNDO	page	see SEQUENCER_UX 8
 B_EDIT	REC	tap: UNDO the last written note (the cursor steps back); again = redo // hold: inert in REC (toast LEAVE REC FIRST)	UNDO	page	see SEQUENCER_UX 8
 B_EDIT	RESET	tap: cancel RESET (nothing reset), back to the page beneath // hold: inert (already in RESET)	CANCEL	page	see SEQUENCER_UX 8
+B_EDIT	RIG	tap: UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel, or the last HARMONY change when that came later (PROG dice, typed progression, BARS, VOICE, MOVE, DRONE); seeds only: LEVEL, MOVE, state, parameter and form edits made on this page are not undone (decision 100) // hold: no hold role on this page (RESET is opened from PERF)	UNDO	page	see SEQUENCER_UX 8
 B_EDIT	HELP	tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens	?	page	see SEQUENCER_UX 8
 B_EDIT	MENU	tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	page	see SEQUENCER_UX 8
 B_GLO	PERF	tap: open SET (latched): BPM SWING GATE DIV // hold: 0.4 s: open HARMONY (latched): SCALE KEY VOICE MOVE, the progression strip, keys F3-E4 = chords 1-7	SET	owns	see SEQUENCER_UX 8
@@ -51,6 +56,7 @@ B_GLO	SET	tap: close SET, back to PERF // hold: 0.4 s: switch to HARMONY	BACK	pa
 B_GLO	SCALE	tap: close HARMONY, back to PERF // hold: inert (already on HARMONY)	BACK	page	see SEQUENCER_UX 8
 B_GLO	REC	tap: inert in REC (toast REC: tap REC to finish) // hold: inert in REC	-	page	see SEQUENCER_UX 8
 B_GLO	RESET	tap: inert (nothing to reset; toast NOTHING TO RESET) // hold: inert	-	page	see SEQUENCER_UX 8
+B_GLO	RIG	tap: open SET (latched; the RIG page closes): BPM SWING GATE DIV // hold: 0.4 s: open HARMONY (latched; the RIG page closes)	SET	page	see SEQUENCER_UX 8
 B_GLO	HELP	tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens	?	page	see SEQUENCER_UX 8
 B_GLO	MENU	tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	page	see SEQUENCER_UX 8
 B_HOME	PERF	tap: release under 0.7 s, nothing touched: already home, so it only cancels a pending prompt (ADD PAGE, a pending preset slot) or skips the first-run strip; toast HOME  hold: HELP / MENU; it never opens a page // hold: hold (acts on release; owner decisions 57 / 61): from 0.25 s the strip reads HOME: touch=HELP  let go=MENU; touch or turn any control while HOME is down = HELP for that control (it does not act); release after 0.7 s with nothing touched = MENU	HOME	owns	see SEQUENCER_UX 8
@@ -60,6 +66,7 @@ B_HOME	SET	tap: release under 0.7 s, nothing touched: back to PERF (leaves SET) 
 B_HOME	SCALE	tap: release under 0.7 s, nothing touched: back to PERF (leaves SCALE) // hold: hold (acts on release; owner decisions 57 / 61): from 0.25 s the strip reads HOME: touch=HELP  let go=MENU; touch or turn any control while HOME is down = HELP for that control (it does not act); release after 0.7 s with nothing touched = MENU	HOME	page	see SEQUENCER_UX 8
 B_HOME	REC	tap: release under 0.7 s, nothing touched: back to PERF (leaves REC) // hold: hold (acts on release; owner decisions 57 / 61): from 0.25 s the strip reads HOME: touch=HELP  let go=MENU; touch or turn any control while HOME is down = HELP for that control (it does not act); release after 0.7 s with nothing touched = MENU	HOME	page	see SEQUENCER_UX 8
 B_HOME	RESET	tap: cancel RESET and go to PERF // hold: hold (acts on release; owner decisions 57 / 61): from 0.25 s the strip reads HOME: touch=HELP  let go=MENU; touch or turn any control while HOME is down = HELP for that control (it does not act); release after 0.7 s with nothing touched = MENU	HOME	page	see SEQUENCER_UX 8
+B_HOME	RIG	tap: release under 0.7 s, nothing touched: back to PERF (the RIG page closes) // hold: hold (acts on release; owner decisions 57 / 61): from 0.25 s the strip reads HOME: touch=HELP  let go=MENU; touch or turn any control while HOME is down = HELP for that control (it does not act); release after 0.7 s with nothing touched = MENU	HOME	page	see SEQUENCER_UX 8
 B_HOME	HELP	tap: release HOME (a control was touched): HELP closes, back to the page HOME was held on; no MENU // hold: keep HOME down: touch or turn more controls to explain them	BACK	page	see SEQUENCER_UX 8
 B_HOME	MENU	tap: tap or hold 0.7 s: close the menu // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	BACK	page	see SEQUENCER_UX 8
 B_SAVE	PERF	tap: release under 0.7 s: save the whole device state to the slot in the header; while a slot is pending (header Pnn?), save to the PENDING slot instead and cancel its load (the header becomes Pnn) // hold: 0.7 s: undo the last preset load (the state AND the header slot go back), applied at the next step; again = redo; while a slot is pending: cancel it instead	SAVE	owns	see SEQUENCER_UX 8
@@ -69,6 +76,7 @@ B_SAVE	SET	tap: release under 0.7 s: save the whole device state to the slot in 
 B_SAVE	SCALE	tap: release under 0.7 s: save the whole device state to the slot in the header; while a slot is pending (header Pnn?), save to the PENDING slot instead and cancel its load (the header becomes Pnn) // hold: 0.7 s: undo the last preset load (the state AND the header slot go back), applied at the next step; again = redo; while a slot is pending: cancel it instead	SAVE	page	see SEQUENCER_UX 8
 B_SAVE	REC	tap: release under 0.7 s: save the whole device state to the slot in the header; while a slot is pending (header Pnn?), save to the PENDING slot instead and cancel its load (the header becomes Pnn) // hold: 0.7 s: undo the last preset load (the state AND the header slot go back), applied at the next step; again = redo; while a slot is pending: cancel it instead	SAVE	page	see SEQUENCER_UX 8
 B_SAVE	RESET	tap: inert (toast NOTHING TO RESET) // hold: inert	-	page	see SEQUENCER_UX 8
+B_SAVE	RIG	tap: release under 0.7 s: save the whole device state to the slot in the header; while a slot is pending (header Pnn?), save to the PENDING slot instead and cancel its load (the header becomes Pnn) // hold: 0.7 s: undo the last preset load (the state AND the header slot go back), applied at the next step; again = redo; while a slot is pending: cancel it instead	SAVE	page	see SEQUENCER_UX 8
 B_SAVE	HELP	tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens	?	page	see SEQUENCER_UX 8
 B_SAVE	MENU	tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	page	see SEQUENCER_UX 8
 B_ARP	PERF	tap: press: dice the ARTIC layer (gate, slide, ratchet as the algorithm has them; edits kept); dim if absent; algorithm sub-label under it // hold: no hold role: acted once on press	ARTIC	owns	see SEQUENCER_UX 8
@@ -78,6 +86,7 @@ B_ARP	SET	tap: press: dice the ARTIC layer (gate, slide, ratchet as the algorith
 B_ARP	SCALE	tap: press: ROLE of the selected channel, wrapping OFF, AUTO, ROOT, FULL (AUTO follows the chords by the quantise rule, ROOT plays the chord root, FULL plays the voiced chord notes, OFF is never harmonised) // hold: no hold role: acted once on press	ROLE	page	see SEQUENCER_UX 8
 B_ARP	REC	tap: press: dice the ARTIC layer (gate, slide, ratchet as the algorithm has them; edits kept); dim if absent (performing while recording is allowed) // hold: no hold role: acted once on press	ARTIC	page	see SEQUENCER_UX 8
 B_ARP	RESET	tap: press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (SLIDE); RESET closes; EDIT tap undoes // hold: no hold role: acted once on press	RST AR	page	see SEQUENCER_UX 8
+B_ARP	RIG	tap: press: dice the ARTIC layer (gate, slide, ratchet as the algorithm has them; edits kept); dim if absent; algorithm sub-label under it; the RIG wires that ride this layer (the LAYER column of the wire list) re-roll in the same press // hold: no hold role: acted once on press	ARTIC	page	see SEQUENCER_UX 8
 B_ARP	HELP	tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens	?	page	see SEQUENCER_UX 8
 B_ARP	MENU	tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	page	see SEQUENCER_UX 8
 B_SEQ	PERF	tap: press: dice the HITS layer (where the generated steps fall; ON/OFF edits kept); algorithm sub-label under it // hold: no hold role: acted once on press	HITS	owns	see SEQUENCER_UX 8
@@ -87,6 +96,7 @@ B_SEQ	SET	tap: press: dice the HITS layer (where the generated steps fall; ON/OF
 B_SEQ	SCALE	tap: press: NEW progression: the next degree key starts again at chord 1 (nothing changes until a key is typed) // hold: no hold role: acted once on press	NEW	page	see SEQUENCER_UX 8
 B_SEQ	REC	tap: press: dice the HITS layer (where the generated steps fall; ON/OFF edits kept) (performing while recording is allowed) // hold: no hold role: acted once on press	HITS	page	see SEQUENCER_UX 8
 B_SEQ	RESET	tap: press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (ON/OFF); RESET closes; EDIT tap undoes // hold: no hold role: acted once on press	RST HT	page	see SEQUENCER_UX 8
+B_SEQ	RIG	tap: press: dice the HITS layer (where the generated steps fall; ON/OFF edits kept); algorithm sub-label under it; the RIG wires that ride this layer (the LAYER column of the wire list) re-roll in the same press // hold: no hold role: acted once on press	HITS	page	see SEQUENCER_UX 8
 B_SEQ	HELP	tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens	?	page	see SEQUENCER_UX 8
 B_SEQ	MENU	tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	page	see SEQUENCER_UX 8
 B_PLAY	PERF	tap: press: start / stop all channels (stop sends every note-off then CC123) // hold: no hold role: acted once on press	PLAY	owns	see SEQUENCER_UX 8
@@ -96,6 +106,7 @@ B_PLAY	SET	tap: press: start / stop all channels (stop sends every note-off then
 B_PLAY	SCALE	tap: press: start / stop all channels (stop sends every note-off then CC123) // hold: no hold role: acted once on press	PLAY	page	see SEQUENCER_UX 8
 B_PLAY	REC	tap: press: start / stop all channels (stop sends every note-off then CC123) // hold: no hold role: acted once on press	PLAY	page	see SEQUENCER_UX 8
 B_PLAY	RESET	tap: press: start / stop all channels (stop sends every note-off then CC123) // hold: no hold role: acted once on press	PLAY	page	see SEQUENCER_UX 8
+B_PLAY	RIG	tap: press: start / stop all channels (stop sends every note-off then CC123) // hold: no hold role: acted once on press	PLAY	page	see SEQUENCER_UX 8
 B_PLAY	HELP	tap: press: start / stop (still works in HELP) and explain it // hold: no hold role: acted once on press	PLAY	page	see SEQUENCER_UX 8
 B_PLAY	MENU	tap: press: start / stop all channels // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	PLAY	page	see SEQUENCER_UX 8
 B_REC	PERF	tap: press: open REC (latched, LED lit): the 27 keys play and write notes // hold: no hold role: acted once on press	REC	owns	see SEQUENCER_UX 8
@@ -105,24 +116,27 @@ B_REC	SET	tap: press: open REC (latched, LED lit): the 27 keys play and write no
 B_REC	SCALE	tap: press: open REC (latched, LED lit): the 27 keys play and write notes // hold: no hold role: acted once on press	REC	page	see SEQUENCER_UX 8
 B_REC	REC	tap: press: leave REC, back to PERF // hold: no hold role: acted once on press	DONE	page	see SEQUENCER_UX 8
 B_REC	RESET	tap: press: clear every edit on the viewed page of the selected channel (it becomes pure generator); RESET closes; EDIT tap undoes // hold: no hold role: acted once on press	RST PG	page	see SEQUENCER_UX 8
+B_REC	RIG	tap: press: open REC (latched, LED lit): the 27 keys play and write notes // hold: no hold role: acted once on press	REC	page	see SEQUENCER_UX 8
 B_REC	HELP	tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens	?	page	see SEQUENCER_UX 8
 B_REC	MENU	tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	page	see SEQUENCER_UX 8
-B_OCTDN	PERF	tap: release: latch ROW 1 of the knob band // hold: hold and turn a knob: ROW 1 live while held (momentary peek; the tap is the main route; sub-label h:peek; unscored)	ROW 1	owns	see SEQUENCER_UX 8
+B_OCTDN	PERF	tap: release: latch ROW 1 of the knob band, from ROW 2 or ROW 3 alike (the way home) // hold: hold and turn a knob: ROW 1 live while held (momentary peek; the tap is the main route; sub-label h:peek; unscored)	ROW 1	owns	see SEQUENCER_UX 8
 B_OCTDN	NOTE_EDIT	tap: release: the edited step one octave down (OCT -2..+2), auditioned // hold: as tap (no hold role on this page)	OCT-	page	see SEQUENCER_UX 8
 B_OCTDN	CHAN	tap: release: LENGTH to the page boundary below (20 -> 16, 48 -> 32; at 16 or less inert, toast ONE PAGE: K1 = SHORTER); the hidden steps keep their edits // hold: as tap (no hold role on this page)	-PAGE	page	see SEQUENCER_UX 8
 B_OCTDN	SET	tap: release: global OCTAVE -1 (-2..+2); the tag column reads OCT -2..+2 (moved here from the SCALE page, which uses OCT- / OCT+ for DRONE) // hold: as tap (no hold role on this page)	OCT-	page	see SEQUENCER_UX 8
 B_OCTDN	SCALE	tap: release: DRONE walks one candidate down (0 = OFF); the status line names the degree and marks clashes // hold: as tap (no hold role on this page)	OCT-	page	see SEQUENCER_UX 8
 B_OCTDN	REC	tap: release: the REC keyboard octave -1 (same value as K4 OCT) // hold: as tap (no hold role on this page)	OCT-	page	see SEQUENCER_UX 8
 B_OCTDN	RESET	tap: from PERF: reset the four morphs of ROW 1; from NOTE_EDIT: the step octave to AUTO; from HARMONY: DRONE OFF; elsewhere inert; RESET closes; EDIT tap undoes // hold: as tap	RST R1	page	see SEQUENCER_UX 8
+B_OCTDN	RIG	tap: release: RIDE of the selected wire one morph slot down (0 = none, then 8 .. 1 are the algorithm's eight morph slots); the status line names the morph; MOVE is scaled by it // hold: as tap (no hold role on this page)	RIDE-	page	see SEQUENCER_UX 8
 B_OCTDN	HELP	tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens	?	page	see SEQUENCER_UX 8
 B_OCTDN	MENU	tap: release: previous value / back (Felucca menu rule) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	-	page	see SEQUENCER_UX 8
-B_OCTUP	PERF	tap: release: latch ROW 2 of the knob band // hold: hold and turn a knob: ROW 2 live while held (momentary peek; the tap is the main route; sub-label h:peek; unscored)	ROW 2	owns	see SEQUENCER_UX 8
+B_OCTUP	PERF	tap: release: next row of the knob band: ROW 1 -> ROW 2; ROW 2 -> ROW 3 (the RIG row, only when the channel has a device with a wire that is not DEV, else toast ROW 3 NEEDS A WIRE: HOLD CHN); on ROW 3 inert, toast LAST ROW: OCT- = ROW 1; the cell label reads ROW 3 while ROW 2 is live and a RIG row exists // hold: hold and turn a knob: ROW 2 live while held (momentary peek; the tap is the main route; sub-label h:peek; unscored; ROW 3 has no peek)	ROW 2	owns	see SEQUENCER_UX 8
 B_OCTUP	NOTE_EDIT	tap: release: the edited step one octave up (OCT -2..+2), auditioned // hold: as tap (no hold role on this page)	OCT+	page	see SEQUENCER_UX 8
 B_OCTUP	CHAN	tap: release: LENGTH to the page boundary above (20 -> 32, 32 -> 48, max 64): a partial page is completed, a new page is a copy of the page before it (edits and source), a hidden page comes back as stored // hold: as tap (no hold role on this page)	+PAGE	page	see SEQUENCER_UX 8
 B_OCTUP	SET	tap: release: global OCTAVE +1 (-2..+2); the tag column reads OCT -2..+2 (moved here from the SCALE page, which uses OCT- / OCT+ for DRONE) // hold: as tap (no hold role on this page)	OCT+	page	see SEQUENCER_UX 8
 B_OCTUP	SCALE	tap: release: DRONE walks one candidate up (14 = top); the status line names the degree and marks clashes // hold: as tap (no hold role on this page)	OCT+	page	see SEQUENCER_UX 8
 B_OCTUP	REC	tap: release: the REC keyboard octave +1 (same value as K4 OCT) // hold: as tap (no hold role on this page)	OCT+	page	see SEQUENCER_UX 8
 B_OCTUP	RESET	tap: from PERF: reset the four morphs of ROW 2; from NOTE_EDIT: the step octave to AUTO; from HARMONY: DRONE OFF; elsewhere inert; RESET closes; EDIT tap undoes // hold: as tap	RST R2	page	see SEQUENCER_UX 8
+B_OCTUP	RIG	tap: release: RIDE of the selected wire one morph slot up (0 = none, 1..8 = the algorithm's eight morph slots); the status line names the morph; MOVE is scaled by it // hold: as tap (no hold role on this page)	RIDE+	page	see SEQUENCER_UX 8
 B_OCTUP	HELP	tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens	?	page	see SEQUENCER_UX 8
 B_OCTUP	MENU	tap: release: next value / do it (opens CALIBRATION, INFO, ABOUT rows) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	-	page	see SEQUENCER_UX 8
 EN_SELECT	PERF	turn: select channel CH1..CH4 (clamped, no wrap)	CH n	owns	see SEQUENCER_UX 8
@@ -132,6 +146,7 @@ EN_SELECT	SET	turn: select channel CH1..CH4 (clamped, no wrap)	CH n	page	see SEQ
 EN_SELECT	SCALE	turn: select channel CH1..CH4 (clamped, no wrap)	CH n	page	see SEQUENCER_UX 8
 EN_SELECT	REC	turn: select channel; the cursor goes to step 1	CH n	page	see SEQUENCER_UX 8
 EN_SELECT	RESET	turn: select channel CH1..CH4 (clamped, no wrap)	CH n	page	see SEQUENCER_UX 8
+EN_SELECT	RIG	turn: select channel CH1..CH4 (clamped, no wrap); the page shows that channel's device and wires; the selected wire index is kept	CH n	page	see SEQUENCER_UX 8
 EN_SELECT	HELP	turn: explain SELECT	?	page	see SEQUENCER_UX 8
 EN_SELECT	MENU	turn: select channel CH1..CH4	CH n	page	see SEQUENCER_UX 8
 EN_ALGO	PERF	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	owns	see SEQUENCER_UX 8
@@ -141,6 +156,7 @@ EN_ALGO	SET	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP 
 EN_ALGO	SCALE	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	page	see SEQUENCER_UX 8
 EN_ALGO	REC	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	page	see SEQUENCER_UX 8
 EN_ALGO	RESET	turn: inert (toast NOTHING TO RESET)	-	page	see SEQUENCER_UX 8
+EN_ALGO	RIG	turn: device of the selected channel from the built-in list NONE GENERIC TB-3 (the cue strip lists them for 2 s, the current one in brackets); a device fills the four suggested wires in HAND at their neutral LEVEL and sends nothing; changing or clearing it first parks the old SEQ wires at their LEVEL; takes effect at once	DEVICE	page	see SEQUENCER_UX 8
 EN_ALGO	HELP	turn: explain ALGORITHM	?	page	see SEQUENCER_UX 8
 EN_ALGO	MENU	turn: next / previous menu tab	tab	page	see SEQUENCER_UX 8
 EN_PRESET	PERF	turn: choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: on the first 768-tick bar that starts at least SQ_LOAD_SETTLE 1.5 s after the last detent (header Pnn? then Pnn>), so a SAVE tap always has at least 1.5 s; SAVE tap while pending saves there instead (no load); turning back to the current slot cancels	Pnn	owns	see SEQUENCER_UX 8
@@ -150,42 +166,47 @@ EN_PRESET	SET	turn: choose a preset slot P01..P16; it becomes PENDING (header Pn
 EN_PRESET	SCALE	turn: choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: on the first 768-tick bar that starts at least SQ_LOAD_SETTLE 1.5 s after the last detent (header Pnn? then Pnn>), so a SAVE tap always has at least 1.5 s; SAVE tap while pending saves there instead (no load); turning back to the current slot cancels	Pnn	page	see SEQUENCER_UX 8
 EN_PRESET	REC	turn: inert in REC (toast REC: tap REC to finish)	-	page	see SEQUENCER_UX 8
 EN_PRESET	RESET	turn: inert (toast NOTHING TO RESET)	-	page	see SEQUENCER_UX 8
+EN_PRESET	RIG	turn: choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: on the first 768-tick bar that starts at least SQ_LOAD_SETTLE 1.5 s after the last detent (header Pnn? then Pnn>), so a SAVE tap always has at least 1.5 s; SAVE tap while pending saves there instead (no load); turning back to the current slot cancels	Pnn	page	see SEQUENCER_UX 8
 EN_PRESET	HELP	turn: explain PRESETS	?	page	see SEQUENCER_UX 8
 EN_PRESET	MENU	turn: next / previous menu row	row	page	see SEQUENCER_UX 8
-EN_K1	PERF	turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above): ACID DENS/OFFSET, EUCLID HITS/LEN, SNAKE DENS/OFFSET, STAGE DENS/OFFSET	morph	owns	see SEQUENCER_UX 8
+EN_K1	PERF	turn: the live row (ROW 1 or ROW 2) morph, or on ROW 3 the LEVEL of wire 1 of the RIG, in this column of the selected channel's algorithm (rows above): ACID DENS/OFFSET, EUCLID HITS/LEN, SNAKE DENS/OFFSET, STAGE DENS/OFFSET	morph	owns	see SEQUENCER_UX 8
 EN_K1	NOTE_EDIT	turn: one scale degree per detent from the current note; every detent sounds the note (MIDI + preview); the first detent turns AUTO into a set pitch	PITCH	page	see SEQUENCER_UX 8
 EN_K1	CHAN	turn: pattern length of the selected channel; crossing into a new page fills it (copy of the page before, or the stored page); shrinking hides, never deletes	LENGTH	page	see SEQUENCER_UX 8
 EN_K1	SET	turn: tempo (internal clock; ignored while an external MIDI clock runs, value shows EXT)	BPM	page	see SEQUENCER_UX 8
 EN_K1	SCALE	turn: global scale (every algorithm and every edited pitch snaps to it)	SCALE	page	see SEQUENCER_UX 8
 EN_K1	REC	turn: move the write cursor one step per detent (stopped: the step sounds)	CURSOR	page	see SEQUENCER_UX 8
 EN_K1	RESET	turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE P1 (reads page 1) / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes	RST	page	see SEQUENCER_UX 8
+EN_K1	RIG	turn: PARAM of the selected wire: walks the device profile's parameter list (a name of at most 5 letters, its CC shown on the status line); GENERIC: the raw CC number 1..127; the wire keeps its state; the old parameter is parked at its neutral first if the wire was SEQ; LEVEL restarts at the parameter's neutral	PARAM	page	see SEQUENCER_UX 8
 EN_K1	HELP	turn (HOME held): explain this knob on the page beneath (PERF: both rows); nothing changes	?	page	see SEQUENCER_UX 8
 EN_K1	MENU	turn: change the selected row's value (Felucca menu rule)	value	page	see SEQUENCER_UX 8
-EN_K2	PERF	turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above): ACID SLIDE/PEDAL, EUCLID OFFSET/SPAN, SNAKE LEN/GLEN, STAGE TOTAL/RDIV	morph	owns	see SEQUENCER_UX 8
+EN_K2	PERF	turn: the live row (ROW 1 or ROW 2) morph, or on ROW 3 the LEVEL of wire 2 of the RIG, in this column of the selected channel's algorithm (rows above): ACID SLIDE/PEDAL, EUCLID OFFSET/SPAN, SNAKE LEN/GLEN, STAGE TOTAL/RDIV	morph	owns	see SEQUENCER_UX 8
 EN_K2	NOTE_EDIT	turn: note length of the edited step, x global GATE; top value TIE (holds into the next step)	GATE	page	see SEQUENCER_UX 8
 EN_K2	CHAN	turn: MIDI output channel of the selected channel (unique across the 4 channels: taking one another channel uses sets that channel to OFF; toast names it; one undo record)	MIDI	page	see SEQUENCER_UX 8
 EN_K2	SET	turn: odd steps late by 2*(swing-50) % of a step (decision 43); parity by pattern position	SWING	page	see SEQUENCER_UX 8
 EN_K2	SCALE	turn: global key: the scale and every chord move with it (also sounds the new root)	KEY	page	see SEQUENCER_UX 8
 EN_K2	REC	turn: written notes get ACCENT (velocity 120) when ON; with force sensing the landing force picks the level (SOFT 64 / MED 90 / HARD 120) and ACC forces 120	ACC	page	see SEQUENCER_UX 8
 EN_K2	RESET	turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE P1 (reads page 1) / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes	RST	page	see SEQUENCER_UX 8
+EN_K2	RIG	turn: LAYER of the selected wire: - NOTES HITS ACCNT ARTIC SHAPE, the dice layer whose seed makes its lane (a layer the algorithm lacks is dim and freezes the lane); the dice button of that layer then re-rolls the wire too	LAYER	page	see SEQUENCER_UX 8
 EN_K2	HELP	turn (HOME held): explain this knob on the page beneath (PERF: both rows); nothing changes	?	page	see SEQUENCER_UX 8
 EN_K2	MENU	turn: change the selected row's value (Felucca menu rule)	value	page	see SEQUENCER_UX 8
-EN_K3	PERF	turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above): ACID JUMP/PUNCH, EUCLID RATCH/PUNCH, SNAKE RANGE/DYN, STAGE DIR/DYN	morph	owns	see SEQUENCER_UX 8
+EN_K3	PERF	turn: the live row (ROW 1 or ROW 2) morph, or on ROW 3 the LEVEL of wire 3 of the RIG, in this column of the selected channel's algorithm (rows above): ACID JUMP/PUNCH, EUCLID RATCH/PUNCH, SNAKE RANGE/DYN, STAGE DIR/DYN	morph	owns	see SEQUENCER_UX 8
 EN_K3	NOTE_EDIT	turn: velocity of the edited step; value reads ACC at >= ACC_THR 100 (TB-3 accent)	VELO	page	see SEQUENCER_UX 8
 EN_K3	CHAN	turn: generator source of the VIEWED page k: offers only the blocks the pages before it play now, each labelled Pm by the first page m that plays it (so Pm = the notes page m plays), then OWN = its own positions (the algorithm continues past it); a block no earlier page plays any more stays as the current value shown by its positions (17-32, dim) until turned away; page 1 is always OWN (cell dim); a new page inherits the source of the page before, so a copy is exact	SOURCE	page	see SEQUENCER_UX 8
 EN_K3	SET	turn: global gate, x the step gate (50 % neutral = x1.0, decision 44)	GATE	page	see SEQUENCER_UX 8
 EN_K3	SCALE	turn: voicing of every chord: 0 root only, 1 root and fifth, 2 plain triad (neutral), 3 seventh, 4 ninth, 5 open ninth, 6 wide; changes the chord tones every AUTO channel is pulled to and what FULL channels play	VOICE	page	see SEQUENCER_UX 8
 EN_K3	REC	turn: written notes get SLIDE when ON	SLIDE	page	see SEQUENCER_UX 8
 EN_K3	RESET	turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE P1 (reads page 1) / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes	RST	page	see SEQUENCER_UX 8
+EN_K3	RIG	turn: FORM of the selected wire's lane: RAND (a new value each step), WALK (smooth drift), RAMP (a sweep over the loop), ACC (open on accented steps)	FORM	page	see SEQUENCER_UX 8
 EN_K3	HELP	turn (HOME held): explain this knob on the page beneath (PERF: both rows); nothing changes	?	page	see SEQUENCER_UX 8
 EN_K3	MENU	turn: change the selected row's value (Felucca menu rule)	value	page	see SEQUENCER_UX 8
-EN_K4	PERF	turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above): ACID ACCNT/DIR, EUCLID ACCNT/CURVE, SNAKE PATH/DIR, STAGE RATCH/RANGE	morph	owns	see SEQUENCER_UX 8
+EN_K4	PERF	turn: the live row (ROW 1 or ROW 2) morph, or on ROW 3 the LEVEL of wire 4 of the RIG, in this column of the selected channel's algorithm (rows above): ACID ACCNT/DIR, EUCLID ACCNT/CURVE, SNAKE PATH/DIR, STAGE RATCH/RANGE	morph	owns	see SEQUENCER_UX 8
 EN_K4	NOTE_EDIT	turn: repeats inside the step (SP5 spacing)	RATCH	page	see SEQUENCER_UX 8
 EN_K4	CHAN	turn: the lane view follows the playhead page while playing	FOLLOW	page	see SEQUENCER_UX 8
 EN_K4	SET	turn: step length	DIV	page	see SEQUENCER_UX 8
 EN_K4	SCALE	turn: voice-leading distance between chords: 8 = every chord in root position (neutral), 0 = common tones kept and the smallest step per voice; changes FULL channels only	MOVE	page	see SEQUENCER_UX 8
 EN_K4	REC	turn: REC keyboard octave (also OCT- / OCT+)	OCT	page	see SEQUENCER_UX 8
 EN_K4	RESET	turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE P1 (reads page 1) / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes	RST	page	see SEQUENCER_UX 8
+EN_K4	RIG	turn: MOVE of the selected wire, 0..127: how far the SEQ lane moves from LEVEL (0 = the lane is silent); HAND wires ignore it	MOVE	page	see SEQUENCER_UX 8
 EN_K4	HELP	turn (HOME held): explain this knob on the page beneath (PERF: both rows); nothing changes	?	page	see SEQUENCER_UX 8
 EN_K4	MENU	turn: change the selected row's value (Felucca menu rule)	value	page	see SEQUENCER_UX 8
 MASTER	PERF	analogue pot: preview-synth and USB-audio volume; no MIDI effect (with force sensing the scan ISR samples it, master.c reads the cached value)	-	owns	see SEQUENCER_UX 8
@@ -195,6 +216,7 @@ MASTER	SET	analogue pot: preview-synth and USB-audio volume; no MIDI effect (wit
 MASTER	SCALE	analogue pot: preview-synth and USB-audio volume; no MIDI effect (with force sensing the scan ISR samples it, master.c reads the cached value)	-	page	see SEQUENCER_UX 8
 MASTER	REC	analogue pot: preview-synth and USB-audio volume; no MIDI effect (with force sensing the scan ISR samples it, master.c reads the cached value)	-	page	see SEQUENCER_UX 8
 MASTER	RESET	analogue pot: preview-synth and USB-audio volume; no MIDI effect (with force sensing the scan ISR samples it, master.c reads the cached value)	-	page	see SEQUENCER_UX 8
+MASTER	RIG	analogue pot: preview-synth and USB-audio volume; no MIDI effect (with force sensing the scan ISR samples it, master.c reads the cached value)	-	page	see SEQUENCER_UX 8
 MASTER	HELP	analogue pot: preview-synth and USB-audio volume; no MIDI effect (with force sensing the scan ISR samples it, master.c reads the cached value)	-	page	see SEQUENCER_UX 8
 MASTER	MENU	analogue pot: preview-synth and USB-audio volume; no MIDI effect (with force sensing the scan ISR samples it, master.c reads the cached value)	-	page	see SEQUENCER_UX 8
 KEY_W01_F3	PERF	tap: release under 0.4 s: step 1 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 1 of the viewed page	STEP	owns	see SEQUENCER_UX 8
@@ -204,6 +226,7 @@ KEY_W01_F3	SET	tap: release under 0.4 s: step 1 of the viewed page ON/OFF (a sec
 KEY_W01_F3	SCALE	tap: type chord 1: writes degree 1 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes	DEG	page	see SEQUENCER_UX 8
 KEY_W01_F3	REC	tap: play F3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_W01_F3	RESET	tap: clear every edit of step 1 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	page	see SEQUENCER_UX 8
+KEY_W01_F3	RIG	tap: wire 1: cycle who drives it DEV -> HAND -> SEQ -> DEV and select it for K1-K4 (SEQ is refused when 8 wires already run, toast 8 SEQ WIRES MAX; SEQ -> HAND parks the device at LEVEL; SEQ -> DEV sends nothing) // hold: 0.4 s: select wire 1 for K1-K4 without changing its state	WIRE1	page	see SEQUENCER_UX 8
 KEY_W01_F3	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_W01_F3	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_W02_G3	PERF	tap: release under 0.4 s: step 2 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 2 of the viewed page	STEP	owns	see SEQUENCER_UX 8
@@ -213,6 +236,7 @@ KEY_W02_G3	SET	tap: release under 0.4 s: step 2 of the viewed page ON/OFF (a sec
 KEY_W02_G3	SCALE	tap: type chord 2: writes degree 2 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes	DEG	page	see SEQUENCER_UX 8
 KEY_W02_G3	REC	tap: play G3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_W02_G3	RESET	tap: clear every edit of step 2 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	page	see SEQUENCER_UX 8
+KEY_W02_G3	RIG	tap: wire 2: cycle who drives it DEV -> HAND -> SEQ -> DEV and select it for K1-K4 (SEQ is refused when 8 wires already run, toast 8 SEQ WIRES MAX; SEQ -> HAND parks the device at LEVEL; SEQ -> DEV sends nothing) // hold: 0.4 s: select wire 2 for K1-K4 without changing its state	WIRE2	page	see SEQUENCER_UX 8
 KEY_W02_G3	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_W02_G3	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_W03_A3	PERF	tap: release under 0.4 s: step 3 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 3 of the viewed page	STEP	owns	see SEQUENCER_UX 8
@@ -222,6 +246,7 @@ KEY_W03_A3	SET	tap: release under 0.4 s: step 3 of the viewed page ON/OFF (a sec
 KEY_W03_A3	SCALE	tap: type chord 3: writes degree 3 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes	DEG	page	see SEQUENCER_UX 8
 KEY_W03_A3	REC	tap: play A3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_W03_A3	RESET	tap: clear every edit of step 3 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	page	see SEQUENCER_UX 8
+KEY_W03_A3	RIG	tap: wire 3: cycle who drives it DEV -> HAND -> SEQ -> DEV and select it for K1-K4 (SEQ is refused when 8 wires already run, toast 8 SEQ WIRES MAX; SEQ -> HAND parks the device at LEVEL; SEQ -> DEV sends nothing) // hold: 0.4 s: select wire 3 for K1-K4 without changing its state	WIRE3	page	see SEQUENCER_UX 8
 KEY_W03_A3	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_W03_A3	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_W04_B3	PERF	tap: release under 0.4 s: step 4 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 4 of the viewed page	STEP	owns	see SEQUENCER_UX 8
@@ -231,6 +256,7 @@ KEY_W04_B3	SET	tap: release under 0.4 s: step 4 of the viewed page ON/OFF (a sec
 KEY_W04_B3	SCALE	tap: type chord 4: writes degree 4 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes	DEG	page	see SEQUENCER_UX 8
 KEY_W04_B3	REC	tap: play B3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_W04_B3	RESET	tap: clear every edit of step 4 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	page	see SEQUENCER_UX 8
+KEY_W04_B3	RIG	tap: wire 4: cycle who drives it DEV -> HAND -> SEQ -> DEV and select it for K1-K4 (SEQ is refused when 8 wires already run, toast 8 SEQ WIRES MAX; SEQ -> HAND parks the device at LEVEL; SEQ -> DEV sends nothing) // hold: 0.4 s: select wire 4 for K1-K4 without changing its state	WIRE4	page	see SEQUENCER_UX 8
 KEY_W04_B3	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_W04_B3	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_W05_C4	PERF	tap: release under 0.4 s: step 5 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 5 of the viewed page	STEP	owns	see SEQUENCER_UX 8
@@ -240,6 +266,7 @@ KEY_W05_C4	SET	tap: release under 0.4 s: step 5 of the viewed page ON/OFF (a sec
 KEY_W05_C4	SCALE	tap: type chord 5: writes degree 5 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes	DEG	page	see SEQUENCER_UX 8
 KEY_W05_C4	REC	tap: play C4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_W05_C4	RESET	tap: clear every edit of step 5 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	page	see SEQUENCER_UX 8
+KEY_W05_C4	RIG	tap: inert on the RIG page (the lane is not shown); no toast	-	page	see SEQUENCER_UX 8
 KEY_W05_C4	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_W05_C4	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_W06_D4	PERF	tap: release under 0.4 s: step 6 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 6 of the viewed page	STEP	owns	see SEQUENCER_UX 8
@@ -249,6 +276,7 @@ KEY_W06_D4	SET	tap: release under 0.4 s: step 6 of the viewed page ON/OFF (a sec
 KEY_W06_D4	SCALE	tap: type chord 6: writes degree 6 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes	DEG	page	see SEQUENCER_UX 8
 KEY_W06_D4	REC	tap: play D4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_W06_D4	RESET	tap: clear every edit of step 6 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	page	see SEQUENCER_UX 8
+KEY_W06_D4	RIG	tap: inert on the RIG page (the lane is not shown); no toast	-	page	see SEQUENCER_UX 8
 KEY_W06_D4	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_W06_D4	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_W07_E4	PERF	tap: release under 0.4 s: step 7 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 7 of the viewed page	STEP	owns	see SEQUENCER_UX 8
@@ -258,6 +286,7 @@ KEY_W07_E4	SET	tap: release under 0.4 s: step 7 of the viewed page ON/OFF (a sec
 KEY_W07_E4	SCALE	tap: type chord 7: writes degree 7 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes	DEG	page	see SEQUENCER_UX 8
 KEY_W07_E4	REC	tap: play E4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_W07_E4	RESET	tap: clear every edit of step 7 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	page	see SEQUENCER_UX 8
+KEY_W07_E4	RIG	tap: inert on the RIG page (the lane is not shown); no toast	-	page	see SEQUENCER_UX 8
 KEY_W07_E4	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_W07_E4	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_W08_F4	PERF	tap: release under 0.4 s: step 8 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 8 of the viewed page	STEP	owns	see SEQUENCER_UX 8
@@ -267,6 +296,7 @@ KEY_W08_F4	SET	tap: release under 0.4 s: step 8 of the viewed page ON/OFF (a sec
 KEY_W08_F4	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_W08_F4	REC	tap: play F4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_W08_F4	RESET	tap: clear every edit of step 8 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	page	see SEQUENCER_UX 8
+KEY_W08_F4	RIG	tap: inert on the RIG page (the lane is not shown); no toast	-	page	see SEQUENCER_UX 8
 KEY_W08_F4	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_W08_F4	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_W09_G4	PERF	tap: release under 0.4 s: step 9 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 9 of the viewed page	STEP	owns	see SEQUENCER_UX 8
@@ -276,6 +306,7 @@ KEY_W09_G4	SET	tap: release under 0.4 s: step 9 of the viewed page ON/OFF (a sec
 KEY_W09_G4	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_W09_G4	REC	tap: play G4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_W09_G4	RESET	tap: clear every edit of step 9 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	page	see SEQUENCER_UX 8
+KEY_W09_G4	RIG	tap: inert on the RIG page (the lane is not shown); no toast	-	page	see SEQUENCER_UX 8
 KEY_W09_G4	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_W09_G4	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_W10_A4	PERF	tap: release under 0.4 s: step 10 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 10 of the viewed page	STEP	owns	see SEQUENCER_UX 8
@@ -285,6 +316,7 @@ KEY_W10_A4	SET	tap: release under 0.4 s: step 10 of the viewed page ON/OFF (a se
 KEY_W10_A4	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_W10_A4	REC	tap: play A4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_W10_A4	RESET	tap: clear every edit of step 10 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	page	see SEQUENCER_UX 8
+KEY_W10_A4	RIG	tap: inert on the RIG page (the lane is not shown); no toast	-	page	see SEQUENCER_UX 8
 KEY_W10_A4	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_W10_A4	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_W11_B4	PERF	tap: release under 0.4 s: step 11 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 11 of the viewed page	STEP	owns	see SEQUENCER_UX 8
@@ -294,6 +326,7 @@ KEY_W11_B4	SET	tap: release under 0.4 s: step 11 of the viewed page ON/OFF (a se
 KEY_W11_B4	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_W11_B4	REC	tap: play B4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_W11_B4	RESET	tap: clear every edit of step 11 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	page	see SEQUENCER_UX 8
+KEY_W11_B4	RIG	tap: inert on the RIG page (the lane is not shown); no toast	-	page	see SEQUENCER_UX 8
 KEY_W11_B4	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_W11_B4	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_W12_C5	PERF	tap: release under 0.4 s: step 12 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END; force: hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down; fallback: NOTE EDIT ENV (ACCENT) or K3 VELO // hold: held 0.4 s: open NOTE EDIT on step 12 of the viewed page	STEP	owns	see SEQUENCER_UX 8
@@ -303,6 +336,7 @@ KEY_W12_C5	SET	tap: release under 0.4 s: step 12 of the viewed page ON/OFF (a se
 KEY_W12_C5	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_W12_C5	REC	tap: play C5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_W12_C5	RESET	tap: clear every edit of step 12 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	page	see SEQUENCER_UX 8
+KEY_W12_C5	RIG	tap: inert on the RIG page (the lane is not shown); no toast	-	page	see SEQUENCER_UX 8
 KEY_W12_C5	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_W12_C5	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_W13_D5	PERF	tap: release under 0.4 s: step 13 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 13 of the viewed page	STEP	owns	see SEQUENCER_UX 8
@@ -312,6 +346,7 @@ KEY_W13_D5	SET	tap: release under 0.4 s: step 13 of the viewed page ON/OFF (a se
 KEY_W13_D5	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_W13_D5	REC	tap: play D5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_W13_D5	RESET	tap: clear every edit of step 13 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	page	see SEQUENCER_UX 8
+KEY_W13_D5	RIG	tap: inert on the RIG page (the lane is not shown); no toast	-	page	see SEQUENCER_UX 8
 KEY_W13_D5	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_W13_D5	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_W14_E5	PERF	tap: release under 0.4 s: step 14 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 14 of the viewed page	STEP	owns	see SEQUENCER_UX 8
@@ -321,6 +356,7 @@ KEY_W14_E5	SET	tap: release under 0.4 s: step 14 of the viewed page ON/OFF (a se
 KEY_W14_E5	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_W14_E5	REC	tap: play E5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_W14_E5	RESET	tap: clear every edit of step 14 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	page	see SEQUENCER_UX 8
+KEY_W14_E5	RIG	tap: inert on the RIG page (the lane is not shown); no toast	-	page	see SEQUENCER_UX 8
 KEY_W14_E5	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_W14_E5	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_W15_F5	PERF	tap: release under 0.4 s: step 15 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 15 of the viewed page	STEP	owns	see SEQUENCER_UX 8
@@ -330,6 +366,7 @@ KEY_W15_F5	SET	tap: release under 0.4 s: step 15 of the viewed page ON/OFF (a se
 KEY_W15_F5	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_W15_F5	REC	tap: play F5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_W15_F5	RESET	tap: clear every edit of step 15 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	page	see SEQUENCER_UX 8
+KEY_W15_F5	RIG	tap: inert on the RIG page (the lane is not shown); no toast	-	page	see SEQUENCER_UX 8
 KEY_W15_F5	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_W15_F5	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_W16_G5	PERF	tap: release under 0.4 s: step 16 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END // hold: held 0.4 s: open NOTE EDIT on step 16 of the viewed page	STEP	owns	see SEQUENCER_UX 8
@@ -339,6 +376,7 @@ KEY_W16_G5	SET	tap: release under 0.4 s: step 16 of the viewed page ON/OFF (a se
 KEY_W16_G5	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_W16_G5	REC	tap: play G5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_W16_G5	RESET	tap: clear every edit of step 16 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	page	see SEQUENCER_UX 8
+KEY_W16_G5	RIG	tap: inert on the RIG page (the lane is not shown); no toast	-	page	see SEQUENCER_UX 8
 KEY_W16_G5	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_W16_G5	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_B01_F#3	PERF	tap: tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1	owns	see SEQUENCER_UX 8
@@ -348,6 +386,7 @@ KEY_B01_F#3	SET	tap: tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1
 KEY_B01_F#3	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_B01_F#3	REC	tap: play F#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_B01_F#3	RESET	tap: inert in RESET (toast NOTHING TO RESET)	-	page	see SEQUENCER_UX 8
+KEY_B01_F#3	RIG	tap: tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1	page	see SEQUENCER_UX 8
 KEY_B01_F#3	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_B01_F#3	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_B02_G#3	PERF	tap: tap: mute / unmute CH2	MUTE2	owns	see SEQUENCER_UX 8
@@ -357,6 +396,7 @@ KEY_B02_G#3	SET	tap: tap: mute / unmute CH2	MUTE2	page	see SEQUENCER_UX 8
 KEY_B02_G#3	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_B02_G#3	REC	tap: play G#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_B02_G#3	RESET	tap: inert in RESET (toast NOTHING TO RESET)	-	page	see SEQUENCER_UX 8
+KEY_B02_G#3	RIG	tap: tap: mute / unmute CH2	MUTE2	page	see SEQUENCER_UX 8
 KEY_B02_G#3	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_B02_G#3	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_B03_A#3	PERF	tap: tap: mute / unmute CH3	MUTE3	owns	see SEQUENCER_UX 8
@@ -366,6 +406,7 @@ KEY_B03_A#3	SET	tap: tap: mute / unmute CH3	MUTE3	page	see SEQUENCER_UX 8
 KEY_B03_A#3	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_B03_A#3	REC	tap: play A#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_B03_A#3	RESET	tap: inert in RESET (toast NOTHING TO RESET)	-	page	see SEQUENCER_UX 8
+KEY_B03_A#3	RIG	tap: tap: mute / unmute CH3	MUTE3	page	see SEQUENCER_UX 8
 KEY_B03_A#3	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_B03_A#3	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_B04_C#4	PERF	tap: tap: mute / unmute CH4	MUTE4	owns	see SEQUENCER_UX 8
@@ -375,15 +416,17 @@ KEY_B04_C#4	SET	tap: tap: mute / unmute CH4	MUTE4	page	see SEQUENCER_UX 8
 KEY_B04_C#4	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_B04_C#4	REC	tap: play C#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_B04_C#4	RESET	tap: inert in RESET (toast NOTHING TO RESET)	-	page	see SEQUENCER_UX 8
+KEY_B04_C#4	RIG	tap: tap: mute / unmute CH4	MUTE4	page	see SEQUENCER_UX 8
 KEY_B04_C#4	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_B04_C#4	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
-KEY_B05_D#4	PERF	tap: tap: open the CHAN page of the selected channel (LENGTH MIDI SOURCE FOLLOW)	CHAN	owns	see SEQUENCER_UX 8
+KEY_B05_D#4	PERF	tap: tap: open the CHAN page of the selected channel (LENGTH MIDI SOURCE FOLLOW) // hold: 0.4 s: open the RIG page of the selected channel (device, wires, who is in control); latched, stays open when the key is released; named h:CHN=RIG in the lane header	CHAN	owns	see SEQUENCER_UX 8
 KEY_B05_D#4	NOTE_EDIT	tap: switch to the CHAN page (closes NOTE EDIT)	CHAN	page	see SEQUENCER_UX 8
 KEY_B05_D#4	CHAN	tap: close CHAN, back to PERF	BACK	page	see SEQUENCER_UX 8
 KEY_B05_D#4	SET	tap: switch to the CHAN page	CHAN	page	see SEQUENCER_UX 8
 KEY_B05_D#4	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_B05_D#4	REC	tap: play D#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_B05_D#4	RESET	tap: re-copy the page before onto the viewed page (edits and source; page 1: clear its edits); RESET closes; EDIT tap undoes	COPY P	page	see SEQUENCER_UX 8
+KEY_B05_D#4	RIG	tap: close the RIG page, back to PERF	BACK	page	see SEQUENCER_UX 8
 KEY_B05_D#4	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_B05_D#4	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_B06_F#4	PERF	hold: hold: only the selected channel sounds; release restores the mutes	SOLO	owns	see SEQUENCER_UX 8
@@ -393,6 +436,7 @@ KEY_B06_F#4	SET	hold: hold: only the selected channel sounds; release restores t
 KEY_B06_F#4	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_B06_F#4	REC	tap: play F#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_B06_F#4	RESET	tap: inert in RESET (toast NOTHING TO RESET)	-	page	see SEQUENCER_UX 8
+KEY_B06_F#4	RIG	hold: hold: only the selected channel sounds; release restores the mutes	SOLO	page	see SEQUENCER_UX 8
 KEY_B06_F#4	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_B06_F#4	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_B07_G#4	PERF	hold: hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores; force: aftertouch: depth light..firm = halfway..maximum density; fallback: no force (or FORCE OFF): maximum density	FILL	owns	see SEQUENCER_UX 8
@@ -402,6 +446,7 @@ KEY_B07_G#4	SET	hold: hold: the selected channel's K1 density goes up while held
 KEY_B07_G#4	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_B07_G#4	REC	tap: play G#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_B07_G#4	RESET	tap: inert in RESET (toast NOTHING TO RESET)	-	page	see SEQUENCER_UX 8
+KEY_B07_G#4	RIG	hold: hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores; force: aftertouch: depth light..firm = halfway..maximum density; fallback: no force (or FORCE OFF): maximum density	FILL	page	see SEQUENCER_UX 8
 KEY_B07_G#4	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_B07_G#4	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_B08_A#4	PERF	hold: hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm); force: aftertouch: 2x / 3x / 4x by pressure bins; fallback: no force: 2x	ROLL	owns	see SEQUENCER_UX 8
@@ -411,6 +456,7 @@ KEY_B08_A#4	SET	hold: hold: every step of the selected channel repeats while hel
 KEY_B08_A#4	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_B08_A#4	REC	tap: play A#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_B08_A#4	RESET	tap: inert in RESET (toast NOTHING TO RESET)	-	page	see SEQUENCER_UX 8
+KEY_B08_A#4	RIG	hold: hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm); force: aftertouch: 2x / 3x / 4x by pressure bins; fallback: no force: 2x	ROLL	page	see SEQUENCER_UX 8
 KEY_B08_A#4	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_B08_A#4	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_B09_C#5	PERF	tap: tap: view the previous page of the selected channel (no wrap; FOLLOW off)	PG-	owns	see SEQUENCER_UX 8
@@ -420,6 +466,7 @@ KEY_B09_C#5	SET	tap: tap: view the previous page of the selected channel (no wra
 KEY_B09_C#5	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_B09_C#5	REC	tap: play C#5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_B09_C#5	RESET	tap: inert in RESET (toast NOTHING TO RESET)	-	page	see SEQUENCER_UX 8
+KEY_B09_C#5	RIG	tap: inert on the RIG page (no lane to page); no toast	-	page	see SEQUENCER_UX 8
 KEY_B09_C#5	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_B09_C#5	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_B10_D#5	PERF	tap: tap: view the next page (FOLLOW off); on the last page: a prompt that names what PG+ again will do: ADD PAGE n = COPY OF n-1 (edits and source; LENGTH to 16 x pages, max 64), SHOW PAGE n (HIDDEN) (a page hidden by a shrink comes back as stored), or SHOW ALL OF PAGE n (a partial last page, e.g. LENGTH 20, is completed to 32 first); on page 4 at LENGTH 64 no prompt: toast 64 STEPS = MAX, nothing changes	PG+	owns	see SEQUENCER_UX 8
@@ -429,6 +476,7 @@ KEY_B10_D#5	SET	tap: tap: view the next page (FOLLOW off); on the last page: a p
 KEY_B10_D#5	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_B10_D#5	REC	tap: play D#5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_B10_D#5	RESET	tap: inert in RESET (toast NOTHING TO RESET)	-	page	see SEQUENCER_UX 8
+KEY_B10_D#5	RIG	tap: inert on the RIG page (no lane to page); no toast	-	page	see SEQUENCER_UX 8
 KEY_B10_D#5	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_B10_D#5	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_B11_F#5	PERF	tap: tap: all channels to step 1 at the next step	RESTRT	owns	see SEQUENCER_UX 8
@@ -438,5 +486,6 @@ KEY_B11_F#5	SET	tap: tap: all channels to step 1 at the next step	RESTRT	page	se
 KEY_B11_F#5	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_B11_F#5	REC	tap: play F#5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_B11_F#5	RESET	tap: inert in RESET (toast NOTHING TO RESET)	-	page	see SEQUENCER_UX 8
+KEY_B11_F#5	RIG	tap: tap: all channels to step 1 at the next step	RESTRT	page	see SEQUENCER_UX 8
 KEY_B11_F#5	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_B11_F#5	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8

@@ -17,8 +17,8 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 D = os.path.join(ROOT, "docs", "design")
 SC = os.path.join(D, "scenarios")
 BANNED = re.compile(r"TBD|choose|e\.g\.")
-NARR = lambda sid: int(sid[1:]) <= 8 or int(sid[1:]) >= 18   # S01-S08 and S18 onward (S18 HARMONY, S19 ARP, ...) are hand-written walks; S09-S17 are generated sweeps
-CTX = ["PERF", "NOTE_EDIT", "CHAN", "SET", "SCALE", "REC", "RESET", "HELP", "MENU"]
+NARR = lambda sid: int(sid[1:]) <= 8 or (int(sid[1:]) >= 18 and int(sid[1:]) != 22)   # S01-S08 and S18 onward (S18 HARMONY, S19 ARP, S21 RIG ...) are hand-written walks; S09-S17 and S22 (the RIG sweep) are generated sweeps
+CTX = ["PERF", "NOTE_EDIT", "CHAN", "SET", "SCALE", "REC", "RESET", "RIG", "HELP", "MENU"]
 
 
 def load_rows():
@@ -90,7 +90,7 @@ def main():
              "from `control_map.tsv` (%d controls x %d contexts = %d rows)." % (len(controls), len(CTX), len(rows)), "",
              "- S01 to S08 and S18 onward (S18 HARMONY P2-012, S19 ARP P2-013, later design scenarios) are the narrative scenarios (workflows). S09 to S17 are generated sweeps, one per page context, that walk "
              "every control once on that page; S09 = PERF, S10 = NOTE_EDIT, S11 = CHAN, S12 = SET, S13 = SCALE, S14 = REC, "
-             "S15 = RESET, S16 = HELP, S17 = MENU.",
+             "S15 = RESET, S16 = HELP, S17 = MENU, and S22 = RIG (P2-019).",
              "- Rows with no scenario at all (gaps, to be sent back to P2-001): **%d**." % len(gaps),
              "- Rows exercised only by a sweep and by no narrative scenario: **%d** of %d (listed in section 3)." % (len(narrative), len(rows)),
              "", "## 1. Gaps (no scenario cites the row)", ""]

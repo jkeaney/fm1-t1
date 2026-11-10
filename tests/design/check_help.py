@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-only
 """P2-011 (F-06): check docs/design/help_text.tsv.
-  1. one row per (control of control_map.tsv) x (PERF NOTE_EDIT CHAN SET SCALE REC RESET), nothing else;
+  1. one row per (control of control_map.tsv) x (PERF NOTE_EDIT CHAN SET SCALE REC RESET RIG), nothing else;
   2. line 1 never empty; each line at most 34 characters (SCREEN_SPEC 5) and at most 224 px in AF_S (the help box,
      SCREEN_SPEC 3), measured with the real text_w through tests/design/width_probe.sh; the {r1} / {r2} placeholders of
      the PERF knob rows are expanded with every ROW 1 / ROW 2 label of knob_map.tsv;
@@ -10,7 +10,7 @@ import csv, os, subprocess, sys
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 D = os.path.join(ROOT, "docs", "design")
-PAGES = ["PERF", "NOTE_EDIT", "CHAN", "SET", "SCALE", "REC", "RESET"]
+PAGES = ["PERF", "NOTE_EDIT", "CHAN", "SET", "SCALE", "REC", "RESET", "RIG"]
 rd = lambda n: list(csv.DictReader(open(os.path.join(D, n)), delimiter="\t"))
 cm, ht, km = rd("control_map.tsv"), rd("help_text.tsv"), rd("knob_map.tsv")
 bad = []
