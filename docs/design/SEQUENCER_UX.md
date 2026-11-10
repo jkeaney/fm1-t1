@@ -257,7 +257,7 @@ for the six dice buttons and the hold role, prefixed `h:`, for the buttons that 
 
 ```
 +----------------------------------------+
-|> 120 P01  CH1 ACID M1  [1][2]. .  L32  |  header: play state, BPM (tempo source: INT, or EXT n, 2.8), preset, channel, algorithm, MIDI, page map, LENGTH
+|> 120 P01  CH1 ACID M1  [1][2]. .  L32  |  header: play state, clock dot + BPM (tempo source: INT, or EXT n, WAIT, 2.8), preset, channel, algorithm, MIDI, page map, LENGTH
 | [1 ACID] 2 EUCL m  3 SNAK m  4 STAG m  |  channel band: selected inverted, m = muted, activity dot
 | PG 1/2  FOLLOW  hold=EDIT        >P2   |  lane header: viewed page / pages, FOLLOW, the white-key hold, playhead page
 | #  .  #' #  .  #! .  #~ #  .  #  .  #x2 . |  16 lane cells = white keys 1..16 (# on, . off, ' edited, ! ~ x2 glyphs)
@@ -382,23 +382,26 @@ FIRST_RUN, ADD_PAGE and MOVE_HELD are overlays that only change the cue strip an
   freely). REC and RESET are exclusive: in REC, GLO, PRESETS and EDIT hold are inert and say why.
 - Power-on always lands on PERF; REC, NOTE_EDIT, RESET, HELP are never restored.
 
-### 2.8 Tempo source and clock out (added by FB-001 / P2-003 after the lock; owner decision 2026-11-10; adds, changes nothing above)
+### 2.8 Tempo source and clock out (added by FB-001 / P2-003, finalised by P2-010 to the owner rulings of 2026-11-10; adds, changes nothing above)
 
-The header and the SET page always say where the tempo comes from and whether the FM-1 sends clock. No new control and
-no new MENU row: the existing set-and-forget source (MENU > CLOCK: `INT`, `USB`, `TRS`) decides. Pixels and strings:
-[SCREEN_SPEC.md](SCREEN_SPEC.md) section 6.
+The header and the SET page always say where the tempo comes from and whether the FM-1 sends clock, and a **clock dot**
+blinks on the beat. No new control and no new MENU row. The source is AUTO: the FM-1 runs on its own clock; a MIDI
+clock it hears (USB or the TRS jack) becomes the tempo source; when that clock stops it returns to its own tempo, which
+the host never overwrites. Pixels, strings and colours: [SCREEN_SPEC.md](SCREEN_SPEC.md) section 6; mechanisms, rules
+and tests: [TIMING_SPEC.md](TIMING_SPEC.md).
 
-| State | Condition | Header tempo | Clock out |
-| --- | --- | --- | --- |
-| INT | source INT | `INT 120` + out-mark | MASTER: 24 pulses per quarter plus Start / Stop / Continue over USB |
-| EXT LIVE | source USB / TRS, a pulse within 500 ms, tempo measured | `EXT 126` (the incoming BPM) | FOLLOW: nothing is sent |
-| EXT SYNC | as EXT LIVE, the first 7 pulses (about a 1/16 note) | `EXT --` | FOLLOW |
-| EXT WAIT | source USB / TRS, no pulse for 500 ms (or never) | `126 EXT?` (the last host tempo the firmware holds; it overwrites the BPM) | FOLLOW (the state follows the selected source, never the live pulse) |
+| State | Condition | Header | Dot | Clock out |
+| --- | --- | --- | --- | --- |
+| INT | no host clock accepted (default) | `INT 120` | amber, solid, blinks on the internal beat | MASTER, while playing: 24 pulses per quarter plus Start / SPP / Continue / Stop over USB |
+| EXT SYNC | a host clock accepted, first 7 pulses | `EXT --` | cyan with a centre hole, steady dim | none |
+| EXT LIVE | a host clock accepted, tempo measured | `EXT 126` (the incoming BPM) | cyan with a centre hole, blinks on the host beat | none |
+| WAIT | PLAY pressed while a host clock is accepted and the host has not started | `WAIT` | cyan ring, blinks at 2 Hz | none |
 
-Timeout rule: 500 ms (24 pulses at 120 BPM), the value the firmware already uses to stop the transport on clock loss;
-that check runs only while playing, so the stopped case needs a new derivation (SCREEN_SPEC 6.1). On SET, K1 BPM stays
-ignored while an external clock runs, as locked in `knob_map.tsv` (the cell mirrors the incoming BPM). The firmware
-overwrites `song.g[G_BPM]` with the host tempo (`midi_clock.c:65`); see SCREEN_SPEC question 5 and P2-010.
+Timeout rule: 500 ms without a pulse (24 pulses at 120 BPM) returns the source to INT; the check also runs while
+stopped. If it happens while playing the transport stops (as it does today). On SET, K1 BPM stays ignored while an
+external clock runs, as locked in `knob_map.tsv` (the cell mirrors the incoming BPM); the user's own tempo is kept and
+shows again when the host stops. PLAY while a host clock is accepted waits for the host's Start (cue strip
+`WAIT FOR HOST START  PLAY=cancel`); it never falls back to the internal clock silently.
 
 ## 3. Button modes
 
@@ -1179,7 +1182,7 @@ When the owner approves this document, the following are locked for the dev task
     LENGTH change; TIE on the same terms; swing parity by position; audition notes; note-off guarantees).
 11. Scores of section 8 under the restated L rule (8.1, subject to owner question 72), with the three listed
     exceptions E1, E2, E3.
-12. (Added after the lock by FB-001, owner decision 2026-11-10; additive.) The tempo-source and clock-out state of 2.8: INT / EXT n / EXT WAIT on the header and the SET page; clock out is master when the source is INT (24 per quarter plus Start / Stop / Continue over USB) and silent when following; 500 ms timeout.
+12. (Added after the lock by FB-001, owner decision 2026-11-10; additive.) The tempo-source and clock-out state of 2.8: INT / EXT n / EXT -- / WAIT on the header and the SET page with a blinking clock dot (P2-010 rulings: source AUTO, own tempo never overwritten, PLAY on an external source waits for the host start); clock out is automatic when the FM-1 is the master and playing (24 per quarter plus Start / SPP / Continue / Stop over USB) and silent when following; 500 ms timeout returns to INT.
 
 ## 14. Owner questions (65-73; also in OWNER_QUESTIONS.md)
 

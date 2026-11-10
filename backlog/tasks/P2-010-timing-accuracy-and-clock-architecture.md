@@ -3,7 +3,7 @@ id: P2-010
 title: Timing accuracy and clock architecture: tight MIDI timing from any clock source, with the source always visible
 phase: P2
 type: task
-status: todo
+status: review
 priority: 0
 executor: sonnet
 depends_on: [P2-004]
@@ -37,11 +37,11 @@ Owner requirement (2026-11-10): "make sure our code has all the tools to ensure 
 - Visibility: blinking, colour-coded dots showing tempo (blink on the beat) and source (internal vs external). Specify colours, size, placement on every page, and the LED behaviour. Supersedes SCREEN_SPEC section 6 where they differ (update SCREEN_SPEC/page_states.tsv/ADR-0003 7.4 to match).
 
 ## Acceptance criteria
-- [ ] The five areas above are specified with numbers (block length, jitter target, clock-out accuracy), not adjectives
-- [ ] Every claim about current behaviour cites source lines
-- [ ] Visibility spec added to the screen docs without changing locked UX decisions
-- [ ] A hardware-test gate with thresholds is defined, run on our own firmware in its test mode
-- [ ] `python3 tools/check_sequencer_ux.py`, `tools/check_control_map.py` and `backlog.py check` pass
+- [x] The five areas above are specified with numbers (block length, jitter target, clock-out accuracy), not adjectives
+- [x] Every claim about current behaviour cites source lines
+- [x] Visibility spec added to the screen docs without changing locked UX decisions
+- [x] A hardware-test gate with thresholds is defined, run on our own firmware in its test mode
+- [x] `python3 tools/check_sequencer_ux.py`, `tools/check_control_map.py` and `backlog.py check` pass
 - [ ] Owner approval
 
 ## Verification
@@ -56,3 +56,25 @@ python3 tools/backlog.py check
 ## Log
 - 2026-11-10 created by the orchestrator from owner feedback after a loose Ableton recording.
 - 2026-11-10 owner: timing will be tested properly once our own firmware has a test mode; added to the deliverable (6b).
+
+### 2026-11-10 executor (sonnet)
+Deliverables: `docs/design/TIMING_SPEC.md` (new), ADR-0003 section 19 addendum plus inline pointers in 7.1, 5 and 7.4, SCREEN_SPEC section 6 rewritten to the owner rulings (2.1 H2, 5, 6, 7, 8, 10, 11 updated), `page_states.tsv` (PERF and SET screen text), SEQUENCER_UX 2.8 / 11 / header line. No Approved line written; no firmware changed; no 20-minute suite.
+
+Measured (probe compiled against `build/gen/felucca_tables.h`, widths with the real `text_w` from `gfx.c`):
+- `FS=44100 CTL=32 HALF_FRAMES=128`: control block 32 samples = **0.7256 ms**; one audio interrupt = 4 blocks = 2.9025 ms; DAC rate 24 MHz / 544 = 44117.647 Hz = **+400.2 ppm** against `FS` (24.0 ms per minute at any BPM). Ticks per block 0.093 (40 BPM) .. 0.557 (240 BPM).
+- Header strings: `INT 120` 42, `EXT 126` 45, `EXT --` 34, `WAIT` 28, cue `WAIT FOR HOST START  PLAY=cancel` 198 px of 240.
+
+Findings the reviewer should weigh (all in TIMING_SPEC, cited to lines):
+1. ADR-0003 7.1's "jitter at most one block (0.73 ms)" is wrong on the wire: `audio.c:116-120` renders 4 blocks per interrupt, `main.c:42-52` defers `usb_poll`/`ep1_tx` until the interrupt ends, so a half's notes leave together: ~3.4 ms p-p on the FM-1 side (+1 ms USB frame). Corrected in the addendum.
+2. Internal tempo +400 ppm (`fx.c:221` vs `audio.c:9`); marked unconfirmed until the test image measures the real rate.
+3. Today tick 0 on an external Start runs at the Start message, not the first `0xF8` (`midi_clock.c:13-18,68-77`, `t1_glue.c:117-118`); `0xF2` SPP is dropped (`usb.c:821-824`); no clock out exists.
+4. Risk R1 flagged in M3: releasing MIDI from TIMER5 while nested in the audio interrupt touches the SIE index; fallback specified.
+Owner questions: TIMING_SPEC section 11 (7 items; recommended answers given). Changes that go beyond the four rulings and need the owner: CLOCK menu row after AUTO (Q1), clock lost while playing stops (Q2), host Start takes over a playing FM-1 (Q4), PLAY green LED becomes mid-steady with beat flash (Q5), separate timing-test build (Q6).
+
+Verification run:
+```
+python3 tools/check_sequencer_ux.py   -> pages=9 button-rows=254 knob-rows=95 key-rows=307 control-rows=441 scored=69 exceptions=3 / OK
+python3 tools/check_control_map.py     -> rows tsv=441 md=441 / OK
+python3 tools/backlog.py check         -> 40 items, 0 errors
+```
+Owner approval criterion left unticked (human-review gate).

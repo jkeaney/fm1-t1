@@ -325,7 +325,7 @@ clock, polyphony), it needs a new ADR (section 15).
 | SWING | core: odd steps start later by `o = (L * (swing - 50) * 2 + 50) / 100` ticks (swing 66 = triplet feel, 75 = dotted); step lengths are unchanged | no |
 | BPM / external clock | `beat_samples()` (fx.c), unchanged; external clock arrives through `events_block`'s `seq_n` | no |
 | MIDI channel, mute | core, per channel | no |
-| Clock out (FB-001) | `sq_block`: when `song.g[G_CLOCK] == 0` (INT) emit `0xF8` every 8 ticks of the 192-PPQN grid (24 per quarter), `0xFA` on a start from step 0, `0xFB` on a continue, `0xFC` on stop, through `midi_out_event`; when the source is USB / TRS emit nothing (it follows, never echoes) | no |
+| Clock out (FB-001) | `sq_block`: when `song.g[G_CLOCK] == 0` (INT) emit `0xF8` every 8 ticks of the 192-PPQN grid (24 per quarter), `0xFA` on a start from step 0, `0xFB` on a continue, `0xFC` on stop, through `midi_out_event`; when the source is USB / TRS emit nothing (it follows, never echoes) **(amended by section 19: AUTO source, only while playing as master, stamped, SPP)** | no |
 
 Because `build` reads only `key/octave/snap`, a host test that varies gate/div/swing must see identical caches.
 Settled by the owner (decisions 43 and 44): swing is doubled, and GATE 50 % is neutral; the screen labels GATE as a share of the algorithm's own gate (P2-003). Both are one table edit.
@@ -393,7 +393,8 @@ kept because: (a) every v1 DIV is a whole number of ticks (`DIV_TICKS` above: no
 to 1/24 of a 1/32 step and a ratchet of 3 inside the shortest step (24 ticks -> 8-tick spacing); (c) the slide overlap
 `D = max(1, L/8)` ticks is 3 ticks at 1/32 and 6 at 1/16; (d) the control block is `CTL` = 32 samples = 0.73 ms, and a
 tick is 2.6 ms at 120 BPM and 1.0 ms at 300 BPM, so never more than two ticks run per block. Timing jitter is therefore
-at most one block (0.73 ms), below USB-MIDI's own 1 ms frame. A finer grid (sample-domain scheduling) was rejected: no
+at most one block (0.73 ms), below USB-MIDI's own 1 ms frame. **[Superseded by section 19: that holds for the scheduling
+only; on the wire the half-buffer burst and the deferred transmitter add up to 3.4 ms, and the tick grid is 400 ppm fast.]** A finer grid (sample-domain scheduling) was rejected: no
 musical gain, and the integer-tick grid keeps host tests exact.
 
 ### 7.2 The per-block loop (replaces the `t1_block` call in `events_block`)
@@ -459,6 +460,8 @@ tick (immediately at PLAY, at the next grid tick for a restart request). The loo
 free-running and `step()` reduces it.
 
 ### 7.4 Clock out (added by FB-001; master when INT, silent when following)
+
+> **Amended by section 19 (P2-010, owner rulings 2026-11-10):** the source is AUTO, not the `G_CLOCK` setting; clock out is sent only while the FM-1 is the master and playing; every pulse is stamped to its exact sample; SPP is sent before a continue; the host tempo no longer overwrites `song.g[G_BPM]`. The bullets below are the first draft.
 
 - 192 PPQN / 24 = one `0xF8` every 8 ticks of `sq_block`'s loop. The pulse is emitted at the **tick**, before any note scheduled on the same tick, so a receiver sees the clock first.
 - `0xFA` on a start from step 0, `0xFB` on a continue (a stop followed by PLAY with the playhead kept), `0xFC` on stop. They go out only when `song.g[G_CLOCK] == 0`.
@@ -813,3 +816,56 @@ Each task cites the section named. None may start before the owner approves this
 - 5329 B of `.bss` and ~7.6 KB of pool buy the whole product; the E9 trigger (8 KB headroom) is not approached.
 - Risks: the slide-as-overlap behaviour on the TB-3 is unverified (question 8); next-step latency of up to one step
   for hit/note/slide changes (question 9); the 0.73 ms block quantisation is inaudible but measurable on a scope.
+
+## 19. Addendum (P2-010): timing accuracy and clock architecture
+
+Status: proposed with [TIMING_SPEC.md](../../design/TIMING_SPEC.md) (the full design, numbers and citations); additive to
+sections 5, 7 and 8. It changes **no struct of section 3** and no algorithm interface.
+
+### 19.1 Corrections
+
+- Section 7.1's "at most one block" is replaced by the measured budget: control block 32 samples = 0.7256 ms; one audio
+  interrupt renders 4 blocks (2.90 ms) back to back; the USB transmitter runs only between audio interrupts at 2 kHz.
+  Today's jitter on the FM-1 side is **3.4 ms peak-to-peak** (TIMING_SPEC 1.3) and the internal tempo is **+400 ppm**
+  (counted in samples at 44100 Hz while the I2S clock is 44117.65 Hz).
+- Section 7.4 first draft is amended as below.
+
+### 19.2 Decisions (all in TIMING_SPEC section 3 and 4)
+
+1. **Exact tick position (M1).** `sq_block` computes the sample `s` inside the block where each tick lands.
+2. **Wall-clock stamping (M2) and timed release (M3).** `sq_emit` hands `midi_out_event_at(pkt, due)` a TIMER4 time
+   `due = tref_block + s * 544 + LEAD` (`LEAD` = 128 samples = 2.90 ms). A 128-entry `{pkt, due}` ring (1024 B, replacing
+   the 512 B out ring of section 8.3) is drained by the 10 kHz TIMER5 interrupt **including when nested in the audio
+   interrupt**. The per-block `t1_pipeline_flush_midi` call disappears. Target: release lateness 0.25 ms peak-to-peak.
+3. **Ordering (M4).** At one tick: clock, then transport bytes, then NOTE_OFFs, then NOTE_ONs, then CCs; order kept
+   through the ring and the 16-event packet. Section 7.3's off-before-on rule is unchanged.
+4. **Clock out (M7, replaces 7.4's bullets).** Pulse `0xF8` at ticks 0, 8, 16, ... through the same stamped path;
+   `0xFA` at tick 0 of a start from step 0; `0xF2` (SPP = tick / 48) then `0xFB` on a continue; `0xFC` on stop. Sent only
+   when the FM-1 is the master **and playing**; nothing in any EXT state. No menu row.
+5. **Source model (TIMING_SPEC 4, owner rulings).** AUTO: INT by default; a `0xF8` accepted while stopped from USB or TRS
+   makes the source EXT (first port heard wins); 500 ms of silence returns it to INT; a clock arriving while the FM-1 plays
+   as master is ignored; a host `0xFA` takes over; PLAY on EXT is a labelled wait for the host start (no fall back).
+   `song.g[G_BPM]` is the user's tempo and is **never written by the clock** (removes `midi_clock.c:65`); the host tempo
+   lives in a new field.
+6. **Following (M11, M12).** Input stamps in TIMER4 ticks instead of `fm1_ms`; a phase-locked loop on the pulse train;
+   the position stays a pulse count (no drift); Start begins step 0 at the first `0xF8` after it; SPP (`0xF2`) is parsed.
+7. **Tempo constant (M10).** `beat_samples()` counts in the real sample rate (44117.65 Hz, to be confirmed by the
+   timing-test image) and returns 1/16 samples so 240 BPM stays within 5 ppm.
+8. **Visibility** is a screen/LED spec (SCREEN_SPEC 6, TIMING_SPEC 5): the blinking clock dot on every screen.
+
+### 19.3 Targets (TIMING_SPEC section 2)
+
+FM-1-side jitter at most 0.25 ms peak-to-peak; at the host at most 1.5 ms peak-to-peak and 0.4 ms RMS (USB frame floor);
+tempo error at most 100 ppm; clock out exactly 24 per quarter and the same spacing accuracy; following: 0 steps of drift
+in 10 minutes, round-trip jitter at most 3 ms. Measured by a timing-test firmware image (separate build, zero cost in
+the normal build), `tools/fm1_timing.py` and the hardware gate G1-G7.
+
+### 19.4 Cost
+
+About +0.6 KB `.bss` over section 11 (the larger timed ring, PLL and source state); no pool; no change to the E9
+trigger. CPU: one compare per 100 us tick when idle; the gate is `cpu_q8` not rising by more than one percentage point.
+
+### 19.5 Dev tasks (P2-005 places them in E4 / E5)
+
+T-A timing-test image; T-B `tools/fm1_timing.py`; T-C release ring, stamps, tempo constant (extends prerequisite task 5
+and 6); T-D source model, PLL, Start/SPP; T-E visibility; T-F hardware gate. TIMING_SPEC section 9 lists dependencies.
