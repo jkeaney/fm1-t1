@@ -49,3 +49,12 @@ sh tests/design/width_probe.sh tests/design/widths.tsv
 Findings: Rig stored as a sibling RigSave in SeqPreset v4 (ChanSave and UndoRec asserts unchanged); new .bss 274 B (HL said 184); pool +2016 B does not fit before R6 (1380 B short; SQ_NSLOT=8 escape); the `~` suffix on dice sub-labels does not fit (button row 2 would need 247 of 240 px) so a ride dot replaces it; CC lead reduced to 2 ahead + the rest after the note because DIN needs 0.96 ms per CC; ring needs bounded out-of-order insertion (P4-028). No locked decision changed; 8 owner questions A..H (all refinements, recommendation A in each).
 Verification: check_scenarios.py (22 files, 490 rows, 0 gaps), check_help.py OK (392 rows), tools/check_sequencer_ux.py OK (10 pages), width_probe.sh widths.tsv 236 strings 0 over, backlog.py check 0 errors.
 Awaiting: owner human-review ("Approved: <name> <date>"); read HW_SUPPORT_LOWLEVEL.md sections 4 and 7.
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS on the checkable criteria; gate is human-review, so the task stays at `review`.
+- Re-ran: check_scenarios.py (22 files, 490 rows, 0 without scenario), check_help.py OK (392 rows, 2695 strings), check_sequencer_ux.py OK (10 pages), backlog.py check 115 items 0 errors, width_probe.sh widths.tsv 236 strings 0 over. build/ and check.sh not run, as instructed. Commit touches only docs, design tests and backlog; no firmware.
+- Sections 1-7 present (plus 8 checks). Byte arithmetic re-added: .bss 112+128+26+8 = 274; pool 1508 x 18 = 27144 (+2016), shortfall before R6 disclosed with the SQ_NSLOT=8 escape. Static-assert list (1.8) covers Wire/Rig/RigSave/RigRT/Hw* and pins ChanSave/UndoRec unchanged.
+- Owner condition 1 (three knob rows): met in 4.1 - persistent rail with `ROW n/3`, live row 26 px vs 13 px others (geometry tiles Z3), 150 ms flash plus 2 s toast on change, standing cue, and a row/page table for every screen; H-RIG16 human readability test added.
+- Owner condition 2 (hardware belongs to its users, provenance): met in 2.3 - the statement is written out, generator rules enforce provenance per profile, the CSV is never an input, midi.guide is cross-reference only, credits shown in MENU > INFO.
+- Minor, not blocking: the proposed layout puts a lot in a 36 px rail and 13 px lines; legibility on the real panel is only provable on hardware (covered by H-RIG16).
+Awaiting owner: read HW_SUPPORT_LOWLEVEL.md sections 4 and 7 and answer owner questions A..H ("Approved: <name> <date>").
