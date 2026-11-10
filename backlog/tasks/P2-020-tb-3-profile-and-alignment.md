@@ -53,3 +53,12 @@ python3 tests/design/check_help.py -> OK: 392 help rows, 2695 strings measured
 python3 tools/backlog.py index && check -> 115 items, 0 errors
 ```
 For the reviewer: homes (RESO 40, EFFEC 0, others 64) are [I] placeholders until H-RIG2; the vendor map is a SysEx map with CC annotations (0..255), not a receive-CC table, so CC functions from a host are [I] until H-RIG1; provenance level set to 1. Level was not set to 2 because the CC functions were not heard.
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS on all checkable criteria; gate is human-review, so the task stays at `review`.
+Re-run: check_scenarios.py OK (22 files, 490 rows), check_help.py OK (392 rows), backlog index/check 115 items 0 errors. Not run (design-only): check.sh, build.
+Checked: every row of TB3_PROFILE.md section 2 carries [V-doc]/[I]; CSV-only CCs (1, 11, 68, 69, 102, 103) are excluded and tb3.tsv header says nothing is copied; decisions 104/105 applied (acc VEL/100, slide OVERLAP/0, flat vel 90); names all <= 5 letters with probe widths; provenance src/how/cred/level/date filled (src/how/cred within 24 chars); H-tests incl. accent threshold and overlap listed with pass criteria; S21 renamed consistently. Scope: only the four deliverables plus backlog files changed. I did not re-read the Roland PDF; the CC numbers rest on the executor's quoted extract.
+Minor, non-blocking:
+- TB3_PROFILE.md section 4 defers "accent on a slide destination is inaudible" to a P4 UI note. The ACC form on CUT still opens the filter on such a note (it is a CC, not velocity), so the lane design is fine, but a sentence saying so would close the point.
+- HW_SUPPORT_LOWLEVEL.md lines 399-449 still show the old ENV/TUNE placeholder mockups (out of scope here; update in a later pass).
+Awaiting owner: confirm the wire choice (CUT/RESO/ENV-X/ENV-Y with ACC, WALK, RAMP, RAND-0), the placeholder homes (RESO 40, EFFEC 0), and that level 1 provenance and the H-RIG TB-3 sheet (section 10) are acceptable.
