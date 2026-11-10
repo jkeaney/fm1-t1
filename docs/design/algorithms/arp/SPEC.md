@@ -80,7 +80,7 @@ K2 FORM, K3 PITCH, K4 SPICE; S1 START, S2 ARTIC, S3 DYNAMICS, S4 READ). Every mo
 | 3 | K4 | `RATE` | 0..5 | 2 | `1/4` `1/2` `1X` `2X` `3T` `4X` | Notes per step (6.5): slower or faster than the global step | 1 table read |
 | 4 | S1 | `OFFSET` | 0..15 | 0 | number | Slides the figure along the bar by that many steps (lanes stay put) | 1 add |
 | 5 | S2 | `LEGATO` | 0..8 | 3 | number | Note length: gate % = `(20 + 10 x LEGATO)` before the ARTIC factor; 3 is the neutral 50 %, 8 is 100 % | 1 multiply |
-| 6 | S3 | `DYN` | 0..10 | 10 | number | Velocity depth by SP17: 10 the lane as diced, 0 flat 100 | SP17 |
+| 6 | S3 | `DYN` | 0..10 | 10 | number | Velocity depth by SP17: 10 the lane as diced, 0 flat 90 | SP17 |
 | 7 | S4 | `DIR` | 0..5 | 0 | `UP` `DOWN` `UPDN` `RAND` `ASPL` `CHORD` | Order of the pool (6.5) | per step |
 
 `knob_morph = {0,1,2,3,4,5,6,7}`. Steps: all `step 1, fast 1` (no range exceeds 32 values). K1 = 0 is `KEYS ONLY` by the UI rule of ADR-0003 4.1 (no algorithm code).

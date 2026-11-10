@@ -9,7 +9,7 @@ Design only. Replaces the mechanism list of SEQUENCER_UX 6.1 (FS1-FS4) with use 
 | --- | --- | --- |
 | CC 74 = CUTOFF, CC 71 = RESONANCE, CC 16 = ACCENT (the Accent amount), CC 17 = EFFECT, CC 12 / 13 = ENV MOD X / Y, CC 104 = TUNING; each is a 0..255 controller in the SysEx "Controller" map | [V] | Roland, *TB-3 MIDI Implementation* v1.10, 2014-07-04, "Parameter Address Map, Controller" (https://cdn.roland.com/assets/media/pdf/TB-3_MI_1.pdf; text extracted and read) |
 | CC 16 is the **amount** of the accent knob, not a per-note accent; the chart names no per-note accent message | [I] | same table (name only) |
-| Whether note-on velocity >= 100 triggers the TB-3 accent | ⚠ | Only the Behringer TB-03 is documented that way (forum posts found by search); the Roland chart I could read (SysEx only) says nothing on velocity. The existing design value `ACC_THR` 100 stands on this ⚠ |
+| Whether note-on velocity >= 100 triggers the TB-3 accent | [V] | verified by ear 2026-11-11 (decision 104): 80, 90, 95 do not accent, 100 and above do; threshold = 100 |
 | Slide by CC 102 and accent by CC 103 | ⚠ | one search snippet citing Roland update notes; conflicts with CC 16 above; not used here |
 | Slide from overlapping notes, receive range C0..C8 | ⚠ | search snippets, TB-03 and TB-3 mixed; not used here |
 | No aftertouch, pitch bend or CC absorbed per note | ⚠ | none appears in the chart I could read; assume the TB-3 ignores aftertouch |
@@ -17,7 +17,7 @@ Design only. Replaces the mechanism list of SEQUENCER_UX 6.1 (FS1-FS4) with use 
 
 Consequence: the only force result that is certain to change the TB-3 sound without a CC is **which steps get the accent and how many notes play**. Velocity-as-level matters on the TB-3 only through the accent threshold, which the HT-FORCE gate must confirm by ear (item H0).
 
-**Risk to raise:** the generators write a flat velocity 100 (TIMING_SPEC 424, snake dyn 0). If the TB-3 accent threshold is 100, every generated note accents. H0 decides; if it is 100, the flat value moves to 90 in the algorithm tasks (not this task). Written REC notes and the fallback now use 90 (see 7).
+**Resolved (decision 104):** the TB-3 accent threshold is 100 (verified by ear 2026-11-11), so the generators' flat velocity is 90 (TIMING_SPEC, snake/arp/patterns dyn 0). Written REC notes and the fallback use 90 (see 7); HARD 120 accents, MED 90 does not.
 
 ## 2. The use cases, ranked
 
@@ -53,11 +53,11 @@ All run on the **selected channel's MIDI channel** (the TB-3 on 2 by default). "
 ### UC4 "Play the line in with feel" (REC dynamics). Was FS4. Rank 4
 
 - **Gesture:** in REC, play any of F3..C5 (20 keys) soft, medium or hard.
-- **Sound:** the recorded line has dynamics: ghost notes, normal notes, accents. TB-3: soft and medium both play unaccented (⚠ pending H0), hard accents. Poly: three loudness levels.
+- **Sound:** the recorded line has dynamics: ghost notes, normal notes, accents. TB-3: soft and medium both play unaccented (verified by ear, decision 104), hard accents. Poly: three loudness levels.
 - **Change from before:** the landing force is **snapped to three levels, SOFT 64 / MED 90 / HARD 120**, not 1..127. The reference shows one chord's fingers reading 59/76/127/104 (KEYBED_EXPRESSION_REFERENCE 2); three levels absorb that noise and make the TB-3 result predictable.
 - **MIDI:** the live note and the written note use the level velocity. HARD = accent (>= `ACC_THR`).
 - **Screen:** the REC band shows `v MED 90` after each key.
-- **Fallback:** velocity 90 (was 100, which sits on the ⚠ accent threshold), or 120 with K2 ACC ON.
+- **Fallback:** velocity 90 (was 100, which is the verified accent threshold), or 120 with K2 ACC ON.
 - **Why it works:** edges are fractions of each key's calibrated range (section 6); the value is visible after the key, and an unwanted level is fixed by NOTE_EDIT `K3`.
 
 ### UC5 "Swell the held chord" (REC aftertouch, poly synths only). New. Rank 5
@@ -121,7 +121,7 @@ All run on the **selected channel's MIDI channel** (the TB-3 on 2 by default). "
 
 | ID | Test | Pass |
 | --- | --- | --- |
-| H0 | Send note-ons at velocity 80, 99, 100 and 120 on ch 2 | Find where the TB-3 accent starts; record it. If it is not 100, `ACC_THR` and `ACC_VEL` change |
+| H0 | Send note-ons at velocity 80, 99, 100 and 120 on ch 2 | DONE 2026-11-11 (decision 104): accent starts at 100; `ACC_THR` 100 and `ACC_VEL` 120 stand |
 | H1 (UC1) | Hard-tap 10 steps in a running line with the PERF LEDs lit | The accent is audible on >= 9 of 10 hard taps; no soft tap accents |
 | H2 (UC2) | Lean on FILL through a bar | The pattern audibly gets busier in two distinct amounts; release restores it within one step |
 | H3 (UC3) | Lean on ROLL: 2x, 3x, 4x | Each reached on purpose in >= 8 of 10 tries; an accented step keeps one accent only |

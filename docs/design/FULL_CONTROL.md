@@ -218,7 +218,7 @@ SWING, GATE; the pace direction stays a seeded per-hit draw); P-locks (replaced 
 | K4 | `PATH` | `shp` | 1..14 | 7 | 1 / 1 | `order[]` from `SHAPE[shp]` | unchanged |
 | S1 | `OFFSET` | `off` | 0..15 | 0 | 1 / 1 | `u = t + off` for all three lanes | snake-algorithms 06 section 6.3 Steps Shift |
 | S2 | `GLEN` | `gl` | 1..16 | 16 | 1 / 1 | gate lane length: `hit = g[u mod gl]`, `g[j] = gate[order[j]]` for `j < gl`; if none set, `g[0] = 1` | snake-algorithms 02 per-lane length (cut as "a free Gate-lane length" in snake.md 6) |
-| S3 | `DYN` | `dyn` | 0..10 | 10 | 1 / 1 | `vel = clamp(100 - ((100 - v) * dyn) / 10, 1, 127)` (SP17) | snake-algorithms 02 velocity lane range |
+| S3 | `DYN` | `dyn` | 0..10 | 10 | 1 / 1 | `vel = clamp(90 - ((90 - v) * dyn) / 10, 1, 127)` (SP17) | snake-algorithms 02 velocity lane range |
 | S4 | `DIR` | `dir` | 0..2 | 0 | 1 / 1 | pitch lane index `cp = order[dir_map(u, len, dir)]` (SP16); the gate and velocity lanes read forward | snake-algorithms 02 per-lane Direction (5 modes; the deterministic ones are kept as FWD, BWD, PEND) |
 
 Still cut, with reason: per-lane Speed 32n..2n (global DIV; polymeter comes from LEN, GLEN and the dice POLY);

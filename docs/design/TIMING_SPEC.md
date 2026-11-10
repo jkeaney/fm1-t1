@@ -421,7 +421,7 @@ Cue strip: `WAIT FOR HOST START  PLAY=cancel` (32 characters, 198 px) while arme
   never different from what ships, and the test image exercises the *production* timing path: only the pattern and the
   counters are test code.
 - **What it plays** (no algorithm, no random, no swing, no morph): channel 1, MIDI channel 1, one note `60` (C4),
-  straight **1/16 notes** (4 per beat), gate 50 %, **velocity 100, and velocity 127 on step 1 of each bar** (the bar
+  straight **1/16 notes** (4 per beat), gate 50 %, **velocity 90 (non-accent, decision 104), and velocity 127 on step 1 of each bar** (the bar
   marker the tool aligns on; nothing else varies). BPM **120** by default; SET K1 steps it through 60, 90, 120, 180,
   240 (the tool's sweep). Pattern length 16, one bar. It starts on PLAY, nothing else is needed.
 - **Send or follow:** the same image does both by the AUTO rule (section 4): with no clock input it is INT master and

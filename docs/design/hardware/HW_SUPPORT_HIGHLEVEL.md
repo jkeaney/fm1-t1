@@ -326,7 +326,7 @@ from our own tests on the hardware, and to cite midi.guide only as a cross-check
 | Claim | Status | Source |
 | --- | --- | --- |
 | The TB-3 responds to CC 74 (cutoff), 71 (resonance), 16 (accent), 17 (effect), 12 / 13 (env mod X / Y), 1 / 11 (XY), 68 / 69 (scatter), 104 (tuning), 102 / 103 (pattern slide / accent) | **[V]** that these appear in the midi.guide table and in the CDM article; **(warning)** that every one works as a *receive* on every firmware | `tb3-midi-guide.csv`; CDM (the author calls the list unofficial and possibly incomplete) |
-| The note velocity decides the TB-3 accent | **(warning)** existing hypothesis H0 (threshold near 100), decision 95: tested by ear in the P0-005 session | OWNER_QUESTIONS 95; KEYBED_USE_CASES |
+| The note velocity decides the TB-3 accent | **[V]** verified by ear 2026-11-11 (decision 104): threshold = 100, 80/90/95 do not accent | OWNER_QUESTIONS 95; KEYBED_USE_CASES |
 | TB-3 slide can be produced from MIDI notes (overlapping notes) | **(warning)** unconfirmed; the existing core assumes the 303-style overlap (ADR-0003 7.3) | no source |
 | "You can't transmit slide changes when playing patterns; slide is recorded in step mode but not in real time" | **[V]** that the CDM author says so and says Roland confirmed it; **[I]** that it describes the TB-3 as a *sender* (recording out), not whether it *accepts* slide from incoming notes | CDM article |
 | CC 102 / 103 (pattern slide / accent) act on the TB-3's internal pattern, not on incoming notes | **[I]** from the names | `tb3-midi-guide.csv` |

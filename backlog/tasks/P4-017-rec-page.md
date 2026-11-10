@@ -13,7 +13,7 @@ gate: none
 Live step recording: all 27 keys play and write notes, cursor when stopped, nearest step when playing.
 
 ## Read first
-- docs/design/SEQUENCER_UX.md §2.5, §5 (U54, U67), §6.1 FS4 fallback (velocity 100, or 120 with K2 ACC)
+- docs/design/SEQUENCER_UX.md §2.5, §5 (U54, U67), §6.1 FS4 fallback (velocity 90, or 120 with K2 ACC)
 - docs/design/SCREEN_SPEC.md (zones and mock-ups for this page)
 - docs/design/page_states.tsv, button_modes.tsv, knob_map.tsv, key_map.tsv, help_text.tsv (rows for this page)
 - docs/design/scenarios/ (the scenario steps cited in the criteria)

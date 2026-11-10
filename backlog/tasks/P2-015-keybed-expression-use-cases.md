@@ -67,3 +67,6 @@ python3 tools/backlog.py check
 
 ### 2026-11-11 orchestrator
 - Approved: owner 2026-11-11 (open-items 4): design locked with four use cases (UC1-UC4). UC5 (REC channel aftertouch) PARKED to v2; get the core workflow working first. H0 (TB-3 accent threshold by ear) runs in the flash session (open-items 5A).
+
+### 2026-11-11 decision 104 follow-up
+- H0 verified by ear: TB-3 accent threshold = 100, so flat non-accent velocity 100 became 90 (SP17 dyn_vel base, snake/arp/patterns dyn 0, TIMING_SPEC, P4-017/P4-019 text). Accent 120, ROLL cap 90, REC fallback 90 and SOFT 64 / MED 90 / HARD 120 stay consistent. Docs/tasks only; no golden values changed.

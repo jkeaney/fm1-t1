@@ -98,7 +98,7 @@ Fields of an edit, each independently AUTO or set:
 | `PITCH` | 0..96 semitones above `36 + KEY` (stored unsnapped) | snapped to the global scale at play time (SP6), so a SCALE change re-snaps reversibly; AUTO: the generated note |
 | `OCT` | -2..+2 | added to the resolved pitch (AUTO pitch too: an octave edit on an AUTO pitch follows NOTES dice) |
 | `GATE` | 10..100 % of a step, or TIE | multiplied by the global GATE like the generated gate (50 % neutral); TIE holds into the next sounding step (after the last step, across the loop end into step 1, like SLIDE; 9.2) |
-| `VELO` | 1..127 | >= `ACC_THR` 100 is an accent on the TB-3 (shown `ACC`) |
+| `VELO` | 1..127 | >= `ACC_THR` 100 is an accent on the TB-3 (shown `ACC`); threshold verified by ear 2026-11-11, decision 104 |
 | `RATCH` | 1x..4x | repeats inside the step (SP5 spacing); AUTO: the generated repeats |
 | `SLIDE` | ON, OFF | **this note glides into the next step** (step p+1; after the last step, step 1: TB-303 rule); if that step does not sound (OFF, chance drew silent, muted) there is no glide and the note plays its own gate; the core turns it into the slide pairing of ADR-0003 7.3 (9.2) |
 | `PROB` | 100 %, 50 % (`PROB_LOW`) | at 50 % the step plays on a deterministic draw per pass (9.3) |
@@ -708,7 +708,7 @@ Run on the owner's FM-1 with a debug readout page (built for the test, removed a
 | G5 latency | in DRIVE mode: REC note-on within 8 ms of key-down and note-off within 6 ms of release (scope or USB-MIDI timestamp); pull-up mode: within 6 ms |
 | G6 pressure | in DRIVE mode: ROLL 2x / 3x / 4x reached on purpose >= 80 % of tries; FILL halfway / maximum distinguishable |
 | G7 REC levels | 16 notes (4 soft, 8 medium, 4 hard) on each of 6 force keys: >= 85 % land in the intended level (H4) |
-| H0 TB-3 accent | note-on velocities 80 / 99 / 100 / 120 on ch 2 played to the TB-3: the accent threshold is found by ear and recorded (`ACC_THR` follows it) |
+| H0 TB-3 accent | verified by ear 2026-11-11 (decision 104): 80, 90, 95 do not accent, 100 and above do; threshold = 100 (`ACC_THR` 100). Flat non-accent velocity is 90 |
 
 Fail of G1 or G2: FS1 and FS4 stay off (`FORCE OFF`), FS2 / FS3 may ship if G6 passes. Fail of G5 or G6 in DRIVE
 mode: the scan stays in pull-up mode, FS2 / FS3 use their fallbacks, FS1 / FS4 are re-run on G1 / G5 in pull-up mode.

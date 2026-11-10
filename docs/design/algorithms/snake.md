@@ -229,8 +229,8 @@ Let `u = t + off` (OFFSET `off` 0..15). Playback in 6.3 becomes:
 2. **Pitch lane (DIR `dir` 0 FWD, 1 BWD, 2 PEND).** `cp = order[dir_map(u, len, dir)]` (SP16); the gate and velocity
    lanes always read forward.
 3. **Velocity lane (DYN `dyn` 0..10, default 10).** `cv = order[u % vlen]`; `velocity = dyn_vel(vel[cv], dyn)` (SP17):
-   `clamp(100 - ((100 - v) * dyn) / 10, 1, 127)`, division truncating toward zero. `dyn = 10` is the original `v`; `dyn = 0`
-   is a flat 100.
+   `clamp(90 - ((90 - v) * dyn) / 10, 1, 127)`, division truncating toward zero. `dyn = 10` is the original `v`; `dyn = 0`
+   is a flat 90 (decision 104: below the TB-3 accent threshold 100).
 Pins (6.5) are keyed to `t % 16` and ignore OFFSET and DIR. The cache gains `gl`, `off`, `dir` and the `g` bits.
 
 ### 6.4 Channel RAM and CPU
@@ -265,7 +265,7 @@ step.
 
 ### 6.6 Flex points (ADR-0004 addendum): what is a table edit, what is not
 
-- ROW 2 (P1-013): which knob slot drives OFFSET, GLEN, DYN, DIR (`knob_morph[8]`), their ranges and defaults, the flat velocity 100 of `dyn = 0`.
+- ROW 2 (P1-013): which knob slot drives OFFSET, GLEN, DYN, DIR (`knob_morph[8]`), their ranges and defaults, the flat velocity 90 of `dyn = 0`.
 Remappable by editing a table row, no algorithm code change:
 - Which knob drives which morph (K1..K4 <-> PATH/LEN/DENS/RANGE), each morph's label, range, default.
 - Which physical button dices which layer, and the gesture for dice-all and undo-dice.

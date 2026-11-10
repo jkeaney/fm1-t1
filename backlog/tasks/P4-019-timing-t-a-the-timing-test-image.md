@@ -18,7 +18,7 @@ A separate firmware image that plays a fixed pattern and prints timing counters,
 - build.sh (flags, output names)
 
 ## Deliverable
-- `FELUCCA_TIMING_TEST` flag: fixed pattern (channel 1, note 60, 1/16, gate 50 %, velocity 100 and 127 on step 1 of each bar), SET K1 steps 60/90/120/180/240 BPM, counters on the CDC console as listed
+- `FELUCCA_TIMING_TEST` flag: fixed pattern (channel 1, note 60, 1/16, gate 50 %, velocity 90 and 127 on step 1 of each bar), SET K1 steps 60/90/120/180/240 BPM, counters on the CDC console as listed
 - `TIMING_TEST=1 ./build.sh` writes build/felucca_timing_test.fwsc; the normal build is byte-identical with and without this task's code compiled out (compare image size and a hash of the normal image's code section to before)
 
 ## Acceptance criteria
