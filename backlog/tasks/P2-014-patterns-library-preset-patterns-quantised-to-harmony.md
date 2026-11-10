@@ -23,6 +23,12 @@ New algorithm PATTERNS: rather than a generator it is a preset pattern library t
 - docs/design/HARMONY.md (from P2-012)
 - docs/design/ALGORITHM_SET.md and docs/design/SEQUENCER_UX.md (how a channel's pattern is stored, steps/pages)
 
+### Addition (owner, 2026-11-10): research first, two kinds of pattern
+The task starts with a research step, recorded in docs/design/algorithms/patterns/RESEARCH.md:
+1. **Reference patterns:** the best-known patterns per type (acid, bass, melody, etc.) as researched from external sources (books, tutorials, well-known pattern collections, the TB-303/TB-3 community). Record each with its source (a link or citation) and what makes it a classic. These are references for study and for checking our work; do not copy a protected melody into the library. Where a pattern is a famous recording, describe its idiom (rhythm, degree shape, accent and slide placement) in generic terms only.
+2. **Common patterns:** the widely used generic patterns per type (for example offbeat bass, root-fifth-octave bass, 16th acid with slides on weak steps, walking bass, call-and-answer melody, rising/falling sequences) that we ship as the starting point. These are our own generic idioms, written as degree-relative data.
+Each shipped pattern is **built to be morphed and tuned**: mark in the data which steps are structural (anchors that hold the identity) and which are decoration (ghost notes, ornaments, slides), so the algorithm's morph can thin, thicken, shift or vary the decoration without destroying the pattern, and the tune/variation dials (density, octave span, accent, slide amount, chord-tone bias) have defined effects. Provide golden cases for morph at min/mid/max on at least one pattern per category.
+
 ## Deliverable
 - docs/design/algorithms/patterns/SPEC.md: categories (confirm the list with the owner: ACID, BASS, MELODY, plus proposals such as ARP-like, RHYTHMIC, PADS), 20 patterns per category chosen as the best-known idioms, each described as degree-relative data (step, scale degree or chord-tone index, octave, gate, accent, slide, tie) so it transposes to any key/scale/chord
 - The authoring rule that avoids copying any copyrighted melody: patterns are generic idioms and rhythms, not transcriptions of songs (state the rule and how it is checked)
@@ -32,6 +38,9 @@ New algorithm PATTERNS: rather than a generator it is a preset pattern library t
 - TSV table additions, help_text.tsv, L rubric score, scenario S20, ALGORITHM_SET.md update
 
 ## Acceptance criteria
+- [ ] RESEARCH.md lists reference patterns with sources for every category, and separately the common starter patterns
+- [ ] Every shipped pattern marks anchor versus decoration steps, and morph/tune behaviour has golden cases
+- [ ] No shipped pattern is a transcription of a protected melody (check recorded in the log)
 - [ ] 20 patterns for each confirmed category listed in a TSV the prototype and firmware can read
 - [ ] Every pattern passes a scale/range check in all 12 keys for the supported scales (script in tests/design)
 - [ ] Storage cost stated and within budget, or an overrun and proposal given
