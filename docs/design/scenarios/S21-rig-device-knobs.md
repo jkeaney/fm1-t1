@@ -1,5 +1,7 @@
 # S21: RIG: pick a device, let the sequencer play one knob, hand-turn another, take it back (P2-019)
 
+> **SUPERSEDED (P2-022, decision 107): the wire / RIG / ROW 3 design below is replaced by the modulation layer in [MODULATION.md](../MODULATION.md). Kept as history; do not build from it. What survives is listed in MODULATION.md 5.3.**
+
 HW_SUPPORT_LOWLEVEL 4 (screens), 3 (engine) and 2 (profiles), HW_SUPPORT_HIGHLEVEL 2 and 9, decisions 97-100. Start: stopped, CH1 ACID MIDI 2 (the TB-3), CH2..CH4 muted, no device on any channel, ROW 1 live (the two-row band of S02), BPM `INT 120`, DIV 1/16, CH1 LENGTH 16. Notation as S19. A CC out is written `B1 cc vv` (hex: `B1` = control change on MIDI channel 2, `4A` = CC74, `47` = CC71). **The device name TB-3, its four wires (CUT CC74 home 64, RESO CC71 home 40, ENV-X CC12 home 64, ENV-Y CC13 home 64) and their layer, form and MOVE defaults are the TB-3 profile of docs/design/hardware/TB3_PROFILE.md (P2-020; CC numbers from the vendor MIDI chart, homes are [I] until H-RIG2).** Lane values: `value = LEVEL + lane x MOVE / 127`; CUT is on form ACC with MOVE 48, so an accented step sends LEVEL + 48 and any other step LEVEL - 48; a value equal to the last one sent is not sent again.
 
 | Step | User action | Exact screen text | MIDI out | Row ids |

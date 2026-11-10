@@ -1,5 +1,7 @@
 # HW_SUPPORT_LOWLEVEL: the hardware support model, phase 2 (low-level design)
 
+> **SUPERSEDED (P2-022, decision 107): the wire / RIG / ROW 3 design below is replaced by the modulation layer in [MODULATION.md](../MODULATION.md). Kept as history; do not build from it. What survives is listed in MODULATION.md 5.3.**
+
 Task P2-019 (owner decision 96; phase 1 approved 2026-11-11 as decisions 97-100). Status: **for owner review** (gate `human-review`).
 Design only: no firmware. The table rows of section 5 are real and checked (`check_scenarios.py`, `check_help.py`,
 `tools/check_sequencer_ux.py` pass). The TB-3 specifics (wire list, lane mapping, accent and slide behaviour) are phase 3, task P2-020;

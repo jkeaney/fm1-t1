@@ -3,7 +3,7 @@ id: P2-022
 title: Modulation layer redesign: per-algorithm mod lanes and 4-slot control setup
 phase: P2
 type: task
-status: todo
+status: review
 priority: 1
 executor: sonnet
 depends_on: []

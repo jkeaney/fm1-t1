@@ -269,3 +269,22 @@ S	204	SET WET: CUT EFFEC SCTYP SCDEP	RIG status line 1 after a set apply
 S	204	SCTYP + SCDEP WORK AS A PAIR	RIG status line 2 after a set apply
 S	204	CC68  #4 OF 8  SPREAD 2 ZONES	RIG status line 1, SEL wire
 S	204	RIDE -  PAIRS WITH SCDEP	RIG status line 2, linked wire
+# ---- P2-022 (modulation layer: the MOD page, ROW 3 redesigned; docs/design/MODULATION.md section 6); limits as the rows above
+S	204	MOD CH1  TB-3  4 SLOTS	MOD page banner
+S	240	K PICK  h:OCT+ DEPTH  h:OCT- LEVEL	MOD page cue (default line PICK)
+S	240	K DEPTH: 0 = THE DEVICE KNOB IS YOURS	MOD page cue (OCT+ held)
+S	240	K LEVEL: THE CENTRE WE SWING AROUND	MOD page cue (OCT- held)
+S	240	ALGO = DEVICE  NONE GENERIC TB-3	MOD page cue (device list, 2 s)
+S	38	ENV-X	slot name
+S	38	ENV-Y	slot name
+S	38	CUT	slot name
+S	38	RESO	slot name
+S	204	CC74 CUTOFF  LEVEL 64  DEPTH 48	MOD page status line 1 (long name in the device's words)
+S	204	STEP LANE A  LEANS ON ACCENTS	MOD page status line 2, lane A slot
+S	204	SWEEP LANE B  16 STEPS	MOD page status line 2, lane B slot
+S	204	SCTYP TAKES SLOTS 3 AND 4	MOD page toast, linked pair
+S	204	MOD FULL: 8 ACTIVE	MOD page toast, active-slot cap
+S	204	DEPTH 0: THE KNOB IS YOURS	MOD page toast, depth reaches 0
+S	204	LFO: SHAPE + MOD DICED	dice toast on the LFO button
+S	38	D127	MOD page cell value line (DEPTH)
+S	38	L127	MOD page cell value line (LEVEL)

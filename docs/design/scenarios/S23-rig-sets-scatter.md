@@ -1,5 +1,7 @@
 # S23: RIG: pick the WET wire set, drive the scatter select by hand and by the HITS dice, swap one wire from the palette (P2-021)
 
+> **SUPERSEDED (P2-022, decision 107): the wire / RIG / ROW 3 design below is replaced by the modulation layer in [MODULATION.md](../MODULATION.md). Kept as history; do not build from it. What survives is listed in MODULATION.md 5.3.**
+
 HW_SUPPORT_LOWLEVEL 9 (profile v2: kinds, linked parameters, wire sets), [TB3_PROFILE.md](../hardware/TB3_PROFILE.md) sections 3, 12 and 13, decision 106. Start: stopped, CH1 ACID MIDI 2 (the TB-3 on channel 2), CH2..CH4 muted, the TB-3 already picked on CH1 with its first set BITE (all four wires HAND, as the end of S21 step 2), ROW 1 live, BPM `INT 120`, DIV 1/16, CH1 LENGTH 16. Notation as S21: `B1 cc vv`, `44` = CC68 (scatter type), `45` = CC69 (scatter depth). **The scatter type is a SELECT of 8 zones (placeholder, H-RIG20); zone n sends the CC at its centre: `#1` 08, `#2` 18, `#3` 28, `#4` 38, `#5` 48, `#6` 58, `#7` 68, `#8` 78 (hex).** The type is sent 150 ms after the last HAND detent and, on a SEQ wire, only on a bar line (768 ticks) and only when the zone changed; the zone is `base + (seed hash mod (spread + 1))`, spread = `(MOVE x 7 + 63) / 127` = 2 at MOVE 40. The exact zones a seed gives are fixed by the golden of P4-025; this walk gives the allowed set (`#4`, `#5` or `#6` for base `#4`). SCDEP is the continuous depth, ACC form MOVE 40: accented step = LEVEL + 40, any other step = LEVEL - 40, clamped to 0..127.
 
 | Step | User action | Exact screen text | MIDI out | Row ids |

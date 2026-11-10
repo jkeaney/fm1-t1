@@ -327,3 +327,5 @@ depends on a ⚠ claim: all unverified source behaviour (direction, swing, note 
 or replaced with a rule defined here. The residual risk is musical, not technical (random pitches are less
 bass-like than ACID, a point for hardware tuning by table edit), and the dropped Custom modulation lanes could return
 later as a CC lane.
+
+> P2-022 (decision 107): the dropped Custom modulation lanes (rows 34 and 95 above, and the "must not exist" list) return as **mod snake A and mod snake B**: two 4x4 grids read through the same traversal as the pitch lane (A) and the velocity lane (B), driving device parameters through the 4 slots. See [../MODULATION.md](../MODULATION.md) section 4.

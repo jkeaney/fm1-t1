@@ -1,6 +1,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # TB3_PROFILE: the Roland TB-3 profile (phase 3 of the hardware support model)
 
+> **SUPERSEDED (P2-022, decision 107): the wire / RIG / ROW 3 design below is replaced by the modulation layer in [MODULATION.md](../MODULATION.md). Kept as history; do not build from it. What survives is listed in MODULATION.md 5.3.**
+
 Task P2-020 (owner decision 96; model in [HW_SUPPORT_LOWLEVEL.md](HW_SUPPORT_LOWLEVEL.md), phase 2). Status: **for owner review** (gate `human-review`). Design and data only: no firmware. **Revised by P2-021 (2026-11-11, decision 106): all 11 CCs verified by ear; select and linked parameters; wire sets (sections 2, 3, 7-14).**
 The data file is [`tools/hwprof/tb3.tsv`](../../../tools/hwprof/tb3.tsv) (format of LOWLEVEL 2.4); `tools/gen_hwprof.py` arrives with P4-024.
 

@@ -1,5 +1,7 @@
 # HW_SUPPORT_HIGHLEVEL: the hardware support model, phase 1 (high-level design and UX)
 
+> **SUPERSEDED (P2-022, decision 107): the wire / RIG / ROW 3 design below is replaced by the modulation layer in [MODULATION.md](../MODULATION.md). Kept as history; do not build from it. What survives is listed in MODULATION.md 5.3.**
+
 Task P2-018 (owner decision 96, 2026-11-11). Status: **for owner review** (gate `human-review`). Design only: no firmware, no
 tests, no `control_map.tsv` rows (they are proposed in section 12). **Phase 1 only:** this is the model and the UX. The low-level
 design (wire formats, state machines, code) is phase 2; the TB-3 profile and its settings are phase 3. Nothing here is locked until
