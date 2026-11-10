@@ -21,7 +21,7 @@ HARMONY also has a small set of voicing dials, simple and mathematical, performa
 - MOVE (voice-leading distance): dials how far notes may jump between consecutive chords; low values keep common tones and move each voice the smallest step, high values allow full root-position jumps. This sets the difference between chords.
 - PEDAL: dials in a pedal tone, the one note held across the progression. The dial walks the pedal through candidate scale degrees (and octaves) so the producer finds the alignment by ear; show which degree it sits on and mark clashes with the current chord.
 
-
+## Read first
 - docs/project/VISION.md (rules 1-4) and docs/project/decisions/ADR-0004-design-lock.md
 - docs/design/SEQUENCER_UX.md, SCREEN_SPEC.md, ALGORITHM_SET.md and the TSV tables (page_states, button_modes, knob_map, key_map, control_map)
 - docs/project/decisions/ADR-0003-sequencer-core.md (ChanRT is 24 B; RAM headroom and pool budget in HANDOFF.md)
