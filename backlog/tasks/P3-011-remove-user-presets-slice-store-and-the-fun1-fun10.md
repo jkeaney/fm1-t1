@@ -37,6 +37,7 @@ sh tools/check.sh            # last line: CHECK PASS
 ```
 
 ## Out of scope
+- The dead parameter slots P_DIST..P_REV, P_SLCR..P_SLDEPTH, P_ITYPE..P_IMIX, G_RTYPE/G_RSIZE/G_RDAMP and mod.c MD_DIST..MD_REV (FB-002 C): renumbering the param table is the v2 params prune (SYSTEM_MAP row 10), not this task
 - Any subsystem SYSTEM_MAP marks KEEP or ADAPT beyond the caller edits named here
 - Behaviour changes to the T-1 path (P3-001's test must still pass)
 - Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).

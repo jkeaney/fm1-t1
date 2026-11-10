@@ -65,8 +65,9 @@ so prototype work overlaps the three parallel designs.
 | ID | Task | Model | Depends on |
 | --- | --- | --- | --- |
 | P3-001 | Host tests link the real seq/ui/T-1 sources (decision 42) | S | P2-005 |
-| P3-002 | Remove the fx effect buses and the slicer insert (R5, first) | H | P3-001 |
-| P3-003 | Remove the dead DIGITAL engine and the FM4 flag (R1) | H | P3-002 |
+| P3-002 | Remove the slicer insert (R5a, first) | H | P3-001 |
+| P3-014 | Remove the fx effect buses (R5b, second) | H | P3-002 |
+| P3-003 | Remove the dead DIGITAL engine and the FM4 flag (R1) | H | P3-014 |
 | P3-004 | Remove the web editor (R2) | H | P3-003 |
 | P3-005 | Menu rows 37 -> 28, T-1 always on (R3a) | H | P3-004 |
 | P3-006 | Remove the groovebox UI files and page code (R3b) | S | P3-005 |

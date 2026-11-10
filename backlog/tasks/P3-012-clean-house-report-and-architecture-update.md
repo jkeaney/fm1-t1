@@ -16,7 +16,7 @@ Record what P3 freed and leave CLAUDE.md describing the cleaned firmware, so P4 
 - docs/design/SYSTEM_MAP.md §9 (predicted bytes)
 - docs/design/inventory/ (the scripts that measured the inventory)
 - CLAUDE.md (Architecture section)
-- git log of P3-002..P3-011 (their Log build lines)
+- git log of P3-002..P3-011 and P3-014 (their Log build lines)
 
 ## Deliverable
 - docs/design/CLEAN_HOUSE_REPORT.md: a table of predicted vs measured flash/RAM/pool freed per removal step, the final build line, and the re-run inventory of ADAPT rows
