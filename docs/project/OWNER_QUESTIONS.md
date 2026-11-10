@@ -210,9 +210,9 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 82 | v1 has **six algorithms**: ACID, EUCLID, SNAKE, STAGE, ARP, PATTERNS (open-items 3A). E5 splits into two dev tasks; P2-013 and P2-014 must show the algorithm picker still fits the screen. |
 | 83 | Ableton Sync check on the JIANT FM port and the P0-005 TB-3 listening test: owner runs both together on 2026-11-11 on the build already flashed (open-items 4B, 5A). |
 | 84 | Keybed force sensing stays in v1 (open-items 6A), but needs **strong use cases**: what each gesture does to the sound, the input UX, and what it changes in the MIDI output. New design task P2-015 before P2-005. |
-| 85 | PATTERNS famous-song patterns (open-items 1B): ship the exact notes under style names (for example `FUNK 3`), never song titles; references only in RESEARCH.md. |
 | 85 | P2-012 | HARMONY default phrase length: A) 4 bars (`1---`), B) 5 bars to match the literal `1----`. Recommend A. OPEN |
 | 86 | P2-012 | HARMONY one-gesture page costs: the keys become chord keys (F3-E4 = 1-7), so "press any key = KEY" and the 27-key picture go (KEY is K2) and OCTAVE moves to OCT-/OCT+ on SET. A) accept, B) keep key-press = KEY on the 20 other keys. Recommend A. OPEN |
 | 87 | P2-012 | ACID's ROW 2 morph is also called `PEDAL`. A) keep both, B) rename the HARMONY one `DRONE`. Recommend A. OPEN |
 | 88 | P2-012 | FULL role is monophonic (contour mapped onto the voiced notes). A) monophonic in v1, B) polyphonic chords in v1 (grows `ChanRT.snd[2]` and the event queue). Recommend A. OPEN |
 | 89 | P2-012 | ROLE (OFF AUTO ROOT FULL) is a per-channel setting beyond VISION rule 3. A) accept as a harmony-page setting, B) drop it. Recommend A. OPEN |
+| 90 | PATTERNS famous-song patterns (open-items 1B): ship the exact notes under style names (for example `FUNK 3`), never song titles; references only in RESEARCH.md. |

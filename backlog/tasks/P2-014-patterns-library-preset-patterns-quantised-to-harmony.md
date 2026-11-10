@@ -20,7 +20,7 @@ The owner wants two families in the library, with the research choosing the fina
 - **Famous-song patterns:** the bass, acid and melody lines producers recognise and want to start from.
 - **Classic genre patterns:** house bass, funky bass, tech house bass, rolling bass, and the like (for example acid house, techno, electro, disco, garage/UKG, DnB/reese, minimal, dub, Italo and synth-pop arps). The research proposes the full list per category.
 
-Owner ruling (2026-11-10, decision 85): famous-song patterns **ship with their exact notes under style names** (for example `FUNK 3`, `HOUSE 2`), never under song titles. Song references appear only in RESEARCH.md. This overrides the earlier "generic idiom only" line in the research step above for famous-song patterns.
+Owner ruling (2026-11-10, decision 90): famous-song patterns **ship with their exact notes under style names** (for example `FUNK 3`, `HOUSE 2`), never under song titles. Song references appear only in RESEARCH.md. This overrides the earlier "generic idiom only" line in the research step above for famous-song patterns.
 
 The algorithm picker must still fit the screen with six algorithms (owner decision 82). Show the screen.
 
