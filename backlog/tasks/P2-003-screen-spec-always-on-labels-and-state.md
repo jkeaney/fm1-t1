@@ -82,3 +82,14 @@ Verification:
   - `python3 tools/check_control_map.py` -> `rows tsv=441 md=441` / `OK`
   - `python3 tools/backlog.py check` -> `40 items, 0 errors`
 Owner approval still pending (no Approved line).
+
+### 2026-11-10 review 2 (sonnet)
+Verdict: **PASS on content; gate human-review, so it stays at `review`.** Re-ran: `check_sequencer_ux.py` OK (pages=9, scored=69, exceptions=3), `check_control_map.py` OK (441=441), `backlog.py check` 40 items 0 errors. No Approved line written; no 20-minute suite run.
+All six previous findings verified fixed:
+1. ADR-0003 headings now 7.1, 7.2, 7.3, 7.4 (line 461) and a single `## 8` (line 470); `git diff 03f3710 HEAD` of the ADR is purely additive (change note, section 5 row, 7.4, flex row), no damage elsewhere.
+2. Tempo claims match firmware: midi_clock.c:65 `song.g[G_BPM] = clamp(.., 40, 240)` overwrite; first pulse only sets `tempo_valid` (midi_clock.c:~34-37), interval closed at `++tempo_n == 6` so BPM first computed on the 7th pulse; accepted dt 62..375 ms (lines ~44-45); seq.c:1410 `fm1_ms - last > 500u` inside `if (song.playing)` under `clock_mode`. SCREEN_SPEC 6.1 states all of this, and flags `clk_known` / `clk_seen` / `clk_live` as new dev requirements.
+3. Timeout arithmetic correct: 500 ms = 24 pulses at 120 BPM, 8 pulses at 40 BPM (62.5 ms each).
+4. PERF row 2: 50+48+43+42+28+22 = 233 + 6 x 1 padding = 239 <= 240; cells 51+49+44+43+29+24 = 240; row 1 cells 24+41+42+47+36+50 = 240, each >= label + 3. Mark saves 3 px (6 vs 9) stated honestly. Widths consistent with my earlier real-glyph measurement.
+5. Locked SET K1 restored (K1 inert in EXT; knob_map.tsv line 42 unchanged). The only TSV change in the whole task is additive screen text in page_states.tsv (PERF/SET screen fields); no locked decision altered. Alternative raised as owner question 5.
+6. MENU footer line, RESET `RST R1`/`RST R2` and `-` encoders, `CH n` in NOTE_EDIT and REC banners, 3 px group gap (LEG_X 42+20=62 -> 65) all present.
+Awaiting owner: read docs/design/SCREEN_SPEC.md (zones, PERF cell layout, section 6 tempo-source states, section 11 questions 3-5) and add an `Approved` log line. Notable owner decision: question 5 (keep the internal BPM separate from the host tempo; K1 stays inert during EXT).
