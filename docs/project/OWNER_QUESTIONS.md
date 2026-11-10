@@ -230,4 +230,5 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 101 | P2-019 | Hardware low-level design locked; questions A-H as recommended (ROW 3 via two OCT+ taps; MOVE on RIG page; compact non-live rows; DEV leaves values; 5-letter names; ride dot; mute parks SEQ wires; tap cycles / hold selects) | owner 2026-11-11 | decided |
 | 102 | P2-019 | fx-bus removal (P3-014) precedes preset storage; v1 keeps 16 slots (SQ_NSLOT=8 only a fallback) | owner 2026-11-11 | decided |
 | 103 | P2-020 | TB-3 specifics start after the H0 accent-threshold test | owner 2026-11-11 | decided |
+| 104 | P2-015 / H0 | TB-3 accent threshold measured by ear 2026-11-11 (notes at 80, 90, 95, 100, 105, 110, 120 on ch2): 80, 90, 95 do NOT accent; 100 and above DO. So velocity >= 100 accents. The flat non-accent velocity in the algorithms must be 90 or lower (not 100); accent stays 120 (or >= 100). [V] on this unit | owner 2026-11-11 | decided; design fix routed |
 
