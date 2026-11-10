@@ -78,3 +78,21 @@ python3 tools/check_control_map.py     -> rows tsv=441 md=441 / OK
 python3 tools/backlog.py check         -> 40 items, 0 errors
 ```
 Owner approval criterion left unticked (human-review gate).
+
+### 2026-11-10 review (sonnet)
+Verdict: PASS on design review. Left at `review`. Awaiting owner: read TIMING_SPEC section 0 and the section 11 questions (Q1 CLOCK menu row, Q2 clock lost while playing stops, Q4 host Start takes over, Q5 PLAY LED mid level, Q6 separate timing-test build), then write the Approved line. No Approved line written by the reviewer; no 20-minute suite (docs only).
+
+Re-run: check_sequencer_ux.py OK (control-rows=441), check_control_map.py OK (441/441), backlog.py check 0 errors.
+
+Verified against source:
+- CTL=32 (tools/gen_tables.py:14), FS=44100, HALF_FRAMES=128 (core.h:15), loop `for b += CTL` audio.c:116-120 gives 4 blocks per interrupt; events_block per block fx.c:929. 32/44100 = 0.7256 ms correct.
+- main.c:42-52: nested TIMER5 returns before usb_poll when in_audio, so the ADR-0003 7.1 "at most one block" claim is indeed wrong on the wire; correction is sound.
+- Clock arithmetic: 24e6/544 = 44117.647; ratio 1.000400; 24 ms per minute correct. The only evidence is the audio.c:9 comment and DAC_TICKS use, and the spec flags it unconfirmed and gives a test-image measurement; that is the right handling.
+- Start (midi_clock.c:13-18, t1_glue.c:117-118), 0xF8/FA/FB/FC only forwarded and SPP dropped (usb.c:821-824), BPM overwrite (midi_clock.c:65), fx.c:221 FS use: citations match.
+- R1: usb.c:5 does state all SIE access is in the TIMER5 handler; risk and fallback (release between audio interrupts, T1 becomes render time) are specified and gated by G6.
+- Jitter targets (T1 0.25 ms, T2 1.5 ms, T5 100 ppm etc.) numeric, each with a derivation, hard limit and current figure; gates G1-G7 have thresholds and run on the timing-test image (zero RAM in the normal build).
+- Locked UX: diff touches only page_states.tsv (PERF header and SET status text), SEQUENCER_UX 2.8 / header line / lock item 12; no knob_map/button_map change; SET K1 inert kept. Owner rulings (AUTO, own tempo kept, K1 inert in EXT, automatic clock out, PLAY waits, colour-coded blinking dots, test mode) are all present.
+
+Minor, non-blocking (fix when the owner next touches it):
+1. TIMING_SPEC.md:40 says cost "about 1 KB .bss" but the table at :518 totals "+0.6 KB"; reconcile.
+2. R1 reasoning: the spec should also state that audio can preempt a running usb_poll and TIMER5 must not re-enter it (guard) when the nested release is added; the dev task should test that, not only 85 % load.
