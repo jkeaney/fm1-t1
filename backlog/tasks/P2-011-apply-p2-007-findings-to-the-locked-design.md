@@ -68,3 +68,12 @@ $ grep -rEn 'TBD|choose|e\.g\.' docs/design/scenarios || echo clean
 clean
 ```
 Scores: U40 stays 2 gestures (score 10); the displacement adds no gesture, its undo is the existing EDIT tap; no score recomputed. No Approved line written; the last criterion (owner approval) is left unticked.
+
+### 2026-11-10 review (opus, reviewer)
+**Verdict: PASS (design review).** Awaiting owner: approval of the judgement calls below (no "Approved:" line written; gate human-review, status stays `review`).
+- Re-ran all verification: check_sequencer_ux, check_control_map, check_scenarios, check_help (343 rows), width_probe (110 strings, 0 over), backlog.py check (46 items, 0 errors): all green.
+- F-01..F-19, Q1..Q4: each has a status in FINDINGS and the fix is present (cue rows 10a/10b/5a in SEQUENCER_UX 11.2 and SCREEN_SPEC 6.6 agree; toast zone 2.7; H4/H5, MUTE n, KEYS, 48 (32) re-fitted; help_text.tsv; MENU row; R13/R16; ALGORITHM_SET 5.2). Grep finds no surviving stale 13a/13b, `KEYS ONLY`, `MIDI 2 MUTE`, `NO PAGE BEFORE` outside the historical FINDINGS/F6 records.
+- Owner decisions 65-76 untouched; 77/78 recorded; ADR-0003 (`sq_set_midi`, `UndoMidi`, preset validation) matches SEQUENCER_UX 4.4 and SCREEN_SPEC 2.2/2.7.
+- Extra rules: 0.6 s MIDI settle (commits also on leaving CHAN), H4 without `CH`, page-add sets FOLLOW off (consistent with 1.3/U34), renames 10a/10b/5a are sound and do not conflict with VISION or decisions 73/77.
+- Minor, non-blocking: SEQUENCER_UX 4.4 says the MIDI channel commits on 0.6 s stillness or leaving CHAN but not on PLAY or a page-button press from another page; the implementer should commit on any exit. No edits made to design docs.
+- Owner to decide: judgement calls (MIDI settle 0.6 s, `MUTE n` wording, row renames) and question 79 (empty preset slot; recommended option a).
