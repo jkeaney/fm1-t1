@@ -9,6 +9,13 @@ A UX-first **sequencer firmware** for the M-VAVE FM-1 (fork of Felucca 1.6 via t
 device boots straight into the new sequencer UI and works immediately. The groovebox is out of the v1 UI (decision 32b).
 Branch: `t1-hardware-bringup`, remote `origin` = jkeaney/fm1-t1. Pushed through `6bdf675`; see PAUSED below.
 
+## UPDATE 2026-11-11 (end of the Sonnet orchestrator's first session; read this before the older text below)
+- **Done this session:** P0-005 (TB-3 listening test, owner signed off), P2-013 ARP, P2-014 PATTERNS, P2-015 keybed (UC5 parked to v2), P3-001, P4-008, and the whole hardware-support design: P2-018 (high level, Option B), P2-019 (low level), P2-020 (TB-3 profile). Decisions 92-106 are in OWNER_QUESTIONS.md.
+- **Measured on the owner's TB-3 (ch2, USB, via tools/fm1_bridge.py or direct rtmidi):** velocity >= 100 accents (flat velocity is now 90, decision 104); slide = overlap, accent on a slide destination is inaudible (105); all 11 CCs work incl. 68 scatter type (a mode SELECT, linked to 69 depth) (106). FM-1 runs `FM-1_900`, port "JIANT FM", no reflash was needed.
+- **In flight when this was written:** (a) planner agent `af7b6636e49f19387` fixing P3-002/P3-014 scope (FB-002 done; FB-003 open; it runs scratch host tests; uncommitted: backlog/feedback/FB-003-*.md and P3-002 log). If it is gone, re-dispatch a Sonnet planner on FB-003 with a compile-driven audit (see FB-003 and its FB-002 log). (b) designer `a025a0b5f0ad4886f` writing P2-021 (TB-3 profile v2: select kinds, linked params, which-of-11 alignment UX); then review it and bring the owner a sheet.
+- **Next:** P3-002 (slicer) -> P3-014 (fx buses) -> P3-003.. (removal chain, one task at a time), P2-008 prototype harness + ACID, P2-016/017 prototypes (ARP/PATTERNS and the hardware lanes need hooks, see P2-019 section 6), P4 timing tools. Ask the owner before every push (nothing pushed this session; branch is ahead of origin).
+- **Lessons:** never let two `tools/check.sh` run at once (shared build/); a Haiku task blocked on missing callers is a spec gap, route to a Sonnet planner not an escalation; hardware facts are tested live with rtmidi + `say` announcements and logged as decisions.
+
 ## START HERE (2026-11-10): a Sonnet orchestrator runs the plan
 - **Runbook:** docs/project/ORCHESTRATOR.md (loop, parallelism, Haiku-to-Sonnet escalation, gates, cost rules). **Map:**
   docs/project/PROGRAM_PLAN.md (every phase P2-P8, the critical path, budgets, risks). Every task to the release flash
