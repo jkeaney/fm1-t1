@@ -227,4 +227,7 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 98 | P2-018 | A channel may carry an optional device (RIG); amends VISION rule 3; inert with no device | owner 2026-11-11 | decided |
 | 99 | P2-018 | Profile data is our own (built-in table + GENERIC); midi.guide is a cited reference only. Docs and profiles say hardware is owned by its users, not the manufacturer, and credit community-gathered data with per-profile provenance | owner 2026-11-11 | decided |
 | 100 | P2-018 | Questions F-M accepted as recommended: STOP parks SEQ wires at LEVEL; 4 wires; undo = seeds only; no per-step lock in v1; chosen device starts wires in HAND; SEQ-wire cap 8; no REC of ROW 3 in v1; phase 2 = low-level design of the model and Option B | owner 2026-11-11 | decided |
+| 101 | P2-019 | Hardware low-level design locked; questions A-H as recommended (ROW 3 via two OCT+ taps; MOVE on RIG page; compact non-live rows; DEV leaves values; 5-letter names; ride dot; mute parks SEQ wires; tap cycles / hold selects) | owner 2026-11-11 | decided |
+| 102 | P2-019 | fx-bus removal (P3-014) precedes preset storage; v1 keeps 16 slots (SQ_NSLOT=8 only a fallback) | owner 2026-11-11 | decided |
+| 103 | P2-020 | TB-3 specifics start after the H0 accent-threshold test | owner 2026-11-11 | decided |
 

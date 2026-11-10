@@ -3,7 +3,7 @@ id: P2-019
 title: Hardware support model: low-level design (phase 2)
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: []
@@ -58,3 +58,6 @@ Verdict: PASS on the checkable criteria; gate is human-review, so the task stays
 - Owner condition 2 (hardware belongs to its users, provenance): met in 2.3 - the statement is written out, generator rules enforce provenance per profile, the CSV is never an input, midi.guide is cross-reference only, credits shown in MENU > INFO.
 - Minor, not blocking: the proposed layout puts a lot in a 36 px rail and 13 px lines; legibility on the real panel is only provable on hardware (covered by H-RIG16).
 Awaiting owner: read HW_SUPPORT_LOWLEVEL.md sections 4 and 7 and answer owner questions A..H ("Approved: <name> <date>").
+
+### 2026-11-11 orchestrator
+- Approved: owner 2026-11-11 (open-items 1A 2A 3B): design locked, questions A-H as recommended; fx-bus removal (P3-014) before preset storage so v1 keeps 16 slots; P2-020 held until the H0 accent test.
