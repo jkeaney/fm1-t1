@@ -3,7 +3,7 @@ id: P2-005
 title: Break phases P3–P6 into ready tasks (rolling-wave planning)
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P2-001, P2-002, P2-003, P2-004, P2-006, P2-007, P2-009, P2-010, P2-011]
@@ -56,3 +56,4 @@ python3 tools/backlog.py list --phase P3
 - Covers every P2-005 must-have: host-test link first (P3-001), fx-bus removal first (P3-002, decision 80), RAM line on every dev review (criterion in each dev task), TB-3 hardware gates (P3-013, P4-021, P4-022, P5-009, P6-007, P6-008, P7-004, P8-004), timing image + tool (P4-019, P4-008), clock out/AUTO/dots (P4-007, P4-009, P4-016), E5 split (decision 82), CHAN commit on any exit (P4-015).
 - Dev tasks whose design is not locked yet (ARP, PATTERNS, force) depend on the design task, so they become ready only after the owner locks it (ADR-0004).
 - `python3 tools/backlog.py check`: 0 errors. Awaiting owner approval of the plan.
+- Approved: owner 2026-11-10 (program plan, PROGRAM_PLAN.md and ORCHESTRATOR.md).
