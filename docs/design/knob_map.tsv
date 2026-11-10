@@ -48,7 +48,7 @@ SCALE	*	K2	KEY	global key: the scale and every chord move with it (also sounds t
 SCALE	*	K3	VOICE	voicing of every chord: 0 root only, 1 root and fifth, 2 plain triad (neutral), 3 seventh, 4 ninth, 5 open ninth, 6 wide; changes the chord tones every AUTO channel is pulled to and what FULL channels play	0..6, default 2
 SCALE	*	K4	MOVE	voice-leading distance between chords: 8 = every chord in root position (neutral), 0 = common tones kept and the smallest step per voice; changes FULL channels only	0..8, default 8
 REC	*	K1	CURSOR	move the write cursor one step per detent (stopped: the step sounds)	1..LENGTH, wraps
-REC	*	K2	ACC	written notes get ACCENT (velocity 120) when ON; with force sensing the landing force sets the velocity and ACC forces 120	OFF ON
+REC	*	K2	ACC	written notes get ACCENT (velocity 120) when ON; with force sensing the landing force picks the level (SOFT 64 / MED 90 / HARD 120) and ACC forces 120	OFF ON
 REC	*	K3	SLIDE	written notes get SLIDE when ON	OFF ON
 REC	*	K4	OCT	REC keyboard octave (also OCT- / OCT+)	-2..+2, default 0
 RESET	*	K1	RST	turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE P1 (reads page 1) / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes	-

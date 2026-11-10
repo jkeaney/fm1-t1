@@ -247,7 +247,7 @@ generated(p) = step(cache, g(p))  // each algorithm reduces g by its own loop (A
 | CHAN | as PERF | as PERF, `D#4` = BACK |
 | SET | as PERF | as PERF, `D#4` switches to CHAN |
 | SCALE (HARMONY) | white F3-E4 type chord degrees 1-7 (the KEY is K2 only); every other key inert | (inert) |
-| REC | all 27 keys play and write notes (F3..G5 + octave); force = velocity | (same) |
+| REC | all 27 keys play and write notes (F3..G5 + octave); force = level SOFT / MED / HARD | (same) |
 | RESET | tap = clear that step's edits | `D#4` = re-copy the page before; the rest inert |
 | HELP (HOME held) | explain on the page beneath | explain |
 | MENU | inert | inert |
@@ -337,7 +337,7 @@ are replaced by the progression strip and the chord keys; OCTAVE moved to OCT- /
 |> 120 P01  CH1 ACID M1  [1][2]. .  L32  |
 | REC  CH1  writing to page 2            |  red banner, REC LED lit
 | #  .  #  #  ^  .  #  .  ...            |  ^ = write cursor (stopped) or the playhead (playing)
-| CURSOR 5|ACC OFF |SLIDE OFF|OCT 0      |  one row; force on: last written velocity shown 'v 96'
+| CURSOR 5|ACC OFF |SLIDE OFF|OCT 0      |  one row; force on: last written level shown 'v MED 90'
 | KEYS = NOTES (all 27)  OCT-/OCT+ = OCT |
 | REC: PLAY KEYS TO WRITE  REC=done      |
 +----------------------------------------+
@@ -503,7 +503,7 @@ Force column: **F** = the key senses force (F3..C5: white W01-W12 and black B01-
 | B09 C#5 (MONO) | - | tap: PG- | none | - |
 | B10 D#5 (POLY) | - | tap: PG+ (last page: the prompt of 1.3: add a copy, show a hidden page, or complete a partial page; page 4 at LENGTH 64: toast `64 STEPS = MAX`, nothing changes) | none | - |
 | B11 F#5 | - | tap: RESTRT (all to step 1 at the next step) | none | - |
-| all 27 in REC | F on 20 | play and write | **landing force = written velocity** 1..127 | velocity 100, or 120 with `K2 ACC` |
+| all 27 in REC | F on 20 | play and write | **landing force = written level** SOFT 64 / MED 90 / HARD 120 | velocity 90, or 120 with `K2 ACC` |
 
 The other pages (section 1.7): NOTE_EDIT white keys tap ON/OFF and hold = move the editor (force accent as PERF);
 HARMONY (table id SCALE): F3-E4 = chord 1-7, the rest inert; RESET white = clear step, D#4 = re-copy the page before; HELP explain; MENU inert.
@@ -608,7 +608,7 @@ preview synth plays CH1 (ADR-0003). API names are ADR-0003 section 6 plus the ad
 | U64 | HOME tap | back to PERF (on PERF: cancel a prompt) | none | PERF; on PERF toast `HOME  hold: HELP / MENU` |
 | U65 | first power-on | strip steps 11.3 (step 1 `D#4 K2: MIDI CHANNEL` is a prompt for U40, not a new gesture); bit in `ui_prefs2` | - | strip text |
 | U66 | NOTE_EDIT K1 / REC keys | audition path | each detent / key sounds | value |
-| U67 | REC key with force | velocity = calibrated landing force | written note at that velocity | `v 96` |
+| U67 | REC key with force | level = calibrated landing force snapped to SOFT 64 / MED 90 / HARD 120; with `REC_AT` ON, pressing on sends channel pressure (FS5) | written note at that level; HARD is an accent | `v MED 90` |
 
 ## 6. Force sensing (Velo / CTL-1, in v1 with fallbacks)
 
@@ -625,7 +625,8 @@ reading of the keys beside it; the ADC is shared with the MASTER pot. The design
 | FS1 | PERF, NOTE_EDIT: white F3..C5 | **hard tap** turning a step ON = accent | landing velocity, 2 bins | `HARD` = the top quarter of that key's calibrated range -> `VELO` 120; else no VELO edit | NOTE_EDIT `ENV` / `K3 VELO`; keys D5..G5 always use it |
 | FS2 | PERF: black A#4 ROLL held | **lean** = more repeats | aftertouch in **DRIVE** mode (6.4), 3 bins with 10 % hysteresis | light 2x, medium 3x, firm 4x | 2x fixed |
 | FS3 | PERF: black G#4 FILL held | **lean** = denser | aftertouch in **DRIVE** mode (6.4), continuous, 30 ms smoothing | K1 + (max - K1) x pressure, light = halfway | maximum density |
-| FS4 | REC: F3..C5 (white and black) | **play harder = louder** | landing velocity, continuous 1..127, log curve | written `VELO`; >= 100 is an accent | velocity 100, or 120 with `K2 ACC` ON |
+| FS4 | REC: F3..C5 (white and black) | **play harder = a higher level** (P2-015) | landing force, 3 bins | SOFT 64 / MED 90 / HARD 120, written as `VELO`; HARD is an accent | velocity 90, or 120 with `K2 ACC` ON |
+| FS5 | REC: F3..C5, only with table flag `REC_AT` (default OFF, no menu row) | **keep pressing a held key = swell** (poly synths) | aftertouch in **DRIVE** mode | channel pressure `0xD0 p`, sent on a change of >= 8, at most one per 20 ms, never written to steps | flag OFF: no aftertouch |
 
 "Lean harder" needs Velo's **DRIVE** sensing mode: in the plain pull-up mode aftertouch only reads easing off from
 the landing floor, over a few counts to tens (KEYBED_EXPRESSION_REFERENCE 2), which cannot carry three bins. DRIVE
@@ -633,14 +634,19 @@ drives the row high through a weak pin driver on every other scan sample, so the
 and pressing past the landing reading is measurable. If DRIVE fails the gate (G3, G5 or G6), the scan stays in
 pull-up mode: FS1 and FS4 still work from the landing reading and FS2 / FS3 use their fixed fallbacks.
 
-Not used, with reasons: per-step ratchet / slide / chance amounts from force (aftertouch range too small to land a
-chosen value repeatably; the NOTE_EDIT knobs are exact); polyphonic aftertouch sent over MIDI (a sequencer, VISION
-rule 2; a later table flag could add it); release velocity (not sent by the reference either).
+The musical case for each gesture (sound, exact MIDI, TB-3 facts with sources, fallback, hardware tests H0-H5) is
+[KEYBED_USE_CASES.md](KEYBED_USE_CASES.md) (P2-015); FS1 = UC1, FS3 = UC2, FS2 = UC3, FS4 = UC4, FS5 = UC5. FS2 repeats:
+the first hit keeps the step velocity, the repeats play at `min(step velocity, 90)`.
+
+Not used, with reasons (reconsidered in KEYBED_USE_CASES 3): per-step ratchet / slide / chance amounts from force
+(aftertouch range too small to land a chosen value repeatably; the NOTE_EDIT knobs are exact); pressure as a CC such as
+the TB-3 cutoff (an absolute CC cannot be restored on release, and no force-capable black key is free); pressure to a
+morph or to a HARMONY dial (too few bins); release velocity (nothing uses it). Channel aftertouch is FS5 (REC only, OFF).
 
 Every force gesture is **visible before it counts**: FS1 shows `ACC` in the pressed cell while the key is down (the
 bin is fixed at landing, so lightening does not remove it; the tap acts on release, so keeping the key down past 0.4 s
 opens NOTE EDIT instead of toggling, and EDIT tap takes a toggle back); FS2 / FS3 read out `ROLL 3x` / `FILL 80%` live; FS4 shows the
-written velocity.
+written level (`v MED 90`); FS5 shows `AT 64` live.
 
 ### 6.2 Thresholds and calibration
 
@@ -701,6 +707,8 @@ Run on the owner's FM-1 with a debug readout page (built for the test, removed a
 | G4 CPU | scan ISR load +3 % at most; audio `felucca_dbg.max_us` within +5 % |
 | G5 latency | in DRIVE mode: REC note-on within 8 ms of key-down and note-off within 6 ms of release (scope or USB-MIDI timestamp); pull-up mode: within 6 ms |
 | G6 pressure | in DRIVE mode: ROLL 2x / 3x / 4x reached on purpose >= 80 % of tries; FILL halfway / maximum distinguishable |
+| G7 REC levels | 16 notes (4 soft, 8 medium, 4 hard) on each of 6 force keys: >= 85 % land in the intended level (H4) |
+| H0 TB-3 accent | note-on velocities 80 / 99 / 100 / 120 on ch 2 played to the TB-3: the accent threshold is found by ear and recorded (`ACC_THR` follows it) |
 
 Fail of G1 or G2: FS1 and FS4 stay off (`FORCE OFF`), FS2 / FS3 may ship if G6 passes. Fail of G5 or G6 in DRIVE
 mode: the scan stays in pull-up mode, FS2 / FS3 use their fallbacks, FS1 / FS4 are re-run on G1 / G5 in pull-up mode.

@@ -3,7 +3,7 @@ id: P2-015
 title: Keybed expression: use cases for velocity and pressure that change the sound
 phase: P2
 type: task
-status: todo
+status: review
 priority: 1
 executor: sonnet
 depends_on: [P2-012]
@@ -32,11 +32,11 @@ Keep force sensing in v1, but it needs really good use cases for how it elevates
 - Hardware-test checklist items for the HT-FORCE gate: one per use case, judged by ear on the TB-3.
 
 ## Acceptance criteria
-- [ ] Every shipped force gesture names its sound result, its MIDI output and its fallback, and scores at least L2
-- [ ] No gesture needs a finer reading than the hardware gives (the bins are justified against KEYBED_EXPRESSION_REFERENCE)
-- [ ] TB-3 MIDI facts carry sources and tags
-- [ ] TSV tables updated; `python3 tests/design/check_scenarios.py` and `python3 tools/backlog.py check` pass
-- [ ] RAM cost stated (target: no new per-step data)
+- [x] Every shipped force gesture names its sound result, its MIDI output and its fallback, and scores at least L2
+- [x] No gesture needs a finer reading than the hardware gives (the bins are justified against KEYBED_EXPRESSION_REFERENCE)
+- [x] TB-3 MIDI facts carry sources and tags
+- [x] TSV tables updated; `python3 tests/design/check_scenarios.py` and `python3 tools/backlog.py check` pass
+- [x] RAM cost stated (target: no new per-step data)
 - [ ] Design locked: owner line in the log
 
 ## Verification
@@ -49,3 +49,10 @@ python3 tools/backlog.py check
 - Firmware, and the calibration and LED-disturbance mechanics (section 6.2-6.3) unless a use case needs a change. List any change.
 
 ## Log
+
+### 2026-11-10 executor (sonnet)
+- Wrote docs/design/KEYBED_USE_CASES.md: 5 use cases (UC1 hard-tap accent, UC2 FILL lean, UC3 ROLL lean, UC4 REC 3-level dynamics, UC5 REC channel aftertouch, OFF), TB-3 CC facts from the Roland MIDI Implementation v1.10 [V], note-velocity accent threshold marked unconfirmed, reconsidered list, hardware checklist H0-H5.
+- Changes: REC force is now 3 levels SOFT 64 / MED 90 / HARD 120 (was continuous 1..127); REC fallback velocity 100 -> 90 because 100 equals ACC_THR; ROLL repeats play at min(step vel, 90); new FS5 (flag REC_AT, OFF); gate G7 and H0 added to 6.6. Edited SEQUENCER_UX 6, key_map/knob_map/control_map/page_states, CONTROL_MAP.md, scenarios S07, S14. help_text unchanged. RAM: no new per-step data.
+- Flag for the owner/reviewer: algorithms write a flat velocity 100 (TIMING_SPEC 424); if H0 shows the TB-3 accents at 100, those need 90 in an algorithm task. Calibration and LED sections 6.2-6.3 not changed.
+- `python3 tests/design/check_scenarios.py` -> 441 control-map rows, 0 with no scenario; `python3 tools/check_control_map.py` -> OK; `python3 tools/check_sequencer_ux.py` -> OK; `python3 tests/design/check_help.py` -> OK; `python3 tools/backlog.py check` -> 0 errors.
+- Design lock (owner line) still needed: criterion left unticked.

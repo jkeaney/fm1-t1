@@ -8,7 +8,7 @@ CHAN	KEY_W01_F3	hold	held 0.4 s: open NOTE EDIT on step 1 of the viewed page	EDI
 SET	KEY_W01_F3	tap	release under 0.4 s: step 1 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END	STEP	hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down	NOTE EDIT ENV (ACCENT) or K3 VELO
 SET	KEY_W01_F3	hold	held 0.4 s: open NOTE EDIT on step 1 of the viewed page	EDIT	-	-
 SCALE	KEY_W01_F3	tap	type chord 1: writes degree 1 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes	DEG	-	-
-REC	KEY_W01_F3	tap	play F3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_W01_F3	tap	play F3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_W01_F3	tap	clear every edit of step 1 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	-	-
 HELP	KEY_W01_F3	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_W01_F3	tap/hold	inert while the menu is open	-	-	-
@@ -21,7 +21,7 @@ CHAN	KEY_W02_G3	hold	held 0.4 s: open NOTE EDIT on step 2 of the viewed page	EDI
 SET	KEY_W02_G3	tap	release under 0.4 s: step 2 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END	STEP	hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down	NOTE EDIT ENV (ACCENT) or K3 VELO
 SET	KEY_W02_G3	hold	held 0.4 s: open NOTE EDIT on step 2 of the viewed page	EDIT	-	-
 SCALE	KEY_W02_G3	tap	type chord 2: writes degree 2 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes	DEG	-	-
-REC	KEY_W02_G3	tap	play G3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_W02_G3	tap	play G3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_W02_G3	tap	clear every edit of step 2 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	-	-
 HELP	KEY_W02_G3	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_W02_G3	tap/hold	inert while the menu is open	-	-	-
@@ -34,7 +34,7 @@ CHAN	KEY_W03_A3	hold	held 0.4 s: open NOTE EDIT on step 3 of the viewed page	EDI
 SET	KEY_W03_A3	tap	release under 0.4 s: step 3 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END	STEP	hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down	NOTE EDIT ENV (ACCENT) or K3 VELO
 SET	KEY_W03_A3	hold	held 0.4 s: open NOTE EDIT on step 3 of the viewed page	EDIT	-	-
 SCALE	KEY_W03_A3	tap	type chord 3: writes degree 3 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes	DEG	-	-
-REC	KEY_W03_A3	tap	play A3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_W03_A3	tap	play A3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_W03_A3	tap	clear every edit of step 3 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	-	-
 HELP	KEY_W03_A3	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_W03_A3	tap/hold	inert while the menu is open	-	-	-
@@ -47,7 +47,7 @@ CHAN	KEY_W04_B3	hold	held 0.4 s: open NOTE EDIT on step 4 of the viewed page	EDI
 SET	KEY_W04_B3	tap	release under 0.4 s: step 4 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END	STEP	hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down	NOTE EDIT ENV (ACCENT) or K3 VELO
 SET	KEY_W04_B3	hold	held 0.4 s: open NOTE EDIT on step 4 of the viewed page	EDIT	-	-
 SCALE	KEY_W04_B3	tap	type chord 4: writes degree 4 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes	DEG	-	-
-REC	KEY_W04_B3	tap	play B3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_W04_B3	tap	play B3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_W04_B3	tap	clear every edit of step 4 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	-	-
 HELP	KEY_W04_B3	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_W04_B3	tap/hold	inert while the menu is open	-	-	-
@@ -60,7 +60,7 @@ CHAN	KEY_W05_C4	hold	held 0.4 s: open NOTE EDIT on step 5 of the viewed page	EDI
 SET	KEY_W05_C4	tap	release under 0.4 s: step 5 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END	STEP	hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down	NOTE EDIT ENV (ACCENT) or K3 VELO
 SET	KEY_W05_C4	hold	held 0.4 s: open NOTE EDIT on step 5 of the viewed page	EDIT	-	-
 SCALE	KEY_W05_C4	tap	type chord 5: writes degree 5 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes	DEG	-	-
-REC	KEY_W05_C4	tap	play C4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_W05_C4	tap	play C4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_W05_C4	tap	clear every edit of step 5 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	-	-
 HELP	KEY_W05_C4	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_W05_C4	tap/hold	inert while the menu is open	-	-	-
@@ -73,7 +73,7 @@ CHAN	KEY_W06_D4	hold	held 0.4 s: open NOTE EDIT on step 6 of the viewed page	EDI
 SET	KEY_W06_D4	tap	release under 0.4 s: step 6 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END	STEP	hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down	NOTE EDIT ENV (ACCENT) or K3 VELO
 SET	KEY_W06_D4	hold	held 0.4 s: open NOTE EDIT on step 6 of the viewed page	EDIT	-	-
 SCALE	KEY_W06_D4	tap	type chord 6: writes degree 6 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes	DEG	-	-
-REC	KEY_W06_D4	tap	play D4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_W06_D4	tap	play D4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_W06_D4	tap	clear every edit of step 6 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	-	-
 HELP	KEY_W06_D4	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_W06_D4	tap/hold	inert while the menu is open	-	-	-
@@ -86,7 +86,7 @@ CHAN	KEY_W07_E4	hold	held 0.4 s: open NOTE EDIT on step 7 of the viewed page	EDI
 SET	KEY_W07_E4	tap	release under 0.4 s: step 7 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END	STEP	hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down	NOTE EDIT ENV (ACCENT) or K3 VELO
 SET	KEY_W07_E4	hold	held 0.4 s: open NOTE EDIT on step 7 of the viewed page	EDIT	-	-
 SCALE	KEY_W07_E4	tap	type chord 7: writes degree 7 at the cursor of the progression (the first key after opening or after NEW starts at chord 1; up to 8 chords; BARS grows to hold them) and sounds the chord on the selected channel's MIDI channel; EDIT tap undoes	DEG	-	-
-REC	KEY_W07_E4	tap	play E4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_W07_E4	tap	play E4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_W07_E4	tap	clear every edit of step 7 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	-	-
 HELP	KEY_W07_E4	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_W07_E4	tap/hold	inert while the menu is open	-	-	-
@@ -99,7 +99,7 @@ CHAN	KEY_W08_F4	hold	held 0.4 s: open NOTE EDIT on step 8 of the viewed page	EDI
 SET	KEY_W08_F4	tap	release under 0.4 s: step 8 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END	STEP	hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down	NOTE EDIT ENV (ACCENT) or K3 VELO
 SET	KEY_W08_F4	hold	held 0.4 s: open NOTE EDIT on step 8 of the viewed page	EDIT	-	-
 SCALE	KEY_W08_F4	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_W08_F4	tap	play F4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_W08_F4	tap	play F4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_W08_F4	tap	clear every edit of step 8 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	-	-
 HELP	KEY_W08_F4	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_W08_F4	tap/hold	inert while the menu is open	-	-	-
@@ -112,7 +112,7 @@ CHAN	KEY_W09_G4	hold	held 0.4 s: open NOTE EDIT on step 9 of the viewed page	EDI
 SET	KEY_W09_G4	tap	release under 0.4 s: step 9 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END	STEP	hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down	NOTE EDIT ENV (ACCENT) or K3 VELO
 SET	KEY_W09_G4	hold	held 0.4 s: open NOTE EDIT on step 9 of the viewed page	EDIT	-	-
 SCALE	KEY_W09_G4	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_W09_G4	tap	play G4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_W09_G4	tap	play G4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_W09_G4	tap	clear every edit of step 9 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	-	-
 HELP	KEY_W09_G4	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_W09_G4	tap/hold	inert while the menu is open	-	-	-
@@ -125,7 +125,7 @@ CHAN	KEY_W10_A4	hold	held 0.4 s: open NOTE EDIT on step 10 of the viewed page	ED
 SET	KEY_W10_A4	tap	release under 0.4 s: step 10 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END	STEP	hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down	NOTE EDIT ENV (ACCENT) or K3 VELO
 SET	KEY_W10_A4	hold	held 0.4 s: open NOTE EDIT on step 10 of the viewed page	EDIT	-	-
 SCALE	KEY_W10_A4	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_W10_A4	tap	play A4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_W10_A4	tap	play A4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_W10_A4	tap	clear every edit of step 10 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	-	-
 HELP	KEY_W10_A4	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_W10_A4	tap/hold	inert while the menu is open	-	-	-
@@ -138,7 +138,7 @@ CHAN	KEY_W11_B4	hold	held 0.4 s: open NOTE EDIT on step 11 of the viewed page	ED
 SET	KEY_W11_B4	tap	release under 0.4 s: step 11 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END	STEP	hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down	NOTE EDIT ENV (ACCENT) or K3 VELO
 SET	KEY_W11_B4	hold	held 0.4 s: open NOTE EDIT on step 11 of the viewed page	EDIT	-	-
 SCALE	KEY_W11_B4	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_W11_B4	tap	play B4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_W11_B4	tap	play B4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_W11_B4	tap	clear every edit of step 11 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	-	-
 HELP	KEY_W11_B4	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_W11_B4	tap/hold	inert while the menu is open	-	-	-
@@ -151,7 +151,7 @@ CHAN	KEY_W12_C5	hold	held 0.4 s: open NOTE EDIT on step 12 of the viewed page	ED
 SET	KEY_W12_C5	tap	release under 0.4 s: step 12 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END	STEP	hard tap turning a step ON = ACCENT (velocity ACC_VEL); the lane cell shows ACC while the key is down	NOTE EDIT ENV (ACCENT) or K3 VELO
 SET	KEY_W12_C5	hold	held 0.4 s: open NOTE EDIT on step 12 of the viewed page	EDIT	-	-
 SCALE	KEY_W12_C5	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_W12_C5	tap	play C5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_W12_C5	tap	play C5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_W12_C5	tap	clear every edit of step 12 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	-	-
 HELP	KEY_W12_C5	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_W12_C5	tap/hold	inert while the menu is open	-	-	-
@@ -164,7 +164,7 @@ CHAN	KEY_W13_D5	hold	held 0.4 s: open NOTE EDIT on step 13 of the viewed page	ED
 SET	KEY_W13_D5	tap	release under 0.4 s: step 13 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END	STEP	-	no force on this key: NOTE EDIT ENV / K3
 SET	KEY_W13_D5	hold	held 0.4 s: open NOTE EDIT on step 13 of the viewed page	EDIT	-	-
 SCALE	KEY_W13_D5	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_W13_D5	tap	play D5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	no force on this key	velocity 100, or 120 with K2 ACC ON
+REC	KEY_W13_D5	tap	play D5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	no force on this key	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_W13_D5	tap	clear every edit of step 13 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	-	-
 HELP	KEY_W13_D5	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_W13_D5	tap/hold	inert while the menu is open	-	-	-
@@ -177,7 +177,7 @@ CHAN	KEY_W14_E5	hold	held 0.4 s: open NOTE EDIT on step 14 of the viewed page	ED
 SET	KEY_W14_E5	tap	release under 0.4 s: step 14 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END	STEP	-	no force on this key: NOTE EDIT ENV / K3
 SET	KEY_W14_E5	hold	held 0.4 s: open NOTE EDIT on step 14 of the viewed page	EDIT	-	-
 SCALE	KEY_W14_E5	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_W14_E5	tap	play E5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	no force on this key	velocity 100, or 120 with K2 ACC ON
+REC	KEY_W14_E5	tap	play E5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	no force on this key	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_W14_E5	tap	clear every edit of step 14 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	-	-
 HELP	KEY_W14_E5	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_W14_E5	tap/hold	inert while the menu is open	-	-	-
@@ -190,7 +190,7 @@ CHAN	KEY_W15_F5	hold	held 0.4 s: open NOTE EDIT on step 15 of the viewed page	ED
 SET	KEY_W15_F5	tap	release under 0.4 s: step 15 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END	STEP	-	no force on this key: NOTE EDIT ENV / K3
 SET	KEY_W15_F5	hold	held 0.4 s: open NOTE EDIT on step 15 of the viewed page	EDIT	-	-
 SCALE	KEY_W15_F5	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_W15_F5	tap	play F5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	no force on this key	velocity 100, or 120 with K2 ACC ON
+REC	KEY_W15_F5	tap	play F5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	no force on this key	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_W15_F5	tap	clear every edit of step 15 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	-	-
 HELP	KEY_W15_F5	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_W15_F5	tap/hold	inert while the menu is open	-	-	-
@@ -203,7 +203,7 @@ CHAN	KEY_W16_G5	hold	held 0.4 s: open NOTE EDIT on step 16 of the viewed page	ED
 SET	KEY_W16_G5	tap	release under 0.4 s: step 16 of the viewed page ON/OFF (a second tap that matches the generator returns it to AUTO); stopped: a step turned on sounds once; past LENGTH: dim, toast PAST THE END	STEP	-	no force on this key: NOTE EDIT ENV / K3
 SET	KEY_W16_G5	hold	held 0.4 s: open NOTE EDIT on step 16 of the viewed page	EDIT	-	-
 SCALE	KEY_W16_G5	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_W16_G5	tap	play G5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	no force on this key	velocity 100, or 120 with K2 ACC ON
+REC	KEY_W16_G5	tap	play G5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	no force on this key	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_W16_G5	tap	clear every edit of step 16 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	-	-
 HELP	KEY_W16_G5	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_W16_G5	tap/hold	inert while the menu is open	-	-	-
@@ -212,7 +212,7 @@ NOTE_EDIT	KEY_B01_F#3	tap	tap: mute / unmute CH1 (latched; phase keeps running)	
 CHAN	KEY_B01_F#3	tap	tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1	-	-
 SET	KEY_B01_F#3	tap	tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1	-	-
 SCALE	KEY_B01_F#3	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_B01_F#3	tap	play F#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_B01_F#3	tap	play F#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B01_F#3	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B01_F#3	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B01_F#3	tap/hold	inert while the menu is open	-	-	-
@@ -221,7 +221,7 @@ NOTE_EDIT	KEY_B02_G#3	tap	tap: mute / unmute CH2	MUTE2	-	-
 CHAN	KEY_B02_G#3	tap	tap: mute / unmute CH2	MUTE2	-	-
 SET	KEY_B02_G#3	tap	tap: mute / unmute CH2	MUTE2	-	-
 SCALE	KEY_B02_G#3	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_B02_G#3	tap	play G#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_B02_G#3	tap	play G#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B02_G#3	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B02_G#3	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B02_G#3	tap/hold	inert while the menu is open	-	-	-
@@ -230,7 +230,7 @@ NOTE_EDIT	KEY_B03_A#3	tap	tap: mute / unmute CH3	MUTE3	-	-
 CHAN	KEY_B03_A#3	tap	tap: mute / unmute CH3	MUTE3	-	-
 SET	KEY_B03_A#3	tap	tap: mute / unmute CH3	MUTE3	-	-
 SCALE	KEY_B03_A#3	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_B03_A#3	tap	play A#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_B03_A#3	tap	play A#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B03_A#3	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B03_A#3	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B03_A#3	tap/hold	inert while the menu is open	-	-	-
@@ -239,7 +239,7 @@ NOTE_EDIT	KEY_B04_C#4	tap	tap: mute / unmute CH4	MUTE4	-	-
 CHAN	KEY_B04_C#4	tap	tap: mute / unmute CH4	MUTE4	-	-
 SET	KEY_B04_C#4	tap	tap: mute / unmute CH4	MUTE4	-	-
 SCALE	KEY_B04_C#4	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_B04_C#4	tap	play C#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_B04_C#4	tap	play C#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B04_C#4	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B04_C#4	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B04_C#4	tap/hold	inert while the menu is open	-	-	-
@@ -248,7 +248,7 @@ NOTE_EDIT	KEY_B05_D#4	tap	switch to the CHAN page (closes NOTE EDIT)	CHAN	-	-
 CHAN	KEY_B05_D#4	tap	close CHAN, back to PERF	BACK	-	-
 SET	KEY_B05_D#4	tap	switch to the CHAN page	CHAN	-	-
 SCALE	KEY_B05_D#4	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_B05_D#4	tap	play D#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_B05_D#4	tap	play D#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B05_D#4	tap	re-copy the page before onto the viewed page (edits and source; page 1: clear its edits); RESET closes; EDIT tap undoes	COPY P	-	-
 HELP	KEY_B05_D#4	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B05_D#4	tap/hold	inert while the menu is open	-	-	-
@@ -257,7 +257,7 @@ NOTE_EDIT	KEY_B06_F#4	hold	hold: only the selected channel sounds; release resto
 CHAN	KEY_B06_F#4	hold	hold: only the selected channel sounds; release restores the mutes	SOLO	-	-
 SET	KEY_B06_F#4	hold	hold: only the selected channel sounds; release restores the mutes	SOLO	-	-
 SCALE	KEY_B06_F#4	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_B06_F#4	tap	play F#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_B06_F#4	tap	play F#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B06_F#4	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B06_F#4	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B06_F#4	tap/hold	inert while the menu is open	-	-	-
@@ -266,7 +266,7 @@ NOTE_EDIT	KEY_B07_G#4	hold	hold: the selected channel's K1 density goes up while
 CHAN	KEY_B07_G#4	hold	hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores	FILL	aftertouch: depth light..firm = halfway..maximum density	no force (or FORCE OFF): maximum density
 SET	KEY_B07_G#4	hold	hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores	FILL	aftertouch: depth light..firm = halfway..maximum density	no force (or FORCE OFF): maximum density
 SCALE	KEY_B07_G#4	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_B07_G#4	tap	play G#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_B07_G#4	tap	play G#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B07_G#4	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B07_G#4	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B07_G#4	tap/hold	inert while the menu is open	-	-	-
@@ -275,7 +275,7 @@ NOTE_EDIT	KEY_B08_A#4	hold	hold: every step of the selected channel repeats whil
 CHAN	KEY_B08_A#4	hold	hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm)	ROLL	aftertouch: 2x / 3x / 4x by pressure bins	no force: 2x
 SET	KEY_B08_A#4	hold	hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm)	ROLL	aftertouch: 2x / 3x / 4x by pressure bins	no force: 2x
 SCALE	KEY_B08_A#4	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_B08_A#4	tap	play A#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force sets the written velocity 1..127 (>= 100 is an accent)	velocity 100, or 120 with K2 ACC ON
+REC	KEY_B08_A#4	tap	play A#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B08_A#4	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B08_A#4	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B08_A#4	tap/hold	inert while the menu is open	-	-	-
@@ -284,7 +284,7 @@ NOTE_EDIT	KEY_B09_C#5	tap	tap: view the previous page of the selected channel (n
 CHAN	KEY_B09_C#5	tap	tap: view the previous page of the selected channel (no wrap; FOLLOW off)	PG-	-	-
 SET	KEY_B09_C#5	tap	tap: view the previous page of the selected channel (no wrap; FOLLOW off)	PG-	-	-
 SCALE	KEY_B09_C#5	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_B09_C#5	tap	play C#5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	no force on this key	velocity 100, or 120 with K2 ACC ON
+REC	KEY_B09_C#5	tap	play C#5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	no force on this key	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B09_C#5	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B09_C#5	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B09_C#5	tap/hold	inert while the menu is open	-	-	-
@@ -293,7 +293,7 @@ NOTE_EDIT	KEY_B10_D#5	tap	tap: view the next page (FOLLOW off); on the last page
 CHAN	KEY_B10_D#5	tap	tap: view the next page (FOLLOW off); on the last page: a prompt that names what PG+ again will do: ADD PAGE n = COPY OF n-1 (edits and source; LENGTH to 16 x pages, max 64), SHOW PAGE n (HIDDEN) (a page hidden by a shrink comes back as stored), or SHOW ALL OF PAGE n (a partial last page, e.g. LENGTH 20, is completed to 32 first); on page 4 at LENGTH 64 no prompt: toast 64 STEPS = MAX, nothing changes	PG+	-	-
 SET	KEY_B10_D#5	tap	tap: view the next page (FOLLOW off); on the last page: a prompt that names what PG+ again will do: ADD PAGE n = COPY OF n-1 (edits and source; LENGTH to 16 x pages, max 64), SHOW PAGE n (HIDDEN) (a page hidden by a shrink comes back as stored), or SHOW ALL OF PAGE n (a partial last page, e.g. LENGTH 20, is completed to 32 first); on page 4 at LENGTH 64 no prompt: toast 64 STEPS = MAX, nothing changes	PG+	-	-
 SCALE	KEY_B10_D#5	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_B10_D#5	tap	play D#5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	no force on this key	velocity 100, or 120 with K2 ACC ON
+REC	KEY_B10_D#5	tap	play D#5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	no force on this key	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B10_D#5	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B10_D#5	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B10_D#5	tap/hold	inert while the menu is open	-	-	-
@@ -302,7 +302,7 @@ NOTE_EDIT	KEY_B11_F#5	tap	tap: all channels to step 1 at the next step	RESTRT	-	
 CHAN	KEY_B11_F#5	tap	tap: all channels to step 1 at the next step	RESTRT	-	-
 SET	KEY_B11_F#5	tap	tap: all channels to step 1 at the next step	RESTRT	-	-
 SCALE	KEY_B11_F#5	tap	not used on HARMONY (the KEY is K2)	-	-	-
-REC	KEY_B11_F#5	tap	play F#5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	no force on this key	velocity 100, or 120 with K2 ACC ON
+REC	KEY_B11_F#5	tap	play F#5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	no force on this key	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B11_F#5	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B11_F#5	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B11_F#5	tap/hold	inert while the menu is open	-	-	-
