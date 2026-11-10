@@ -3,7 +3,7 @@ id: P3-001
 title: Host tests link the real seq, ui and T-1 sources
 phase: P3
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P2-005]
@@ -49,3 +49,11 @@ sh tools/check.sh            # last line: CHECK PASS
 - `sh tools/check.sh` -> `CHECK PASS` (tests.log: ALL HOST TESTS PASSED)
 - `grep -n 'define t1_mode' firmware/src/seq.c firmware/src/ui.c` -> no match
 - Build line: `image 523224 B; RAM .data+.bss 55744 B of 73728; pool 342876 B of 368640` (headroom 17984 B >= 8192)
+
+### 2026-11-10 review (sonnet)
+Verdict: PASS (gate none).
+- Re-ran `sh tools/check.sh`: CHECK PASS (tests.log: ALL HOST TESTS PASSED).
+- Build line: `image 523224 B; RAM .data+.bss 55744 B of 73728; pool 342876 B of 368640` -> headroom 17984 B (>= 8192).
+- seq.c:60 and ui.c: no `#define t1_mode 0` stub left; declarations unconditional. torso_t1.c change only skips weak stubs under T1_HOST_GLUE (no behaviour change on device).
+- tests/t1_link_test.c in run_tests.sh and passing: ch2 note-ons 15 reach captured log, nothing on other channels, STOP sends CC123.
+- Scope: only hooks/tests/stub removal changed. Note: unrelated uncommitted P4-008 edits in the working tree (run_tests.sh timing self-test) were present during the run; not part of this commit.
