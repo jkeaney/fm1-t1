@@ -31,6 +31,12 @@ Branch: `t1-hardware-bringup`, remote `origin` = jkeaney/fm1-t1. Pushed through 
 The owner paused the programme. No agent is running, the watchdog cron is deleted, nothing is half-edited. Commits through
 `96e0715` are local except the last push (`6bdf675`); push needs the owner's OK (agreed: push after P2-011 approval).
 
+## Update 2026-11-10 (resumed)
+P2-007 and P2-011 are approved and done, and the branch is pushed (166ebcd). P2-012 HARMONY is dispatched (Sonnet).
+Owner decisions 79-84 are recorded: 16 preset slots with the fx-bus removal first in E3; the research picks the PATTERNS categories
+(famous-song and genre patterns, copyright option at review); six v1 algorithms with E5 split; Ableton Sync check plus P0-005
+on 2026-11-11; new P2-015 keybed use cases. Order: P2-012 -> P2-013, P2-014 and P2-015 in parallel -> P2-008 -> P2-005.
+
 ## Where we are
 Done: P0-001..004, P1-001..015, P1-017 (sequencer UX locked, owner-approved), P2-001, P2-002, P2-003 (screen spec,
 approved), P2-004, P2-006 (T-1 issues triaged: BUG-001/002 tracked, 14 dropped), P2-009, P2-010 (timing + clock design,

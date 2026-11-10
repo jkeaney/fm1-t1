@@ -15,6 +15,9 @@ Promote ARP from deferred to a v1 algorithm that arpeggiates the HARMONY chord p
 ## Owner brief (2026-11-10)
 New algorithm ARP: uses the chord feature (P2-012) and produces an arpeggio of the chords. Arp shape, direction, speed etc. can all be dialled in and performed.
 
+### Addition (orchestrator, 2026-11-10, owner decision 82)
+v1 has six algorithms. Show the algorithm picker screen with all six, and confirm the names fit the label widths (`tests/design/width_probe.sh`).
+
 ## Read first
 - docs/project/VISION.md (rules 1-4) and docs/project/decisions/ADR-0004-design-lock.md
 - docs/design/SEQUENCER_UX.md, SCREEN_SPEC.md, ALGORITHM_SET.md and the TSV tables (page_states, button_modes, knob_map, key_map, control_map)

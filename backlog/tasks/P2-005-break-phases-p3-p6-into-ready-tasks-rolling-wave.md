@@ -6,11 +6,17 @@ type: task
 status: todo
 priority: 1
 executor: sonnet
-depends_on: [P2-001, P2-002, P2-003, P2-004, P2-006, P2-007, P2-008, P2-009, P2-010, P2-011, P2-012, P2-013, P2-014]
+depends_on: [P2-001, P2-002, P2-003, P2-004, P2-006, P2-007, P2-008, P2-009, P2-010, P2-011, P2-012, P2-013, P2-014, P2-015]
 gate: human-review
 ---
 ## Goal
 Turn epics E3–E6 into Haiku-executable tasks, using the approved maps, spec and ADR.
+
+### Additions (owner, 2026-11-10)
+- Decision 80: the **fx-bus removal is the first dev task in E3**, so 16 preset slots fit.
+- Decision 82: **E5 splits into two dev tasks**: (1) ACID, EUCLID, SNAKE and STAGE, (2) ARP, PATTERNS and HARMONY.
+- P2-011 review note: the MIDI channel commits on **any** exit from CHAN, including PLAY or another page's button, not only after 0.6 s of stillness. Put this in the CHAN dev task's acceptance criteria.
+- P2-015 (keybed expression use cases) feeds the force-sensing dev tasks.
 
 ## Read first
 - docs/project/PROCESS.md (Definition of Ready, model routing)
