@@ -199,3 +199,4 @@ Collected from design tasks; resolve at the matching human-review gate (P1-010 /
 | 74 | v1 sends MIDI clock out (FM-1 as master): YES; see FB-001. |
 
 | 75 | P2-003 screen spec | Approved. Tempo source AUTO (internal default with own tempo kept separately; a heard MIDI clock becomes the source; back to internal when it stops); K1 inert in EXT; clock out automatic, no menu row; PLAY on EXT waits for the clock to start; clock/source shown by blinking colour-coded dots; hold-mark glyph accepted | owner 2026-11-10 | decided, to be specified in P2-010 |
+| 76 | P2-010 timing spec | Approved with all recommended answers: CLOCK row = AUTO / INTERNAL ONLY; clock lost while playing stops; PLAY again cancels WAIT; host Start takes over a playing FM-1; PLAY LED mid-level with beat flash; timing test is a separate build; LEAD 2.90 ms | owner 2026-11-10 | decided |

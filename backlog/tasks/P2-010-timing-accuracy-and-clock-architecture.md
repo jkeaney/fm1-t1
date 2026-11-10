@@ -3,7 +3,7 @@ id: P2-010
 title: Timing accuracy and clock architecture: tight MIDI timing from any clock source, with the source always visible
 phase: P2
 type: task
-status: review
+status: done
 priority: 0
 executor: sonnet
 depends_on: [P2-004]
@@ -96,3 +96,5 @@ Verified against source:
 Minor, non-blocking (fix when the owner next touches it):
 1. TIMING_SPEC.md:40 says cost "about 1 KB .bss" but the table at :518 totals "+0.6 KB"; reconcile.
 2. R1 reasoning: the spec should also state that audio can preempt a running usb_poll and TIMER5 must not re-enter it (guard) when the nested release is added; the dev task should test that, not only 85 % load.
+
+- Approved: owner 2026-11-10 (section 11 answers: 1A CLOCK row AUTO/INTERNAL ONLY, 2A stop on clock loss, 3A PLAY again cancels wait, 4A host Start takes over, 5A PLAY LED mid-level + flash, 6A separate timing test build, accept LEAD 2.90 ms).

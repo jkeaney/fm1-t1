@@ -37,7 +37,7 @@ probe in section 1.1), **[I]** inferred, **⚠** unconfirmed until it is measure
    centre hole = external, hollow blinking = waiting for the host to start.
 7. **Proof** (section 6, 7): a timing-test firmware image plays a fixed pattern; a tool measures jitter from
    timestamped MIDI; the hardware gate has numeric pass thresholds.
-8. **Cost** (section 9): about 1 KB of `.bss` over ADR-0003's out ring, nothing in the normal build for the test
+8. **Cost** (section 9): about 0.6 KB of `.bss` over ADR-0003's out ring (table in section 9), nothing in the normal build for the test
    mode, four dev tasks.
 
 ## 1. Facts, measured or derived
@@ -562,3 +562,7 @@ Dev tasks (E4 / E5; P2-005 turns these into ready tasks with this document in Re
    (zero cost, proves the production path); the cost is flashing twice for a hardware session.
 7. **`LEAD`.** Constant 2.90 ms keeps MIDI aligned with the preview synth (M2). Accept, or shrink it after the first
    measurements to lower T4 (the table above stays valid; only T4 changes). **Recommended: accept for v1.**
+
+
+## Review notes (P2-010 review, applied)
+- The nested release (risk R1) must not re-enter `usb_poll` when the audio interrupt preempts it: guard with a busy flag, and the dev task must test it.
