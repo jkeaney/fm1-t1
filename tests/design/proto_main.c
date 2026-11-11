@@ -89,7 +89,10 @@ static void matrix(void)
         uint16_t E = e ? 0x1234 : 0xBEEF;
         defaults(&c, 0); dice(&c, (uint8_t)l, E);
         snprintf(nm, sizeof nm, "dice %s %s E=%04x", LAYN[l], A.sub[l], E);
-        if (!A.layer[l].n) { printf("## dice %s absent (no change)\n", LAYN[l]); continue; }
+        if (!A.layer[l].n) {                                  /* an absent layer is a no-op: no seed moves (ALGORITHM_SET 4.4) */
+            Case d0; defaults(&d0, 0);
+            CHECK(memcmp(c.seed, d0.seed, sizeof c.seed) == 0, "absent layer %s changed a seed", LAYN[l]);
+            printf("## dice %s absent (no change)\n", LAYN[l]); continue; }
         run_case(nm, &c); }
     /* D. edited-morph combinations on a CHROM / key 5 / octave -1 channel 1 with diced seeds */
     defaults(&c, 1); c.scale = SC_CHROM; c.key = 5; c.oct = -1;
@@ -192,7 +195,7 @@ static void harm_run(const Case *c, const HarmonySave *h, uint8_t *out_note, int
         out_note[t] = o.note;
         if (o.flags & PO_HIT) {
             int16_t s = (int16_t)(o.note - base), x;
-            strongfl = (uint8_t)(o.vel >= 100 || (A.id == SQ_ALGO_ACID && s >= 12));
+            strongfl = (uint8_t)(o.vel >= 100 || (o.flags & PO_HOLD) || (A.id == SQ_ALGO_ACID && s >= 12));   /* the core also marks EUCLID ordinal 0 and STAGE stage starts (HARMONY 4.3); this run uses accents and holds */
             harm_set_time(tick);
             x = harm_apply(c->ch, (uint8_t)(t % 16), strongfl, s, harm_lo(A.id), A.hi(c->m), harm_pull(A.id, c->m), tick);
             CHECK(x >= harm_lo(A.id) && x <= A.hi(c->m), "harm: semitone %d outside %d..%u at t=%u", x, harm_lo(A.id), A.hi(c->m), t);

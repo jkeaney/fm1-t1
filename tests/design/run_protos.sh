@@ -63,5 +63,6 @@ for d in "$ALG"/*/; do
     echo "$name: $(grep -c '^## ' "$d/golden.txt") golden sections, golden.txt equal, two runs byte-identical"
     n=$((n + 1))
 done
-[ "$n" -ge 1 ] || fail "no algorithm prototype found"
+[ "$n" -ge 4 ] || fail "expected the four P2-008 / P2-016 algorithms (ACID EUCLID SNAKE STAGE), found $n"
+echo "algorithms: $n"
 echo "PROTOS PASS"
