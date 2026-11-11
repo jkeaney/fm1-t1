@@ -1,0 +1,2120 @@
+--- a/firmware/src/core.h	2026-11-11 17:43:00
++++ b/firmware/src/core.h	2026-11-11 17:59:36
+@@ -59,7 +59,7 @@
+     P_FM2_ATK, P_FM2_DEC, P_FM2_SUS, P_FM2_REL, P_FM2_LEVEL,
+     P_FM3_ATK, P_FM3_DEC, P_FM3_SUS, P_FM3_REL, P_FM3_LEVEL,
+     P_FM4_ATK, P_FM4_DEC, P_FM4_SUS, P_FM4_REL, P_FM4_LEVEL,
+-    P_CHRD, P_VOIC,                            /* chord keys (chord.c): one key plays a chord; its voicing */
++    P_CHRD, P_VOIC,                            /* retired chord keys (removed in P3-007): dead slots, kept for the table layout */
+     P_LN0, P_LN1, P_LN2, P_LN3, P_LN4, P_LN5, P_LN6, P_LN7,   /* DRUM lane levels (eng_drum.c, #97): KICK .. BELL */
+     P_LSYNC, P_LTRIG, P_LPOL,                  /* 1.2 (#154): LFO SYNC (OFF, a note value), TRIG (NOTE, FREE), POL (BI, UNI) */
+     P_SQNT,                                    /* 1.2 (#162): QUANTIZE, the steps' recorded / nudged timing (ON: none) */
+@@ -293,32 +293,6 @@
+     uint32_t u = (uint32_t)(v < -8 ? -8 : v > 7 ? 7 : v) & 15u;
+     s->flags = (uint8_t)((s->flags & ~SF_NUDGE) | (u & 7u) << 5 | (u >> 1 & 4u));
+ }
+-#define MOTION_MAX 128u          /* 1.2 (FUN10): 64 before */
+-/* Four tracks x64 steps fit one byte. Values retain their signed parameter range (-64..127: an int8_t, 1.2).
+- * param: the P_* id (< 128: P_COUNT is at most 127, project.c), bit 7 (MOTION_LOCK, 1.1) a parameter lock: the value
+- * sounds on that step only and goes back after it (motion.c motion_step); without it an automation event, the
+- * value holds until another one changes it. One record per (track, step, id), of either kind */
+-#define MOTION_LOCK 0x80u
+-#define MOTION_ID(e) ((uint32_t)(e)->param & 0x7Fu)
+-typedef struct { uint8_t place, param; int8_t value; } motion_event_t;
+-typedef struct { uint8_t count, on, rsv[2]; motion_event_t event[MOTION_MAX]; } motion_store_t;
+-_Static_assert(sizeof(motion_store_t) == 388u, "motion disk layout (FUN10)");
+-#define CHAIN_ROWS 16u
+-/* A song section (1.2, FUN10): the PROJECT slot each track plays (0..3, A..D; CHAIN_SILENT "-": that track plays
+- * nothing there) and its repeats (1..16). Up to 1.1 a row was {slot, repeat}, all four tracks on that slot
+- * (chain_v9_t, FUN6..FUN9): it loads as a section with the four on it (song_chain.c chain_from_v9) */
+-#define CHAIN_SILENT 4u
+-typedef struct { uint8_t slot[NTRK], repeat; } chain_row_t;
+-typedef struct {
+-    uint8_t count, rsv[3];
+-    chain_row_t row[CHAIN_ROWS];
+-} chain_config_t;
+-typedef struct { uint8_t slot, repeat; } chain_row_v9_t;   /* frozen: the rows of FUN6..FUN9 */
+-typedef struct {
+-    uint8_t count, rsv[3];
+-    chain_row_v9_t row[CHAIN_ROWS];
+-} chain_v9_t;
+-_Static_assert(sizeof(chain_config_t) == 84u && sizeof(chain_v9_t) == 36u, "song chain layouts (FUN10 / FUN6..FUN9)");
+ 
+ typedef struct track {
+     int16_t p[P_COUNT];
+--- a/firmware/src/felucca.c	2026-11-11 17:43:00
++++ b/firmware/src/felucca.c	2026-11-11 17:52:25
+@@ -72,7 +72,6 @@
+ #if FELUCCA_UART
+ #include "midi_uart.c"
+ #endif
+-#include "song_chain.c"
+ #include "seq.c"
+ #include "torso_t1_port.c"
+ #include "torso_t1.c"
+--- a/firmware/src/fx.c	2026-11-11 17:43:00
++++ b/firmware/src/fx.c	2026-11-11 17:51:03
+@@ -5,7 +5,7 @@
+  * the master from there. The per-track DIST and INSERT and the sends into the chorus, delay and reverb buses were
+  * removed (owner decision 80): their state and their parameter slots stay as dead slots (FB-002 C). */
+ #define SL_RAMP_LOG2 7
+-#define SL_RAMP (1 << SL_RAMP_LOG2)     /* 128 samples, 2.9 ms: perform.c's ramps */
++#define SL_RAMP (1 << SL_RAMP_LOG2)     /* 128 samples, 2.9 ms */
+ #define SL_SLOPE (32768 / SL_RAMP)
+ /* master: peak limiter in front of the soft clipper. Fast attack (~0.1 ms),
+  * ~150 ms release, threshold where tanh is still nearly linear, so chords
+@@ -120,7 +120,6 @@
+     return div < 6u ? quarter / DIV_DEN[div] : div < 10u ? quarter << (div - 5u) : quarter / DIV_DEN[div % 6u];
+ }
+ 
+-#include "perform.c"                                 /* the FX hold layer's effects (the master) */
+ #include "click.c"                                   /* the metronome's click (after the master: audio.c) */
+ 
+ /* the dotted TIME values of params.c N_DTIME (10, 11, 12: 1/8D, 1/16D, 1/4D): 3 quarters >> this (ui_test.c) */
+@@ -130,14 +129,13 @@
+ /* one block of the whole mix (shared with hostsim.c): events -> each part (with its modulation matrix)
+  * -> level / pan / sends -> master; out: stereo Q15 */
+ static void events_block(uint32_t n);                    /* seq.c */
+-static int32_t send_d[CTL], send_r[CTL], mix_l[CTL], mix_r[CTL];   /* perform.c's THROW and FX layer read them */
++static int32_t mix_l[CTL], mix_r[CTL];
+ 
+ /* SPREAD (#148): a POLY or UNISON part whose SPRD is above 0. Its voices start left and right of PAN in turn (voice.c
+  * voice_start; UNISON's detuned voices alternate), at PAN -/+ SPRD / 2 (SPRD 127: hard left and right), with the pan
+  * law PAN has (the far side down, the near one as it is). track_render gives every voice (b, as always) and the left
+  * ones (spread_buf); here d = left - right, the side signal, so for a pair of pans L = b (gla + glb) / 2 + d (gla - glb)
+- * / 2 (R alike): the mono sum is b's, the level of a centre pan less by SPRD / 256 at most. d gets the FX layer's mute
+- * ramp (perf_mute_sd). SPRD 0, MONO or LEGATO: mix_part's own loop, bit for bit as before. The cost: a block's
++ * / 2 (R alike): the mono sum is b's, the level of a centre pan less by SPRD / 256 at most. SPRD 0, MONO or LEGATO: mix_part's own loop, bit for bit as before. The cost: a block's
+  * clear and sum of spread_buf, the side and a wider mix loop, per part; per voice none (it picks its buffer) */
+ static __attribute__((noinline)) void mix_spread(track_t *t, int32_t *b, uint32_t n)
+ {
+@@ -151,8 +149,6 @@
+     int32_t pk = t->peak;
+     for (i = 0; i < n; i++)
+         d[i] = (d[i] << 1) - b[i];                      /* left - right */
+-    if ((pf.mute >> (t - trk)) & 1u)
+-        perf_mute_sd((uint32_t)(t - trk), b, d, n);
+     for (i = 0; i < n; i++) {
+         int32_t x = ((b[i] >> 2) * lvl) >> 10, a = x < 0 ? -x : x, y = ((d[i] >> 2) * lvl) >> 10;
+         if (a > pk)
+@@ -163,7 +159,7 @@
+     t->peak = pk;
+ }
+ 
+-/* one synth part into the dry mix: its level and pan, the FX layer's mute and THROW. A part with no voice sounding
++/* one synth part into the dry mix: its level and pan. A part with no voice sounding
+  * costs the LFO tick and a return only */
+ static void mix_part(track_t *t, uint32_t n)
+ {
+@@ -178,8 +174,6 @@
+     }
+     if (spread_on)
+         mix_spread(t, b, n);
+-    else if ((pf.mute >> (t - trk)) & 1u)
+-        perf_mute((uint32_t)(t - trk), b, n);           /* perform.c: a black key in the FX layer */
+     if (!spread_on) {                                   /* (the mix's values read after the calls: none is held over
+                                                          * them, no spill in the loop: the ISR's cost as before 1.5) */
+         int32_t lvl = LEVEL_Q12[t->p[P_LEVEL] & 127], pan = t->p[P_PAN];
+@@ -194,8 +188,6 @@
+         }
+         t->peak = pk;
+     }
+-    if (pf.thr)
+-        perf_throw(t, b, send_d, send_r, n);            /* perform.c: REV / ECHO THROW (1.5.1), the sends towards full */
+     if (mod.on)
+         mod_end(t);                                     /* the stored values back */
+ }
+@@ -215,43 +207,17 @@
+         scope_buf[scope_w++ & (SCOPE_N - 1u)] = (int16_t)clamp(mix_l[i], -32767, 32767);
+ }
+ 
+-/* the master with the FX layer's effects between its level and master_out (perform.c) */
+-static __attribute__((noinline)) void perf_master(int32_t *out, uint32_t n)
+-{
+-    uint32_t i;
+-    int32_t mg = fx_usb_fixed ? MASTER_FULL : (int32_t)song.master_q12;   /* (USB LEVEL FIXED: MASTER after) */
+-    for (i = 0; i < n; i++) {
+-        mix_l[i] = ((mix_l[i] >> 2) * mg) >> 10;
+-        mix_r[i] = ((mix_r[i] >> 2) * mg) >> 10;
+-    }
+-    perf_block(mix_l, mix_r, n);
+-    for (i = 0; i < n; i++) {
+-        int32_t l = mix_l[i], r = mix_r[i];
+-        master_out(&l, &r);
+-        out[2u * i] = l;
+-        out[2u * i + 1u] = r;
+-    }
+-}
+-
+ static void mix_block(int32_t *out, uint32_t n)
+ {
+     uint32_t i;
+-    int perf;
+     int32_t mg = fx_usb_fixed ? MASTER_FULL : (int32_t)song.master_q12;   /* (USB LEVEL FIXED: MASTER after) */
+     for (i = 0; i < n; i++)
+-        send_d[i] = send_r[i] = mix_l[i] = mix_r[i] = 0;
++        mix_l[i] = mix_r[i] = 0;
+     events_block(n);
+-    perf = perf_begin(n);                               /* the FX hold layer at work (perform.c) */
+     for (i = 0; i < NPART; i++)
+         mix_part(&trk[i], n);
+-    if (perf)
+-        perf_pre(mix_l, mix_r, send_d, send_r, n);
+     if (scope_mix)
+         scope_take_mix(n);
+-    if (perf) {
+-        perf_master(out, n);
+-        return;
+-    }
+     for (i = 0; i < n; i++) {
+         int32_t l = ((mix_l[i] >> 2) * mg) >> 10;
+         int32_t r = ((mix_r[i] >> 2) * mg) >> 10;
+--- a/firmware/src/main.c	2026-11-11 17:43:00
++++ b/firmware/src/main.c	2026-11-11 17:51:13
+@@ -99,7 +99,6 @@
+ static void felucca_init(void)
+ {
+     uint32_t i;
+-    chain_defaults(&chain_config);
+     for (i = 0; i < G_COUNT; i++)
+         song.g[i] = GP[i].def;
+     undo_depth++;                             /* (no undo copy of the power-on loads) */
+--- a/firmware/src/midi_clock.c	2026-11-11 17:43:00
++++ b/firmware/src/midi_clock.c	2026-11-11 17:51:13
+@@ -22,8 +22,6 @@
+         midi_clock.have_pulse = midi_clock.tempo_valid = 0;
+         midi_clock.interval_ms = 0;
+         midi_clock.start_ms = ms;
+-        if (!song.playing)
+-            motion_begin();
+         song.playing = 1;
+     } else if (status == 0xFCu) {
+         seq_stop();
+--- a/firmware/src/midi_control.c	2026-11-11 17:43:00
++++ b/firmware/src/midi_control.c	2026-11-11 17:51:23
+@@ -51,25 +51,23 @@
+             midi_expression(&trk[i], midi_channel(ch));
+ }
+ 
+-/* a MIDI note of track t sounds note: one played as itself, or a tone of one played as a chord (chord.c) */
++/* a MIDI note of track t sounds note */
+ static int midi_note_held(const track_t *t, uint32_t note)
+ {
+     uint32_t ch, id = trk_index(t) + 1u;
+     for (ch = 0; ch < 16u; ch++)
+-        if ((midi_notes[ch][note] & 0x7Fu) == id && !mchord_of(ch, note, id))
++        if ((midi_notes[ch][note] & 0x7Fu) == id)
+             return 1;
+-    return mchord_held(id, note);
++    return 0;
+ }
+ 
+-/* a key held on track t sounds note (the key's own note, or a tone of its chord) */
++/* a key held on track t sounds note */
+ static int midi_local_held(const track_t *t, uint32_t note)
+ {
+-    uint32_t k, i;
++    uint32_t k;
+     for (k = 0; k < 27u; k++)
+-        if (kb_chn[k] && kb_trk[k] == trk_index(t))
+-            for (i = 0; i < kb_chn[k]; i++)
+-                if (kb_chord[k][i] == note)
+-                    return 1;
++        if (kb_chn[k] && kb_trk[k] == trk_index(t) && kb_note[k] == note)
++            return 1;
+     return 0;
+ }
+ 
+@@ -82,48 +80,16 @@
+         if (!--midi_ch[ch].owned[id - 1u])
+             midi_ch[ch].targets &= (uint8_t)~(1u << (id - 1u));
+     }
+-    if (id) {
+-        mchord_t *m = mchord_of(ch, note, id);
+-        uint8_t nn[CHORD_MAX];
+-        uint32_t n = 1, i;
+-        nn[0] = (uint8_t)note;
+-        if (m) {                                  /* a chord: exactly the notes it started */
+-            n = m->n;
+-            for (i = 0; i < n; i++)
+-                nn[i] = m->note[i];
+-            m->id = 0;
+-        }
+-        for (i = 0; i < n; i++)
+-            if (!midi_local_held(&trk[id - 1u], nn[i]))
+-                input_off(&trk[id - 1u], nn[i]);  /* input_off also checks other MIDI owners */
+-    }
++    if (id && !midi_local_held(&trk[id - 1u], note))
++        input_off(&trk[id - 1u], note);           /* input_off also checks other MIDI owners */
+ }
+ 
+-/* a MIDI note-on (ch, note) of track t: its chord (chord.c) or the note alone. A note another key or MIDI
+- * note holds already sounds: not started again */
++/* a MIDI note-on (ch, note) of track t. A note another key or MIDI note holds already sounds: not started again */
+ static void midi_play(track_t *t, uint32_t ch, uint32_t note, uint32_t vel)
+ {
+-    uint8_t nn[CHORD_MAX];
+-    uint32_t n = chord_build(t, note, nn), i, f = 0;
+-    if (n > 1u || nn[0] != note)
+-        for (f = 0; f < MCHORD_N && mchord[f].id; f++)
+-            ;
+-    if (f == MCHORD_N) {                          /* no room to keep a chord: the note alone */
+-        n = 1;
+-        nn[0] = (uint8_t)note;
+-    }
+-    for (i = 0; i < n; i++)
+-        if (!midi_note_held(t, nn[i]) && !midi_local_held(t, nn[i]))
+-            input_on(t, nn[i], vel);
+-    if (n > 1u || nn[0] != note) {
+-        mchord_t *m = &mchord[f];
+-        m->ch = (uint8_t)ch;
+-        m->src = (uint8_t)note;
+-        m->n = (uint8_t)n;
+-        for (i = 0; i < n; i++)
+-            m->note[i] = nn[i];
+-        m->id = (uint8_t)(trk_index(t) + 1u);
+-    }
++    (void)ch;
++    if (!midi_note_held(t, note) && !midi_local_held(t, note))
++        input_on(t, note, vel);
+ }
+ 
+ static void midi_note_event(uint32_t ch, uint32_t note, uint32_t vel)
+@@ -176,7 +142,6 @@
+         midi_ch[ch].owned[track] = 0;
+     }
+     midi_owners[track] = 0;
+-    mchord_forget(track);
+     midi_bend_q8[track] = midi_bend_target[track] = 0;
+ }
+ 
+@@ -206,8 +171,7 @@
+ }
+ 
+ /* The standard CC map (#103): always on, these CCs only, on the track the channel plays (ROUT as notes). A CC
+- * sets its parameter as a knob would, 0..127 over the parameter's range (64: the middle of a bipolar one), and
+- * AUTOMATION records it as a knob move (motion_capture: the selected track, armed and playing). CC74 / CC71 are
++ * sets its parameter as a knob would, 0..127 over the parameter's range (64: the middle of a bipolar one). CC74 / CC71 are
+  * the engine's own brightness / resonance (MIDI_CC_ENG); an engine without one ignores them. CC121 resets none
+  * of them (RP-015: they are the sound's) */
+ #define MCC_CUT 0xFEu
+@@ -233,7 +197,6 @@
+     if (d->max <= d->min || t->p[id] == v)
+         return;
+     t->p[id] = (int16_t)v;
+-    (void)motion_capture(t, id, (int16_t)v);
+ }
+ /* MIDI LEARN (1.5, Discussion #170): up to ML_N CCs, each set to one parameter of one track, whatever channel it
+  * comes on (a channel ROUT ignores stays ignored) and whichever track that channel plays. Kept with the settings in
+--- a/firmware/src/params.c	2026-11-11 17:43:00
++++ b/firmware/src/params.c	2026-11-11 17:59:36
+@@ -38,7 +38,7 @@
+ /* seq.c kb_map; 1 = SNAP (stored projects: the former ON); 3 = SEQ: SNAP, and the sequencer's notes snap too as
+  * they play (seq.c seq_step; the steps keep what was written). Append-only: older projects hold 0..2 */
+ static const char *const N_QUANT[] = {"OFF", "SNAP", "WHITE", "SEQ", "SEQ+T"};
+-/* chord keys (chord.c): OFF, the diatonic triad / seventh of the track's ROOT and SCALE on the key, fixed shapes */
++/* chord keys (removed in P3-007; this table stays): OFF, the diatonic triad / seventh of the track's ROOT and SCALE on the key, fixed shapes */
+ static const char *const N_CHRD[] = {"OFF", "DIA3", "DIA7", "MAJ", "MIN", "DOM7", "MAJ7", "MIN7", "SUS4", "POW"};
+ static const char *const N_VOIC[] = {"CLOSE", "OPEN", "INV1", "INV2", "+OCT"};   /* VC_CLOSE .. VC_BASS */
+ static const char *const N_VOICE[] = {"POLY", "MONO", "LEG", "UNI"};   /* V_POLY .. V_UNISON */
+--- a/firmware/src/project.c	2026-11-11 17:43:00
++++ b/firmware/src/project.c	2026-11-11 17:59:36
+@@ -7,7 +7,7 @@
+  *
+  * Format 7 ("FUN7", written) stores P_COUNT (byte 66) and maps an older count as user presets do: FUN7 of
+  * 89 parameters (before the chord keys P_CHRD / P_VOIC) loads its engine values at today's P_E0..P_E7,
+- * the chord keys OFF / CLOSE, and its motion events' ids from its P_E0 on move up with them (proj_motion_ids).
++ * the chord keys OFF / CLOSE, and its motion events' ids from its P_E0 on move up with them (removed in P3-007).
+  * 68 + 4 x (91 + 2 + 64 x 9) + chain + motion = 3040 of the 3372 bytes before the name: 332 spare, room for
+  * 83 more track parameters (4 bytes each).
+  * Format 6 ("FUN6") adds a 36-byte song chain before the checksum.
+@@ -53,29 +53,29 @@
+  *   - P_COUNT 104 (P_E0 96): LFO 2's SYNC TRIG POL, QUANTIZE and SPREAD (P_LSYNC .. P_SPRD) before the engine
+  *     values. SPREAD (#148) came before FUN10's release, into the spare bytes below: a FUN10 of a 1.2 build before
+  *     it holds 103 (byte 66) and loads by count (SPREAD 0, its engine values and their motion moved up by one);
+- *   - 128 motion records (core.h MOTION_MAX, 64 before), 3 bytes each (place, id, the value as an int8_t: the values
++ *   - 128 motion records (64 before), 3 bytes each (place, id, the value as an int8_t: the values
+  *     were always -64..127): the block is 4 + 384 = 388 bytes (FUN9's 260 held 64 of 4 bytes);
+  *   - each step's NUDGE (core.h step_nudge, -8..+7) in bit 7 of its four note bytes (bit j in note j), bits every
+  *     earlier format wrote 0: the step stays 9 bytes;
+- *   - the song's sections (core.h chain_row_t): a slot per track (A..D or "-") and the repeats, 5 bytes a row: the
+- *     chain is 4 + 16 x 5 = 84 bytes (FUN6..FUN9: 36, rows {slot, repeat}, chain_v9_t; they load as sections with the
+- *     four tracks on the row's slot, song_chain.c chain_from_v9: the same song).
++ *   - the song's sections (removed in P3-007): a slot per track (A..D or "-") and the repeats, 5 bytes a row: the
++ *     chain is 4 + 16 x 5 = 84 bytes (FUN6..FUN9: 36, rows {slot, repeat}, frozen; they load as sections with the
++ *     four tracks on the row's slot, skipped: P3-007).
+  * 68 + 4 x (104 + 2 + 576) + chain + motion = 3268; the patches at PROJ_FM6_OFF (3312): 44 spare, room for 11 more
+  * track parameters. 1.5 took seven of them (no format change, FUN10 as it was): the INSERT (P_ITYPE .. P_IMIX, 96..100),
+  * ANALOG's filter TYPE (P_FTYPE, 101) and ENV SYNC (P_ESYNC, 102), before the engine values (P_COUNT 111, P_E0 103; 16
+  * spare, room for 4). A FUN10 of 1.2 .. 1.4 (104) loads by count: the INSERT OFF, TYPE LP, ENV SYNC OFF (as they
+  * played), its engine values and their motion moved up by seven.
+- * Firmware 1.2 .. 1.4 refuses a FUN10 of more parameters than its own (np > P_COUNT): a 1.5 project shows EMPTY there. FUN9 / FUN8 / FUN7 load as before (their 64 records of 4 bytes read by proj_motion_v9, every
++ * Firmware 1.2 .. 1.4 refuses a FUN10 of more parameters than its own (np > P_COUNT): a 1.5 project shows EMPTY there. FUN9 / FUN8 / FUN7 load as before (their 64 records of 4 bytes skipped, every
+  * step's nudge 0: the timing they always had; parameters mapped by count, the four new ones at their defaults:
+  * SYNC OFF, TRIG NOTE, POL BI, QUANTIZE ON, SPREAD 0, which play as before 1.2), and so do FUN6..FUN1. Firmware before 1.2
+  * refuses a FUN10 everywhere (its size and magic are no format it knows): a slot holding one shows EMPTY there (the
+  * flash copy stays until that slot is saved over), a backup PUT of one is refused (rc 1), the retained RAM copy of
+  * one fails its checks.
+  *
+- * Parameter locks (1.1, core.h MOTION_LOCK) are motion records with bit 7 of their id byte set (P_COUNT 99 < 128:
++ * Parameter locks (1.1) are motion records with bit 7 of their id byte set (P_COUNT 99 < 128:
+  * the bit is free): no byte moved for them, and every project before 1.1 has none. FUN9 holds them. A FUN8 / FUN7
+  * record of a 1.1 development build may hold some: on load their ids move to today's positions as the others do,
+- * the lock bit kept (proj_motion_ids). Firmware before 1.1 refuses a project that holds a lock (an id out of its
++ * the lock bit kept (removed in P3-007). Firmware before 1.1 refuses a project that holds a lock (an id out of its
+  * range), as with RATCH below; FUN9 it refuses anyway (a newer format).
+  *
+  * A step's RATCH (core.h SF_RATCH, the hits - 1, 0..3) is in bit 7 of its velocity byte (bit 0) and of its chance
+@@ -109,6 +109,9 @@
+ #define PROJ_NP_V3 57u                         /* P_COUNT of format 3 (P_E0 was 49) */
+ #define PROJ_NP_V4 69u                         /* P_COUNT of format 4 (P_E0 61) */
+ #define PROJ_PHYS 2u                           /* project_t.phys: PHYS without DUST and DRUM (see the top) */
++#define PROJ_CHAIN_BYTES 84u                   /* FUN10: 4 + 16 x 5 */
++#define PROJ_MOTION_BYTES 388u                 /* FUN10: 4 + 128 x 3 */
++#define PROJ_CHAIN_V9 36u                      /* FUN6..FUN9: 4 + 16 x 2 */
+ #define PROJ_NAME_LEN 12u                      /* the name: FUN7 bytes PROJ_NAME_OFF.. (the reserved tail's end) */
+ typedef struct {                               /* one track */
+     int16_t p[P_COUNT];
+@@ -124,8 +127,8 @@
+                                                 * 0 (a reserved byte before 1.0): MODEL 2 was DUST */
+     uint8_t rsv;
+     proj_trk_t t[NTRK];
+-    chain_config_t chain;
+-    motion_store_t motion;
++    uint8_t rsv_song[PROJ_CHAIN_BYTES];       /* the song chain and the motion events of FUN10: removed in P3-007, the bytes keep their */
++    uint8_t rsv_auto[PROJ_MOTION_BYTES];     /* place in the layout (loads ignore them, saves write 0); P3-011 removes the format */
+     uint8_t fm6[NTRK][FM6_PACKED];             /* each track's FM6 patch, packed (eng_fm6.c) */
+     uint8_t mch[NTRK];                         /* 1.5.5: MIDI IN TRACK's channels, as song.mch (PROJ_MIDI_OFF) */
+     char name[PROJ_NAME_LEN];                  /* the project's name: upper-case ASCII 32..126, 0-padded; "" = none */
+@@ -142,7 +145,7 @@
+     uint32_t sum;
+ } project_v5_t;
+ typedef struct { uint32_t magic, size; int16_t g[G_COUNT]; uint8_t sel, parts, phys, rsv;
+-    proj_trk_v5_t t[NTRK]; chain_v9_t chain; uint32_t sum; } project_v6_t;
++    proj_trk_v5_t t[NTRK]; uint8_t chain[PROJ_CHAIN_V9]; uint32_t sum; } project_v6_t;
+ _Static_assert(sizeof(project_v5_t) == 3352u && sizeof(project_v6_t) == 3388u, "frozen formats 5 / 6 sizes");
+ /* Serialized FUN7 keeps the retained cache's exact extent. Params are biased
+  * bytes, steps pack n/time/flags. Reserved tail is zero and covered by hash.
+@@ -226,7 +229,7 @@
+ }
+ static uint32_t proj_sum(const project_t *p) { return proj_hash(p, sizeof *p - 4u); }
+ static int proj_ok(const project_t *q) { return q->magic == PROJ_MAGIC && q->size == sizeof *q &&
+-    q->sum == proj_sum(q) && chain_valid(&q->chain) && motion_valid(&q->motion); }
++    q->sum == proj_sum(q); }
+ 
+ /* G_RTYPE (id 24) was G_DRCH, the GM drum part's MIDI channel (0..16, 10 by default) until 1.0: a project of a
+  * format before FUN7 may hold any channel there. FUN7 came after it was inert (always 0), so only those imports
+@@ -318,11 +321,10 @@
+ 
+ /* DIGITAL tracks (engine 1, retired) -> FM6 with the converted patch as the track's own (fm4_convert.c,
+  * whatever format the project is: the conversion runs on every load, the stored record keeps what it holds until it
+- * is saved again). Their motion events on the EDIT values or the OP ENV values go: DIGITAL's meanings do not carry
+- * over to FM6's macros. Idempotent */
++ * is saved again). Idempotent */
+ static void proj_fm4(project_t *q)
+ {
+-    uint32_t k, i, n, hit = 0;
++    uint32_t k, i, hit = 0;
+     for (k = 0; k < NTRK; k++) {
+         proj_trk_t *d = &q->t[k];
+         uint8_t v[FP_SIZE + 1u];
+@@ -340,24 +342,15 @@
+     }
+     if (!hit)
+         return;
+-    for (i = n = 0; i < q->motion.count && i < MOTION_MAX; i++) {
+-        const motion_event_t *e = &q->motion.event[i];
+-        if (((hit >> (e->place >> 6)) & 1u) && (MOTION_ID(e) >= P_E0 || (MOTION_ID(e) >= P_FM1_ATK && MOTION_ID(e) <= P_FM4_LEVEL)))
+-            continue;
+-        q->motion.event[n++] = *e;
+-    }
+-    for (i = n; i < q->motion.count && i < MOTION_MAX; i++)
+-        memset(&q->motion.event[i], 0, sizeof q->motion.event[i]);
+-    q->motion.count = (uint8_t)n;
+     q->sum = proj_sum(q);
+ }
+ 
+ /* SAMPLE tracks of the retired PERC set (SET 4) -> DRUM with its default kit (see the top; core.h drum_from_perc,
+  * whatever format the project is: on every load, the stored record keeps what it holds until it is saved again).
+- * Their motion events on the EDIT values go. Idempotent */
++ * Idempotent */
+ static void proj_perc(project_t *q)
+ {
+-    uint32_t k, i, n, hit = 0;
++    uint32_t k, hit = 0;
+     for (k = 0; k < NTRK; k++) {
+         proj_trk_t *d = &q->t[k];
+         if (!drum_from_perc(d->engine, &d->p[P_E0]))
+@@ -369,15 +362,6 @@
+     }
+     if (!hit)
+         return;
+-    for (i = n = 0; i < q->motion.count && i < MOTION_MAX; i++) {
+-        const motion_event_t *e = &q->motion.event[i];
+-        if (((hit >> (e->place >> 6)) & 1u) && MOTION_ID(e) >= P_E0)
+-            continue;
+-        q->motion.event[n++] = *e;
+-    }
+-    for (i = n; i < q->motion.count && i < MOTION_MAX; i++)
+-        memset(&q->motion.event[i], 0, sizeof q->motion.event[i]);
+-    q->motion.count = (uint8_t)n;
+     q->sum = proj_sum(q);
+ }
+ 
+@@ -531,9 +515,8 @@
+         const project_v5_t *v = b;
+         const project_v6_t *v6 = b;
+         uint32_t bytes = n, i, k;
+-        chain_config_t c6;
+         if (((bytes == sizeof *v && v->magic == PROJ_MAGIC_V5) ||
+-             (bytes == sizeof *v6 && v->magic == PROJ_MAGIC_V6 && chain_from_v9(&c6, &v6->chain))) &&
++             (bytes == sizeof *v6 && v->magic == PROJ_MAGIC_V6)) &&
+             v->size == bytes && ((const uint32_t *)b)[bytes / 4u - 1u] == proj_hash(b, bytes - 4u)) {
+             memset(q, 0, sizeof *q);
+             q->magic = PROJ_MAGIC; q->size = sizeof *q;
+@@ -551,7 +534,6 @@
+                     q->t[i].step[k].flags &= 3u;       /* (x1: no RATCH then) */
+                 }
+             }
+-            if (bytes == sizeof *v6) q->chain = c6; else chain_defaults(&q->chain);
+             q->sum = proj_sum(q); proj_drums_to_part(q); proj_phys(q);
+             return 1;
+         }
+@@ -619,7 +601,7 @@
+     for (t = 0; t < NTRK; t++)
+         for (i = 0; i < FM6_PACKED; i++)
+             if (q->fm6[t][i] > 127u) return 0;
+-    if (!chain_valid(&q->chain) || !motion_valid(&q->motion) || P_COUNT > 127u) return 0;
++    if (P_COUNT > 127u) return 0;
+     memset(out, 0, sizeof *out); memcpy(b, &magic, 4); memcpy(b + 4, &size, 4);
+     memcpy(b + 8, q->g, sizeof q->g); b[62] = q->sel; b[63] = q->parts; b[64] = q->phys; b[66] = P_COUNT;
+     for (t = 0; t < NTRK; t++) {
+@@ -643,9 +625,9 @@
+             b[pos++] = (uint8_t)(s->probability | (r >> 1) << 7);
+         }
+     }
+-    if (pos + sizeof q->chain + sizeof q->motion > PROJ_MIDI_OFF) return 0;
+-    memcpy(b + pos, &q->chain, sizeof q->chain); pos += sizeof q->chain;
+-    memcpy(b + pos, &q->motion, sizeof q->motion);
++    if (pos + sizeof q->rsv_song + sizeof q->rsv_auto > PROJ_MIDI_OFF) return 0;
++    memcpy(b + pos, q->rsv_song, sizeof q->rsv_song); pos += sizeof q->rsv_song;     /* (zeros: P3-007) */
++    memcpy(b + pos, q->rsv_auto, sizeof q->rsv_auto);
+     proj_midi_pack(b, q);
+     memcpy(b + PROJ_FM6_OFF, q->fm6, sizeof q->fm6);
+     {   /* the name (0-padded; stops at the first 0) */
+@@ -655,50 +637,13 @@
+     sum = proj_hash(b, PROJ_STORE_SIZE - 4u); memcpy(b + PROJ_STORE_SIZE - 4u, &sum, 4);
+     return 1;
+ }
+-/* the motion of a FUN7 / FUN8 written with np parameters (np < P_COUNT: a FUN7 of 89 before the chord keys, every
+- * FUN8 of 91 before the DRUM lane levels) -> today's ids: an event names a parameter id, and the ids from that
+- * store's P_E0 (np - 8) on moved up with P_E0, as its values did (params_by_count); the ones below kept theirs. A
+- * lock's bit 7 (MOTION_LOCK) stays: the id moves under it (a FUN8 / FUN7 of a 1.1 development build may hold
+- * locks). 0: an id that store could not have named (np or more) */
+-static int proj_motion_ids(motion_store_t *m, uint32_t np)
+-{
+-    uint32_t i;
+-    for (i = 0; i < m->count && i < MOTION_MAX; i++) {
+-        uint32_t id = MOTION_ID(&m->event[i]);
+-        if (id >= np) return 0;
+-        if (np < P_COUNT && id >= np - 8u)
+-            m->event[i].param = (uint8_t)((m->event[i].param & MOTION_LOCK) | (id + P_COUNT - np));
+-    }
+-    return 1;
+-}
+-/* the motion block of a FUN7 / FUN8 / FUN9 (PROJ_MOTION_V9 bytes at b: count, on, 2 reserved, 64 x (place, id, i16
+- * value LE)) -> m: its records as they are (values -64..127, as motion_valid wanted then), the rest 0. 0: not one */
+-static int proj_motion_v9(motion_store_t *m, const uint8_t *b)
+-{
+-    uint32_t i;
+-    memset(m, 0, sizeof *m);
+-    if (b[0] > 64u)
+-        return 0;
+-    m->count = b[0];
+-    m->on = b[1];
+-    for (i = 0; i < m->count; i++) {
+-        const uint8_t *e = b + 4u + 4u * i;
+-        int32_t v = (int16_t)(e[2] | e[3] << 8);
+-        if (v < -64 || v > 127)
+-            return 0;
+-        m->event[i].place = e[0];
+-        m->event[i].param = e[1];
+-        m->event[i].value = (int8_t)v;
+-    }
+-    return 1;
+-}
+ /* a stored FUN10 (st = PROJ_STORE_SIZE), FUN9 (PROJ_STORE_V9: 64 motion records of 4 bytes, no nudges), FUN8
+  * (PROJ_STORE_V8: FUN9 with its tail 64 bytes shorter) or FUN7 (PROJ_STORE_V7: no patches, the init one) */
+ static int proj_unpack(project_t *q, const uint8_t *b, uint32_t st)
+ {
+     uint32_t pos = 68u, t, i, magic, size, sum, np = b[66], v7 = st == PROJ_STORE_V7, v10 = st == PROJ_STORE_SIZE;
+     uint32_t name_off = st - 4u - PROJ_NAME_LEN, end = v7 ? name_off : name_off - NTRK * FM6_PACKED;
+-    uint32_t mot = v10 ? sizeof q->motion : PROJ_MOTION_V9, chn = v10 ? sizeof q->chain : sizeof(chain_v9_t);
++    uint32_t mot = v10 ? PROJ_MOTION_BYTES : PROJ_MOTION_V9, chn = v10 ? PROJ_CHAIN_BYTES : PROJ_CHAIN_V9;   /* (skipped: P3-007) */
+     memcpy(&magic, b, 4); memcpy(&size, b + 4, 4); memcpy(&sum, b + st - 4u, 4);
+     if (magic != (v7 ? PROJ_MAGIC_V7 : st == PROJ_STORE_V8 ? PROJ_MAGIC_V8 : st == PROJ_STORE_V9 ? PROJ_MAGIC_V9 : PROJ_MAGIC) ||
+         size != st || sum != proj_hash(b, st - 4u) ||
+@@ -733,20 +678,7 @@
+             step_set_nudge(s, (int32_t)(nd ^ 8u) - 8);
+         }
+     }
+-    if (v10)                                            /* (FUN10: sections, a slot per track; before: rows) */
+-        memcpy(&q->chain, b + pos, sizeof q->chain);
+-    else {
+-        chain_v9_t c9;
+-        memcpy(&c9, b + pos, sizeof c9);
+-        if (!chain_from_v9(&q->chain, &c9)) return 0;
+-    }
+-    pos += chn;
+     if (v10)
+-        memcpy(&q->motion, b + pos, sizeof q->motion);
+-    else if (!proj_motion_v9(&q->motion, b + pos))
+-        return 0;
+-    if (!proj_motion_ids(&q->motion, np) || !chain_valid(&q->chain) || !motion_valid(&q->motion)) return 0;
+-    if (v10)
+         proj_midi_unpack(q, b);                         /* (1.5.5: 0 in every FUN10 before, FUN9..FUN7 have none) */
+     for (t = 0; t < NTRK; t++) {
+         if (v7)
+@@ -854,7 +786,7 @@
+ static void project_capture(project_t *p)
+ {
+     uint32_t i;
+-    uint32_t f = motion_guard();
++    uint32_t f = isr_guard();
+     memset(p, 0, sizeof *p);
+     p->magic = PROJ_MAGIC;
+     p->size = sizeof *p;
+@@ -863,17 +795,15 @@
+     p->sel = song.sel;
+     p->parts = NPART;
+     p->phys = PROJ_PHYS;
+-    p->chain = chain_config;
+     for (i = 0; i < NTRK; i++) {
+-        for (uint32_t j = 0; j < P_COUNT; j++) p->t[i].p[j] = motion_base_value(&trk[i], j);
++        for (uint32_t j = 0; j < P_COUNT; j++) p->t[i].p[j] = trk[i].p[j];
+         p->t[i].engine = trk[i].eng_req;
+         p->t[i].preset = trk[i].preset;
+         memcpy(p->t[i].step, trk[i].step, sizeof trk[i].step);
+         fm6_pack(fm6_patch[i], p->fm6[i]);
+     }
+-    p->motion = motion;
+     memcpy(p->mch, song.mch, sizeof p->mch);
+-    motion_unguard(f);
++    isr_unguard(f);
+     memcpy(p->name, proj_name, str_len(proj_name));
+     p->sum = proj_sum(p);
+ }
+@@ -921,8 +851,7 @@
+ 
+ /* slot's name -> b (PROJ_NAME_LEN + 1 bytes); 0 = an empty slot (b ""). Uses proj_scratch */
+ static int project_name(uint32_t slot, char *b) { return project_info(slot, b, 0, 0, 0); }
+-/* .. and, len48 not 0, the length of each track's pattern as SONG plays it (song_chain.c chain_tick: the clock track's
+- * LEN steps of its DIV, clamped as chain_prepare does) in 1/48 quarter notes (a 4/4 bar: 192; 0 = an empty slot):
++/* .. and, len48 not 0, the length of each track's pattern as SONG plays it (the clock track's LEN steps of its DIV) in 1/48 quarter notes (a 4/4 bar: 192; 0 = an empty slot):
+  * len48[0..NTRK-1] */
+ static uint32_t len48_of(int32_t len, int32_t div)
+ {
+@@ -1063,11 +992,6 @@
+     fm1_irq_off();                                      /* the audio ISR must not see half a project */
+     seq_stop();
+     transport_req = 0;
+-    chain_config = p->chain;
+-    motion = p->motion;
+-    memset(motion_active, 0, sizeof motion_active);
+-    motion_base_valid = 0;
+-    ui.song_row = 0;
+     for (i = 0; i < G_COUNT; i++)
+         if (i != G_SLOT && i != G_LOAD && i != G_SAVE)
+             song.g[i] = (int16_t)clamp(p->g[i], GP[i].min, GP[i].max);
+@@ -1186,55 +1110,6 @@
+ 
+ static int project_used(uint32_t slot) { return proj_import(&proj_scratch, &proj_slot[slot & 3u], sizeof(project_store_t)); }
+ 
+-/* Main loop only: no flash access or copies when the ISR changes rows. */
+-static uint32_t chain_prepare(void)
+-{
+-    uint32_t i, k, j, used = 0;
+-    if (transport_busy())
+-        return 2;
+-    if (!chain_valid(&chain_config) || !chain_config.count)
+-        return 1;
+-    for (i = 0; i < chain_config.count; i++)            /* the slots the lanes play (not the silent ones) */
+-        for (k = 0; k < NTRK; k++) {
+-            uint32_t s = chain_config.row[i].slot[k];
+-            if (s >= 4u || ((used >> s) & 1u))
+-                continue;
+-            if (!project_used(s))
+-                return 3u + s;
+-            used |= 1u << s;
+-        }
+-    chain.config = chain_config;
+-    for (i = 0; i < 4u; i++)
+-        if ((used >> i) & 1u) {
+-            project_t *p = &proj_scratch;
+-            if (!proj_import(p, &proj_slot[i], sizeof(project_store_t))) return 3u + i;
+-            chain.source[i].motion = p->motion;
+-            /* A song keeps its current instruments. Engine-specific motion from
+-             * another instrument would change a kit/wave/algorithm unexpectedly. */
+-            {
+-                motion_store_t *m = &chain.source[i].motion; uint32_t n = 0;
+-                for (uint32_t e = 0; e < m->count; e++) {
+-                    const motion_event_t *v = &m->event[e]; uint32_t owner = v->place >> 6;
+-                    if (MOTION_ID(v) >= P_FM1_ATK && p->t[owner].engine != trk[owner].eng_req) continue;
+-                    m->event[n++] = *v;
+-                }
+-                m->count = (uint8_t)n;
+-            }
+-            for (k = 0; k < NTRK; k++) {
+-                memcpy(chain.source[i].step[k], p->t[k].step, sizeof p->t[k].step);
+-                proj_steps(chain.source[i].step[k]);
+-                chain.source[i].qnt[k] = p->t[k].p[P_SQNT] != 0;
+-                for (j = 0; j < 4u; j++)
+-                    chain.source[i].timing[k][j] = (int16_t)clamp(p->t[k].p[P_SLEN + j],
+-                        TP[P_SLEN + j].min, TP[P_SLEN + j].max);
+-            }
+-        }
+-    RING_PUBLISH();
+-    chain.armed = 1;
+-    transport_req = 1;
+-    return 0;
+-}
+-
+ static void settings_poll(void)
+ {
+ #if FELUCCA_FLASH
+@@ -1312,7 +1187,7 @@
+     for (i = 0; i < NTRK; i++) {
+         const track_t *t = &trk[i];
+         for (j = 0; j < P_COUNT; j++) {
+-            int16_t v = motion_base_value(t, j);
++            int16_t v = t->p[j];
+             h = as_mix(h, &v, sizeof v);
+         }
+         h = as_mix(h, &t->eng_req, 1);
+@@ -1324,8 +1199,6 @@
+         if (i != G_SLOT && i != G_NAME && i != G_LOAD && i != G_SAVE)
+             h = as_mix(h, &song.g[i], sizeof song.g[i]);
+     h = as_mix(h, song.mch, sizeof song.mch);           /* (1.5.5: MIDI IN TRACK's channels, the project's) */
+-    h = as_mix(h, &motion, sizeof motion);
+-    h = as_mix(h, &chain_config, sizeof chain_config);
+     return as_mix(h, proj_name, sizeof proj_name);
+ }
+ 
+--- a/firmware/src/seq.c	2026-11-11 17:43:00
++++ b/firmware/src/seq.c	2026-11-11 17:53:18
+@@ -11,8 +11,7 @@
+  * A note into an armed track (song.rec) while
+  * the transport runs is recorded into its pattern, quantised to its (swung) steps, with its
+  * held length as TIE steps (rec_note, rec_hold, rec_release). With the ARP on, the notes the arp
+- * plays are recorded, not the keys held (what plays back is what was heard). A key or MIDI note plays a
+- * chord when the track's CHRD is on (chord.c): its notes go through the same input as so many keys. */
++ * plays are recorded, not the keys held (what plays back is what was heard). */
+ static const uint16_t SCALE_MASK[] = {
+     0xFFF,                                   /* CHR */
+     (1 << 0) | (1 << 2) | (1 << 4) | (1 << 5) | (1 << 7) | (1 << 9) | (1 << 11),   /* MAJ */
+@@ -36,7 +35,8 @@
+ static uint32_t kb_prev;
+ static volatile uint8_t kb_boot_hold;    /* #137: set from power-on to the end of the splash (main.c): the keys sound nothing,
+                                           * and one held across its end stays silent until it is let go and pressed again */
+-static uint8_t kb_note[27], kb_trk[27];  /* per key: the note it started and on which track */
++static uint8_t kb_note[27], kb_trk[27], kb_chn[27];   /* kb_chn: 1 while the key's note sounds */
++static int midi_local_held(const track_t *t, uint32_t note);  /* per key: the note it started and on which track */
+ static uint8_t in_key;                   /* the key (+ 1) whose notes go into input_on now (key_on), 0: none (MIDI IN) */
+ static uint8_t kb_vel = 100;             /* 1.5.6 (#84): the keys' velocity (the SELECT VEL row is gone: P3-005) */
+ /* #191: where each track's held[i] came from, so the arp maps it again as it plays (arp_list: TRN, ROOT, SCALE, QNT as
+@@ -176,7 +176,6 @@
+     return n >= 0 ? (uint32_t)n : kb_pitch(t, k, song.octave);
+ }
+ 
+-#include "chord.c"
+ 
+ /* ------------------------------------------------------------- arp --- */
+ static void arp_add(track_t *t, uint32_t note)
+@@ -222,13 +221,33 @@
+     t->nheld = (uint8_t)k;
+ }
+ 
++/* the main loop swaps a multi-byte state under the audio ISR: isr_guard() masks the interrupts and returns what to restore */
++static uint32_t isr_guard(void)
++{
++#if defined(FM1_IRQ_TARGET)
++    uint32_t f = fm1_icfg();
++    fm1_irq_off();
++    return f;
++#else
++    return 0;
++#endif
++}
++static void isr_unguard(uint32_t f)
++{
++#if defined(FM1_IRQ_TARGET)
++    fm1_icfg_set(f);
++#else
++    (void)f;
++#endif
++}
++
++static const step_t *seq_steps(const track_t *t) { return t->step; }   /* (a song's slot steps could stand in: removed in P3-007) */
++
+ #define ND_NONE 0u                      /* track_t nd_late / nd_early: nothing latched (seq_tick; else its seq_pos + 1) */
+ static void rec_note(track_t *t, uint32_t note, uint32_t vel);
+ static void rec_release(track_t *t, uint32_t note);
+-static int rec_on(const track_t *t) { return ((song.rec >> trk_index(t)) & 1u) && song.playing && !chain.running; }
++static int rec_on(const track_t *t) { return ((song.rec >> trk_index(t)) & 1u) && song.playing; }
+ 
+-#include "motion.c"
+-
+ /* the ARP's modes (P_AMODE). Append-only: a stored value keeps its meaning. ORD (1.2, it played as UP before) plays
+  * the held notes in the order they were pressed, whatever ARP 2's ORD switch says (that switch orders the list of the
+  * other modes). 1.2 (Discussion #95), over the note list (the held notes low to high, or as played,
+@@ -364,7 +383,7 @@
+ static uint32_t click_beat_len(void) { return 4u * div_samples(2); }   /* DIV 2: 1/16 */
+ static int click_wanted(void)                  /* CLICK REC: while a track is armed (not in a song: no recording) */
+ {
+-    return click_mode == CLICK_ON || (click_mode == CLICK_REC && song.rec && !chain.running);
++    return click_mode == CLICK_ON || (click_mode == CLICK_REC && song.rec);
+ }
+ /* the arp's note list (list, its length returned; 0: nothing to play): the held notes (sorted or as played) over OCT
+  * octaves, *cnt of them. #191: the notes as they play now, a key's mapped again through kb_pitch (TRN, ROOT, SCALE,
+@@ -657,93 +676,31 @@
+     trk_note_off(t, note);                          /* other mode (ARP switched while held) */
+ }
+ 
+-/* the effect of key k in the FX layer (PF_N none): the white keys F3 .. G5 the map's (perf_map: the settings,
+- * ui_layer.c; by default 1.1.5's ten, FLANGER, PHASER, REV / ECHO THROW), black keys 1..4 the track mutes */
+-static uint32_t perf_key(uint32_t k)
+-{
+-    uint32_t p = key_place(k);
+-    return !key_black(k) ? (p < PF_KEYS ? perf_map[p] : PF_N) : p < NTRK ? PF_M1 + p : PF_N;
+-}
+-
+-/* a key of the FX layer down (FX held) / up: the effect it holds. kb_fx: the one it took (+ 1, 0 none), so a key
+- * remapped while held lets go of what it holds; an effect two keys hold ends with the last of them. noinline: out
+- * of keyboard_block's loop (the audio ISR) */
+-static uint8_t kb_fx[27];
+-static __attribute__((noinline)) void perf_key_press(uint32_t k, int down)
+-{
+-    uint32_t e, j;
+-    if (down) {
+-        e = perf_key(k);
+-        kb_fx[k] = (uint8_t)(e + 1u);
+-        perf_press(e, 1);
+-        return;
+-    }
+-    if (!kb_fx[k])
+-        return;
+-    e = kb_fx[k] - 1u;
+-    kb_fx[k] = 0;
+-    for (j = 0; j < 27u; j++)
+-        if (kb_fx[j] == e + 1u)
+-            return;
+-    perf_press(e, 0);
+-}
+-
+-/* the map changed (ui_layer.c: PRESETS with a key held, EDIT, a settings load): a white key held takes its new
+- * effect at once (the old one let go); FX LATCH: a latched effect of the key's becomes the new one */
+-static __attribute__((noinline)) void perf_key_remap(void)
+-{
+-    uint32_t k, e, o;
+-    perf_remap = 0;
+-    for (k = 0; k < 27u; k++) {
+-        if (!kb_fx[k] || key_black(k) || (o = kb_fx[k] - 1u) == (e = perf_key(k)))
+-            continue;
+-        if (!perf_latch_on) {
+-            perf_key_press(k, 0);
+-            perf_key_press(k, 1);
+-            continue;
+-        }
+-        kb_fx[k] = (uint8_t)(e + 1u);
+-        if (o < PF_N && ((perf_latched >> o) & 1u)) {
+-            perf_latched &= ~PF_BIT(o);
+-            if (e < PF_N) {
+-                perf_latched |= PF_BIT(e);
+-                perf_ord[e] = ++perf_seq;
+-            }
+-        }
+-    }
+-}
+-
+-/* key k plays kb_note[k] on track t: its chord (chord.c; the note alone with CHRD OFF). A note another key
+- * holds already sounds: it is not started again (nor sent to MIDI OUT); the key keeps its notes */
++/* key k plays kb_note[k] on track t. A note another key holds already sounds: it is not started again (nor
++ * sent to MIDI OUT) */
+ static void key_on(uint32_t k, track_t *t)
+ {
+-    uint32_t n = chord_build(t, kb_note[k], kb_chord[k]), i, mc = trk_midi_ch(trk_index(t)), vel = kb_vel;
++    uint32_t x = kb_note[k], mc = trk_midi_ch(trk_index(t)), vel = kb_vel;
+     kb_chn[k] = 0;
+     in_key = (uint8_t)(k + 1u);                     /* (the arp keeps the key: arp_add) */
+-    for (i = 0; i < n; i++) {
+-        uint32_t x = kb_chord[k][i];
+-        if (midi_local_held(t, x))
+-            continue;
++    if (!midi_local_held(t, x)) {
+         input_on(t, x, vel);
+         midi_out_event(0x09u | (0x90u | mc) << 8 | x << 16 | vel << 24);
+     }
+     in_key = 0;
+-    kb_chn[k] = (uint8_t)n;
++    kb_chn[k] = 1;
+     last_note = kb_note[k];                         /* (step entry, the SAMPLE zone: the key's note) */
+ }
+ 
+-/* key k is up: the notes it started end, but those another key still holds */
++/* key k is up: its note ends, unless another key still holds it */
+ static void key_off(uint32_t k, track_t *t)
+ {
+-    uint32_t n = kb_chn[k], i, mc = trk_midi_ch(trk_index(t));
++    uint32_t x = kb_note[k], mc = trk_midi_ch(trk_index(t));
+     kb_chn[k] = 0;
+-    for (i = 0; i < n; i++) {
+-        uint32_t x = kb_chord[k][i];
+-        if (midi_local_held(t, x))
+-            continue;
+-        input_off(t, x);
+-        midi_out_event(0x08u | (0x80u | mc) << 8 | x << 16);
+-    }
++    if (midi_local_held(t, x))
++        return;
++    input_off(t, x);
++    midi_out_event(0x08u | (0x80u | mc) << 8 | x << 16);
+ }
+ 
+ #ifdef FM1_INPUT_LAT
+@@ -767,10 +724,8 @@
+ static void keyboard_block(void)
+ {
+     uint32_t cur = fm1_in.notes, ch, k;
+-    uint32_t lay, fx, mute;
++    uint32_t mute;
+     ch = cur ^ kb_prev;                          /* keys also sound while entering steps */
+-    if (perf_remap)
+-        perf_key_remap();
+     if (!ch)
+         return;
+     if (kb_boot_hold) {                           /* #137: under the splash; their release is silent too */
+@@ -780,8 +735,6 @@
+         kb_prev = cur;
+         return;
+     }
+-    lay = (fm1_in.buttons & kb_mask) || kb_lock;  /* (#83: kb_lock, a layer locked open with no button held) */
+-    fx = (fm1_in.buttons & perf_mask) || (kb_lock & 2u);
+     mute = song.grid == 2u ? ~0u : song.grid == 3u ? SONG_KEYS : 0u;   /* the keys that never sound here */
+     for (k = 0; k < 27u; k++) {
+         if (!((ch >> k) & 1u))
+@@ -792,13 +745,6 @@
+                 kb_note[k] = KB_SILENT;
+                 continue;
+             }
+-            if (lay) {                            /* a layer's button held (or locked): the key is the layer's */
+-                kb_note[k] = KB_SILENT;           /* (ui_layer.c), with FX an effect (perform.c) */
+-                kb_layer |= 1u << k;
+-                if (fx)
+-                    perf_key_press(k, 1);
+-                continue;
+-            }
+             if ((mute >> k) & 1u)                 /* NAME (ui_name.c): every key types, none sounds; SONG: A..D */
+                 kb_note[k] = KB_SILENT;
+             else if (song.grid == 1u)             /* the DRUM grid: a lane key plays its lane, the rest are the UI's */
+@@ -812,11 +758,6 @@
+             kb_lat(k);
+ #endif
+         } else {
+-            if ((kb_layer >> k) & 1u) {
+-                kb_layer &= ~(1u << k);
+-                perf_key_press(k, 0);
+-                continue;
+-            }
+             if (kb_note[k] == KB_SILENT)
+                 continue;
+             key_off(k, &trk[kb_trk[k] % NTRK]);
+@@ -829,8 +770,6 @@
+ static void seq_start(void)
+ {
+     uint32_t i;
+-    motion_begin();
+-    chain_start();
+     for (i = 0; i < NTRK; i++) {                   /* every track from its step 0, together */
+         track_t *t = &trk[i];
+         t->seq_idx = (uint16_t)(t->p[P_SLEN] - 1);
+@@ -848,7 +787,6 @@
+     clk_pos = CLK_START;                           /* the metronome's first beat with step 0 */
+     song.playing = 1;
+     t1_on_start();                                 /* t1_glue.c: the T-1 from its tick 0 too */
+-    perf_start();                                  /* perform.c: its 1/16 grid too */
+ }
+ 
+ static void seq_release(track_t *t)
+@@ -879,8 +817,6 @@
+         trk[i].nd_late = trk[i].nd_early = ND_NONE;   /* (a nudged step not played yet: not after the stop) */
+         trk[i].nd_fired = 0;
+     }
+-    chain_stop();
+-    motion_end();
+     t1_on_stop();                                  /* t1_glue.c: every T-1 note off (MIDI OUT too) */
+ }
+ 
+@@ -1064,25 +1000,15 @@
+     return mod_time(t, s->n ? s->note[0] : DRUM_LANE_NOTE[__builtin_ctz(s->hit) & (NLANE - 1u)], vel, period);
+ }
+ 
+-/* the automation a track plays: its slot's while a song plays (song_chain.c lanes; 0: a silent lane, none) */
+-static const motion_store_t *chain_motion(const track_t *t)
+-{
+-    uint32_t s = chain.lane[trk_index(t)];
+-    return !chain.running ? &motion : s < 4u ? &chain.source[s].motion : 0;
+-}
+-
+ /* step idx plays: its chance (the one roll, as seq_step made it: a step that does not play applies no lock), the
+  * automation and the locks before the notes (so a note-on reads them: eng_drum's KIT, ..), the notes live recording
+  * already sounds left out (rskip), then its notes. On its start, or (NUDGE) at its start + its nudge */
+ static __attribute__((noinline)) void seq_play(track_t *t, uint32_t idx, uint32_t period)
+ {
+     const step_t *s = &seq_steps(t)[idx];
+-    const motion_store_t *m = chain_motion(t);
+     uint32_t skip = SEQ_ROLLED, i, k;
+     if (seq_miss(t, s, idx))
+         skip = SEQ_MISS;
+-    if (m)
+-        motion_step(t, idx, m, skip == SEQ_ROLLED);
+     if (t->rskip_n && t->rskip_idx == idx) {
+         for (k = 0; k < t->rskip_n; k++) {
+             for (i = 0; i < s->n; i++)
+@@ -1147,7 +1073,7 @@
+             seq_play(t, t->seq_idx, period);
+     }
+     t->nd_fired = 0;
+-    if ((!chain.running || nx) && (d = seq_nudge(t, &seq_steps(t)[nx])) < 0) {
++    if ((d = seq_nudge(t, &seq_steps(t)[nx])) < 0) {
+         uint32_t at = step_samples(t, period, t->seq_idx), back = (uint32_t)-d * period / NUDGE_DIV;
+         at = (at > back ? at - back : 0u) + 1u;
+         t->nd_early = at < t->nd_late ? t->nd_late : at;   /* (never before this step's own late play) */
+@@ -1185,7 +1111,7 @@
+         if (t->seq_pos < cur_len && t->seq_pos != 0x7FFFFFFFu + n)
+             break;
+         top = t->seq_pos >= 0x7FFFFFFFu;            /* (PLAY, a SONG section: its first step) */
+-        t->seq_pos = top ? (chain.running ? chain.carry : 0u) : t->seq_pos - cur_len;
++        t->seq_pos = top ? 0u : t->seq_pos - cur_len;
+         t->seq_idx = (uint16_t)((t->seq_idx + 1u) % len);
+         seq_enter(t, top, len);
+         if (t->p[P_SQNT] && !t->nd_fired)
+@@ -1319,7 +1245,7 @@
+             midi_clock_transport(0xFAu, fm1_ms);
+         else if (cin_left)
+             ;                                       /* counting in already (the UI's PLAY stops it: seq_counting) */
+-        else if (cin_bars && song.rec && !song.playing && !chain.armed)
++        else if (cin_bars && song.rec && !song.playing)
+             cin_begin();                            /* recording from stop: the count-in first */
+         else
+             seq_start();
+@@ -1346,7 +1272,6 @@
+         memset(midi_sel_on, 0, sizeof midi_sel_on);
+         memset(midi_ch, 0, sizeof midi_ch);
+         memset(midi_owners, 0, sizeof midi_owners);
+-        memset(mchord, 0, sizeof mchord);
+         midi_hint = 0;
+         for (i = 0; i < NTRK; i++) {
+             trk[i].rh_n = trk[i].rskip_n = 0;
+@@ -1407,7 +1332,6 @@
+     }
+     if (aud_req)
+         seq_audition();                               /* (STEP PREVIEW: a step sounds, stopped) */
+-    chain_tick(seq_n);
+     if (t1_off_req) {                               /* T1 mode turned off: its notes end */
+         t1_off_req = 0;
+         t1_all_off();
+--- a/firmware/src/settings_persist.c	2026-11-11 17:43:00
++++ b/firmware/src/settings_persist.c	2026-11-11 17:51:13
+@@ -14,7 +14,7 @@
+  * [15][11]: PRESETS > LIST's category (1.2, Discussion #90, ui.c ui_lcat: 0 none = ALL / FAV as favorites.filter says);
+  * [15][0..9], [12] (1.6, #244: CUSTOM, a palette of the user's: five RGB565 colours little endian, flags: ui.c ui_cpal); older
+  * firmware keeps the bytes as saved and shows the built-in palette in persist_t.palette.
+- * [15][14..23]: the FX layer's key map (1.2, ui_layer.c fx_keys: 16 white keys x 5 bits, perform.c perf_map_of; 0 = the
++ * [15][14..23]: the FX layer's key map (1.2; the layer was removed in P3, the bytes are kept as saved: 16 white keys x 5 bits; 0 = the
+  * key's default, an unknown code too: kept as saved, a later firmware's effect survives a round trip here).
+  * MENU's flags (ui.c PREF_*) are append-only bits whose 0 is the default: BPM LOCK (16) is clear in every older setting
+  * = unlocked, LARGE (32) = OFF, RESTORE LAST OFF (128, 1.2) = ON, read as saved (nothing to migrate, so importing twice changes nothing). */
+--- a/firmware/src/ui.c	2026-11-11 17:43:00
++++ b/firmware/src/ui.c	2026-11-11 17:52:20
+@@ -8,7 +8,6 @@
+ static void panel_setup(void);
+ static void project_load(uint32_t slot);
+ static int project_used(uint32_t slot);
+-static uint32_t chain_prepare(void);
+ static int up_used(uint32_t k);              /* user presets: upreset.c */
+ static int up_load(uint32_t k);
+ static uint32_t up_count(void);
+@@ -46,7 +45,6 @@
+  * saved with the settings; 0 in older ones = every setting's default (append-only: a new setting takes a new bit,
+  * its default is 0) */
+ #define ui_prefs (favorites.factory[15][30])
+-#define PREF_LATCH 1u                          /* MENU > FX LATCH ON (#40) */
+ #define PREF_ANIM_OFF 2u                       /* MENU > ANIM OFF (#46): values snap (no rolling digits, no glide) */
+ #define PREF_ACCEL 4u                          /* MENU > KNOB ACCEL ON (#52): fast turns of wide values x2..x8 */
+ #define PREF_USB_FIXED 8u                      /* MENU > USB LEVEL FIXED: USB audio at the full level, MASTER after */
+@@ -56,7 +54,6 @@
+                                                 * audio + MIDI only (usb.c usb_cdc_switch); clear in every older setting = ON */
+ #define PREF_RESTORE_OFF 128u                  /* MENU > RESTORE LAST OFF (1.2, Discussion #130): no autosave written, none
+                                                 * restored at power-on (project.c); clear in every older setting = ON */
+-#define fx_latch ui_prefs
+ /* MENU > AUDIO CLICK, CLICK LEVEL, COUNT-IN (1.1, Discussion #131; click.c, seq.c): two bits each in another byte no
+  * engine uses, saved with the settings: bits 0-1 CLICK (OFF REC ON), 2-3 CLICK LEVEL (stored 0 MID, 1 LOW, 2 HIGH),
+  * 4-5 COUNT-IN (OFF, 1 BAR, 2 BARS); 0 in older settings = OFF / MID / OFF, so nothing clicks or counts in that did
+@@ -78,7 +75,6 @@
+ #define PREF_X 0xFF0000u                       /* (menu_items.c MENU_FLAGS: a bit of ui_prefs2, << 16) */
+ #define PREF_SCOPE_MIX (0x01u << 16)
+ #define PREF_PREVIEW (0x02u << 16)
+-#define PREF_CHORD_ADD (0x04u << 16)
+ #define PREF_HELP (0x08u << 16)
+ #define PREF_WAKE_PANEL (0x20u << 16)
+ /* 1.3 (Discussions #112, #134): MENU > DISPLAY > HOME, what the HOME page shows under its four cards: 0 SCOPE (the
+@@ -150,7 +146,6 @@
+     uint8_t home;
+     uint8_t page;                /* (main.c debug record only) */
+     uint8_t ppick;               /* (upreset.c: the pattern picked; P3-007+) */
+-    uint8_t song_row;            /* (project.c: reset on a load; P3-007) */
+         uint8_t hot_col, hot_t;      /* column whose knob was just turned (drawn white) */
+     uint8_t menu;                /* 0 off, 1 list, 2 about + credits, 3 info (1.2) (HOME held) */
+     uint8_t menu_sel;            /* MENU: the row (menu_items.c MI_*; its tab MI_TAB), kept while the device runs */
+@@ -357,14 +352,13 @@
+  * for the header's 130 px after the icon) */
+ #define MSG_NO_SAMPLE MSG_NOFILE "NO SAMPLE"
+ 
+-static int chain_busy(void) { return chain.running || chain.armed; }
+ /* Main loop only, with interrupts enabled. PLAY may be consumed between reads;
+  * take one coherent snapshot before a flash operation or song preparation. */
+ static int transport_busy(void)
+ {
+     int busy;
+     fm1_irq_off();
+-    busy = song.playing || chain_busy() || transport_req == 1u || seq_counting();   /* (a count-in: as playing) */
++    busy = song.playing || transport_req == 1u || seq_counting();   /* (a count-in: as playing) */
+     fm1_irq_on();
+     return busy;
+ }
+@@ -438,11 +432,8 @@
+  * load wins. Loads in a row on one track with nothing changed in between (the PRESETS knob through the
+  * list, one pattern after the other, an editor audition) keep the copy from before the first, so the
+  * undo goes back past the whole browse. Not snapshotted: power-on, projects.
+- * 1.1.5: a lock or automation edit by hand (a step held and a knob turned, a step's locks cleared, SEQ > AUTOMATION)
+- * takes the copy too (UNDO_MOT: SAVE held puts the track's motion back, the sound and the steps stay; motion_undo_take).
+- * A sound load keeps the track's motion on the parameters every engine has (load_end, motion.c motion_sound_loaded);
+- * a pattern load drops it all (the steps it was on are gone) */
+-enum { UNDO_SOUND = 1, UNDO_PAT = 2, UNDO_MOT = 4 };
++ */
++enum { UNDO_SOUND = 1, UNDO_PAT = 2 };
+ static struct {
+     uint8_t trk;                 /* track + 1, 0 = nothing to undo */
+     uint8_t keep;                /* the track is as the last load left it (undo.after): a next load keeps the copy */
+@@ -452,7 +443,6 @@
+     uint8_t fm6[FP_SIZE + 1u];   /* patch is the track's own, not a factory one */
+     int16_t p[P_COUNT];
+     step_t step[NSTEP];
+-    motion_store_t motion_backup; /* one track only, swaps with the shared event pool on undo */
+     uint32_t after;              /* track_sig right after the last load */
+     uint32_t pat;                /* pat_sig[] of the copy */
+     uint32_t from_h;             /* pat_from_h[], pat_from[] of the copy (the header's slot letter) */
+@@ -469,8 +459,6 @@
+  * it then: an edit since shows the letter with a mark */
+ static uint8_t pat_from[NTRK];
+ static uint32_t pat_from_h[NTRK];
+-static uint8_t load_from;        /* a sound load (the outer one): the engine before it (load_end) */
+-static uint8_t load_mo;          /* .. the track's motion paused while the sound changes: bit 0 set, bit 1 it was ON */
+ 
+ static uint32_t fnv(uint32_t h, const void *p, uint32_t n)
+ {
+@@ -485,24 +473,14 @@
+     uint8_t id[3] = {t->eng_req, t->preset, t->user};
+     uint32_t h = fnv(fnv(steps_sig(t), t->p, sizeof t->p), id, 3), k = trk_index(t);
+     h = fnv(h, fm6_patch[k], sizeof fm6_patch[k]); /* (a patch the editor sent between two loads) */
+-    for (uint32_t j = 0; j < motion.count; j++)
+-        if ((motion.event[j].place >> 6) == k) h = fnv(h, &motion.event[j], sizeof motion.event[j]);
+-    return h ^ ((motion.on >> k) & 1u);
++    return h;
+ }
+-static uint32_t motion_sig(const track_t *t)     /* the track's motion only (the sound moves while it plays) */
+-{
+-    uint32_t h = 2166136261u, k = trk_index(t);
+-    for (uint32_t j = 0; j < motion.count; j++)
+-        if ((motion.event[j].place >> 6) == k) h = fnv(h, &motion.event[j], sizeof motion.event[j]);
+-    return h ^ ((motion.on >> k) & 1u);
+-}
+-/* the track's pattern as a song plays it from a slot: the steps, LEN DIV SWING GATE, QUANTIZE, the automation (the
+- * editable ones: while a song plays the header shows the section's slot instead) */
++/* the track's pattern as a project slot holds it: the steps, LEN DIV SWING GATE, QUANTIZE */
+ static uint32_t pat_from_sig(const track_t *t)
+ {
+     int16_t q = t->p[P_SQNT];
+     uint32_t h = fnv(fnv(steps_sig(t), &t->p[P_SLEN], 4u * sizeof t->p[0]), &q, sizeof q);
+-    return h ^ motion_sig(t);
++    return h;
+ }
+ static void pat_from_set(uint32_t slot)             /* every track's pattern is slot's now (1..4), 0 none */
+ {
+@@ -512,20 +490,6 @@
+     }
+ }
+ 
+-/* load_begin, the copy taken: a pattern load drops the track's motion (its steps go); a sound load pauses it (PLAY
+- * OFF while the sound changes under it) and load_end keeps what still means the same (motion_sound_loaded) */
+-static void load_motion_hold(track_t *t, uint32_t what)
+-{
+-    if (what & UNDO_PAT) {
+-        motion_reset(t);
+-        load_mo = 0;
+-        return;
+-    }
+-    load_from = t->eng_req;
+-    load_mo = (uint8_t)(1u | (motion_enabled(t) ? 2u : 0u));
+-    motion_set_enabled(t, 0);
+-}
+-
+ /* MOMENTARY (ui_input.c mom_turn: LFO held, the knobs' changes go back when it is let go): the values turned, where
+  * they are (a track's p[], song.g[]) and what they were. In the main loop's pool (no .bss) */
+ #define MOM_N 8u
+@@ -555,10 +519,8 @@
+     }
+     if (undo_depth++)
+         return;
+-    motion_restore(t);
+-    if (undo.keep && undo.trk == i + 1u && !(undo.what & UNDO_MOT) && track_sig(t) == undo.after) {
++    if (undo.keep && undo.trk == i + 1u && track_sig(t) == undo.after) {
+         undo.what |= (uint8_t)what;               /* browsing on: the copy from before the first load stays */
+-        load_motion_hold(t, what);
+         return;
+     }
+     undo.trk = (uint8_t)(i + 1u);
+@@ -574,33 +536,17 @@
+     undo.from = pat_from[i];
+     undo.from_h = pat_from_h[i];
+     undo.patn = pat_last[i];
+-    motion_snapshot_track(t, &undo.motion_backup);
+-    load_motion_hold(t, what);
+ }
+ 
+ static void load_end(track_t *t)
+ {
+     if (--undo_depth)
+         return;
+-    if (load_mo & 1u) {                           /* a sound load: the motion on the common parameters stays */
+-        (void)motion_sound_loaded(t, load_from, t->eng_req);
+-        if ((load_mo & 2u) && motion_count(t))
+-            motion_set_enabled(t, 1);
+-        load_mo = 0;
+-    }
+-    motion_rebase(t);
+     undo.after = track_sig(t);
+     undo.keep = 1;
+     undo.t_ms = fm1_ms;
+ }
+ 
+-/* 1.1.5: a lock / automation edit by hand on track t is about to happen: the undo copy of the track as it is (as
+- * ui_tools.c tl_undo_take, UNDO_MOT: the swap puts back its motion only). A knob turned on (the same tag, not 0:
+- * the same knob of the same gesture), on the same track, nothing else changed and less than 1.5 s apart, shares the
+- * copy from before its first detent; tag 0 (an add, a delete, a clear, a kind) always takes its own.
+- * motion_undo_done after each */
+-static uint32_t undo_mot_tag;
+-
+ static int param_kept(uint32_t i);
+ 
+ /* a 16-step pattern (PATTERNS[] format, user presets too) into steps 1..16, the rest empty, LEN 16 */
+@@ -643,7 +589,6 @@
+ static void track_defaults_steps(track_t *t)
+ {
+     uint32_t i;
+-    motion_reset(t);
+     for (i = 0; i < NSTEP; i++)
+         step_clear(&t->step[i]);
+ }
+@@ -702,11 +647,11 @@
+     uint8_t v[FP_SIZE + 1u];
+     uint32_t pr = fm4_convert(p, v), tr = trk_index(t), f;
+     fm6_set_patch(tr, v);
+-    f = motion_guard();                               /* the audio ISR sees the old sound or the new one */
++    f = isr_guard();                               /* the audio ISR sees the old sound or the new one */
+     memcpy(t->p, p, sizeof t->p);
+     t->eng_req = ENGI_FM6;
+     t->preset = (uint8_t)pr;
+-    motion_unguard(f);
++    isr_unguard(f);
+     fm6_adopt(tr);                                    /* SLOT OWN: the converted patch is the track's own */
+ }
+ static void fm4_track(track_t *t)                     /* t holds a DIGITAL sound (engine 1): convert it */
+--- a/firmware/src/ui_draw.c	2026-11-11 17:43:00
++++ b/firmware/src/ui_draw.c	2026-11-11 17:51:40
+@@ -281,20 +281,15 @@
+     if (lock)
+         cv_icon_mid(x + 6, H_HEAD / 2, 16, ICON_X_LOCK, T_THEME, T_BG);
+ }
+-/* the slot letter after the track's cushion (1.2): the PROJECT slot of the pattern the selected track plays or edits.
+- * A song playing: its section's slot for the track ("-" silent there); else the slot the working pattern came from
++/* the slot letter after the track's cushion (1.2): the PROJECT slot of the pattern the selected track plays or edits:
++ * the slot the working pattern came from
+  * (ui.c pat_from: the last PROJECT load or save), with a mark ("A*") once it was edited since (its steps, LEN DIV SWING
+- * GATE, QUANTIZE or automation: ui.c pat_from_sig); none at power-on, after a PHRASES pattern or the editor's restore.
++ * GATE, QUANTIZE: ui.c pat_from_sig); none at power-on, after a PHRASES pattern or the editor's restore.
+  * b: the letter (b[1] '*' or 0); 0 = none */
+ static int head_slot(char *b)
+ {
+-    uint32_t k = song.sel % NTRK, s;
++    uint32_t k = song.sel % NTRK;
+     b[1] = b[2] = 0;
+-    if (chain.running) {
+-        s = chain.lane[k];
+-        b[0] = s < 4u ? (char)('A' + s) : '-';
+-        return 1;
+-    }
+     if (!pat_from[k] || pat_from[k] > 4u)
+         return 0;
+     b[0] = (char)('A' + pat_from[k] - 1u);
+@@ -302,23 +297,17 @@
+         b[1] = '*';
+     return 1;
+ }
+-/* the octave, or the song row while a song plays, its right end at HEAD_GRP_R */
++/* the octave, its right end at HEAD_GRP_R */
+ static void head_group(void)
+ {
+     char b[8];
+     int32_t x;
+-    if (chain.running) {
+-        fmt_int(b, (int32_t)chain.row + 1);
+-        x = HEAD_GRP_R - (16 + 4 + text_w(&AF_M, b));
+-        x += cv_icon_mid(x, H_HEAD / 2, 16, ICON_X_SONG, T_MID, T_BG);   /* SONG: the disc */
+-    } else {
+-        str_cpy(b, song.octave > 0 ? "+" : "", sizeof b);
+-        fmt_int(b + str_len(b), song.octave);
+-        x = HEAD_GRP_R - (text_w(&AF_S, "OCT") + 4 + text_w(&AF_M, b));
+-        GFX_HOOK_ALIGN(0, 0, 0, H_HEAD, AL_V, "header text on its middle");
+-        x = cv_text(x, HEAD_SY, &AF_S, "OCT", T_MID);
+-    }
++    str_cpy(b, song.octave > 0 ? "+" : "", sizeof b);
++    fmt_int(b + str_len(b), song.octave);
++    x = HEAD_GRP_R - (text_w(&AF_S, "OCT") + 4 + text_w(&AF_M, b));
+     GFX_HOOK_ALIGN(0, 0, 0, H_HEAD, AL_V, "header text on its middle");
++    x = cv_text(x, HEAD_SY, &AF_S, "OCT", T_MID);
++    GFX_HOOK_ALIGN(0, 0, 0, H_HEAD, AL_V, "header text on its middle");
+     cv_text(x + 4, HEAD_MY, &AF_M, b, T_THEME);
+ }
+ static void draw_head(void)
+@@ -334,7 +323,7 @@
+     uint32_t sig = (uint32_t)song.playing * 3u + rec * 5u + (uint32_t)(song.octave + 8) * 11u + song.sel * 13131u +
+                    (ui.msg_t ? str_hash(7u, ui.msg) : 0u) + (uint32_t)song.g[G_BPM] * 101u + (ui.bpm_t != 0) * 31u +
+                    (uint32_t)seq_counting() * 7u +
+-                   (uint32_t)batt_shown() * 7777u + (chain.running ? (chain.row + 1u) * 104729u : 0u) +
++                   (uint32_t)batt_shown() * 7777u +
+                    (slot ? str_hash(11u, sl) : 0u) + (uint32_t)midi_lit(song.sel) * 15485863u;   /* (1.5.5) */
+     int msg = ui.msg_t;
+     int centre = !msg || ui.bpm_t;   /* the BPM being changed: it stays, the message right */
+@@ -383,8 +372,8 @@
+     draw_rec_mark(rx, T_BG);
+     if (centre) {
+         int32_t ib[4], lx = g.bx + g.b[2];             /* lx: the right end of the BPM (and its lock) */
+-        uint32_t id = song.playing ? (chain.running ? ICON_X_SONG : ICON_X_PLAY) : seq_counting() ? ICON_X_PLAY : ICON_X_STOP;
+-        icon_ink(16, id, ib);                          /* the play state: the song's disc, play (counting in: the
++        uint32_t id = song.playing ? ICON_X_PLAY : seq_counting() ? ICON_X_PLAY : ICON_X_STOP;
++        icon_ink(16, id, ib);                          /* the play state: play (counting in: the
+                                                         * accent's, about to play), stop */
+         cv_icon_mid(g.px1 - ib[2], H_HEAD / 2, 16, id, /* (right-aligned in its slot) */
+                     song.playing ? T_THEME : seq_counting() ? T_ACCENT : T_MID, T_BG);
+@@ -401,7 +390,7 @@
+     } else {
+         head_msg(-1, HEAD_MSG_W);
+     }
+-    if (!msg && (chain.running || song.octave))
++    if (!msg && song.octave)
+         head_group();
+     if (!(msg && centre))
+         draw_battery(HEAD_BAT_X);
+@@ -415,12 +404,6 @@
+ #ifndef CARD_HOOK
+ #define CARD_HOOK(v, u) ((void)0)                       /* host: a card value set in S (M too wide with its unit) */
+ #endif
+-/* MOTION on the cards (#63: values that move on their own): the selected track's motion-driven parameters
+- * (motion.c motion_mask: PLAY ON and an event for the id), once per draw_columns; card_mot_next is set just
+- * before a draw_column of a track parameter (card_mot_of) and taken by it; card_mot: the cards drawn with it. */
+-static uint32_t card_mot_mask[(P_COUNT + 31u) / 32u];
+-static uint8_t card_mot_next, card_mot;
+-
+ /* MENU > LARGE, a tall card (ui.c LK_TALL; 57 x LG_CARD_H): which knob it is (a "K1" pill in M, the keycap's colours,
+  * the accent while it turns, DIM when the knob does nothing here) and the icon at the right of it; the label in M
+  * centred (S when M is too wide); the value centred in L, its figures twice the height of M (M, then S, when L is too
+--- a/firmware/src/ui_input.c	2026-11-11 17:43:00
++++ b/firmware/src/ui_input.c	2026-11-11 17:52:20
+@@ -57,7 +57,7 @@
+ /* Discussion #81: the keys of the notes MIDI IN (USB and TRS, routed by ROUT) holds on track t, bit k = key k: as
+  * play_leds, where the keys play that note at the octave now, the lowest key that gives it; a note no key plays is
+  * not shown. Read from midi_control.c's own state (midi_note_held: the notes each channel holds for the track, the
+- * pedal's too, and the tones of MIDI chords): no state here; nothing to do while MIDI holds none of the track's */
++ * pedal's too): no state here; nothing to do while MIDI holds none of the track's */
+ static uint32_t midi_leds(const track_t *t)
+ {
+     uint32_t k, note, m = 0, seen[4] = {0, 0, 0, 0};
+@@ -135,7 +135,7 @@
+ #define IDLE_LEDS_MS 60000u
+ static int idle_leds(void)
+ {
+-    int due = (ui_idle & 1u) && !(ui_prefs & PREF_ANIM_OFF) && !song.playing && !seq_counting() && !chain_busy() &&
++    int due = (ui_idle & 1u) && !(ui_prefs & PREF_ANIM_OFF) && !song.playing && !seq_counting() &&
+               !song.rec && !transport_req && !ui.menu && !ui.confirm && !ui.uboot &&
+               !(fm1_in.notes | fm1_in.buttons) && !panel_moved && !play_leds() && fm1_ms - scrn.idle >= IDLE_LEDS_MS;
+     if (!due) {
+--- a/firmware/src/upreset.c	2026-11-11 17:43:00
++++ b/firmware/src/upreset.c	2026-11-11 17:52:20
+@@ -407,7 +407,7 @@
+     r.np = P_COUNT;
+     up_set_name(&r, k, name);
+     for (i = 0; i < P_COUNT; i++)
+-        up_set_value(&r, i, motion_base_value(TSEL, i));
++        up_set_value(&r, i, TSEL->p[i]);
+     up_pat_from(&r, TSEL->step);
+     up_set_cat(&r, cat ? cat : track_cat(TSEL));
+     if (drum_track(TSEL)) {                             /* a DRUM track that strikes a lane: its grid */
+@@ -574,7 +574,7 @@
+         ui_message("EMPTY SLOT");
+         return;
+     }
+-    if (op && (song.playing || chain_busy() || transport_req == 1u)) {    /* (up_put refuses too) */
++    if (op && (song.playing || transport_req == 1u)) {    /* (up_put refuses too) */
+         ui_message("STOP TO SAVE");
+         return;
+     }
+--- a/tests/audio_test.c	2026-11-11 17:43:00
++++ b/tests/audio_test.c	2026-11-11 17:54:56
+@@ -41,7 +41,6 @@
+     uint32_t p;
+     memset(trk, 0, sizeof trk);
+     memset(&song, 0, sizeof song);
+-    memset(&chain, 0, sizeof chain);
+     host_tracks_init();
+     for (p = 0; p < NPART; p++) host_preset(&trk[p], 0, 0);
+     memset(&felucca_dbg, 0, sizeof felucca_dbg);
+@@ -201,7 +200,7 @@
+ {
+     fresh();
+     lim_env = LIM_T; dc_l = dc_r = dce_l = dce_r = 0;
+-    memset(kb_note, 0, sizeof kb_note); kb_prev = 0; kb_layer = 0;
++    memset(kb_note, 0, sizeof kb_note); kb_prev = 0;
+     trk[0].p[P_VOICE] = V_POLY;
+     trk[0].p[P_DIST] = trk[0].p[P_CHOR] = trk[0].p[P_DLY] = trk[0].p[P_REV] = 0;
+ }
+--- a/tests/click_test.c	2026-11-11 17:43:00
++++ b/tests/click_test.c	2026-11-11 17:54:56
+@@ -51,7 +51,6 @@
+     uint32_t p;
+     memset(trk, 0, sizeof trk);
+     memset(&song, 0, sizeof song);
+-    memset(&chain, 0, sizeof chain);
+     memset(&midi_clock, 0, sizeof midi_clock);
+     host_tracks_init();
+     for (p = 0; p < NPART; p++) host_preset(&trk[p], 0, 0);
+--- a/tests/drum_test.c	2026-11-11 17:43:00
++++ b/tests/drum_test.c	2026-11-11 17:55:16
+@@ -20,7 +20,7 @@
+  * 6. the key map of the DRUM engine: key 7 (the first C) = KICK, one lane per key, KICK's variants. The retired KIT
+  *    values 1..3 (HAND CYM H+CYM until 1.0.4): every note plays what 66 10 77 play, a beat through the engine
+  *    renders the same samples; the knob never lands on them, DESC names them as those kits, a stored value (project,
+- *    user preset: param_fit) and a motion event land on the kit they play (the editor's SET: the removed web editor, P3-004).
++ *    user preset: param_fit) land on the kit they play (the editor's SET: the removed web editor, P3-004).
+  * 7. the kit through the engine: the 8 lanes struck at once all sound together (8 voices), a lane struck again
+  *    by another note cuts its last hit (one voice), a released key does not end a hit and the voice frees
+  *    itself when the drum has rung out, VOICE MONO still plays the kit.
+@@ -1258,7 +1258,7 @@
+ 
+ /* KIT 1..3 (HAND CYM H+CYM until 1.0.4) play 66 10 77: every note the same piece, the same lane names, a beat through
+  * the engine the same samples (either KICK); the knob steps STD 80 10 66 55 77 and never lands on 1..3; DESC names
+- * them as the kit they play; a stored value (param_fit: projects, user presets) and a motion event land on that kit;
++ * them as the kit they play; a stored value (param_fit: projects, user presets) lands on that kit;
+  * KIT moved by the matrix over its whole range plays only the six kits */
+ static void retired(void)
+ {
+@@ -1315,17 +1315,6 @@
+                param_fit(d, (int32_t)r) != MAP[r];
+     bad += param_fit(d, 99) != DK_PERC || param_fit(d, -5) != DK_STD || enum_orig(d, DK_55) != DK_55;
+     bad += param_fit(&TP[P_LEVEL], 77) != 77;
+-    {   /* a motion event of KIT 2 (CYM): stored and played as 10 */
+-        host_tracks_init();
+-        host_preset(&trk[0], ENGI_DRUM, 0);
+-        motion_clear(&trk[0]);
+-        bad += motion_set_event(&trk[0], 0, P_E0, DK_CYM) != 0;
+-        for (k = n = 0; k < motion.count; k++)
+-            if (motion.event[k].param == P_E0)
+-                n++, bad += motion.event[k].value != DK_10;
+-        bad += n != 1u;
+-        motion_clear(&trk[0]);
+-    }
+     {   /* KIT anywhere in its range (the matrix moves it per block): a crash plays a model kit's BELL on 1..3 */
+         int16_t p[P_COUNT];
+         host_tracks_init();
+@@ -1338,7 +1327,7 @@
+         }
+     }
+     printf("drum_test: KIT 1..3 (HAND CYM H+CYM until 1.0.4) play 66 10 77 (the same samples), the knob skips them, "
+-           "a stored value and motion land on the kit: %s\n", bad ? "FAIL" : "ok");
++           "a stored value lands on the kit: %s\n", bad ? "FAIL" : "ok");
+     fails += bad != 0;
+ }
+ 
+--- a/tests/fold155_test.c	2026-11-11 17:43:00
++++ b/tests/fold155_test.c	2026-11-11 17:56:11
+@@ -393,10 +393,6 @@
+ static void fresh(uint32_t pi)                         /* the boot state, track 1 = PHASE preset pi */
+ {
+     uint32_t k;
+-    memset(&pf, 0, sizeof pf);
+-    for (k = 0; k < NTRK; k++)
+-        pf.mg[k] = 32768;
+-    perf_held = perf_latched = 0;
+     lim_env = LIM_T;
+     dc_l = dc_r = dce_l = dce_r = 0;
+     vage = 0;
+--- a/tests/hostsim.c	2026-11-11 17:43:00
++++ b/tests/hostsim.c	2026-11-11 17:52:25
+@@ -37,7 +37,6 @@
+ static void fm1_delay_ms(uint32_t ms) { (void)ms; }
+ #include "../firmware/src/usb.c"
+ #include "../firmware/src/midi_uart.c"                /* TRS MIDI IN: its parser (um_byte) feeds midi_in_q */
+-#include "../firmware/src/song_chain.c"
+ #include "../firmware/src/seq.c"
+ #include "host_t1_hooks.h"                         /* the real T-1: torso_t1*.c, t1_glue.c (P3-001) */
+ #define inst (trk[0])                   /* the single-part renders below: part 1 */
+--- a/tests/midi_control_test.c	2026-11-11 17:43:00
++++ b/tests/midi_control_test.c	2026-11-11 17:55:16
+@@ -130,12 +130,6 @@
+     bad += check("lost clock times out and releases transport notes", !song.playing && !trk[0].seq_n);
+     clock_packet(source, 0xFA, 700); clock_to(source, 700, 7);
+     bad += check("Start after timeout restarts cleanly at the master's phase", song.playing && trk[0].seq_idx == 1u);
+-    /* Original base values remain after MIDI Stop even while motion sounds. */
+-    trk[0].p[P_REV] = 23; motion_clear(&trk[0]); motion_set_event(&trk[0], 0, P_REV, 100);
+-    clock_packet(source, 0xFA, 1000); clock_packet(source, 0xF8, 1000);
+-    bad += check("external-clock playback applies recorded motion", trk[0].p[P_REV] == 100);
+-    clock_packet(source, 0xFC, 1010);
+-    bad += check("external Stop restores the musical parameter base", trk[0].p[P_REV] == 23);
+     return bad;
+ }
+ static int clock_arp_and_boundaries(void)
+@@ -531,19 +525,15 @@
+     bad += check("ROUT SEL: channel 10's CC7 sets the selected track's LEVEL", trk[2].p[P_LEVEL] == 5 && trk[0].p[P_LEVEL] != 5);
+     song.g[G_ROUTE] = 0; song.sel = 0; events_block(CTL);
+ 
+-    /* AUTOMATION: the selected track armed and playing records the CC as a knob move; else it is the new base */
++    /* the CC is the new value, armed and playing or not (the automation that recorded it was removed in P3-007) */
+     midi_test_reset();
+     song.rec = 1; seq_start(); events_block(CTL);
+     queued(0xB0, 74, 20, 1);
+-    bad += check("armed and playing: CC74 records a motion event of CUT on the selected track", motion.count == 1u &&
+-                 motion.event[0].param == P_E4 && motion.event[0].value == 20 && (motion.event[0].place >> 6) == 0u);
+-    queued(0xB1, 74, 20, 1);
+-    bad += check("  another track (channel 2, not selected): not recorded", motion.count == 1u && trk[1].p[P_E2] != 0);
++    bad += check("armed and playing: CC74 sets CUT as a knob move", trk[0].p[P_E4] == 20);
+     seq_stop(); events_block(CTL);
+-    bad += check("  stopped: the patch's own CUT comes back", trk[0].p[P_E4] == ANALOG_PRESETS[trk[0].preset].e[4]);
+     song.rec = 0;
+     queued(0xB0, 74, 77, 1);
+-    bad += check("not armed: the CC is the new value, no event", trk[0].p[P_E4] == 77 && motion.count == 1u);
++    bad += check("not armed: the CC is the new value", trk[0].p[P_E4] == 77);
+     return bad;
+ }
+ /* 1.5 (Discussion #170): MIDI LEARN. GLO + D4 on, a knob picks, a CC is learned; the map in favorites.factory[14] */
+--- a/tests/old_pack.h	2026-11-11 17:43:00
++++ b/tests/old_pack.h	2026-11-11 17:59:36
+@@ -3,11 +3,10 @@
+ /* A project as firmware before 1.2 wrote it (the host tests' old images; included after src/project.c):
+  *   FUN9 (1.1: np 99, 3648 bytes), FUN8 (1.0.x: np 91, 3584), FUN7 (np as given, 3388, no patches)
+  * byte for byte as their proj_pack: np parameters mapped by count (the first np - 8 are today's ids 0.., the last 8
+- * P_E0..P_E7), 9-byte steps without a nudge (bit 7 of the note bytes 0), the motion block of 260 bytes (count <= 64,
+- * 64 x (place, id, i16 value); the ids from P_E0 on at that store's own: id - (P_COUNT - np), a lock's bit kept), the
++ * P_E0..P_E7), 9-byte steps without a nudge (bit 7 of the note bytes 0), the song chain (36 bytes) and the motion block (260 bytes), both zeros
++ * since P3-007 (the song chain and the motion are gone; loads skip them), the
+  * patches at name - 512 (not FUN7), the name, the FNV-1a hash. -> its size, 0 when q does not fit the old format.
+- * The song's chain as rows {slot, repeat} (chain_v9_t, 36 bytes): a section with its four tracks on one slot each (a
+- * section of several slots or a "-" does not fit) */
++ */
+ #define OLD_FUN9 0x46554E39u
+ #define OLD_FUN8 0x46554E38u
+ #define OLD_FUN7 0x46554E37u
+@@ -15,7 +14,7 @@
+ {
+     uint32_t st = magic == OLD_FUN9 ? 3648u : magic == OLD_FUN8 ? 3584u : 3388u, pos = 68u, t, i, sum;
+     uint32_t name = st - 16u;
+-    if (np < 8u || np > P_COUNT || q->motion.count > 64u)
++    if (np < 8u || np > P_COUNT)
+         return 0;
+     memset(b, 0, st);
+     memcpy(b, &magic, 4);
+@@ -41,34 +40,7 @@
+             b[pos++] = (uint8_t)(s->probability | (r >> 1) << 7);
+         }
+     }
+-    {
+-        chain_v9_t c9;
+-        memset(&c9, 0, sizeof c9);
+-        c9.count = q->chain.count;
+-        for (i = 0; i < CHAIN_ROWS; i++) {
+-            const chain_row_t *r = &q->chain.row[i];
+-            if (i < q->chain.count && (r->slot[0] > 3u || r->slot[1] != r->slot[0] || r->slot[2] != r->slot[0] ||
+-                                       r->slot[3] != r->slot[0]))
+-                return 0;
+-            c9.row[i].slot = r->slot[0] & 3u;
+-            c9.row[i].repeat = r->repeat;
+-        }
+-        memcpy(b + pos, &c9, sizeof c9);
+-        pos += sizeof c9;
+-    }
+-    b[pos] = q->motion.count;
+-    b[pos + 1u] = q->motion.on;
+-    for (i = 0; i < q->motion.count; i++) {
+-        const motion_event_t *e = &q->motion.event[i];
+-        uint32_t id = MOTION_ID(e);
+-        int16_t v = e->value;
+-        if (id >= P_E0)
+-            id -= P_COUNT - np;
+-        b[pos + 4u + 4u * i] = e->place;
+-        b[pos + 5u + 4u * i] = (uint8_t)(id | (e->param & MOTION_LOCK));
+-        memcpy(b + pos + 6u + 4u * i, &v, 2);
+-    }
+-    pos += 260u;
++    pos += 36u + 260u;                               /* the song chain (36 bytes) and the motion block: removed in P3-007, zeros */
+     if (magic != OLD_FUN7) {
+         if (pos > name - NTRK * FM6_PACKED)
+             return 0;
+--- a/tests/persistence_test.c	2026-11-11 17:43:00
++++ b/tests/persistence_test.c	2026-11-11 17:55:29
+@@ -70,8 +70,6 @@
+     memset(nor, 0xFF, sizeof nor);
+     memset(&song, 0, sizeof song);
+     memset(trk, 0, sizeof trk);
+-    memset(&chain, 0, sizeof chain);
+-    chain_defaults(&chain_config);
+     memset(proj_slot, 0, sizeof proj_slot);
+     memset(up_bank, 0, sizeof up_bank);
+     memset(&persist_saved, 0, sizeof persist_saved);
+@@ -228,12 +226,9 @@
+ {
+     uint32_t k;
+     memset(trk, 0, sizeof trk);
+-    memset(&motion, 0, sizeof motion);
+-    memset(motion_active, 0, sizeof motion_active);
+     memset(&as, 0, sizeof as);
+     memset(&ui, 0, sizeof ui);
+     proj_name[0] = 0;
+-    chain_defaults(&chain_config);
+     host_tracks_init();
+     for (k = 0; k < NTRK; k++)
+         trk[k].eng_req = trk[k].engine = (uint8_t)TRK_DEF[k][0];
+@@ -440,10 +435,6 @@
+     settings_poll();
+     bad += check("pending PLAY: settings still queued, no erase", persist_pending && !erases);
+     transport_req = 0;
+-    chain.armed = 1;
+-    settings_poll();
+-    bad += check("pending SONG: settings still queued, no erase", persist_pending && !erases);
+-    chain.armed = 0;
+     settings.palette = 2;
+     settings_poll();
+     bad += check("STOP: latest settings saved and request cleared", !persist_pending && erases == 1u &&
+@@ -589,10 +580,6 @@
+                 }
+         }
+     }
+-    chain_config.count = 1;
+-    chain_config.row[0] = chain_row_of(3, 1);
+-    bad += check("SONG sources use the same step bounds", chain_prepare() == 0 &&
+-                  !memcmp(&chain.source[3].step[0][0], &trk[0].step[0], sizeof(step_t)));
+     seq_stop();
+     transport_req = 0;
+     memset(&r, 0, sizeof r);
+@@ -634,9 +621,6 @@
+     transport_req = 1;
+     bad += check("pending PLAY: preset save blocked", up_put(3, &r) == 2 && erases == before && !up_used(3));
+     transport_req = 0;
+-    chain.armed = 1;
+-    bad += check("pending SONG: preset save blocked", up_put(3, &r) == 2 && erases == before && !up_used(3));
+-    chain.armed = 0;
+     bad += check("preset invalid slot blocked before access", up_put(UP_SLOTS, &r) == 1 && erases == before);
+     song.playing = 0; transport_req = 1; irq_start_race = 1;
+     bad += check("PLAY consumed before the save snapshot still blocks a project write",
+--- a/tests/project_test.c	2026-11-11 17:43:00
++++ b/tests/project_test.c	2026-11-11 17:55:53
+@@ -278,22 +278,11 @@
+         old.magic = PROJ_MAGIC_V5;
+         old.size = sizeof old;
+         old.sum = proj_hash(&old, sizeof old - 4u);
+-        bad += check("FUN5 -> FUN6: sounds, grid and reserved lane bytes kept, no chain",
+-            proj_import(&q2, &old, sizeof old) && !memcmp(q2.t, q.t, sizeof q.t) &&
+-            !q2.chain.count && chain_valid(&q2.chain));
++        bad += check("FUN5 -> FUN6: sounds, grid and reserved lane bytes kept",
++            proj_import(&q2, &old, sizeof old) && !memcmp(q2.t, q.t, sizeof q.t));
+         old.sum ^= 1u;
+         bad += check("FUN5: damaged checksum refused", !proj_import(&q2, &old, sizeof old));
+-        q.chain.count = 2;
+-        q.chain.row[0] = chain_row_of(0, 4);
+-        q.chain.row[1] = chain_row_of(3, 16);
+         q.sum = proj_sum(&q);
+-        bad += check("FUN6: chain round trip", proj_import(&q2, &q, sizeof q) &&
+-            !memcmp(&q.chain, &q2.chain, sizeof q.chain));
+-        q.chain.row[0].repeat = 0;
+-        q.sum = proj_sum(&q);
+-        bad += check("FUN6: invalid row refused even with a correct checksum", !proj_import(&q2, &q, sizeof q));
+-        chain_defaults(&q.chain);
+-        q.sum = proj_sum(&q);
+     }
+ 
+     /* format 4 (1.0 development builds): 8-byte steps; a DRUM track's lane notes become its grid */
+@@ -420,10 +409,9 @@
+         uint32_t i, zero = 1;
+         bad += check("FUN10 name at the end of the reserved tail, the FM6 patches before it, after the data (16 spare)",
+                      PROJ_NAME_OFF == 3824u && PROJ_FM6_OFF == 3312u && 68u + NTRK * (P_COUNT + 2u + NSTEP * 9u) +
+-                     sizeof(chain_config_t) + sizeof(motion_store_t) + 16u == PROJ_FM6_OFF);
++                     PROJ_CHAIN_BYTES + PROJ_MOTION_BYTES + 16u == PROJ_FM6_OFF);
+         memset(&a, 0, sizeof a);
+         a.magic = PROJ_MAGIC; a.size = sizeof a; a.parts = NPART; a.phys = PROJ_PHYS;
+-        chain_defaults(&a.chain);
+         a.t[1].p[P_LEVEL] = 99;
+         a.sum = proj_sum(&a);
+         ok = proj_pack(&st, &a);
+@@ -461,7 +449,6 @@
+         uint32_t i, k, init = 1, sum;
+         memset(&a, 0, sizeof a);
+         a.magic = PROJ_MAGIC; a.size = sizeof a; a.parts = NPART; a.phys = PROJ_PHYS;
+-        chain_defaults(&a.chain);
+         for (k = 0; k < NTRK; k++) {
+             memcpy(a.fm6[k], FM6_FACTORY[k * 2u], FM6_PACKED);
+             a.t[k].engine = ENGI_FM6;
+@@ -478,27 +465,11 @@
+         bad += check("FUN10: a patch byte changed: the hash refuses it", !proj_import(&c, &st, sizeof st));
+         st.raw[PROJ_FM6_OFF + 5] ^= 1u;
+         {   /* FUN8 as 1.0.x wrote it (3584 bytes, 91 parameters: E0..E7 at 83..90, the patches at 3056): the DRUM
+-             * lane levels 100 %, E0..E7 and their motion at today's P_E0.., the patches and the name kept */
++             * lane levels 100 %, E0..E7 at today's P_E0.., the patches and the name kept */
+             static uint8_t v8[3584];
+             uint32_t pos = 68u, pos9 = 68u, j;
+             project_t e = a;
+             e.t[3].engine = ENGI_DRUM; e.t[3].p[P_E3] = 30;
+-            e.motion.count = 2; e.motion.on = 8;
+-            e.motion.event[0] = (motion_event_t){3u << 6 | 2u, P_E3, 99};
+-            e.motion.event[1] = (motion_event_t){3u << 6 | 4u, P_REV, 50};
+-            {   /* FUN10 holds parameter locks (bit 7 of the id): on a DRUM lane level and on an engine value */
+-                project_t f = e, g;
+-                f.motion.count = 4;
+-                f.motion.event[2] = (motion_event_t){3u << 6 | 5u, (uint8_t)(P_LN2 | MOTION_LOCK), 40};
+-                f.motion.event[3] = (motion_event_t){3u << 6 | 6u, (uint8_t)(P_E5 | MOTION_LOCK), -3};
+-                f.sum = proj_sum(&f);
+-                ok = proj_pack(&st, &f) && proj_import(&g, &st, sizeof st) && !memcmp(&f.motion, &g.motion, sizeof f.motion);
+-                bad += check("FUN10 round trip: locks on a lane level (P_LN2) and an engine value (P_E5) kept", ok &&
+-                             st.raw[68u + NTRK * (P_COUNT + 2u + NSTEP * 9u) + sizeof(chain_config_t) + 4u + 6u + 1u] ==
+-                             (P_LN2 | MOTION_LOCK) && g.motion.event[3].param == (P_E5 | MOTION_LOCK));
+-            }
+-            e.motion.count = 3;   /* a FUN8 of a 1.1 development build (91 parameters) could hold a lock: its E5 then */
+-            e.motion.event[2] = (motion_event_t){3u << 6 | 6u, (uint8_t)(P_E5 | MOTION_LOCK), -3};
+             e.sum = proj_sum(&e);
+             ok = old_pack(v8, &e, OLD_FUN8, 91u) == sizeof v8;   /* (its E3 at 86, its E5 lock at 88) */
+             ok = ok && proj_import(&c, v8, sizeof v8);
+@@ -509,10 +480,6 @@
+             bad += check("FUN8 of 1.0.x (91 parameters): lane levels 100 %, E0..E7 at P_E0, patches and name kept", ok &&
+                          c.t[3].engine == ENGI_DRUM && c.t[3].p[P_E3] == 30 && c.t[2].p[P_E7] == 4 &&
+                          !memcmp(c.name, "FM SONG", 7));
+-            bad += check("  its motion: E3 (86 then) at P_E3, REV kept", c.motion.count == 3u &&
+-                         c.motion.event[0].param == P_E3 && c.motion.event[0].value == 99 && c.motion.event[1].param == P_REV);
+-            bad += check("  a lock on its E5 (88 then): at P_E5, still a lock", c.motion.event[2].param == (P_E5 | MOTION_LOCK) &&
+-                         c.motion.event[2].value == -3);
+             bad += check("  one byte short: refused", !proj_import(&c, v8, sizeof v8 - 1u));
+             memset(&slot, 0xA5, sizeof slot);
+             memcpy(slot.raw, v8, sizeof v8);
+@@ -560,7 +527,7 @@
+     }
+ 
+     {   /* DIGITAL tracks (engine 1, retired: src/fm4_convert.c) in FUN8 / FUN7 / FUN4 / FUN1 projects load as FM6 with
+-         * the converted patch as the track's own; their motion on the EDIT or OP ENV values goes, the rest stays */
++         * the converted patch as the track's own; the rest stays */
+         project_t a, c, d;
+         static project_store_t st;
+         static uint8_t v7[PROJ_STORE_V7];
+@@ -571,7 +538,6 @@
+         uint32_t i, sum;
+         memset(&a, 0, sizeof a);
+         a.magic = PROJ_MAGIC; a.size = sizeof a; a.parts = NPART; a.phys = PROJ_PHYS;
+-        chain_defaults(&a.chain);
+         for (t = 0; t < NTRK; t++) {
+             for (i = 0; i < P_COUNT; i++)
+                 a.t[t].p[i] = param_desc_of(t == 1u ? ENGI_DIGITAL : 0u, i)->def;
+@@ -586,26 +552,15 @@
+         memcpy(p, a.t[1].p, sizeof p);
+         fm4_convert(p, v);
+         fm6_pack(v, pk);
+-        a.motion.count = 5;
+-        a.motion.event[0] = (motion_event_t){1u << 6 | 3u, P_E4, 20};          /* track 2: INDEX */
+-        a.motion.event[1] = (motion_event_t){1u << 6 | 4u, P_FM1_LEVEL, 50};   /* track 2: OP LEVEL */
+-        a.motion.event[2] = (motion_event_t){1u << 6 | 5u, P_CHOR, 60};        /* track 2: a send: stays */
+-        a.motion.event[3] = (motion_event_t){0u << 6 | 3u, P_E4, 70};          /* track 1 (ANALOG): stays */
+-        a.motion.event[4] = (motion_event_t){1u << 6 | 9u, P_E7, 0};           /* track 2: E7 */
+         a.sum = proj_sum(&a);
+ #define FM4_OK(c) ((c).t[1].engine == ENGI_FM6 && (c).t[1].preset == 4u && !memcmp((c).fm6[1], pk, FM6_PACKED) && \
+                    !memcmp((c).t[1].p, p, sizeof p) && (c).t[0].engine == 0u && !memcmp((c).fm6[0], FM6_INIT, FM6_PACKED))
+         ok = proj_pack(&st, &a) && proj_import(&c, &st, sizeof st);
+         bad += check("FUN8 with a DIGITAL track: FM6, the converted patch its own, PTCH / preset FM6 PAD", ok && FM4_OK(c));
+-        bad += check("  its motion on INDEX / OP LEVEL / E7 goes; a send's and the other track's stay",
+-                     c.motion.count == 2u && c.motion.event[0].param == P_CHOR && c.motion.event[1].place == 3u &&
+-                     c.motion.event[1].param == P_E4 && motion_valid(&c.motion) && proj_ok(&c));
+         bad += check("  imported again: as it is (FM6 now)", proj_import(&d, &c, sizeof c) && !memcmp(&d, &c, sizeof d));
+         (void)sum;                                      /* the same as FUN7 (as the FUN8 block above) */
+         bad += check("FUN7 with a DIGITAL track: the same", old_pack(v7, &a, OLD_FUN7, 91u) == sizeof v7 &&
+-                     proj_import(&c, v7, sizeof v7) && FM4_OK(c) &&
+-                     c.motion.count == 2u);
+-        memset(&a.motion, 0, sizeof a.motion);
++                     proj_import(&c, v7, sizeof v7) && FM4_OK(c));
+         a.sum = proj_sum(&a);
+         to_v4(&w4, &a);
+         memcpy(&buf, &w4, sizeof w4);
+@@ -635,8 +590,7 @@
+ #undef FM4_OK
+     }
+     {   /* SAMPLE tracks of SET 4 (PERC, the GM kit, retired after 1.0.2) in FUN8 / FUN4 projects load as DRUM with its
+-         * default kit: the E values the kit's, the rest of the sound, the steps and the preset byte's meaning kept; their
+-         * motion on the EDIT values goes, the rest stays; another SAMPLE set stays SAMPLE. Idempotent */
++         * default kit: the E values the kit's, the rest of the sound, the steps and the preset byte's meaning kept; the rest stays; another SAMPLE set stays SAMPLE. Idempotent */
+         project_t a, c, d;
+         static project_store_t st;
+         static project_v4_t w4;
+@@ -644,7 +598,6 @@
+         uint32_t i;
+         memset(&a, 0, sizeof a);
+         a.magic = PROJ_MAGIC; a.size = sizeof a; a.parts = NPART; a.phys = PROJ_PHYS;
+-        chain_defaults(&a.chain);
+         for (t = 0; t < NTRK; t++) {
+             for (i = 0; i < P_COUNT; i++)
+                 a.t[t].p[i] = param_desc_of(ENGI_SAMPLE, i)->def;
+@@ -658,10 +611,6 @@
+         a.t[2].step[0] = (step_t){{36, 42, 0, 0}, 2, ST_NOTE, SF_ACCENT, 100, 0, 0};
+         a.t[2].step[4] = (step_t){{38, 49, 0, 0}, 2, ST_NOTE, 0, 90, 0, 0};
+         a.t[0].p[P_E0] = 2;                             /* track 1: FLUTE stays */
+-        a.motion.count = 3;
+-        a.motion.event[0] = (motion_event_t){2u << 6 | 3u, P_E4, 20};          /* track 3: CUT: goes */
+-        a.motion.event[1] = (motion_event_t){2u << 6 | 5u, P_REV, 60};         /* track 3: a send: stays */
+-        a.motion.event[2] = (motion_event_t){0u << 6 | 3u, P_E4, 70};          /* track 1: stays */
+         a.sum = proj_sum(&a);
+ #define PERC_OK(c) ((c).t[2].engine == ENGI_DRUM && (c).t[2].preset == 0u && !memcmp(&(c).t[2].p[P_E0], KIT, sizeof KIT) && \
+                     !memcmp((c).t[2].p, a.t[2].p, P_E0 * sizeof(int16_t)) && \
+@@ -671,11 +620,7 @@
+         bad += check("FUN8 with a SAMPLE PERC track: DRUM's kit, the rest of the sound and the steps kept", ok && PERC_OK(c) &&
+                      str_eq(ENGINES[ENGI_DRUM]->presets[0].name, "DRUM KIT") &&
+                      !memcmp(ENGINES[ENGI_DRUM]->presets[0].e, (int8_t[8])DRUM_KIT_E, 8));
+-        bad += check("  its motion on CUT goes; a send's and the other track's stay",
+-                     c.motion.count == 2u && c.motion.event[0].param == P_REV && c.motion.event[1].place == 3u &&
+-                     motion_valid(&c.motion) && proj_ok(&c));
+         bad += check("  imported again: as it is (DRUM now)", proj_import(&d, &c, sizeof c) && !memcmp(&d, &c, sizeof d));
+-        memset(&a.motion, 0, sizeof a.motion);
+         a.sum = proj_sum(&a);
+         to_v4(&w4, &a);
+         memcpy(&buf, &w4, sizeof w4);
+--- a/tests/run_tests.sh	2026-11-11 17:43:00
++++ b/tests/run_tests.sh	2026-11-11 17:56:30
+@@ -32,9 +32,6 @@
+ #                   fades, shared-voice limits, deferred settings and retries, failed-save rollback, the autosave
+ #                   (1.2: when it writes, the power-on restore, damaged copies, a write cut short, wear over a session),
+ #                   transport-stop timeouts, MIDI and UART recovery.
+-# CHORD (tests/chord_test.c): the chord keys (src/chord.c): diatonic triads / sevenths of several scales and roots,
+-#                   the fixed shapes and voicings (at most 4 notes), names, MONO plays the root, a release ends
+-#                   exactly what its key / MIDI note started, recording, the ARP, MIDI IN, kits ignore CHRD.
+ # MOD (tests/mod_test.c): the modulation matrix: slots that do nothing are bit-identical, every source on each
+ #                   kind of destination, clamping, MIDI CC1 / CC11 / aftertouch routing, the cost of 4 active
+ #                   slots (at most +6 %), demos in build/mod_demo/.
+@@ -186,15 +183,13 @@
+     $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/hostsim" tests/hostsim.c -lm
+     $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/scale_test" tests/scale_test.c -lm
+     run "scales: white-key mapping and note lifecycle" "$OUT/scale_test"
+-    $CC -w -Ibuild/gen -Ifirmware/src -o "$OUT/chord_test" tests/chord_test.c -lm
+-    run "chord keys: diatonic and fixed chords, voicings, MONO root, releases, recording, ARP, MIDI IN, kits" "$OUT/chord_test"
+     $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/speaker_test" tests/speaker_test.c -lm
+     run "SPEAKER EQ: FLAT / LOWCUT / BASS+ responses, BASS+ harmonics of the bass, the sub cut, no offset after, headroom on a full-scale kick (#180)" "$OUT/speaker_test"
+     run "DSP render (ANALOG preset 0)" "$OUT/hostsim" 0 0 1 "$OUT/render.wav"
+     mkdir -p build/tracks_demo
+     run "TRACKS: 4-track pattern, live recording (lengths, swing), voice budget, engine switch, cost" env TRACKS=build/tracks_demo "$OUT/hostsim" 0 0 1 "$OUT/tracks.wav"
+     $CC -w -Ibuild/gen -Ifirmware/src -o "$OUT/project_test" tests/project_test.c -lm
+-    run "project formats (FUN1..FUN5 -> FUN6, the grid and song chain; DIGITAL tracks -> FM6, SAMPLE PERC -> DRUM)" "$OUT/project_test"
++    run "project formats (FUN1..FUN5 -> FUN6, the grid; DIGITAL tracks -> FM6, SAMPLE PERC -> DRUM)" "$OUT/project_test"
+     $CC -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/midi_control_test" tests/midi_control_test.c -lm
+     run "USB/TRS clock, bend, sustain, ownership and panic recovery" "$OUT/midi_control_test"
+     $CC -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/theme_test" tests/theme_test.c -lm
+--- a/tests/scale_test.c	2026-11-11 17:43:00
++++ b/tests/scale_test.c	2026-11-11 17:55:16
+@@ -362,23 +362,6 @@
+     t->p[P_SCALE] = 1;
+     assert(arp_is(t, 61, 66));
+ 
+-    /* CHRD: a key's chord moves with it (its notes as far above the key's note) */
+-    arp_reset(t);
+-    t->p[P_QUANT] = QN_OFF;
+-    t->p[P_AHOLD] = 1;
+-    t->p[P_CHRD] = CH_POW;                         /* C G C' */
+-    fm1_in.notes = 1u << 7;
+-    keyboard_block();
+-    fm1_in.notes = 0;
+-    keyboard_block();
+-    assert(t->nheld == 3);
+-    arp_run(t, 3);
+-    assert(arp_seen[0] == 60 && arp_seen[1] == 67 && arp_seen[2] == 72);
+-    t->p[P_TRANS] = 2;
+-    arp_run(t, 3);
+-    assert(arp_seen[0] == 62 && arp_seen[1] == 69 && arp_seen[2] == 74);
+-    t->p[P_CHRD] = 0;
+-
+     /* QNT WHITE after the keys: a black key latched is silent now (left out); all of them: the arp rests */
+     arp_reset(t);
+     t->p[P_QUANT] = QN_OFF;
+--- a/tests/sound14_test.c	2026-11-11 17:43:00
++++ b/tests/sound14_test.c	2026-11-11 17:56:11
+@@ -71,10 +71,6 @@
+ static void fresh(uint32_t e, uint32_t pi)        /* the boot state (no FX tails), track 1 = engine e preset pi */
+ {
+     uint32_t k;
+-    memset(&pf, 0, sizeof pf);
+-    for (k = 0; k < NTRK; k++)
+-        pf.mg[k] = 32768;
+-    perf_held = perf_latched = 0;
+     lim_env = LIM_T;
+     dc_l = dc_r = dce_l = dce_r = 0;                      /* (the master's DC blockers: no residue of a run before) */
+     vage = 0;                                             /* the seeds: every run the same (ANALOG's noise by age) */
+@@ -506,7 +502,7 @@
+ 
+     check("SPRD: a track parameter 0..127, default 0 (as before), id 95 (1.5: the INSERT, TYPE and ESYNC after it, P_E0 103, P_COUNT 111)",
+           TP[P_SPRD].min == 0 && TP[P_SPRD].max == 127 && TP[P_SPRD].def == 0 && P_SPRD == 95 && P_SPRD + 8 == P_E0 &&
+-          P_E0 == 103 && P_COUNT == 111 && str_eq(TP[P_SPRD].label, "SPRD") && motion_param(P_SPRD));
++          P_E0 == 103 && P_COUNT == 111 && str_eq(TP[P_SPRD].label, "SPRD"));
+     h1 = phrase_child(0, 1, sp_mono0);
+     h2 = phrase_child(0, 1, sp_mono127);
+     check("MONO: SPRD 127 plays bit for bit as SPRD 0 (one voice: on PAN)", h1 && h1 == h2);
+@@ -564,70 +560,6 @@
+     check(msg, a.lr == 0 && b.lr > b.m * 0.01);
+ }
+ 
+-/* the mute key closes the side too; the sends stay mono */
+-static void test_spread_fx(void)
+-{
+-    static const uint8_t CHORD[4] = {48, 55, 60, 64};
+-    track_t *t = &trk[0];
+-    uint32_t k, i;
+-    char msg[160];
+-    /* the mute key (FX layer, black key 1): both sides ramp to silence. What is left after it is the master's DC
+-     * blockers settling: as much at SPRD 127 as at 0, and L - R no more than that (the side muted with the mid) */
+-    {
+-        double side[2][2] = {{0}}, all[2][2] = {{0}};
+-        uint32_t ph, r;
+-        for (r = 0; r < 2u; r++) {
+-            fresh(0, preset_by_name(0, "SOFT PAD"));
+-            dry(t);
+-            t->p[P_ATK] = 0;
+-            t->p[P_SPRD] = (int16_t)(r ? 127 : 0);
+-            for (i = 0; i < 4u; i++)
+-                trk_note_on(t, CHORD[i], 100);
+-            for (ph = 0; ph < 2u; ph++) {
+-                if (ph)
+-                    perf_held |= 1u << PF_M1;
+-                blocks(FS / 8u / CTL);
+-                for (k = 0; k < 8u; k++) {
+-                    blocks(1);
+-                    for (i = 0; i < CTL; i++) {
+-                        side[r][ph] += fabs((double)out_buf[2u * i] - out_buf[2u * i + 1u]);
+-                        all[r][ph] += fabs((double)out_buf[2u * i]) + fabs((double)out_buf[2u * i + 1u]);
+-                    }
+-                }
+-            }
+-            perf_held = 0;
+-        }
+-        snprintf(msg, sizeof msg, "the mute key: L and R both go (SPRD 127: left %.1e, L - R %.1e of before; SPRD 0: %.1e)",
+-                 all[1][1] / all[1][0], side[1][1] / side[1][0], all[0][1] / all[0][0]);
+-        check(msg, side[1][0] > 0 && all[1][1] / all[1][0] < 2 * all[0][1] / all[0][0] + 1e-3 &&
+-              side[1][1] <= all[1][1] && all[0][1] < all[0][0] * 0.05);
+-    }
+-    /* the sends: mono (a chord with SPRD 127: the sends are mono, as before) */
+-    {
+-        uint64_t hw[2];
+-        uint32_t r;
+-        for (r = 0; r < 2u; r++) {
+-            fresh(0, preset_by_name(0, "SOFT PAD"));
+-            dry(t);
+-            t->p[P_REV] = 100;
+-            t->p[P_SPRD] = (int16_t)(r ? 127 : 0);
+-            for (i = 0; i < 4u; i++)
+-                trk_note_on(t, CHORD[i], 100);
+-            blocks(FS / 4u / CTL);
+-            uint64_t hs = 0xCBF29CE484222325ull;   /* (blocks() hashes the output into hash: its own) */
+-            for (k = 0; k < FS / 4u / CTL; k++) {
+-                blocks(1);
+-                for (i = 0; i < CTL; i++) {
+-                    hs ^= (uint32_t)send_r[i];
+-                    hs *= 0x100000001B3ull;
+-                }
+-            }
+-            hw[r] = hs;
+-        }
+-        check("the sends take the mono mix: REV's send the same at SPRD 127 as at 0", hw[0] == hw[1]);
+-    }
+-}
+-
+ /* ------------------------------------------------------------------ cost --- */
+ static uint64_t instr_now(void)
+ {
+@@ -876,7 +808,6 @@
+     test_matrix_sound();
+     test_analog();
+     test_spread();
+-    test_spread_fx();
+     test_cost();
+     if (argc > 1)
+         check("demos written", demos(argv[1]));
+--- a/tests/sound15_test.c	2026-11-11 17:43:00
++++ b/tests/sound15_test.c	2026-11-11 17:56:11
+@@ -64,10 +64,6 @@
+ static void fresh(uint32_t e, uint32_t pi)        /* the boot state (no FX tails), track 1 = engine e preset pi */
+ {
+     uint32_t k;
+-    memset(&pf, 0, sizeof pf);
+-    for (k = 0; k < NTRK; k++)
+-        pf.mg[k] = 32768;
+-    perf_held = perf_latched = 0;
+     lim_env = LIM_T;
+     dc_l = dc_r = dce_l = dce_r = 0;
+     vage = 0;
+@@ -193,7 +189,7 @@
+ 
+     check("TYPE: a track parameter LP BP HP, default LP (as before), not recordable (a setting)",
+           d->fmt == F_ENUM && d->min == 0 && d->max == 2 && d->def == 0 && str_eq(d->label, "TYPE") &&
+-          str_eq(d->names[0], "LP") && str_eq(d->names[1], "BP") && str_eq(d->names[2], "HP") && !motion_param(P_FTYPE));
++          str_eq(d->names[0], "LP") && str_eq(d->names[1], "BP") && str_eq(d->names[2], "HP"));
+     /* every engine but ANALOG ignores TYPE; ANALOG's LP is the golden renders' (regress.c) */
+     for (e = 1; e < NENGINES; e++) {
+         if (ENGINES[e] == ENGINES[0] || !ENGINES[e]->npresets)
+@@ -384,8 +380,7 @@
+     int32_t v, k, ok;
+ 
+     check("ESYNC: a track parameter OFF / ON, default OFF (as before), not recordable (a setting)",
+-          d->fmt == F_ENUM && d->min == 0 && d->max == 1 && d->def == 0 && str_eq(d->label, "ESYNC") &&
+-          !motion_param(P_ESYNC));
++          d->fmt == F_ENUM && d->min == 0 && d->max == 1 && d->def == 0 && str_eq(d->label, "ESYNC"));
+     check("ESYNC OFF: the tables, whatever esync_k holds (a phrase bit for bit)",
+           phrase_child(0, 0, 0) == phrase_child(0, 0, esync_garbage));
+     /* the display and the knob */
+--- a/tests/target_budget.py	2026-11-11 17:43:00
++++ b/tests/target_budget.py	2026-11-11 17:52:25
+@@ -25,9 +25,7 @@
+          "uac_tap48",                                       # the USB audio input at 48 kHz: the 44.1 -> 48 resampler (usb.c)
+          "click_render",                                    # the metronome's click (click.c), while it sounds
+          "mod_begin", "mod_voice", "mod_end",                 # the modulation matrix (mod.c), called when active
+-         "perf_begin", "perf_mute", "perf_pre", "perf_block", "perf_master",   # the FX layer (perform.c), when busy
+-         "perf_flanger", "perf_phaser",                     # .. FLANGER, PHASER (1.2), while held or fading
+-         "perf_throw"]                                      # .. REV / ECHO THROW (1.5.1): per part, while held or gliding
++         ]
+ # (the DIGITAL engine, src/eng_digital.c, was removed in P3-003: its budget lines are gone)
+ OPTIONAL = {"uac_tap48": 504}           # (absent from a FELUCCA_UAC_48K=0 or FELUCCA_UAC=0 build)
+ TOL = 0.10                      # exact (no noise): small edits pass, a grown render loop does not
+--- a/tests/target_budget.txt	2026-11-11 17:43:00
++++ b/tests/target_budget.txt	2026-11-11 17:59:21
+@@ -44,11 +44,3 @@
+ mod_begin 163
+ mod_voice 30
+ mod_end 7
+-perf_begin 34
+-perf_mute 19
+-perf_pre 26
+-perf_block 846
+-perf_master 29
+-perf_flanger 368
+-perf_phaser 448
+-perf_throw 52
+--- a/tests/ui_test.c	2026-11-11 17:43:00
++++ b/tests/ui_test.c	2026-11-11 17:56:15
+@@ -173,8 +173,6 @@
+     FZ_BOOT_HOOK();                               /* (drumfuzz: an audio block arrives here, song zeroed, BUG-003) */
+ #endif
+     memset(midi_lit_ms, 0, sizeof midi_lit_ms); midi_seen = 0;   /* (1.5.5: no MIDI IN light) */
+-    memset(&chain, 0, sizeof chain);
+-    chain_defaults(&chain_config);
+     memset(&ui, 0, sizeof ui);
+     cin_left = cin_total = 0;                     /* (no count-in) */
+     memset(&mom, 0, sizeof mom);                  /* MOMENTARY: no value held (the pool at power-on) */
+@@ -217,32 +215,15 @@
+     memset(midi_owners, 0, sizeof midi_owners);
+     memset(midi_bend_q8, 0, sizeof midi_bend_q8);
+     memset(midi_bend_target, 0, sizeof midi_bend_target);
+-    memset(kb_chn, 0, sizeof kb_chn);                   /* chord.c: no key, MIDI chord or last chord */
+-    memset(mchord, 0, sizeof mchord);
+-    memset(chord_last, 0, sizeof chord_last);
+-    perf_held = perf_act = kb_layer = perf_mask = 0;      /* the FX layer: nothing held */
+-    perf_latched = 0;
+-    memcpy((void *)perf_map, PF_DEF, sizeof PF_DEF);    /* .. its default key map (the settings' 0), no key's effect */
+-    perf_remap = 0;
+-    memset(kb_fx, 0, sizeof kb_fx);
+-    perf_kill = 0;
+-    perf_mask = 1u << panel.btn[B_FX];                  /* (ui_input sets them every frame) */
+-    perf_solo = 0;
+-    perf_k[0] = perf_k[1] = perf_k[2] = perf_k[3] = 0;
++    memset(kb_chn, 0, sizeof kb_chn);                   /* no key sounds */
+     settings_hold = HOLD_DEF;
+     fm1_in.buttons = fm1_in.notes = 0;
+-    memset(&motion, 0, sizeof motion);                  /* (main.c: no motion at power-on) */
+-    memset(motion_active, 0, sizeof motion_active);
+-    memset(motion_locked, 0, sizeof motion_locked);
+-    motion_base_valid = motion_full = 0;
+     memset(snd_said, 0, sizeof snd_said);               /* (.bss at power-on: nothing said yet) */
+     memset(&scrn, 0, sizeof scrn);                        /* MENU > SCREEN OFF: on, idle from now (main.c) */
+     scrn.idle = fm1_ms;
+     kb_asleep = 0;
+     panel_moved = 0;
+ }
+-/* card slot drawn with MOTION's mark (ui_draw.c card_mot: its icon, or a long label in the theme colour) */
+-static int card_motion(uint32_t slot) { return (card_mot >> slot) & 1u; }
+ 
+ /* one UI frame (input, then the drawing on the stub display) */
+ static void frame(void)
+@@ -2024,18 +2005,17 @@
+         }
+     return *x1 < 0 ? 0 : *x0 + *x1 + 1;
+ }
+-enum { HS_STOPPED, HS_PLAY_REC, HS_SONG, HS_MSG, HS_OCT, HS_USB, HS_KEYCAP, HS_REC_OTHER, HS_BPM_TURN,
++enum { HS_STOPPED, HS_PLAY_REC, HS_MSG, HS_OCT, HS_USB, HS_KEYCAP, HS_REC_OTHER, HS_BPM_TURN,
+        HS_NOFILE, HS_MSG2, HS_BEAT2, HS_COUNTIN, HS_BATT1, HS_BATT0, HS_BPM90,
+        HS_N };
+-static const char *const HS_NAME[HS_N] = {"stopped", "play+REC", "song", "message", "OCT", "USB", "keycap", "REC other",
++static const char *const HS_NAME[HS_N] = {"stopped", "play+REC", "message", "OCT", "USB", "keycap", "REC other",
+     "BPM turn", "NO SAMPLE", "msg2", "beat 2", "count-in", "battery 1",
+     "battery 0", "BPM 90"};
+ static void head_state(uint32_t s)
+ {
+-    song.playing = s == HS_PLAY_REC || s == HS_SONG || s == HS_BEAT2 || s == HS_OCT;
++    song.playing = s == HS_PLAY_REC || s == HS_BEAT2 || s == HS_OCT;
+     song.rec = s == HS_PLAY_REC || s == HS_COUNTIN ? 1u << song.sel : s == HS_REC_OTHER ? 1u << ((song.sel + 1u) % NTRK) : 0u;
+     clk_pos = 0; clk_step = s == HS_BEAT2 ? 4u : 8u;    /* (the 2nd beat: the metronome mirrored; else the 3rd) */
+-    if (s == HS_SONG) { chain.running = 1; chain.row = 2; }
+     if (s == HS_MSG) ui_message("SAVED 03 BASS");
+     if (s == HS_MSG2) ui_say("LOADED ", "07 A VERY LONG PATTERN NAME");
+     if (s == HS_OCT) song.octave = 2;
+@@ -2050,7 +2030,7 @@
+ }
+ static void head_clear(void)
+ {
+-    chain.running = 0; ui.msg_t = 0; song.octave = 0; usb.config = 0; song.playing = 0; song.rec = 0; ui.bpm_t = 0;
++    ui.msg_t = 0; song.octave = 0; usb.config = 0; song.playing = 0; song.rec = 0; ui.bpm_t = 0;
+     cin_total = cin_left = 0; song.batt_raw = 600;
+ }
+ static int test_head_centres(void)
+@@ -2079,7 +2059,7 @@
+                     head_geo_t g;
+                     head_geo(&g, s == HS_BPM90 ? "90" : "124");
+                     c2 = head_span2(g.gx0 - 6, g.gx1 - 1, &a, &b);
+-                    okp &= s == HS_SONG ? c2 >= 234 && c2 <= 242 : c2 >= 238 && c2 <= 242;
++                    okp &= c2 >= 238 && c2 <= 242;
+                     okp &= a >= 40 && b < (s == HS_OCT ? 160 : 180);   /* (clear of the REC mark, the octave) */
+                 } else {                               /* the message centred on x 120 */
+                     c2 = head_span2(40, 205, &a, &b);
+--- a/tools/size_fns.py	2026-11-11 17:43:00
++++ b/tools/size_fns.py	2026-11-11 17:52:25
+@@ -20,7 +20,7 @@
+ SIZE_FILES = ["ui.c", "favorites.c", "menu_items.c", "icons.c", "ui_draw.c", "ui_menu.c", "ui_input.c",
+               "storage.c", "upreset.c", "project.c", "settings_persist.c",
+               "console.c",
+-              "usb.c", "midi_uart.c", "midi_control.c", "midi_clock.c", "seq.c", "song_chain.c", "chord.c", "motion.c",
++              "usb.c", "midi_uart.c", "midi_control.c", "midi_clock.c", "seq.c",
+               "panel.c", "lcd.c", "gfx.c", "ota.c", "ota_hw.c", "up_fm6.c", "slice_store.c", "params.c",
+               "main.c", "libc.c", "storage_hw.c", "engines.c", "fm4_convert.c"]
+ ISR_ROOTS = ("fm1_alnk0_irq", "fm1_timer5_irq")      # hal/fm1_isr.S: the audio ISR, the key / LED scan (+ USB poll)

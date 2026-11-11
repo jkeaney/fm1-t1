@@ -1,0 +1,11 @@
+firmware/src/drum_voice.c
+firmware/src/eng_drum.c
+firmware/src/eng_phys.c
+firmware/src/phys_dsp.c
+firmware/src/phys_symp.c
+tests/drum_test.c
+tests/phys_fixed.c
+tests/phys_ref.cpp
+tests/phys_test.c
+LICENSES/MIT-DaisySP.txt
+LICENSES/MIT-Rings.txt

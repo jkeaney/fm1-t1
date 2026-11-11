@@ -1,0 +1,8 @@
+firmware/src/eng_formant.c
+firmware/src/eng_lofi.c
+firmware/src/eng_noise.c
+firmware/src/eng_phase.c
+firmware/src/eng_trio.c
+firmware/src/eng_wheel.c
+tests/fold155_test.c
+tests/noise_test.c

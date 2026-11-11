@@ -1,0 +1,1597 @@
+--- a/firmware/src/core.h	2026-11-11 17:59:36
++++ b/firmware/src/core.h	2026-11-11 18:14:56
+@@ -18,7 +18,7 @@
+ #endif
+ #define NENGINES (13 + FELUCCA_SLICE)   /* SLICE (13) comes last: the other engines keep their numbers */
+ #define ENGI_DIGITAL 1u          /* reserved (DIGITAL, retired): never selectable (eng_ok), its sounds load as FM6 */
+-#define NENG_SHOWN (NENGINES - 1)   /* the engines one can pick: PRESETS, the EDIT layer, the editor,
++#define NENG_SHOWN (NENGINES - 3)   /* the engines one can pick: PRESETS, the EDIT layer, the editor,
+                                                 * in the display order of engines.c ENGINE_ORDER */
+ #define UP_SLOTS 32u             /* user presets (upreset.c) */
+ #define NELEM(a) (sizeof(a) / sizeof((a)[0]))
+@@ -104,40 +104,9 @@
+ }
+ 
+ /* engine indices the stores name (engines.c ENGINES[]: append-only) */
+-#define ENGI_PHYS 9u
+-#define ENGI_DRUM 10u
+-/* PHYS MODEL DRUM (MODEL 4, before 1.0) -> the DRUM engine, its E values in place: {MODEL, TUNE, TONE, DECY,
+- * SNAP, ACC, KICK 0..127, PERC 0..127} -> {KIT, TUNE, TONE, DECY, SNAP, ACC, KICK 0..1, DRV 0}. 1 = it was one
+- * (its engine is ENGI_DRUM now); projects (project.c) and user presets (upreset.c) */
+-static int drum_from_phys(uint32_t engine, int16_t *e)
+-{
+-    if (engine != ENGI_PHYS || e[0] != 4)
+-        return 0;
+-    e[0] = (int16_t)((e[7] < 0 ? 0 : e[7] > 127 ? 127 : e[7]) >> 5);   /* PERC -> KIT: STD HAND CYM H+CYM */
+-    e[6] = (int16_t)(e[6] >= 64);                                       /* KICK: PUNCH, ROUND */
+-    e[7] = 0;
+-    return 1;
+-}
+-
+-/* SAMPLE SET 4 was PERC, the GM-mapped drum kit (tools/gen_samples.py); retired after 1.0.2: its index stays
+- * (SET / GRAIN SRC 4 is an alias of PIANO, USR1..3 keep 5..7). A sound that selected it is the DRUM engine with
+- * its default kit (eng_drum.c DRUM_PRESETS[0]: the same GM key map, so its patterns still play as drums): its E
+- * values become the kit's, the rest of the sound (mix, sends, matrix, ..) stays. 1 = it was one (its engine is
+- * ENGI_DRUM now); projects (project.c proj_perc), user presets (upreset.c up_migrate), factory preset 4 and
+- * favourites (ui.c, settings_persist.c). Idempotent */
++/* SAMPLE SET 4 was PERC (retired after 1.0.2): its index stays (SET / GRAIN SRC 4 is an alias of PIANO, USR1..3 keep 5..7) */
+ #define ENGI_SAMPLE 4u
+ #define SMP_SET_PERC 4u
+-#define DRUM_KIT_E {0, 64, 70, 64, 64, 100, 0, 0}   /* {KIT STD, TUNE, TONE, DECY, SNAP, ACC, KICK PUNCH, DRV} */
+-static int drum_from_perc(uint32_t engine, int16_t *e)
+-{
+-    static const int16_t KIT[8] = DRUM_KIT_E;
+-    uint32_t i;
+-    if (engine != ENGI_SAMPLE || e[0] != (int16_t)SMP_SET_PERC)
+-        return 0;
+-    for (i = 0; i < 8u; i++)
+-        e[i] = KIT[i];
+-    return 1;
+-}
+ 
+ /* ------------------------------------------------- voices, engines --- */
+ enum { V_POLY, V_MONO, V_LEGATO, V_UNISON };   /* P_VOICE */
+@@ -194,7 +163,7 @@
+     uint8_t sampled;             /* 1 = plays recorded material (a position, not a phase): voice.c keeps
+                                   * no phases over a retrigger, spreads none for UNISON, renders at SUS 0 */
+     uint8_t keep;                /* bit k: s[k] is kept when a sounding voice is retriggered (filters) */
+-    uint8_t oneshot;             /* 1 = hits (DRUM): always POLY, no glide; amp ends its voices (eng_drum.c) */
++    uint8_t oneshot;             /* 1 = hits (DRUM): always POLY, no glide; amp ends its voices (no engine sets it since P3-008) */
+     void (*note_on)(struct track *t, voice_t *v);
+     void (*render)(struct track *t, voice_t *v, int32_t *out, uint32_t n, const vmod_t *m);
+     /* optional (0 = none): the voice amplitude instead of the ADSR curve, once per control tick;
+@@ -225,7 +194,7 @@
+ #define SF_SLIDE 2u
+ #define SF_RATCH_SH 3u                   /* RATCH: the hits of a NOTE step - 1 (0..3: x1..x4, seq.c seq_ratchet); */
+ #define SF_RATCH (3u << SF_RATCH_SH)     /* bits 3..4, so a user preset's pattern (flag 4 = tie) carries it too */
+-#define NLANE 8                  /* drum lanes of a step (the DRUM engine's: eng_drum.c DRUM_LANE_NOTE) */
++#define NLANE 8                  /* drum lanes of a step (DRUM_LANE_NOTE, seq.c) */
+ typedef struct {                 /* acid-style step: up to 4 notes (POLY), time, accent, slide; drum hits */
+     uint8_t note[4];
+     uint8_t n;                   /* notes in use, 0 = empty */
+--- a/firmware/src/engines.c	2026-11-11 14:22:39
++++ b/firmware/src/engines.c	2026-11-11 18:14:43
+@@ -29,8 +29,6 @@
+ #include "eng_trio.c"
+ #include "eng_wheel.c"
+ #include "eng_grain.c"
+-#include "eng_phys.c"           /* PHYS: DaisySP physical models (phys_dsp.c, MIT) */
+-#include "eng_drum.c"           /* DRUM: the 8-lane kit (drum_voice.c) */
+ #include "eng_noise.c"
+ #include "eng_fm6.c"            /* FM6: 6-operator FM, msfa ported (fm6_core.c, Apache-2.0) */
+ #include "fm4_convert.c"        /* DIGITAL's tables, and its sounds -> FM6 */
+@@ -49,8 +47,8 @@
+     &ENG_TRIO,                   /* 6 */
+     &ENG_WHEEL,                  /* 7 */
+     &ENG_GRAIN,                  /* 8 */
+-    &ENG_PHYS,                   /* 9 (ENGI_PHYS) */
+-    &ENG_DRUM,                   /* 10 (ENGI_DRUM) */
++    &ENG_FM4_GONE,               /* 9: reserved (PHYS, removed in P3-008) */
++    &ENG_FM4_GONE,               /* 10: reserved (DRUM, removed in P3-008) */
+     &ENG_NOISE,                  /* 11 */
+     &ENG_FM6,                    /* 12 (ENGI_FM6) */
+ #if FELUCCA_SLICE
+@@ -107,17 +105,16 @@
+ static const uint8_t ENGINE_ORDER[NENG_SHOWN] = {
+     0,                           /* ANALOG */
+     12,                          /* FM6 */
+-    2, 3, 4, 5, 6, 7, 8, 9,      /* PHASE LOFI SAMPLE VOICE TRIO WHEEL GRAIN PHYS */
++    2, 3, 4, 5, 6, 7, 8,         /* PHASE LOFI SAMPLE VOICE TRIO WHEEL GRAIN */
+     11,                          /* NOISE */
+ #if FELUCCA_SLICE
+     13,                          /* SLICE */
+ #endif
+-    10,                          /* DRUM */
+ };
+ 
+ /* the engines one can pick (engine 1 never: retired), in ENGINE_ORDER: eng_ok(e), the n-th of them
+  * eng_vis(n), e's place among them eng_rank(e), the next / previous one eng_step(e, dir) (wraps) */
+-static int eng_ok(uint32_t e) { return e < NENGINES && e != ENGI_DIGITAL; }
++static int eng_ok(uint32_t e) { return e < NENGINES && ENGINES[e] != &ENG_FM4_GONE; }
+ static uint32_t eng_vis(uint32_t n) { return ENGINE_ORDER[n % NENG_SHOWN]; }
+ static uint32_t eng_rank(uint32_t e)
+ {
+@@ -177,6 +174,6 @@
+ #define NPATTERNS (sizeof PATTERNS / sizeof PATTERNS[0])
+ 
+ /* the parts at power-on (engine, preset, PATTERNS[n - 1] in the sequencer, 0 = empty: all are): bass, pad, lead, drums */
+-static const uint8_t TRK_DEF[NPART][3] = {{0, 4, 0}, {ENGI_FM6, 4, 0}, {3, 0, 0}, {ENGI_DRUM, 0, 0}}; /* ANALOG ACID,
+-                                                                       * FM6 PAD (was DIGITAL PAD), LOFI PULSE LD, DRUM KIT */
++static const uint8_t TRK_DEF[NPART][3] = {{0, 4, 0}, {ENGI_FM6, 4, 0}, {3, 0, 0}, {0, 0, 0}}; /* ANALOG ACID,
++                                                                       * FM6 PAD (was DIGITAL PAD), LOFI PULSE LD, ANALOG (P3-008: the DRUM kit is gone) */
+ static uint32_t trk_def_engine(uint32_t i) { return TRK_DEF[i % NPART][0]; }
+--- a/firmware/src/midi_control.c	2026-11-11 17:51:23
++++ b/firmware/src/midi_control.c	2026-11-11 18:19:19
+@@ -38,8 +38,6 @@
+ static void midi_expression(track_t *t, const midi_channel_t *c)
+ {
+     int32_t range = ((int32_t)c->semis * 100 + c->cents) * 256 / 100;
+-    if (drum_track(t))
+-        return;
+     midi_bend_target[trk_index(t)] = (int32_t)c->bend * range / (c->bend < 0 ? 8192 : 8191);
+ }
+ 
+@@ -111,7 +109,7 @@
+         midi_owners[trk_index(t)]++;
+         c->owned[trk_index(t)]++;
+     } else if (id) {
+-        if (c->pedal && !drum_track(&trk[id - 1u]))
++        if (c->pedal)
+             midi_notes[ch][note] |= MIDI_PEDAL_NOTE;
+         else
+             midi_release(ch, note);
+@@ -184,7 +182,7 @@
+ static const uint8_t MIDI_CC_ENG[NENGINES] = {
+     0x56, 0x00, 0x30, 0x80, 0x50, 0x07, 0x67, 0x00,   /* ANALOG CUT RES, -, PHASE DCW, LOFI TONE, SAMPLE CUT, VOICE Q,
+                                                        * TRIO CUT RES, WHEEL - */
+-    0x80, 0x30, 0x30, 0x34, 0x30,                     /* GRAIN TONE, PHYS BRIT, DRUM TONE, NOISE FREQ RES, FM6 MLVL */
++    0x80, 0x00, 0x00, 0x34, 0x30,                     /* GRAIN TONE, - (PHYS), - (DRUM), NOISE FREQ RES, FM6 MLVL */
+ #if FELUCCA_SLICE
+     0x80,                                             /* SLICE TONE */
+ #endif
+--- a/firmware/src/params.c	2026-11-11 17:59:36
++++ b/firmware/src/params.c	2026-11-11 18:15:21
+@@ -243,19 +243,16 @@
+ }
+ 
+ /* a retired F_ENUM value kept as an alias, so stored values stay valid: SAMPLE SET and GRAIN SRC 1, once
+- * TRANH, and 4, once PERC (a SAMPLE sound of it loads as DRUM: core.h drum_from_perc), play PIANO
+- * (tools/gen_samples.py SMP_SET_ORIG); DRUM KIT 1..3, once HAND CYM H+CYM, play 66 10 77 (eng_drum.c DK_PLAYS).
++ * TRANH, and 4, once PERC play PIANO
++ * (tools/gen_samples.py SMP_SET_ORIG).
+  * It shows the original's name; knobs step over it and the editor's SET lands on the original. -> the value v
+  * stands for */
+ static int32_t enum_orig(const param_desc_t *d, int32_t v)
+ {
+-    if (d->names == N_DRUM_KIT)
+-        return v >= 0 && v < DK_COUNT ? (int32_t)DK_PLAYS[v] : v;
+     return d->names == SMP_ALL_NAMES && v >= 0 && v < SMP_NSETS ? SMP_SET_ORIG[v] : v;
+ }
+ 
+-/* a stored value as the parameter takes it (projects, user presets, motion): inside d's range, and a retired
+- * DRUM KIT (1..3) as the kit it plays, so KIT never holds one again. (SAMPLE / GRAIN's aliases keep their
++/* a stored value as the parameter takes it (projects, user presets, motion): inside d's range. (SAMPLE / GRAIN's aliases keep their
+  * number: they are what the sound was saved with, and play the original anyway.) FM6's SLOT is never stored as a
+  * bank slot: 9..40 (1.4.1's B1..B32; 1.0.2's B1..B27 were 8..34) is 8, OWN, and the patch comes with what is loaded */
+ static int32_t param_fit(const param_desc_t *d, int32_t v)
+@@ -263,7 +260,7 @@
+     v = clamp(v, d->min, d->max);
+     if (d->names == N_FM6_PATCH)
+         return v > (int32_t)FM6_OWN ? (int32_t)FM6_OWN : v;
+-    return d->names == N_DRUM_KIT ? enum_orig(d, v) : v;
++    return v;
+ }
+ 
+ /* v is a value a knob passes over: an alias, or one of FM6's bank slots without a voice */
+--- a/firmware/src/seq.c	2026-11-11 17:53:18
++++ b/firmware/src/seq.c	2026-11-11 18:14:56
+@@ -83,7 +83,9 @@
+     return (b > 0 ? (uint32_t)b : 0u) + i % NTRK;
+ }
+ 
+-static int drum_track(const track_t *t) { return ENGINES[eng_idx(t->eng_req)] == &ENG_DRUM; }
++/* A step's lane hits (step_t.hit / acc) play these GM notes, on any engine (the DRUM engine, which struck its lanes, was
++ * removed in P3-008): each is the designed pitch of its lane */
++static const uint8_t DRUM_LANE_NOTE[NLANE] = {36, 38, 39, 42, 46, 45, 37, 56};
+ 
+ /* the 27 keys from F: black or white, and the key's place among the keys of its colour (white 0..15, black
+  * 0..10). The DRUM grid: white keys are steps, black keys 1..8 lanes, 9 ACC, 10 / 11 the page */
+@@ -515,42 +517,6 @@
+     /* the step's notes play later in this pass (it is the next one, not played early yet, or the one playing whose
+      * nudge has not come yet): what sounds now must not play again there (rskip) */
+     sounds = next ? t->nd_fired != idx + 1u : t->nd_late != ND_NONE;
+-    if (drum_track(t)) {                            /* DRUM: into the grid, no holds (hits) */
+-        uint32_t l = drum_lane(note);
+-        if (s->time != ST_NOTE || (!s->n && !s->hit)) {
+-            s->n = s->hit = s->acc = 0;
+-            s->flags = 0;
+-            s->vel = 0;
+-            step_set_nudge(s, off);
+-        }
+-        s->time = ST_NOTE;
+-        if (note == DRUM_LANE_NOTE[l]) {            /* a lane's note: its hit */
+-            s->hit |= (uint8_t)(1u << l);
+-            if (vel > 110)
+-                s->acc |= (uint8_t)(1u << l);
+-        } else {                                    /* another GM drum (a low tom, a crash): a note */
+-            for (k = 0; k < s->n && s->note[k] != note; k++)
+-                ;
+-            if (k == s->n) {
+-                if (s->n < 4u)
+-                    s->n++;
+-                s->note[s->n - 1u] = (uint8_t)note;
+-            }
+-            if (vel > 110)
+-                s->flags |= SF_ACCENT;
+-        }
+-        if (vel > s->vel)
+-            s->vel = (uint8_t)vel;
+-        t->seq_active = 1;
+-        if (sounds) {
+-            if (t->rskip_idx != idx)
+-                t->rskip_n = 0;
+-            t->rskip_idx = (uint8_t)idx;
+-            if (t->rskip_n < NLANE)
+-                t->rskip[t->rskip_n++] = (uint8_t)note;
+-        }
+-        return;
+-    }
+     if (s->time != ST_NOTE || !s->n || trk_vmode(t) != V_POLY) {
+         s->n = 0;                                   /* a fresh step */
+         s->flags = 0;
+--- a/firmware/src/settings_persist.c	2026-11-11 17:51:13
++++ b/firmware/src/settings_persist.c	2026-11-11 18:15:04
+@@ -90,12 +90,6 @@
+         memset(favorites.factory[ENGI_DIGITAL], 0, sizeof favorites.factory[ENGI_DIGITAL]);
+     }
+ #endif
+-#ifdef SMP_SET_PERC
+-    if ((favorites.factory[ENGI_SAMPLE][0] >> SMP_SET_PERC) & 1u) {   /* SAMPLE's PERC (preset 4, retired): DRUM's */
+-        favorites.factory[ENGI_DRUM][0] |= 1u;                         /* kit (core.h drum_from_perc) */
+-        favorites.factory[ENGI_SAMPLE][0] &= (uint8_t)~(1u << SMP_SET_PERC);
+-    }
+-#endif
+ #endif
+     if (p->panel.magic == PANEL_MAGIC) panel = p->panel;
+     return current ? 1 : 2;
+--- a/firmware/src/ui.c	2026-11-11 18:11:36
++++ b/firmware/src/ui.c	2026-11-11 18:15:21
+@@ -457,7 +457,6 @@
+     uint32_t i = trk_index(t);
+     if (what & UNDO_SOUND) {
+         mom_back(t);                              /* (MOMENTARY: the sound as it was, then the load) */
+-        drum_mute[i] = 0;                         /* (1.4.1: the lanes' mutes go with the sound) */
+     }
+     if (undo_depth++)
+         return;
+@@ -503,8 +502,6 @@
+         s->vel = n ? 96 : 0;
+         s->hit = s->acc = 0;
+         s->probability = 0;
+-        if (drum_track(t))                           /* a DRUM track: the lanes' notes as its grid */
+-            step_to_grid(s);
+     }
+     t->p[P_SLEN] = 16;
+ }
+@@ -620,10 +617,8 @@
+         fm4_load_preset(t, pi);
+         return;
+     }
+-    if (t->eng_req % NENGINES == ENGI_SAMPLE && pi == SMP_SET_PERC) {   /* SAMPLE preset 4 was PERC (retired, a stored */
+-        set_engine_of(t, ENGI_DRUM);                  /* number: the editor's PRESET, a favourite): DRUM's kit */
+-        return;                                       /* (core.h drum_from_perc) */
+-    }
++    if (t->eng_req % NENGINES == ENGI_SAMPLE && pi == SMP_SET_PERC)   /* SAMPLE preset 4 was PERC (retired, past the */
++        return;                                                         /* presets): nothing to load */
+     load_begin(t, UNDO_SOUND);
+     panic_req |= (uint8_t)(1u << trk_index(t));       /* MONO/POLY may change: release what sounds */
+     t->user = 0;
+@@ -678,21 +673,13 @@
+ 
+ /* MIDI Program Change (1.5.1, #179 by renebohne): program n on track t, as the PRESETS list numbers the engine's sounds
+  * from 0: its n-th preset, the aliases skipped (preset_orig), loaded as from there (the track's own settings kept, one
+- * undo for a run of them). DRUM: its n-th KIT, the retired variants skipped (enum_orig); FM6: its presets (F1..F8),
++ * undo for a run of them). FM6: its presets (F1..F8),
+  * then the voice bank's B1..B32 through SLOT as the knob loads them (fm6_poll; the rest of the sound stays), an empty
+  * one ignored. A program past the last is ignored, not wrapped: a number is always the same sound */
+ static volatile uint8_t *const mpc_io = ui.mpc;
+ static void midi_pc_load(track_t *t, uint32_t n)
+ {
+     uint32_t e = t->eng_req % NENGINES, k;
+-    if (e == ENGI_DRUM) {
+-        const param_desc_t *d = param_desc_of(e, P_E0);
+-        for (k = (uint32_t)d->min; k <= (uint32_t)d->max && (enum_orig(d, (int32_t)k) != (int32_t)k || n--); k++)
+-            ;
+-        if (k <= (uint32_t)d->max)
+-            t->p[P_E0] = (int16_t)k;
+-        return;
+-    }
+     if (n >= preset_shown(e)) {
+         int32_t s = (int32_t)(FM6_OWN + 1u + n - preset_shown(e));
+         if (e == ENGI_FM6 && fm6_bank_slot(s) >= 0 && fm6_slot_ok(s))
+--- a/firmware/src/voice.c	2026-11-09 19:41:34
++++ b/firmware/src/voice.c	2026-11-11 18:14:56
+@@ -185,11 +185,6 @@
+ {
+     uint32_t i, np = trk_nvoice(t), best = np, low = np, nfree = 0;
+     int32_t bd = 0x7FFFFFFF;
+-    if (t->engine == ENGI_DRUM) {
+-        voice_t *v = drum_reuse(t, note);
+-        if (v)
+-            return voice_reuse(t, v);
+-    }
+     for (i = 0; i < np; i++) {
+         if (t->v[i].active && t->v[i].note == note)
+             return voice_reuse(t, &t->v[i]);
+@@ -608,9 +603,7 @@
+     int32_t tune_fine = (song.g[G_TUNE] * 16 - tune * 100) * 2367 / 16000;   /* rest, in 1/4096 (1 ct = 2.367) */
+     int32_t bend, bend16, bend_fine;
+     uint32_t ti = (uint32_t)(t - trk);
+-    if (ENGINES[eng_idx(t->eng_req)] == &ENG_DRUM) {
+-        midi_bend_q8[ti] = midi_bend_target[ti] = 0;
+-    } else {
++    {
+         int32_t d = midi_bend_target[ti] - midi_bend_q8[ti];
+         /* ~6 ms smoothing, with an exact landing (no permanent small offset). */
+         midi_bend_q8[ti] += d > 0 ? (d < 4 ? d : (d + 3) / 4) : (d > -4 ? d : (d - 3) / 4);
+--- a/tests/audio_test.c	2026-11-11 17:54:56
++++ b/tests/audio_test.c	2026-11-11 18:16:26
+@@ -78,7 +78,7 @@
+     check("a lead alone on each part stays protected", lead->gate && bass->gate && shed_count == 1u);
+ 
+     fresh();
+-    host_preset(&trk[0], ENGI_DRUM, 0);
++    host_preset(&trk[0], 0, 0);
+     trk_note_on(&trk[0], 36, 100); trk_note_on(&trk[0], 38, 100);
+     lead = held(&trk[0], 36); extra = held(&trk[0], 38);
+     shed_voice(); mix_block(out, CTL);
+--- a/tests/cpu_baseline.txt	2026-11-11 17:37:08
++++ b/tests/cpu_baseline.txt	2026-11-11 18:18:29
+@@ -45,19 +45,6 @@
+ cpu/GRAIN/01_GLITCH 475
+ cpu/GRAIN/02_FROZEN 677
+ cpu/GRAIN/03_SHIMMER 744
+-cpu/PHYS/00_BELL_TREE 932
+-cpu/PHYS/01_MARIMBA 938
+-cpu/PHYS/02_PLUCK 642
+-cpu/PHYS/03_BOWED_METAL 1036
+-cpu/PHYS/04_KALIMBA 943
+-cpu/PHYS/05_HAND_DRUM 758
+-cpu/PHYS/06_TOMS 757
+-cpu/PHYS/07_DRONE_STRING 814
+-cpu/PHYS/08_HARP 834
+-cpu/DRUM/00_DRUM_KIT 956
+-cpu/DRUM/01_DEEP_KIT 957
+-cpu/DRUM/02_TIGHT_KIT 1102
+-cpu/DRUM/03_PERC_KIT 1046
+ cpu/NOISE/00_WIND 1186
+ cpu/NOISE/01_RAIN 1186
+ cpu/NOISE/02_ARCADE 943
+@@ -72,14 +59,6 @@
+ cpu/FM6/07_PLUCK 653
+ cpu/SLICE/00_CHOP 806
+ cpu/SLICE/01_STUTTER 787
+-cpu/DRUM/kit_80 970
+-cpu/DRUM/kit_10 982
+-cpu/DRUM/kit_66 1015
+-cpu/DRUM/kit_55 1002
+-cpu/DRUM/kit_77 1026
+-cpu/DRUM/kit_DEEP 963
+-cpu/DRUM/kit_TIGHT 984
+-cpu/DRUM/kit_PERC 1053
+ cpu/mix/idle 147
+ cpu/mix/idle_drums 361
+ cpu/mix/3parts_full_drums 1266
+--- a/tests/golden.txt	2026-11-11 13:30:01
++++ b/tests/golden.txt	2026-11-11 18:18:29
+@@ -45,19 +45,6 @@
+ preset/GRAIN/01_GLITCH beb5bd23d00b6a78
+ preset/GRAIN/02_FROZEN 815ac087a05a711c
+ preset/GRAIN/03_SHIMMER d678ef1054ebf768
+-preset/PHYS/00_BELL_TREE 0d4885fd6c52d830
+-preset/PHYS/01_MARIMBA 95b723054e0a288c
+-preset/PHYS/02_PLUCK 563f101cb96339cc
+-preset/PHYS/03_BOWED_METAL d01e24dfad85f210
+-preset/PHYS/04_KALIMBA 437abacba8c243e0
+-preset/PHYS/05_HAND_DRUM 9c9fdf98e947d76c
+-preset/PHYS/06_TOMS 5cca4641b4feedf4
+-preset/PHYS/07_DRONE_STRING d83b7667348c735c
+-preset/PHYS/08_HARP 35c05b6120413780
+-preset/DRUM/00_DRUM_KIT 63752cda184261e0
+-preset/DRUM/01_DEEP_KIT 31bb8bc9577f06f0
+-preset/DRUM/02_TIGHT_KIT f3084d2de71aa080
+-preset/DRUM/03_PERC_KIT efa9ef2ab70665f4
+ preset/NOISE/00_WIND 33e0cd9a3eba37ec
+ preset/NOISE/01_RAIN b570ac492d6e9a8c
+ preset/NOISE/02_ARCADE 6125e4388f32da58
+@@ -72,15 +59,6 @@
+ preset/FM6/07_PLUCK 0913d7409eae88ec
+ preset/SLICE/00_CHOP 124ed5ae025ecd1c
+ preset/SLICE/01_STUTTER 112c686a789371d0
+-drums/drum_gm_kit 768d40aa2b86fc90
+-drums/kit_80 7d654643a3193240
+-drums/kit_10 d01f426f4cf0513c
+-drums/kit_66 0a7fd51bafb12cf8
+-drums/kit_55 f49c13cc59c8f318
+-drums/kit_77 ccc73674bb51a79c
+-drums/kit_DEEP 24cb992661e5ff14
+-drums/kit_TIGHT 2f47eeee5b2b9710
+-drums/kit_PERC e4e1ccb4d0346514
+ mode/ANALOG/POLY 46b846c48dbe53a4
+ mode/ANALOG/MONO 40ca00d9cc4ccd9c
+ mode/ANALOG/LEGATO 7cc89fe9a82e348c
+--- a/tests/hostsim.c	2026-11-11 17:52:25
++++ b/tests/hostsim.c	2026-11-11 18:16:26
+@@ -143,7 +143,7 @@
+     t->engine = ENGI_SAMPLE;
+ }
+ /* the drums of the render tests: DRUM's kit (the power-on track 4; until 1.0.2 these used SAMPLE PERC) */
+-static void host_drums(track_t *t) { host_preset(t, ENGI_DRUM, 0); }
++static void host_drums(track_t *t) { host_preset(t, 0, 0); }   /* (ANALOG since P3-008: the DRUM kit is gone) */
+ 
+ static void put_step(track_t *t, uint32_t i, uint32_t n, const uint8_t *notes, uint32_t time, uint32_t flags)
+ {
+@@ -299,7 +299,7 @@
+     {
+         const step_t *s4 = &td->step[4], *l1 = &t3->step[1], *p14 = &t2->step[14];
+         /* (DRUM: the clap goes into the grid, its lane's hit, seq.c; a sampled kit took it as a 4th note) */
+-        int clap = drum_track(td) ? s4->n == 3u && ((s4->hit >> DV_CLAP) & 1u) : s4->n == 4u && s4->note[3] == 39u;
++        int clap = s4->n == 4u && s4->note[3] == 39u;
+         int ok_clap = clap && clap_hits == 3u;
+         int ok_lead = l1->n == 1u && l1->note[0] == 84u && l1->time == ST_NOTE;
+         int ok_keys = p14->n == 2u && p14->time == ST_NOTE && p14->note[0] == 60u && p14->note[1] == 64u;
+@@ -800,11 +800,11 @@
+          * 3 + 3 + 2 notes and the hits in the budget of 8 */
+         const uint8_t fm = ENGI_FM6;
+         uint8_t parts[NPART][3] = {{fm, (uint8_t)heavy[fm], 3}, {2, (uint8_t)heavy[2], 3}, {5, (uint8_t)heavy[5], 2},
+-                                   {ENGI_DRUM, 0, DRUM_HITS}};
++                                   {0, 0, DRUM_HITS}};
+         uint8_t full[NPART][3] = {{fm, (uint8_t)heavy[fm], 8}, {2, (uint8_t)heavy[2], 8}, {5, (uint8_t)heavy[5], 4},
+-                                  {ENGI_DRUM, 0, DRUM_HITS}};
++                                  {0, 0, DRUM_HITS}};
+         uint8_t vv[NPART][3] = {{5, (uint8_t)heavy[5], 4}, {5, (uint8_t)heavy[5], 4}, {0, 0, 0}, {0, 0, 0}};
+-        uint8_t idle[NPART][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {ENGI_DRUM, 0, DRUM_HITS}};
++        uint8_t idle[NPART][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, DRUM_HITS}};
+         uint32_t bm2 = 0, bm3 = 0;
+         double two_voice, none;
+         four = tracks_cost(parts, &bm);
+--- a/tests/midi_control_test.c	2026-11-11 17:55:16
++++ b/tests/midi_control_test.c	2026-11-11 18:19:19
+@@ -49,8 +49,6 @@
+     bad += check("Reset Controllers centres bend and preserves RPN sensitivity", !midi_bend_target[0] && midi_ch[0].semis == 12 && gate_note(t, 60));
+     queued(0xB0, 1, 87, 1); queued(0xB0, 11, 23, 1); queued(0xD0, 90, 0, 1);
+     bad += check("existing modwheel/expression/aftertouch stay routed to the track", t->mw == 87 && t->ex_off == 104 && t->at == 90);
+-    queued(0xE3, 127, 127, 1);
+-    bad += check("drum track ignores pitch bend", !midi_bend_target[3]);
+     return bad;
+ }
+ static int sustain_test(void)
+@@ -64,8 +62,6 @@
+     bad += check("All Notes Off honours sustain rather than hard-killing", gate_note(t, 62) && (midi_notes[0][62] & MIDI_PEDAL_NOTE));
+     queued(0xB0, 121, 0, 1);
+     bad += check("Reset Controllers releases pedal-held notes", !gate_note(t, 62) && !midi_notes[0][62]);
+-    queued(0x93, 36, 100, 1); queued(0xB3, 64, 127, 1); queued(0x83, 36, 0, 1);
+-    bad += check("drum note-offs do not accumulate pedal-held owners", !midi_notes[3][36] && !midi_owners[3]);
+     queued(0x90, 67, 100, 1); queued(0xB0, 64, 127, 1); queued(0x80, 67, 0, 1); queued(0xB0, 120, 0, 1);
+     bad += check("All Sound Off ignores pedal and discards all track ownership", !midi_notes[0][67] && !midi_owners[0] && !t->nheld && !gate_note(t, 67));
+     return bad;
+@@ -476,8 +472,8 @@
+     };
+     int bad = 0, ok = 1; uint32_t i, e; int16_t before[P_COUNT];
+     midi_test_reset();
+-    bad += check("power-on parts: ANALOG, FM6, LOFI, DRUM", trk[0].eng_req == 0u && trk[1].eng_req == ENGI_FM6 &&
+-                 trk[2].eng_req == 3u && trk[3].eng_req == ENGI_DRUM);
++    bad += check("power-on parts: ANALOG, FM6, LOFI, ANALOG", trk[0].eng_req == 0u && trk[1].eng_req == ENGI_FM6 &&
++                 trk[2].eng_req == 3u && trk[3].eng_req == 0u);
+     for (i = 0; i < NELEM(COMMON); i++) {
+         queued(0xB0, COMMON[i].cc, 127, 1);
+         ok &= trk[0].p[COMMON[i].id] == TP[COMMON[i].id].max;
+@@ -497,8 +493,6 @@
+     bad += check("CC74 on FM6 (channel 2): MLVL, bipolar (127: +63)", trk[1].p[P_E2] == 63);
+     memcpy(before, trk[1].p, sizeof before); queued(0xB1, 71, 99, 1);
+     bad += check("CC71 on FM6 (no resonance): ignored", !memcmp(before, trk[1].p, sizeof before));
+-    queued(0xB3, 74, 10, 1);
+-    bad += check("CC74 on DRUM (channel 4): TONE", trk[3].p[P_E2] == 10);
+     for (e = 0, ok = 1; e < NENGINES; e++) {   /* the table names a continuous EDIT value of every engine */
+         uint32_t m = MIDI_CC_ENG[e], k;
+         for (k = 0; k < 2u; k++) {
+@@ -597,7 +591,7 @@
+     /* every engine: program n = the n-th sound PRESETS shows, then nothing */
+     ok = 1;
+     for (e = 0; e < NENGINES; e++) {
+-        if (!eng_ok(e) || e == ENGI_DRUM || !preset_shown(e))
++        if (!eng_ok(e) || !preset_shown(e))
+             continue;
+         set_engine_of(t, e);
+         for (n = 0, last = -1; n < preset_shown(e); n++) {
+@@ -615,30 +609,7 @@
+     ok = str_eq(ENGINES[ENGI_SAMPLE]->presets[t->preset].name, "FLUTE");
+     pc(0, 4); frame();
+     ok &= t->eng_req == ENGI_SAMPLE && str_eq(ENGINES[ENGI_SAMPLE]->presets[t->preset].name, "FLUTE");
+-    bad += check("  SAMPLE: PC 1 is FLUTE (not PIANO's alias); PC 4 (once PERC) does not turn the track into DRUM", ok);
+-
+-    /* DRUM: the kits as KIT steps through them */
+-    {
+-        const param_desc_t *d = param_desc_of(ENGI_DRUM, P_E0);
+-        track_t *dr = &trk[3];
+-        set_engine_of(dr, ENGI_DRUM);
+-        dr->p[P_E0] = 1;                                 /* (HAND, retired: plays 66) */
+-        ok = 1;
+-        for (n = 0, last = -1;; n++) {
+-            was = *dr;
+-            pc(3, n); frame();
+-            if (!memcmp(was.p, dr->p, sizeof was.p))
+-                break;
+-            ok &= dr->p[P_E0] > last && enum_orig(d, dr->p[P_E0]) == dr->p[P_E0] && dr->preset == was.preset;
+-            for (k = 0; k < P_COUNT; k++)
+-                ok &= k == P_E0 || dr->p[k] == was.p[k];
+-            last = dr->p[P_E0];
+-        }
+-        ok &= n == 9u && last == d->max;                 /* (1.5.6, #216: DEEP TIGHT PERC 6..8) */
+-        pc(3, DK_COUNT + 2u); frame();
+-        ok &= dr->p[P_E0] == last;
+-        bad += check("  DRUM: 0..8 the nine kits (STD 80 10 66 55 77 DEEP TIGHT PERC; HAND CYM H+CYM skipped), only KIT; 9.. ignored", ok);
+-    }
++    bad += check("  SAMPLE: PC 1 is FLUTE (not PIANO's alias); PC 4 (once PERC) loads nothing", ok);
+ 
+     /* FM6: its presets, then the bank's voices */
+     {
+--- a/tests/regress.c	2026-11-11 14:22:40
++++ b/tests/regress.c	2026-11-11 18:17:22
+@@ -160,7 +160,7 @@
+ }
+ 
+ /* ------------------------------------------------------------- jobs --- */
+-enum { J_PRESET, J_MODE, J_SENDS, J_DRUMS, J_SONG, J_CPU, J_CHECK };
++enum { J_PRESET, J_MODE, J_SENDS, J_SONG, J_CPU, J_CHECK };
+ typedef struct {
+     char name[64];
+     uint8_t kind, e, pi, arg, cpu_notes;
+@@ -204,33 +204,6 @@
+     phrase(t, 60);
+ }
+ 
+-static void job_drums(const job_t *j)           /* every GM note through DRUM on part 4, a roll; arg: KIT (0: STD) */
+-{
+-    track_t *t = &trk[3];
+-    uint32_t n, k = 0;
+-    host_tracks_init();
+-    host_drums(t);
+-    t->p[P_E0] = j->arg;
+-    for (n = 35; n <= 81u; n++, k++) {
+-        input_on(t, n, 60u + (n * 7u) % 60u);
+-        run_to(at(0.06 * (k + 1)));
+-        input_off(t, n);
+-    }
+-    input_on(t, 46, 100);                      /* open hat, then the closed one */
+-    run_to(fpos + FS / 10u);
+-    input_on(t, 42, 100);
+-    for (k = 0; k < 12u; k++) {                /* a snare roll: more hits than voices */
+-        input_on(t, 38, 40u + 6u * k);
+-        run_to(fpos + FS / 40u / CTL * CTL);
+-    }
+-    input_off(t, 46);
+-    input_off(t, 42);
+-    input_off(t, 38);
+-    rel_at = fpos;
+-    dc_end = fpos;
+-    finish();
+-}
+-
+ /* the 4-track mix: T1 ANALOG ACID, T2 the power-on pad (TRK_DEF: FM6 PAD since DIGITAL was retired; DIGITAL PAD
+  * before) (tied chords), T3 LOFI lead (12 steps against 16),
+  * T4 DRUM drums (SAMPLE PERC until 1.0.2); 120 BPM, 4 bars (the hostsim TRACKS demo without the recording), stop, the tail.
+@@ -308,8 +281,6 @@
+     host_tracks_init();
+     for (p = 0; p < NPART; p++) {
+         host_preset(&trk[p], parts[p][0], parts[p][1]);
+-        if (j->arg && ENGINES[parts[p][0]] == &ENG_DRUM)
+-            trk[p].p[P_E0] = j->arg;                    /* DRUM: a KIT (the model kits) */
+         if (parts[p][2] == DRUM_HITS)
+             continue;
+         trk[p].p[P_VOICE] = V_POLY;
+@@ -356,9 +327,6 @@
+     case J_SENDS:
+         job_sends(j);
+         break;
+-    case J_DRUMS:
+-        job_drums(j);
+-        break;
+     case J_SONG:
+         job_song(j);
+         break;
+@@ -1012,11 +980,6 @@
+             j->e = (uint8_t)e;
+             j->pi = (uint8_t)pi;
+         }
+-    add(J_DRUMS, "drums/drum_gm_kit");
+-    for (i = 0; i < DV_NKIT; i++) {                 /* the model kits (KIT 80 10 66 55 77) */
+-        snprintf(name, sizeof name, "drums/kit_%s", N_DRUM_KIT[DK_80 + i]);
+-        add(J_DRUMS, name)->arg = (uint8_t)(DK_80 + i);
+-    }
+     for (i = 0; i < 3u; i++)
+         for (k0 = 0; k0 < 4u && eng_ok(MODE_E[i][0]); k0++) {
+             job_t *j;
+@@ -1076,25 +1039,14 @@
+             j->e = (uint8_t)e;
+             j->pi = (uint8_t)pi;
+         }
+-    for (i = 0; i < DV_NKIT; i++) {                 /* DRUM's model kits: the 8 lanes, as its preset above */
+-        job_t *j;
+-        snprintf(name, sizeof name, "cpu/DRUM/kit_%s", N_DRUM_KIT[DK_80 + i]);
+-        j = add(J_CPU, name);
+-        memset(cpu_parts[ncpu], 0, sizeof cpu_parts[ncpu]);
+-        cpu_parts[ncpu][0][0] = ENGI_DRUM, cpu_parts[ncpu][0][1] = 0, cpu_parts[ncpu][0][2] = 8;
+-        j->parts = (const uint8_t (*)[3])cpu_parts[ncpu++];
+-        j->e = ENGI_DRUM;
+-        j->pi = 0;
+-        j->arg = (uint8_t)(DK_80 + i);
+-    }
+-    {   /* mixes: idle (subtracted from the presets' counts), idle + drums (part 4 DRUM; SAMPLE PERC until 1.0.2), FM (FM6) + PHASE + VOICE asking 8 + 8 + 4 + the drums (the budget keeps 8; FM6 plays 6) */
++    {   /* mixes: idle (subtracted from the presets' counts), idle + drums (part 4 ANALOG since P3-008), FM (FM6) + PHASE + VOICE asking 8 + 8 + 4 + the drums (the budget keeps 8; FM6 plays 6) */
+         job_t *j = add(J_CPU, "cpu/mix/idle");
+         memset(cpu_parts[ncpu], 0, sizeof cpu_parts[ncpu]);
+         j->parts = (const uint8_t (*)[3])cpu_parts[ncpu++];
+         j->e = 0xFF;
+         j = add(J_CPU, "cpu/mix/idle_drums");
+         memset(cpu_parts[ncpu], 0, sizeof cpu_parts[ncpu]);
+-        cpu_parts[ncpu][3][0] = ENGI_DRUM, cpu_parts[ncpu][3][1] = 0, cpu_parts[ncpu][3][2] = DRUM_HITS;
++        cpu_parts[ncpu][3][0] = 0, cpu_parts[ncpu][3][1] = 0, cpu_parts[ncpu][3][2] = DRUM_HITS;
+         j->parts = (const uint8_t (*)[3])cpu_parts[ncpu++];
+         j->e = 0xFF;
+         j = add(J_CPU, "cpu/mix/3parts_full_drums");
+@@ -1102,7 +1054,7 @@
+         cpu_parts[ncpu][0][0] = ENGI_FM6, cpu_parts[ncpu][0][1] = 0, cpu_parts[ncpu][0][2] = 8;
+         cpu_parts[ncpu][1][0] = 2, cpu_parts[ncpu][1][1] = 0, cpu_parts[ncpu][1][2] = 8;
+         cpu_parts[ncpu][2][0] = 5, cpu_parts[ncpu][2][1] = 0, cpu_parts[ncpu][2][2] = 4;
+-        cpu_parts[ncpu][3][0] = ENGI_DRUM, cpu_parts[ncpu][3][1] = 0, cpu_parts[ncpu][3][2] = DRUM_HITS;
++        cpu_parts[ncpu][3][0] = 0, cpu_parts[ncpu][3][1] = 0, cpu_parts[ncpu][3][2] = DRUM_HITS;
+         j->parts = (const uint8_t (*)[3])cpu_parts[ncpu++];
+         j->e = 0xFF;
+         j = add(J_CPU, "cpu/mix/idle_click");          /* idle + the metronome's click (click.c) never silent */
+--- a/tests/run_tests.sh	2026-11-11 18:13:06
++++ b/tests/run_tests.sh	2026-11-11 18:18:35
+@@ -74,13 +74,6 @@
+ # Browser emulator (web/emu, when emcc is there): the firmware in WebAssembly (build/emu) boots, plays keys and MIDI,
+ #                   draws, lights its LEDs, keeps a save across instances, plays a song bit for bit as the same file
+ #                   built with cc (web/emu/native_check.c); the cost of 1 s of a heavy song against real time.
+-# PHYS (tests/phys_test.c): stability over the whole parameter and pitch range, the worst-case cost against
+-#                   the heaviest factory preset, demos in build/phys_demo/; tests/phys_ref.cpp compares the
+-#                   fixed-point models with DaisySP's float originals when DaisySP is there (DAISYSP=path).
+-# DRUM (tests/drum_test.c): the drum voices (src/drum_voice.c): pitch, decay, centroid and level against
+-#                   Felucca's targets, the controls' directions, no clipping, DC, retriggers, the hat choke, the
+-#                   kick on a small speaker; the DRUM engine (src/eng_drum.c): its key map, the 8 lanes together,
+-#                   one hit per lane, the choke between lanes; the cost per voice; demos in build/drum_demo/.
+ # NOISE (tests/noise_test.c): the engine (src/eng_noise.c): COLR's slope (white, pink, brown), the filter and the
+ #                   register clock following the key, META periodic at the key, no DC, no clipping at the
+ #                   corners, a note from silence the same twice, the cost per voice; demos in build/noise_demo/.
+@@ -232,25 +225,8 @@
+     $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/regress" tests/regress.c -lm
+     run "regression: golden renders, health, voices, CPU budget" "$OUT/regress" tests/golden.txt tests/cpu_baseline.txt
+     $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/union_test" tests/union_test.c -lm
+-    run "engine memory (1.5): every switch between the engines with per-part state sounds as in 1.4 (720 sequences)" \
++    run "engine memory (1.5): every switch between the engines with per-part state sounds as in 1.4 (396 sequences)" \
+         "$OUT/union_test" tests/union_golden.txt
+-    $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/phys_test" tests/phys_test.c -lm
+-    mkdir -p build/phys_demo
+-    run "PHYS: stability C-1..G9 over the parameter corners, worst-case cost against PHASE WIRE, demos" "$OUT/phys_test" build/phys_demo
+-    D=${DAISYSP:-vendor/DaisySP}/Source
+-    if [ -d "$D/PhysicalModeling" ] && command -v c++ >/dev/null 2>&1; then
+-        $CC -O2 -w -Ibuild/gen -Ifirmware/src -Itests -c -o "$OUT/phys_fixed.o" tests/phys_fixed.c
+-        c++ -O2 -std=c++14 -w -I"$D" -I"$D/Utility" -o "$OUT/phys_ref" tests/phys_ref.cpp \
+-            "$D/PhysicalModeling/modalvoice.cpp" "$D/PhysicalModeling/resonator.cpp" "$D/PhysicalModeling/stringvoice.cpp" \
+-            "$D/PhysicalModeling/KarplusString.cpp" "$D/Filters/svf.cpp" "$D/Utility/dcblock.cpp" \
+-            "$D/Dynamics/crossfade.cpp" "$OUT/phys_fixed.o"
+-        run "PHYS: the fixed-point models against DaisySP's float originals (mode frequencies, decays, Svf)" "$OUT/phys_ref"
+-    else
+-        echo "== skip PHYS reference test (no DaisySP: set DAISYSP to a checkout)"
+-    fi
+-    $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/drum_test" tests/drum_test.c -lm
+-    mkdir -p build/drum_demo
+-    run "DRUM: voice targets, controls, no clipping, retrigger, hat choke, the kick on a small speaker, keys, 8 lanes, cost, demos" "$OUT/drum_test" build/drum_demo
+     $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/noise_test" tests/noise_test.c -lm
+     mkdir -p build/noise_demo
+     run "NOISE: colour slopes, key-tracked filter and clock, META period, DC, clipping, retrigger, cost, demos" "$OUT/noise_test" build/noise_demo
+--- a/tests/scale_test.c	2026-11-11 17:55:16
++++ b/tests/scale_test.c	2026-11-11 18:16:50
+@@ -61,10 +61,6 @@
+     for (k = 0; k < 27u; k++)
+         assert(kb_map(t, k) == 48u + k);
+     t->p[P_QUANT] = 2;
+-    host_preset(t, ENGI_DRUM, 0);              /* DRUM (the GM map, any part; SAMPLE PERC until 1.0.2): the first */
+-    t->engine = t->eng_req = ENGI_DRUM;        /* C is the kick */
+-    for (k = 0; k < 27u; k++)
+-        assert(kb_map(t, k) == 29u + k);
+     t->engine = t->eng_req = 0;                /* SNAP (QNT 1, the old ON): every key, rounded down */
+     t->p[P_QUANT] = 1;
+     t->p[P_SCALE] = 2;                         /* C minor */
+@@ -246,18 +242,9 @@
+     assert(gated(t) == 0 && t->seq_n == 0);
+     t->step[1].flags = 0;
+ 
+-    /* drum kits and the DRUM engine never snap: their notes are GM drums */
+-    host_preset(t, ENGI_DRUM, 0);
+-    t->engine = t->eng_req = ENGI_DRUM;
+-    t->p[P_SCALE] = 1;
+-    t->p[P_ROOT] = 0;
+-    t->step[0] = (step_t){.note = {37, 39}, .n = 2, .hit = 1u << 0, .time = ST_NOTE};
+-    seq_start();
+-    events_block(CTL);
+-    assert(t->seq_n == 3 && t->seq_notes[0] == 37 && t->seq_notes[1] == 39 && t->seq_notes[2] == DRUM_LANE_NOTE[0]);
+     seq_stop();
+     assert(gated(t) == 0);
+-    puts("scales: QNT SEQ snaps the sequence as it plays (steps unchanged), no stuck notes over scale changes, kits never");
++    puts("scales: QNT SEQ snaps the sequence as it plays (steps unchanged), no stuck notes over scale changes");
+ }
+ 
+ /* #191: the arp's notes from the keys follow TRN, ROOT, SCALE and QNT as they change (latched with HOLD or held),
+@@ -387,27 +374,12 @@
+     arp_run(t, 1);
+     assert(arp_seen[0] == 61);
+ 
+-    /* the DRUM engine's own key map: as it came (TRN is not its) */
+-    arp_reset(t);
+-    host_preset(t, ENGI_DRUM, 0);
+-    t->engine = t->eng_req = ENGI_DRUM;
+-    t->p[P_AMODE] = 1;
+-    t->p[P_AOCT] = 1;
+-    t->p[P_AHOLD] = 1;
+-    fm1_in.notes = (1u << 7) | (1u << 9);
+-    keyboard_block();
+-    fm1_in.notes = 0;
+-    keyboard_block();
+-    assert(held_key[0][0] == 0 && held_key[0][1] == 0);
+-    assert(arp_is(t, kb_map(t, 7), kb_map(t, 9)));
+-    t->p[P_TRANS] = 7;
+-    assert(arp_is(t, t->held[0], t->held[1]));
+-    puts("scales: the arp's latched / held keys follow TRN, ROOT, SCALE and QNT (#191); octave, MIDI IN, kits as before");
++    puts("scales: the arp's latched / held keys follow TRN, ROOT, SCALE and QNT (#191); octave, MIDI IN as before");
+ }
+ 
+ /* QNT SEQ+T (#218): TRN moves the sequence too, before it snaps; with OFF / SNAP / WHITE / SEQ the sequence plays as
+  * written whatever TRN says (saved projects sound the same). A TRN turned while notes ring leaves nothing held;
+- * the steps never change; kits are never transposed; the keys play as SNAP */
++ * the steps never change; the keys play as SNAP */
+ static void seq_trn_test(void)
+ {
+     track_t *t = &trk[0];
+@@ -475,16 +447,6 @@
+     assert(t->seq_n == 1 && t->seq_notes[0] <= 127);
+     seq_stop();
+ 
+-    host_preset(t, ENGI_DRUM, 0);                  /* a kit: GM drums, never transposed */
+-    t->engine = t->eng_req = ENGI_DRUM;
+-    t->p[P_QUANT] = QN_SEQT;
+-    t->p[P_TRANS] = 5;
+-    t->step[0] = (step_t){.note = {37}, .n = 1, .hit = 1u << 0, .time = ST_NOTE};
+-    seq_start();
+-    events_block(CTL);
+-    assert(t->seq_n == 2 && t->seq_notes[0] == 37 && t->seq_notes[1] == DRUM_LANE_NOTE[0]);
+-    seq_stop();
+-    assert(gated(t) == 0);
+     t->p[P_TRANS] = 0;
+     t->p[P_QUANT] = QN_OFF;
+     puts("scales: QNT SEQ+T moves the sequence by TRN then snaps (steps unchanged, nothing held); other QNT values ignore TRN");
+--- a/tests/settings_test.c	2026-11-11 16:39:01
++++ b/tests/settings_test.c	2026-11-11 18:17:10
+@@ -6,8 +6,7 @@
+ #define __attribute__(x)
+ #define NENGINES 9u
+ #define UP_SLOTS 32u
+-#define ENGI_SAMPLE 4u                           /* (core.h: SAMPLE, DRUM, the retired PERC set) */
+-#define ENGI_DRUM 10u
++#define ENGI_SAMPLE 4u                           /* (core.h) */
+ #define SMP_SET_PERC 4u
+ static uint8_t fx_lowcut;
+ static void fm1_led_key(unsigned k, int on) { (void)k; (void)on; }
+@@ -55,16 +54,6 @@
+     }
+ #ifdef FELUCCA_FAVORITES
+     assert(favorite_has(8, 0) && favorite_has(NENGINES, 31) && favorites.filter);
+-    {   /* SAMPLE's PERC starred (preset 4, retired): DRUM's kit (preset 0) instead; SAMPLE's others kept; twice the same */
+-        persist_t q = original;
+-        q.favorites.factory[ENGI_SAMPLE][0] = 1u << SMP_SET_PERC | 1u << 2;
+-        assert(settings_import(&q, sizeof q) == 1 && favorites.factory[ENGI_SAMPLE][0] == 1u << 2 &&
+-               favorites.factory[ENGI_DRUM][0] == 1u);
+-        settings_export(&q);
+-        assert(settings_import(&q, sizeof q) == 1 && favorites.factory[ENGI_SAMPLE][0] == 1u << 2 &&
+-               favorites.factory[ENGI_DRUM][0] == 1u);
+-        p = original; assert(settings_import(&p, sizeof p) == 1);
+-    }
+ #endif
+     settings.lowcut = 0;
+     settings_export(&p);
+--- a/tests/speaker_test.c	2026-11-09 19:41:34
++++ b/tests/speaker_test.c	2026-11-11 18:17:44
+@@ -68,26 +68,18 @@
+ {
+     static const char *const NAME[2] = {"PUNCH", "ROUND"};
+     static float f[2 * FS];
+-    static dv_coef_t c;
+-    static dv_voice_t v;
+-    static dv_metal_t mb;
+     uint32_t type, gi, mode, i, k, fails = 0;
+     for (type = 0; type < 2u; type++) {
+-        dv_param_t p;
+-        int32_t y[CTL], m[CTL], pk = 1;
+-        dv_default(&p, type);
+-        dv_setup(&c, &p);
+-        dv_init(&v, c.type);
+-        memset(&mb, 0, sizeof mb);
+-        dv_metal_tune(&mb, &c);
++        /* a kick of this test's own (the DRUM engine's was removed in P3-008): a sine sweeping down from 180 Hz (PUNCH) or
++         * 120 Hz (ROUND) to 48 Hz, 0.5 s apart, decaying over ~0.25 s; the same shape of load for the limiter and BASS+ */
++        double f0 = type ? 120.0 : 180.0, ph = 0;
++        int32_t pk = 1;
+         for (i = 0; i < 2u * FS; i += CTL) {
+-            if (i % (FS / 2u) < CTL)
+-                dv_trigger(&v);
+-            dv_metal_run(&mb, m, CTL);
+-            dv_run(&c, &v, m, y, CTL);
+             for (k = 0; k < CTL; k++) {
+-                f[i + k] = (float)y[k];
+-                pk = abs(y[k]) > pk ? abs(y[k]) : pk;
++                double t = (double)((i + k) % (FS / 2u)) / FS, fr = 48.0 + (f0 - 48.0) * exp(-t * 40.0);
++                ph += 2.0 * M_PI * fr / FS;
++                f[i + k] = (float)(sin(ph) * exp(-t * 9.0) * 20000.0);
++                pk = abs((int32_t)f[i + k]) > pk ? abs((int32_t)f[i + k]) : pk;
+             }
+         }
+         for (gi = 1; gi <= 2u; gi++) {
+--- a/tests/target_budget.py	2026-11-11 17:52:25
++++ b/tests/target_budget.py	2026-11-11 18:18:35
+@@ -16,11 +16,8 @@
+ 
+ FUNCS = ["analog_render", "phase_render", "phase_render_f", "lofi_render", "sample_render", "formant_render",
+          "trio_render", "trio_pass", "wheel_render", "wheel_block",
+-         "grain_render", "grain_block", "phys_render", "drum_render", "noise_render", "fm6_render", "fm6_op_run", "fm6_op_fb", "px_modal_block", "px_modal_run", "px_memb_block",
+-         "px_string_excite", "px_string_run", "px_symp_run",
+-         "dv_metal_run", "dv_kick_run", "dv_snare_run", "dv_clap_run", "dv_hat_run", "dv_tom_run",   # drum_voice.c
+-         "dv_rim_run", "dv_bell_run", "dv_cym_run", "dv_out", "dv_metal_mix",
+-          "slice_render", "slc_rev",                          # SLICE (eng_slice.c): the render, the reverse windows
++         "grain_render", "grain_block", "noise_render", "fm6_render", "fm6_op_run", "fm6_op_fb",
++         "slice_render", "slc_rev",                          # SLICE (eng_slice.c): the render, the reverse windows
+          "fm1_alnk0_irq", "fm1_timer5_irq",               # the audio ISR; TIMER5: the key / LED scan (hal/fm1_input.h)
+          "uac_tap48",                                       # the USB audio input at 48 kHz: the 44.1 -> 48 resampler (usb.c)
+          "click_render",                                    # the metronome's click (click.c), while it sounds
+--- a/tests/target_budget.txt	2026-11-11 17:59:21
++++ b/tests/target_budget.txt	2026-11-11 18:18:29
+@@ -13,29 +13,10 @@
+ wheel_block 102
+ grain_render 1723
+ grain_block 137
+-phys_render 61
+-drum_render 89
+ noise_render 259
+ fm6_render 363
+ fm6_op_run 72
+ fm6_op_fb 26
+-px_modal_block 111
+-px_modal_run 192
+-px_memb_block 106
+-px_string_excite 171
+-px_string_run 264
+-px_symp_run 252
+-dv_metal_run 26
+-dv_kick_run 151
+-dv_snare_run 154
+-dv_clap_run 74
+-dv_hat_run 61
+-dv_tom_run 75
+-dv_rim_run 61
+-dv_bell_run 52
+-dv_cym_run 67
+-dv_out 35
+-dv_metal_mix 16
+ slice_render 436
+ slc_rev 120
+ fm1_alnk0_irq 17319
+--- a/tests/ui_test.c	2026-11-11 18:11:36
++++ b/tests/ui_test.c	2026-11-11 18:18:03
+@@ -309,18 +309,6 @@
+     fm1_in.notes &= ~(1u << k);
+     frame();
+ }
+-static uint32_t lane_steps(const track_t *t, uint32_t l)   /* bit i: lane l strikes at step i (0..31) */
+-{
+-    uint32_t i, m = 0;
+-    for (i = 0; i < 32u; i++)
+-        m |= ((step_lanes(&t->step[i]) >> l) & 1u) << i;
+-    return m;
+-}
+-
+-
+-
+-
+-
+ /* key k of colour black (1) / white (0) at place p (seq.c key_place) */
+ static uint32_t key_at(int black, uint32_t p)
+ {
+@@ -1453,12 +1441,6 @@
+     ok &= sc == ALL && root == C_KEYS;
+     bad += check("#127 QNT SNAP: the keys of the scale; QNT WHITE: all the white keys, its roots; CHR: every key", ok);
+     t->p[P_SCALE] = 1;
+-    set_engine_of(t, ENGI_DRUM);
+-    t->engine = t->eng_req;
+-    sc = scale_leds(&root);
+-    ui_leds();
+-    ok = !sc && !root && lit_keys(fm1_led_dim) == ALL && !lit_keys(fm1_led_mid);
+-    bad += check("#127 a DRUM track (its keys as before) keeps its own LEDs", ok);
+     menu_put(MI_SCLLED, 0);
+     ok = !(ui_rec_prefs & 0x40u) && !scale_leds(&root);
+     bad += check("#127 SCALE LEDS OFF again: the bit clears", ok);
+--- a/tests/union_golden.txt	2026-11-11 13:30:15
++++ b/tests/union_golden.txt	2026-11-11 18:18:29
+@@ -5,10 +5,6 @@
+ 7-0-7 p0 w10 a1e6e47cfe465897
+ 0-8 p0 w10 68f8525ed6576c07
+ 8-0-8 p0 w10 2f2a68977219c08d
+-0-9 p0 w10 1c7074b1f47e3967
+-9-0-9 p0 w10 9d90513069705e13
+-0-10 p0 w10 ea4fcb6d705edaa1
+-10-0-10 p0 w10 8aa25da443fe8e4b
+ 0-12 p0 w10 881a5a735652e011
+ 12-0-12 p0 w10 45be02da2e71580b
+ 0-13 p0 w10 491299eb4a7b0c29
+@@ -20,10 +16,6 @@
+ 7-4-7 p0 w10 1d403cd7d07179d5
+ 4-8 p0 w10 8eb52e614aa0b731
+ 8-4-8 p0 w10 c634577ba1f3b775
+-4-9 p0 w10 42f88856de1e5c7b
+-9-4-9 p0 w10 70f2b0b8226a488f
+-4-10 p0 w10 969945eeadf72d35
+-10-4-10 p0 w10 54f5f75175b45b3b
+ 4-12 p0 w10 b46b7f7082409c45
+ 12-4-12 p0 w10 520463059fd07e35
+ 4-13 p0 w10 292ebb673580980d
+@@ -35,10 +27,6 @@
+ 7-7 p0 w10 0817381855352611
+ 7-8 p0 w10 04d41ef8969150f3
+ 8-7-8 p0 w10 66e22b6512b5a547
+-7-9 p0 w10 940c3493b1a8f735
+-9-7-9 p0 w10 704e1659aec62aaf
+-7-10 p0 w10 ef1c22628a26e08f
+-10-7-10 p0 w10 e47e39d058a1819d
+ 7-12 p0 w10 91270ec445a6be17
+ 12-7-12 p0 w10 1acba17231e2360f
+ 7-13 p0 w10 8d5cc41f805c121f
+@@ -50,44 +38,10 @@
+ 8-7 p0 w10 b5c285900394a91b
+ 7-8-7 p0 w10 10d06ce11b231cd3
+ 8-8 p0 w10 c91886da17b9aded
+-8-9 p0 w10 5407c294e0bfa445
+-9-8-9 p0 w10 ccb2d15ff9e1d1c1
+-8-10 p0 w10 ae6673c991243a9d
+-10-8-10 p0 w10 ce0d56f9d8cdc17d
+ 8-12 p0 w10 4ff5b0f5067fe885
+ 12-8-12 p0 w10 4424c6da2285f2c1
+ 8-13 p0 w10 dd3ecb992beb5975
+ 13-8-13 p0 w10 eb2c0b580e5fa957
+-9-0 p0 w10 77d92940c6e329d9
+-0-9-0 p0 w10 0e5a305317c785d5
+-9-4 p0 w10 26ed1c90e16b2f6d
+-4-9-4 p0 w10 221486c444a6813d
+-9-7 p0 w10 222667b77f01f419
+-7-9-7 p0 w10 5d4986a03d6e38fd
+-9-8 p0 w10 b7c3a25b0ead9ec7
+-8-9-8 p0 w10 405406648e8a06f7
+-9-9 p0 w10 46439f6bc5b4134d
+-9-10 p0 w10 0272d41a6497fa75
+-10-9-10 p0 w10 8a598229964b262d
+-9-12 p0 w10 da29d3de5a2b097b
+-12-9-12 p0 w10 326ce6c1ed5493e3
+-9-13 p0 w10 aaa02346d41017e9
+-13-9-13 p0 w10 e0d436220bd7f341
+-10-0 p0 w10 92fb8b31506d310b
+-0-10-0 p0 w10 3e01af9f42df72c9
+-10-4 p0 w10 bb102c71d08c3c1f
+-4-10-4 p0 w10 f12a5e83096a0bdb
+-10-7 p0 w10 c89e051e0772fb6b
+-7-10-7 p0 w10 860e6315010d09ab
+-10-8 p0 w10 7a9d69895817fb03
+-8-10-8 p0 w10 89323baed732db2b
+-10-9 p0 w10 40c43dfe6cabd351
+-9-10-9 p0 w10 2f10eab1fd6e354b
+-10-10 p0 w10 4fe40516ef9c008b
+-10-12 p0 w10 49be077ee0340df3
+-12-10-12 p0 w10 64b42b5b8ef9feeb
+-10-13 p0 w10 0124c01c7585266b
+-13-10-13 p0 w10 5e8a448293969185
+ 12-0 p0 w10 679b59d67b08e4cd
+ 0-12-0 p0 w10 a5a304a90cda68e9
+ 12-4 p0 w10 5958adffd27716eb
+@@ -96,10 +50,6 @@
+ 7-12-7 p0 w10 2d4f84cd5bdc1e49
+ 12-8 p0 w10 bb2fc949db75bd51
+ 8-12-8 p0 w10 eabfd866212e9c95
+-12-9 p0 w10 e34b0ca9622e2723
+-9-12-9 p0 w10 6128fdf6543f57ab
+-12-10 p0 w10 3659330bf223a19d
+-10-12-10 p0 w10 98489aea73299ed1
+ 12-12 p0 w10 e59b55ca91177e19
+ 12-13 p0 w10 9c00c12d6faff3ff
+ 13-12-13 p0 w10 824baddb048e8f09
+@@ -111,10 +61,6 @@
+ 7-13-7 p0 w10 eb82f10d6bc62637
+ 13-8 p0 w10 e21018b714d83069
+ 8-13-8 p0 w10 4e80d3f28f398167
+-13-9 p0 w10 94138dbb26d664b3
+-9-13-9 p0 w10 37ef626623a176f1
+-13-10 p0 w10 c307dd197a69500d
+-10-13-10 p0 w10 ac6c24da6da40f05
+ 13-12 p0 w10 0db3bf740fa72abd
+ 12-13-12 p0 w10 44cee7873b166d8d
+ 13-13 p0 w10 a373a661497c4fc5
+@@ -125,10 +71,6 @@
+ 7-0-7 p1 w10 3156c0d0dfe3790d
+ 0-8 p1 w10 44bcb6352a0db2e5
+ 8-0-8 p1 w10 2771ed033fcd6d57
+-0-9 p1 w10 4f6674dad2c567cf
+-9-0-9 p1 w10 7a28becec7981a89
+-0-10 p1 w10 444ff2374c6729b1
+-10-0-10 p1 w10 c69a4fe88363a273
+ 0-12 p1 w10 15a0df275424827b
+ 12-0-12 p1 w10 e18c2a8496915e81
+ 0-13 p1 w10 69291124397b7071
+@@ -140,10 +82,6 @@
+ 7-4-7 p1 w10 157196e3c603b175
+ 4-8 p1 w10 e24f78e155dcd353
+ 8-4-8 p1 w10 8424d2f5ecaf6d6f
+-4-9 p1 w10 40d509ade57ec739
+-9-4-9 p1 w10 5d233c31ae5a1b5b
+-4-10 p1 w10 43bc3e5d1cac4395
+-10-4-10 p1 w10 0fa822d53012696d
+ 4-12 p1 w10 259c41cde2958997
+ 12-4-12 p1 w10 50517271abd09a87
+ 4-13 p1 w10 5bfe89fa356dbe8f
+@@ -155,10 +93,6 @@
+ 7-7 p1 w10 4464627c15efb70f
+ 7-8 p1 w10 66fa01b46e2fd3b5
+ 8-7-8 p1 w10 b1d9d4ef703d9b8f
+-7-9 p1 w10 067c1eec6e5fc927
+-9-7-9 p1 w10 5792e7e5e0027f93
+-7-10 p1 w10 bf41ff541c836df7
+-10-7-10 p1 w10 efa0e2da107b5f37
+ 7-12 p1 w10 ce42f483f7b40813
+ 12-7-12 p1 w10 e6eea089464d9b7f
+ 7-13 p1 w10 bcb82e6e998fed41
+@@ -170,44 +104,10 @@
+ 8-7 p1 w10 0727adbc5cbae7bd
+ 7-8-7 p1 w10 1e4a64ca268eabdd
+ 8-8 p1 w10 bbd88a49e3cf5df3
+-8-9 p1 w10 5561d7328cd510ad
+-9-8-9 p1 w10 9d8a1fa5ddd8c8db
+-8-10 p1 w10 1026fa2a86ae8529
+-10-8-10 p1 w10 96d8ff07c2963625
+ 8-12 p1 w10 9e670b167a090cef
+ 12-8-12 p1 w10 bcea977e50d9451d
+ 8-13 p1 w10 1c975d7fa1149fa3
+ 13-8-13 p1 w10 faaae5c4c896bd1b
+-9-0 p1 w10 5dc4c3bcf3245bcf
+-0-9-0 p1 w10 afb52d1033ba3faf
+-9-4 p1 w10 59b4a4c8bc5ab09f
+-4-9-4 p1 w10 8958c5f093f96ad7
+-9-7 p1 w10 7373f93c892842dd
+-7-9-7 p1 w10 025a0c2f61ea6347
+-9-8 p1 w10 5106cd2a25885da7
+-8-9-8 p1 w10 1a86297fbed834df
+-9-9 p1 w10 4ae6b0c3a13043e3
+-9-10 p1 w10 0a9cb72c9680f0c9
+-10-9-10 p1 w10 511f387456d1c1e1
+-9-12 p1 w10 28a866d8615cb13b
+-12-9-12 p1 w10 d148cb732e43a88f
+-9-13 p1 w10 25a86d91472b6a43
+-13-9-13 p1 w10 0c8eedb0fa37bcf3
+-10-0 p1 w10 ed72219d322bec69
+-0-10-0 p1 w10 6aa203a36f011dbb
+-10-4 p1 w10 de5136c45c483b03
+-4-10-4 p1 w10 26f9cb2c8d3a0325
+-10-7 p1 w10 2adba93df98b2941
+-7-10-7 p1 w10 7f3bf74e46a8ec57
+-10-8 p1 w10 4c8ad90c1c11ac25
+-8-10-8 p1 w10 202f9dba187d8091
+-10-9 p1 w10 16ab38cd15a91647
+-9-10-9 p1 w10 0a8f78a6808ccf45
+-10-10 p1 w10 7f87070fe35e7e43
+-10-12 p1 w10 9446cd05dd795985
+-12-10-12 p1 w10 e0bae2f5e2da3405
+-10-13 p1 w10 0a5277e6e2db662d
+-13-10-13 p1 w10 819d2483b9341783
+ 12-0 p1 w10 fe97d508ed7eefd5
+ 0-12-0 p1 w10 d6b2371696381adf
+ 12-4 p1 w10 1fede7ebbf10e473
+@@ -216,10 +116,6 @@
+ 7-12-7 p1 w10 60a9c83388dc6d0b
+ 12-8 p1 w10 95fd1d06124015ef
+ 8-12-8 p1 w10 261134ae75974b17
+-12-9 p1 w10 f77e031a88221d19
+-9-12-9 p1 w10 49808d9011a8c697
+-12-10 p1 w10 fcefb97163701e77
+-10-12-10 p1 w10 edbf01aa5b85827f
+ 12-12 p1 w10 5631b40505643d89
+ 12-13 p1 w10 4f4a001dfafa15a7
+ 13-12-13 p1 w10 6264d5c7031ccd2d
+@@ -231,10 +127,6 @@
+ 7-13-7 p1 w10 6e3dccb247ead369
+ 13-8 p1 w10 68bad22255e28f05
+ 8-13-8 p1 w10 1f6e0dcd141e6465
+-13-9 p1 w10 d87f79162b84edb7
+-9-13-9 p1 w10 6096eb4d901bfedf
+-13-10 p1 w10 03ca5b0a981b4c47
+-10-13-10 p1 w10 95236c0acc10b207
+ 13-12 p1 w10 48e83a14fa552c89
+ 12-13-12 p1 w10 971a65622140b92b
+ 13-13 p1 w10 3f0cf25f44e05011
+@@ -245,10 +137,6 @@
+ 7-0-7 p2 w10 2683026d6a134739
+ 0-8 p2 w10 2fd81ba2e41b8a75
+ 8-0-8 p2 w10 3dc84f617f90b6bd
+-0-9 p2 w10 f6631c40980d67c7
+-9-0-9 p2 w10 456f24c18f3a5adb
+-0-10 p2 w10 0cbe7780b3f1cc75
+-10-0-10 p2 w10 d8123d9c91504f99
+ 0-12 p2 w10 680b63dac62be119
+ 12-0-12 p2 w10 015e2c14a32d7081
+ 0-13 p2 w10 4bff4b185b7846a5
+@@ -260,10 +148,6 @@
+ 7-4-7 p2 w10 71deafe911610adf
+ 4-8 p2 w10 3a24b562f1cefe83
+ 8-4-8 p2 w10 436166fc2a02f163
+-4-9 p2 w10 b63e21155d6df883
+-9-4-9 p2 w10 efc007a07d5524b5
+-4-10 p2 w10 7eedaad98163fc9f
+-10-4-10 p2 w10 9d0df13729468f1d
+ 4-12 p2 w10 dcc2dc689a2b5e1f
+ 12-4-12 p2 w10 e78132b8f6dbf923
+ 4-13 p2 w10 b93b9989861c8bef
+@@ -275,10 +159,6 @@
+ 7-7 p2 w10 14795dfb137f810d
+ 7-8 p2 w10 fbdbbe70ac899b27
+ 8-7-8 p2 w10 e61234650d7e225f
+-7-9 p2 w10 1405d6d4e7e4111d
+-9-7-9 p2 w10 e94992fd4abff099
+-7-10 p2 w10 fa81802f90870faf
+-10-7-10 p2 w10 a9efecbede57c1f9
+ 7-12 p2 w10 df1a24ad2056cafd
+ 12-7-12 p2 w10 1f7194c1c33f416d
+ 7-13 p2 w10 a5af673f220e337f
+@@ -290,44 +170,10 @@
+ 8-7 p2 w10 29b8c73ca5693371
+ 7-8-7 p2 w10 4a6e12b6cb9a6e65
+ 8-8 p2 w10 02657ba7908819c1
+-8-9 p2 w10 a46ed4a218b6e1b7
+-9-8-9 p2 w10 f0a319987f17dadf
+-8-10 p2 w10 cff26768658183f3
+-10-8-10 p2 w10 7d7f9956773cda3b
+ 8-12 p2 w10 4d52a783e0dce431
+ 12-8-12 p2 w10 3e51b67cf2ad814d
+ 8-13 p2 w10 272479eda20a78b5
+ 13-8-13 p2 w10 4538feda8185377b
+-9-0 p2 w10 139cd35a5718e88d
+-0-9-0 p2 w10 57c8682ae7861f47
+-9-4 p2 w10 015020a1a381ca55
+-4-9-4 p2 w10 b39baf8e02c9ea59
+-9-7 p2 w10 7e81e4ca9f21b7d1
+-7-9-7 p2 w10 475c37d06f0e45c3
+-9-8 p2 w10 e990bfa5af5e292b
+-8-9-8 p2 w10 7e0f3eb4dca722bb
+-9-9 p2 w10 76601a3e5a454249
+-9-10 p2 w10 03a7a7bc2e7aea43
+-10-9-10 p2 w10 05474cc01b0ea8cb
+-9-12 p2 w10 d13c8081815e9f49
+-12-9-12 p2 w10 0c682a98afb1d499
+-9-13 p2 w10 c53cb19f1471809d
+-13-9-13 p2 w10 f2080f2999fb3b3b
+-10-0 p2 w10 f8190646c1e44a45
+-0-10-0 p2 w10 4e03b4b33c0b49a9
+-10-4 p2 w10 67b39b2e40c63fcd
+-4-10-4 p2 w10 d80dce7c3df7091b
+-10-7 p2 w10 8855b14094740479
+-7-10-7 p2 w10 73abaacdb8d365f7
+-10-8 p2 w10 b951b3a042d3f6f7
+-8-10-8 p2 w10 199933ee11671379
+-10-9 p2 w10 81a294712fdae6d5
+-9-10-9 p2 w10 c6c426dca84c1371
+-10-10 p2 w10 b3bc75721a6c876b
+-10-12 p2 w10 4261773d4b6a4d8b
+-12-10-12 p2 w10 46dde89795d8414f
+-10-13 p2 w10 8e12960eb496a71b
+-13-10-13 p2 w10 52d254df42e0669f
+ 12-0 p2 w10 085fe6cf7ee1d411
+ 0-12-0 p2 w10 3e869922dc18a6b3
+ 12-4 p2 w10 ae06cae0fbeb2611
+@@ -336,10 +182,6 @@
+ 7-12-7 p2 w10 7496b93cc91771fb
+ 12-8 p2 w10 517d0d41d6524e29
+ 8-12-8 p2 w10 269ee2d412e1c4a9
+-12-9 p2 w10 afd26b0509fae2db
+-9-12-9 p2 w10 c668b1a71a500d13
+-12-10 p2 w10 918c199c842db7b7
+-10-12-10 p2 w10 dbfacd9be594b28b
+ 12-12 p2 w10 b04c16020990add7
+ 12-13 p2 w10 28ac179995037c47
+ 13-12-13 p2 w10 b86ccde77c22c231
+@@ -351,10 +193,6 @@
+ 7-13-7 p2 w10 05f7017584aabbb3
+ 13-8 p2 w10 7a4c48ee6631e1b5
+ 8-13-8 p2 w10 3377cf9880f1e643
+-13-9 p2 w10 a118c1c57a912e1d
+-9-13-9 p2 w10 7610158a3e443015
+-13-10 p2 w10 9f159295467e0391
+-10-13-10 p2 w10 657849300cd3695b
+ 13-12 p2 w10 8e65eb2c742e4829
+ 12-13-12 p2 w10 e4387aa968b27edf
+ 13-13 p2 w10 02dc2dfaa5469fb1
+@@ -365,10 +203,6 @@
+ 7-0-7 p0 w0 40753f5ce43a800b
+ 0-8 p0 w0 a0f96e7fa37f5e69
+ 8-0-8 p0 w0 d1110d70a6bd78a5
+-0-9 p0 w0 036d78d6a09cfc2b
+-9-0-9 p0 w0 33a8f8bd8f8ee48d
+-0-10 p0 w0 97e31e2b033e21ad
+-10-0-10 p0 w0 48d3e34afbc2bf1d
+ 0-12 p0 w0 69ea9195da2c091f
+ 12-0-12 p0 w0 93c344d08b8518a7
+ 0-13 p0 w0 808f6ed2f60e9de7
+@@ -380,10 +214,6 @@
+ 7-4-7 p0 w0 7ff41d154d289419
+ 4-8 p0 w0 654d433f66db0ab7
+ 8-4-8 p0 w0 aeb0a8018116a4a9
+-4-9 p0 w0 f9a8e40a8a54a431
+-9-4-9 p0 w0 26d1b5339c81c861
+-4-10 p0 w0 2e3080f0127386d1
+-10-4-10 p0 w0 d3f00fcdb5bf9127
+ 4-12 p0 w0 6f7e8b2953b98a93
+ 12-4-12 p0 w0 6032b2846926a523
+ 4-13 p0 w0 27e8475490ec344b
+@@ -395,10 +225,6 @@
+ 7-7 p0 w0 d93ef337242b7e6b
+ 7-8 p0 w0 be5b622e81f68f69
+ 8-7-8 p0 w0 c3bc94939b4c970b
+-7-9 p0 w0 7e8341ce02da783b
+-9-7-9 p0 w0 184dc1afebc0e347
+-7-10 p0 w0 04d5cc281e69f503
+-10-7-10 p0 w0 24d9bc82b935fac5
+ 7-12 p0 w0 a2d41df4def4a8ad
+ 12-7-12 p0 w0 6093d80b18514905
+ 7-13 p0 w0 d32f540ee7e17225
+@@ -410,44 +236,10 @@
+ 8-7 p0 w0 aa810b87264b5fb5
+ 7-8-7 p0 w0 54c5a9e4743856c5
+ 8-8 p0 w0 d7b841893cc2032d
+-8-9 p0 w0 9c4b57cce8a4869b
+-9-8-9 p0 w0 a60be583c82f37c5
+-8-10 p0 w0 1eedcc6503208257
+-10-8-10 p0 w0 8dd45c47ba5ee95b
+ 8-12 p0 w0 000184e1f7e40945
+ 12-8-12 p0 w0 ae8207414bb4ccfd
+ 8-13 p0 w0 655073dcdff68325
+ 13-8-13 p0 w0 6726ab56229a9cfd
+-9-0 p0 w0 dea8521835686c21
+-0-9-0 p0 w0 29f8a34b9f2421e7
+-9-4 p0 w0 ae5dee5942138995
+-4-9-4 p0 w0 b182663e094f93b3
+-9-7 p0 w0 bc547d15a1061a8d
+-7-9-7 p0 w0 6800e5e2b2132035
+-9-8 p0 w0 adb8f49e0037fd2b
+-8-9-8 p0 w0 67c6195b76b93b29
+-9-9 p0 w0 04c17dc25ea25313
+-9-10 p0 w0 1322e3a6aead185d
+-10-9-10 p0 w0 374c6e9d4fbacab5
+-9-12 p0 w0 88ab253bf1c7ad7d
+-12-9-12 p0 w0 a90908d371744119
+-9-13 p0 w0 b165175acd08521b
+-13-9-13 p0 w0 d40d8c3151350811
+-10-0 p0 w0 2e5698fbd84662a3
+-0-10-0 p0 w0 2132e4b7f14caabf
+-10-4 p0 w0 d5f7aec0f41461a1
+-4-10-4 p0 w0 763ee188a35d3d89
+-10-7 p0 w0 d75e68e38fa22f69
+-7-10-7 p0 w0 9aab14dc2a0664cb
+-10-8 p0 w0 67b6744e7b34a187
+-8-10-8 p0 w0 a527ca0f941142f3
+-10-9 p0 w0 fc696fe05dfdcbc9
+-9-10-9 p0 w0 59436561a4e27707
+-10-10 p0 w0 d39d655d55eb4037
+-10-12 p0 w0 3607c40311b97fd1
+-12-10-12 p0 w0 810859e5e4016047
+-10-13 p0 w0 73d00a014b037559
+-13-10-13 p0 w0 7c20042e25d016bb
+ 12-0 p0 w0 42585a21adad5c2f
+ 0-12-0 p0 w0 9bc7ef517ac77e71
+ 12-4 p0 w0 871cf049af595b11
+@@ -456,10 +248,6 @@
+ 7-12-7 p0 w0 7fb53470703be043
+ 12-8 p0 w0 837559f209b9c6ab
+ 8-12-8 p0 w0 3c924cf29b5ede43
+-12-9 p0 w0 b42160746fd8be19
+-9-12-9 p0 w0 bf4cdb817d1e3745
+-12-10 p0 w0 ad1c6b0d3e612631
+-10-12-10 p0 w0 7a77e9176b81aded
+ 12-12 p0 w0 508967591283a723
+ 12-13 p0 w0 c8ad67b3ee75fae3
+ 13-12-13 p0 w0 2c666f147d901dcf
+@@ -471,10 +259,6 @@
+ 7-13-7 p0 w0 566964ae359ba60f
+ 13-8 p0 w0 5e374d533dd8166f
+ 8-13-8 p0 w0 c14d18c82a6e8fbb
+-13-9 p0 w0 2e3fc0982a8f9445
+-9-13-9 p0 w0 751f2d26a04cd6b5
+-13-10 p0 w0 2842e8e092c44689
+-10-13-10 p0 w0 8e31447a66452ac5
+ 13-12 p0 w0 34fe926a5996bc2b
+ 12-13-12 p0 w0 c2a75e09a7c86213
+ 13-13 p0 w0 5299de9f98d4d7e3
+@@ -485,10 +269,6 @@
+ 7-0-7 p1 w0 8490a64b8cb5fff9
+ 0-8 p1 w0 08605505ae2e7391
+ 8-0-8 p1 w0 6eb0cf96c4e8ae39
+-0-9 p1 w0 e77279c6189a6e15
+-9-0-9 p1 w0 b35ba48c4e37c3a7
+-0-10 p1 w0 cd9f4b5ab31b50a3
+-10-0-10 p1 w0 284401bb857459e3
+ 0-12 p1 w0 80a49a9f48d61f35
+ 12-0-12 p1 w0 57551e18d3c7af2d
+ 0-13 p1 w0 b97e581a6666378f
+@@ -500,10 +280,6 @@
+ 7-4-7 p1 w0 b38c41e4340e40e9
+ 4-8 p1 w0 39dc1fa474a227cf
+ 8-4-8 p1 w0 81a54c63cb40c5dd
+-4-9 p1 w0 984b320b39137d29
+-9-4-9 p1 w0 50c28a64beb3b11d
+-4-10 p1 w0 ef210ae69d5e1fe9
+-10-4-10 p1 w0 2e1151168d1cff7f
+ 4-12 p1 w0 f74e2b3a792862a5
+ 12-4-12 p1 w0 7fb695920b7b6983
+ 4-13 p1 w0 3820e4976ac1fccf
+@@ -515,10 +291,6 @@
+ 7-7 p1 w0 ddce95d831e58b97
+ 7-8 p1 w0 e6dd6078c7b6b193
+ 8-7-8 p1 w0 3aff1a675dcf8a5d
+-7-9 p1 w0 18bf983d4f33247b
+-9-7-9 p1 w0 3facf635ecd435d1
+-7-10 p1 w0 0ea7e10c14747b7d
+-10-7-10 p1 w0 21c221a73b79be91
+ 7-12 p1 w0 5da21194ed09faed
+ 12-7-12 p1 w0 663567ab971e6c6f
+ 7-13 p1 w0 c876a0c2e9040ae3
+@@ -530,44 +302,10 @@
+ 8-7 p1 w0 e84508b1ed661fed
+ 7-8-7 p1 w0 08278a72c0d6f20f
+ 8-8 p1 w0 057fac010b6946ef
+-8-9 p1 w0 f44f5cbfb0c796d7
+-9-8-9 p1 w0 0bee0c776f218a37
+-8-10 p1 w0 5295f70d4dfc371d
+-10-8-10 p1 w0 c60c7e76ff81ec29
+ 8-12 p1 w0 a2f28d259f0cf741
+ 12-8-12 p1 w0 1492569984144ca5
+ 8-13 p1 w0 ebd6a8fb5cae0483
+ 13-8-13 p1 w0 ef046572c562d4d5
+-9-0 p1 w0 c5ff1ff2c2105c11
+-0-9-0 p1 w0 539a547131321f1b
+-9-4 p1 w0 44d03fc380120aa9
+-4-9-4 p1 w0 29a50b7b564f48a1
+-9-7 p1 w0 1f2dc4e5590d376d
+-7-9-7 p1 w0 4677bbf1d18b6987
+-9-8 p1 w0 f04ca775962a2dd3
+-8-9-8 p1 w0 f493ecadf7e1565b
+-9-9 p1 w0 129c1aec0a4c7407
+-9-10 p1 w0 01b01de36cb4d5bd
+-10-9-10 p1 w0 36a0d56e32c21775
+-9-12 p1 w0 b940774e428dd62d
+-12-9-12 p1 w0 9b76aee92c9ff637
+-9-13 p1 w0 7bcea98f3b9f3323
+-13-9-13 p1 w0 2e947e585eac665b
+-10-0 p1 w0 bd16e9449809ba6d
+-0-10-0 p1 w0 489605cd94833227
+-10-4 p1 w0 fd3ee34c6f1c9e79
+-4-10-4 p1 w0 0b7e27a1eaebce61
+-10-7 p1 w0 29985bcba59bc4fb
+-7-10-7 p1 w0 c4ead1ddbd78bcb9
+-10-8 p1 w0 21a712088418ec41
+-8-10-8 p1 w0 cbb2a1663585bdc5
+-10-9 p1 w0 021dc2b5b2f9ef4f
+-9-10-9 p1 w0 4399a177e7d99191
+-10-10 p1 w0 7c5fa3beeff7052f
+-10-12 p1 w0 793d6a34ff00d34b
+-12-10-12 p1 w0 60553436ee0b39e7
+-10-13 p1 w0 5816ed2c8c9b4a4d
+-13-10-13 p1 w0 05265b61066caf85
+ 12-0 p1 w0 9343e713663f53e9
+ 0-12-0 p1 w0 5de7c0850b1d3581
+ 12-4 p1 w0 9d5ceba4275ead6f
+@@ -576,10 +314,6 @@
+ 7-12-7 p1 w0 404f0d8b8a52cf65
+ 12-8 p1 w0 25fa4b8ac5b24489
+ 8-12-8 p1 w0 161b372191ea3809
+-12-9 p1 w0 61dae039614b9e73
+-9-12-9 p1 w0 494d14befae712c1
+-12-10 p1 w0 21bc21cf78aa64a3
+-10-12-10 p1 w0 05f336b44df7e021
+ 12-12 p1 w0 1b8ed1a1e7a84365
+ 12-13 p1 w0 ee67c853e41518f3
+ 13-12-13 p1 w0 5782da8ed8b265cd
+@@ -591,10 +325,6 @@
+ 7-13-7 p1 w0 7e743debf78354b3
+ 13-8 p1 w0 e2a468d813fb6e51
+ 8-13-8 p1 w0 a0f189af2b52de07
+-13-9 p1 w0 04846ce833dab479
+-9-13-9 p1 w0 12a20bfbb36f6dcf
+-13-10 p1 w0 05c2e945e07ddf83
+-10-13-10 p1 w0 19a34a590b018f43
+ 13-12 p1 w0 dd322750a75c3cab
+ 12-13-12 p1 w0 bcb5b289f0959cb7
+ 13-13 p1 w0 8d18c5c4777cc591
+@@ -605,10 +335,6 @@
+ 7-0-7 p2 w0 9b274bf14dde9bd3
+ 0-8 p2 w0 9ebf845378a90437
+ 8-0-8 p2 w0 8ec2e238fe01ba5f
+-0-9 p2 w0 831dafef75dea1a1
+-9-0-9 p2 w0 a908c18c29c3d3bb
+-0-10 p2 w0 f3c959397f7955eb
+-10-0-10 p2 w0 b9947d860731ae65
+ 0-12 p2 w0 0ddbacf72caa0457
+ 12-0-12 p2 w0 afc3a6ce474c7935
+ 0-13 p2 w0 97068b461f1cf947
+@@ -620,10 +346,6 @@
+ 7-4-7 p2 w0 00684ecab73d503d
+ 4-8 p2 w0 1e8e08525c38c0b5
+ 8-4-8 p2 w0 298c00e928def2b7
+-4-9 p2 w0 c45e951c1c4a3ae1
+-9-4-9 p2 w0 6466f85f0c2a8e1b
+-4-10 p2 w0 7421226e5be2635d
+-10-4-10 p2 w0 0be4b4915b98aef9
+ 4-12 p2 w0 f67636d37a6c87f9
+ 12-4-12 p2 w0 6de23d0d95402485
+ 4-13 p2 w0 e423a4869f9d8981
+@@ -635,10 +357,6 @@
+ 7-7 p2 w0 562bbfd61d441eed
+ 7-8 p2 w0 d69b0dc4065f67fb
+ 8-7-8 p2 w0 c607b8e616d361f1
+-7-9 p2 w0 bba515c995364c59
+-9-7-9 p2 w0 50b76d1459933033
+-7-10 p2 w0 e60888b888ed3725
+-10-7-10 p2 w0 3f7b499431956de3
+ 7-12 p2 w0 75d1e911d069bf85
+ 12-7-12 p2 w0 fc3dd16f7f69b0d1
+ 7-13 p2 w0 79f22aaaf00a969f
+@@ -650,44 +368,10 @@
+ 8-7 p2 w0 69e537c341fffe25
+ 7-8-7 p2 w0 0a42194ddc300121
+ 8-8 p2 w0 b07f8ce9758c749b
+-8-9 p2 w0 bfd350946a450de1
+-9-8-9 p2 w0 dac0abed41f9b1b9
+-8-10 p2 w0 992cedab7ee96cf3
+-10-8-10 p2 w0 b7c84415a88f8711
+ 8-12 p2 w0 de4e59299b20b9c1
+ 12-8-12 p2 w0 9156e3cace29b85d
+ 8-13 p2 w0 6c4c02857f622293
+ 13-8-13 p2 w0 22223db8352b3b4d
+-9-0 p2 w0 b452577eadd2ebf7
+-0-9-0 p2 w0 1afe6be937fa1ebd
+-9-4 p2 w0 2a8674027857382d
+-4-9-4 p2 w0 2ed79ead645ed723
+-9-7 p2 w0 f595c2caa8e05947
+-7-9-7 p2 w0 7a4204006b0a5a29
+-9-8 p2 w0 af88b500cda6120d
+-8-9-8 p2 w0 b424c93992be27cb
+-9-9 p2 w0 1c26b92843435981
+-9-10 p2 w0 82f6c40658e571c7
+-10-9-10 p2 w0 7a9d225abe7cdbe1
+-9-12 p2 w0 0776a0c3e4794023
+-12-9-12 p2 w0 275fc7d941e4d421
+-9-13 p2 w0 2e3c0ea897605919
+-13-9-13 p2 w0 851aa8cec59098c7
+-10-0 p2 w0 d7a1d595d816a56d
+-0-10-0 p2 w0 326b9220e8fa5d51
+-10-4 p2 w0 64d2f79351a827f9
+-4-10-4 p2 w0 d5236f588dbe7b6f
+-10-7 p2 w0 5db6379e7893b05b
+-7-10-7 p2 w0 1ef6672d41b037a3
+-10-8 p2 w0 94a956c06c139983
+-8-10-8 p2 w0 e7271d07c868016f
+-10-9 p2 w0 6b3d9ef94ea3e717
+-9-10-9 p2 w0 f76923d6267b5cf1
+-10-10 p2 w0 3054505f612e1ec9
+-10-12 p2 w0 10491f0b0f4245f5
+-12-10-12 p2 w0 bc095bbbd52fa171
+-10-13 p2 w0 d73252201744f93d
+-13-10-13 p2 w0 67e35858821bfa77
+ 12-0 p2 w0 4eaf7ab528620761
+ 0-12-0 p2 w0 3399f3a3101db807
+ 12-4 p2 w0 960545b34a9a60d5
+@@ -696,10 +380,6 @@
+ 7-12-7 p2 w0 63ec5d836f9a9ee7
+ 12-8 p2 w0 357b71d1dfac28c5
+ 8-12-8 p2 w0 716106c00f0511bf
+-12-9 p2 w0 c9f05a16ce282359
+-9-12-9 p2 w0 54e8a5a6d7ec8aaf
+-12-10 p2 w0 6d12a57ea4a0a2f5
+-10-12-10 p2 w0 30c63db69acc1855
+ 12-12 p2 w0 fd80fd2ad88f8fd1
+ 12-13 p2 w0 f473a0931475fa59
+ 13-12-13 p2 w0 561f11ec7f52cd13
+@@ -711,10 +391,6 @@
+ 7-13-7 p2 w0 11e9d45c6320c499
+ 13-8 p2 w0 7a4fa76da2838e9f
+ 8-13-8 p2 w0 1d720db20f395eaf
+-13-9 p2 w0 fdcc1e80b323842b
+-9-13-9 p2 w0 35964b695557999d
+-13-10 p2 w0 fea4132d6fffa867
+-10-13-10 p2 w0 5b12776932ea149d
+ 13-12 p2 w0 fcadae3a55d48a33
+ 12-13-12 p2 w0 1b82638ac031f5c5
+ 13-13 p2 w0 4e86f9ed66db5b83
+--- a/tests/union_test.c	2026-11-09 19:41:34
++++ b/tests/union_test.c	2026-11-11 18:17:10
+@@ -40,8 +40,6 @@
+ {
+     static const uint8_t CH[4] = {0, 4, 7, 12};
+     uint32_t i;
+-    if (e == ENGI_DRUM)                          /* (DRUM had one preset until 1.5.6 (#216): the 1.4 hashes play DRUM KIT */
+-        pi = 0;                                  /* at every pi; the new kits' presets are not engine-memory cases) */
+     host_preset_req(t, e, pi);                   /* eng_req: the audio side switches (voice.c engine_block) */
+     urun(wait_ms);
+     for (i = 0; i < 4u; i++)
+@@ -55,7 +53,7 @@
+     urun(250);                                   /* still ringing at the next switch */
+ }
+ 
+-static const uint32_t UE[] = {0 /* ANALOG */, ENGI_SAMPLE, 7 /* WHEEL */, 8 /* GRAIN */, ENGI_PHYS, ENGI_DRUM, ENGI_FM6,
++static const uint32_t UE[] = {0 /* ANALOG */, ENGI_SAMPLE, 7 /* WHEEL */, 8 /* GRAIN */, ENGI_FM6,
+ #if FELUCCA_SLICE
+                               13 /* SLICE */
+ #endif
+--- a/web/emu/felucca_web.c	2026-11-11 17:33:31
++++ b/web/emu/felucca_web.c	2026-11-11 18:19:40
+@@ -202,7 +202,6 @@
+ static void fl_plain_window_init(void) {}
+ #define FL_FAR(fn) (fn)
+ #include "../../firmware/src/storage.c"
+-#include "../../firmware/src/upreset.c"
+ #include "../../firmware/src/project.c"
+ 
+ /* ------------------------------------------------- main.c and its HAL --- */
+@@ -443,11 +442,11 @@
+ }
+ 
+ /* for the test and the bench (web/emu/emu_test.mjs), a heavy song straight into the tracks (as hostsim's
+- * renders set them): T1 FM6 PAD, T2 PHYS DRONE STRING (SYMP), T3 GRAIN CLOUD PAD, 4-note chords on all 16
++ * renders set them): T1 FM6 PAD, T2 PHASE, T3 GRAIN CLOUD PAD, 4-note chords on all 16
+  * steps, held; T4 DRUM, kick snare and hats. PLAY is the page's (or the test's) to press */
+ EXPORT void web_test_heavy(void)
+ {
+-    static const uint8_t ENG[3][2] = {{12, 4}, {ENGI_PHYS, 7}, {8, 0}};
++    static const uint8_t ENG[3][2] = {{12, 4}, {2, 0}, {8, 0}};
+     static const uint8_t CH[4][4] = {{48, 55, 60, 64}, {45, 52, 57, 60}, {41, 48, 53, 57}, {43, 50, 55, 59}};
+     uint32_t p, i;
+     for (p = 0; p < 3u; p++) {
+--- a/LICENSING.md	2026-11-09 19:41:34
++++ b/LICENSING.md	2026-11-11 18:19:40
+@@ -16,8 +16,7 @@
+ - the web pages (installer, editor, the browser emulator `web/emu/`) and their tests: `web/` (not the Fukiai and DotGothic16 fonts, below)
+ - the host tests: `tests/`
+ 
+-Three source files are ports and keep the licence of their originals:
+-`firmware/src/phys_dsp.c` (DaisySP, MIT), `firmware/src/phys_symp.c` (Rings, MIT) and
++One source file is a port and keeps the licence of its original:
+ `firmware/src/fm6_core.c` (msfa, Apache-2.0). The firmware built with them is GPL-3.0-only as
+ a whole.
+ 
+@@ -33,7 +32,6 @@
+ | --- | --- | --- |
+ | Felucca: firmware, tools, web pages, tests | GPL-3.0-only | `LICENSE` |
+ | The PHASE engine's waveforms: a C port of the oscillator of CrispyZebra (<https://github.com/hugelton/CrispyZebra>) | GPL-3.0 | `firmware/src/eng_phase.c` |
+-| The DRUM voices and kit | GPL-3.0-only | `firmware/src/drum_voice.c`, `firmware/src/eng_drum.c` |
+ | The Hügelton Sample Pack: Felucca's drum sounds, made by `tools/gen_waves.py`, from which the SLICE engine's BREAK is built (not CC0) | GPL-3.0-only | `tools/gen_waves.py` |
+ | The controls picture | GPL-3.0-only | `docs/controls.jpg` |
+ | The Fukiai icon font (<https://github.com/hugelton/Fukiai>): the firmware's icons (rasterised at build time by `tools/gen_aa_icons.py`) and the web editor's | MIT | `web/fukiai.ttf`, `LICENSES/MIT-Fukiai.txt`, `web/FUKIAI-LICENSE.txt` |
+@@ -44,8 +42,6 @@
+ | --- | --- | --- |
+ | Inter Tight font by The Inter Project Authors: the UI text, rasterised into the firmware at build time (`tools/gen_aa_font.py`; the generated tables are not offered as a font, and the font declares no Reserved Font Name) | SIL OFL 1.1 | `assets/fonts/InterTight[wght].ttf`, `LICENSES/OFL-InterTight.txt` (also `assets/fonts/OFL.txt`) |
+ | Instrument samples (Versilian Studios VSCO-2 Community Edition, VCSL): the SAMPLE sets, also the SLICE engine's PIANO (the PIANO set's middle C) | CC0 1.0 | `assets/samples-cc0/`, provenance in `ATTRIBUTION.txt` there |
+-| DaisySP by Electrosmith, Corp and Emilie Gillet (<https://github.com/electro-smith/DaisySP>): the PHYS engine's modal and string models and the resonator, ported to fixed point | MIT | `firmware/src/phys_dsp.c`, `LICENSES/MIT-DaisySP.txt` |
+-| Rings by Emilie Gillet (<https://github.com/pichenettes/eurorack>): the PHYS engine's sympathetic strings, ported to fixed point | MIT | `firmware/src/phys_symp.c`, `LICENSES/MIT-Rings.txt` |
+ | msfa by Google Inc. and Pascal Gauthier, from Dexed (<https://github.com/asb2m10/dexed>): the FM6 engine's synthesis, ported to integer C (Dexed itself is GPL-3.0; only msfa is used; the FM6 factory patches are Felucca's own) | Apache-2.0 | `firmware/src/fm6_core.c`, `LICENSES/Apache-2.0-msfa.txt` |
+ | klattsch by Tony Gies (<https://github.com/tgies/klattsch>): design reference for the VOICE engine; no code copied. Formant data from Klatt (1980) / Hillenbrand et al. (1995) | MIT (klattsch) | credit only |
+ | X0X by charlesvestal (<https://github.com/charlesvestal/fm1-x0x>), a Felucca fork: the design of the browser emulator (the worklet, the device clock driven by its audio, the exports); its files credit it in their headers | GPL-3.0 | `web/emu/` |

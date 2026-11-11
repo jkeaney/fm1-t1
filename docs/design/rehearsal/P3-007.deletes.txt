@@ -1,0 +1,6 @@
+firmware/src/chord.c
+firmware/src/motion.c
+firmware/src/perform.c
+firmware/src/song_chain.c
+tests/chord_test.c
+tests/song_probe.h

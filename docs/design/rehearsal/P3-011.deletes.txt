@@ -1,0 +1,7 @@
+firmware/src/category.c
+firmware/src/slice_store.c
+firmware/src/up_fm6.c
+firmware/src/upreset.c
+tests/old_pack.h
+tests/slice_test.c
+tests/upreset_test.c
