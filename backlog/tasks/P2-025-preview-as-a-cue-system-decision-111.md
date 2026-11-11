@@ -51,3 +51,9 @@ check_sequencer_ux.py: OK
 width_probe.sh: 296 strings, 0 over
 backlog.py check: 122 items, 0 errors
 ```
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS on content; gate is human-review, so left at `review`. Awaiting owner: read docs/design/PREVIEW.md 1.2 (two gates, four states, one mix and no cue bus), 1.4 (tap = MIDI mute, hold 0.4 s = PREVIEW), 3.2 (TUNING = PIT, +-50 cents [E]) and 8 (default: all previewing channels share the mix; no "cue only" mode), and confirm.
+- Re-ran all five checkers: scenarios 23 files, 0 with no scenario; help OK 392 rows; check_sequencer_ux OK; width_probe 296 strings, 0 over; backlog check 122 items, 0 errors. Design only, no build.
+- Decision 111 checked: independent gates (PREVIEW.md 1.2, 3.1 Mute row, P4-004 "no shared condition"); CUE use defined; hardware stated honestly (speaker + USB audio, one mix, no cue bus, no headphone jack documented, HW-1 to confirm); gestures: preview on/off 1 hold, MIDI mute 1 tap, sound 2 (hold + ALGO); tap/hold on one key do not conflict (0.4 s threshold); four states with icon and MIDI n / MUTE n / MIDI OFF / CUE n / CUE OFF labels. TUNING = P_FINE pitch with [E]; other rows unmapped. P2-024 errors fixed (section 7, 3.1 retrigger text at line 201).
+- Contradiction (not blocking now): SEQUENCER_UX.md:581 (U48 "new hits stop at once"), :1013 (`hit(n)` comment lists mute) and :103 (SLIDE "muted" case) still describe mute as stopping hits at the source. PREVIEW.md P4-004/P4-012 and P6-003 rows already say mute/SOLO move to the MIDI gate in `sq_emit`, and 4.4 (line 527) is amended. It must be fixed before P4-004 starts (add the same note to U48 and the `hit(n)` line, or have P4-004's executor treat PREVIEW.md as overriding); a mute-only slide glide cancel needs a decision (does a muted channel's slide still glide in the preview? default: yes, same events).
