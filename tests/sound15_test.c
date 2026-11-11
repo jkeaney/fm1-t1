@@ -80,7 +80,6 @@ static void fresh(uint32_t e, uint32_t pi)        /* the boot state (no FX tails
     mod_seed = 0x2545F491u;
     memset(trk, 0, sizeof trk);
     memset(&mod, 0, sizeof mod);
-    memset(sl, 0, sizeof sl);
     memset(esync_k, 0, sizeof esync_k);
     host_tracks_init();
     for (k = 0; k < NPART; k++)

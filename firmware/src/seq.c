@@ -848,7 +848,6 @@ static void seq_start(void)
     clk_pos = CLK_START;                           /* the metronome's first beat with step 0 */
     song.playing = 1;
     t1_on_start();                                 /* t1_glue.c: the T-1 from its tick 0 too */
-    slicer_start();                                /* slicer.c: its step 0 with the sequencer's */
     perf_start();                                  /* perform.c: its 1/16 grid too */
 }
 

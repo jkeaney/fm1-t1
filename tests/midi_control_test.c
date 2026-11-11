@@ -824,7 +824,7 @@ static int pc_test(void)
     track_t *t = &trk[0], was, got;
     midi_test_reset();
     set_engine_of(t, 0);                                 /* ANALOG */
-    t->p[P_LEVEL] = 90; t->p[P_AMODE] = 2; t->p[P_SLCR] = SL_GATE;
+    t->p[P_LEVEL] = 90; t->p[P_AMODE] = 2; t->p[P_SLCR] = 1;
     t->p[P_ITYPE] = 1; t->p[P_FTYPE] = 1; t->p[P_ESYNC] = 1; t->p[P_E4] = 11;
     my_steps(t);
     was = *t;
@@ -837,7 +837,7 @@ static int pc_test(void)
     *t = was;
     apply_preset_to(t, 3);
     ok = !memcmp(got.p, t->p, sizeof got.p) && !memcmp(got.step, was.step, sizeof got.step);
-    ok &= got.p[P_LEVEL] == 90 && got.p[P_AMODE] == 2 && got.p[P_SLCR] == SL_GATE;
+    ok &= got.p[P_LEVEL] == 90 && got.p[P_AMODE] == 2 && got.p[P_SLCR] == 1;
     ok &= got.p[P_ITYPE] == TP[P_ITYPE].def && got.p[P_FTYPE] == TP[P_FTYPE].def && got.p[P_ESYNC] == TP[P_ESYNC].def;
     bad += check("  as PRESETS loads it: steps, LEVEL, ARP, SLICER kept; INSERT, TYPE, ESYNC the preset's", ok);
 

@@ -418,7 +418,7 @@ static int test_sound_loads(void)
     t->p[P_AOCT] = 3;
     t->p[P_SCALE] = 2;
     t->p[P_TRANS] = 5;
-    t->p[P_SLCR] = SL_GATE;
+    t->p[P_SLCR] = 1;
     t->p[P_SLPAT] = 4;
     t->p[P_SDIV] = 1;
     t->p[P_LEVEL] = 90;
@@ -427,7 +427,7 @@ static int test_sound_loads(void)
     bad += check("PRESETS on HOME loads the sound: steps, LEN, DIV untouched", t->preset == (uint8_t)((before.preset + 1u) % ENGINES[0]->npresets) &&
                  !memcmp(t->step, before.step, sizeof t->step) && t->p[P_SLEN] == 32 && t->p[P_SDIV] == 1);
     bad += check("..ARP, SCL, the SLICER and the mix stay the track's", t->p[P_AMODE] == 2 && t->p[P_AOCT] == 3 && t->p[P_SCALE] == 2 &&
-                 t->p[P_TRANS] == 5 && t->p[P_SLCR] == SL_GATE && t->p[P_SLPAT] == 4 && t->p[P_LEVEL] == 90);
+                 t->p[P_TRANS] == 5 && t->p[P_SLCR] == 1 && t->p[P_SLPAT] == 4 && t->p[P_LEVEL] == 90);
     bad += check("..and no warning about the sequence", !msg_is("T1 SEQ REPLACED"));
     for (i = 0; i < ENGINES[0]->npresets; i++)
         if (str_eq(ENGINES[0]->presets[i].name, "RAVE"))
@@ -462,12 +462,12 @@ static int test_sound_loads(void)
     /* TOOLS INIT, user preset load: the sound only, undoable; one copy for all tracks */
     ui_power_on();
     my_steps(&trk[1]);
-    trk[1].p[P_SLCR] = SL_STUT;
+    trk[1].p[P_SLCR] = 2;
     before = trk[1];
     track_select(1);
     set_engine(trk[1].eng_req);                   /* TOOLS INIT */
     bad += check("TOOLS INIT: the sound only (steps and SLICER kept), a copy of T2", undo.trk == 2u &&
-                 !memcmp(trk[1].step, before.step, sizeof before.step) && trk[1].p[P_SLCR] == SL_STUT);
+                 !memcmp(trk[1].step, before.step, sizeof before.step) && trk[1].p[P_SLCR] == 2);
     track_select(0);
     my_steps(&trk[0]);
     trk[0].p[P_SDIV] = 2;
@@ -4005,7 +4005,7 @@ static int test_quick_layers(void)
     /* EDIT: the engines from F3 (NENGINES of them), sound loads with UNDO, INIT with the dialog */
     ui_power_on();
     set_engine_of(TSEL, 0); go_home(); frame();
-    my_steps(TSEL); TSEL->p[P_SLCR] = SL_STUT; song.playing = 1;
+    my_steps(TSEL); TSEL->p[P_SLCR] = 2; song.playing = 1;
     before = *TSEL;
     sync_reload = 0;
     lay_combo(B_EDIT, white(eng_rank(2)));             /* (the keys: the engines one can pick, engines.c eng_vis) */
@@ -4016,7 +4016,7 @@ static int test_quick_layers(void)
     key_down(white(NENG_SHOWN - 1u)); key_up(white(NENG_SHOWN - 1u)); frame();
     ok &= TSEL->eng_req == ENGI_DRUM;                   /* (the last key: DRUM) */
     ok &= !memcmp(TSEL->step, before.step, sizeof before.step) && TSEL->p[P_SLEN] == before.p[P_SLEN] &&
-          TSEL->p[P_SLCR] == SL_STUT;
+          TSEL->p[P_SLCR] == 2;
     btn_up(B_EDIT); frame();
     bad += check("EDIT + white key n: the n-th engine shown (FM6 2nd, DRUM last), while playing; steps, LEN, SLICER stay", ok);
     hold(B_SAVE);
@@ -7641,12 +7641,12 @@ static int test_fx_latch(void)
 }
 
 /* #48: the note divisions step by their length, longest first (triplets between their neighbours), on every list
- * that has them (SEQ DIV, ARP RATE, the delay's TIME, the SLICER's RATE); the stored values and their sound stay */
+ * that has them (SEQ DIV, ARP RATE, the delay's TIME); the stored values and their sound stay */
 static int test_div_order(void)
 {
     int bad = 0, ok = 1;
     uint32_t id, c, k, found = 0;
-    static const param_desc_t *const LISTS[] = {&TP[P_SDIV], &TP[P_ARATE], &GP[G_DTIME], &TP[P_SLRATE]};
+    static const param_desc_t *const LISTS[] = {&TP[P_SDIV], &TP[P_ARATE], &GP[G_DTIME]};
     ui_power_on();
     for (k = 0; k < NELEM(LISTS); k++) {           /* left end -> right end: each one shorter than the one before */
         const param_desc_t *d = LISTS[k];
@@ -7654,8 +7654,7 @@ static int test_div_order(void)
         uint32_t prev = 0xFFFFFFFFu, len;
         for (n = 0; n < 40; n++) v = param_turn(d, v, -1);
         for (n = 0; n <= d->max - d->min; n++) {
-            len = d->names == N_SLDIV ? 1000000u / SL_DEN[v] : v >= 10 ? (beat_samples() * 3u) >> DIV_DOT[v - 10] :
-                  div_samples((uint32_t)v);                     /* (TIME's dotted ones, 1.5.1: fx.c delay_samples) */
+            len = v >= 10 ? (beat_samples() * 3u) >> DIV_DOT[v - 10] : div_samples((uint32_t)v);                     /* (TIME's dotted ones, 1.5.1: fx.c delay_samples) */
             if (!(len < prev && enum_rank(d, v) == d->min + n && !((seen >> v) & 1))) {
                 printf("  %s: %s (value %d, place %d, length %u) after %u\n", d->label, d->names[v], (int)v,
                        (int)enum_rank(d, v), len, prev);
@@ -7671,7 +7670,7 @@ static int test_div_order(void)
     ok &= param_turn(&TP[P_SDIV], 2, 1) == 5 && param_turn(&TP[P_SDIV], 2, -1) == 4 &&   /* 1/16: right 16T, left 8T */
           param_turn(&TP[P_SDIV], 3, 1) == 3 && param_turn(&TP[P_SDIV], 9, -1) == 9 &&   /* the ends hold */
           param_turn(&TP[P_SDIV], 2, -6) == 8 && param_turn(&TP[P_SDIV], 2, 40) == 3;    /* 6 left: 2BAR; far: clamped */
-    bad += check("#48 DIV / RATE / TIME / SLICER RATE step longest -> shortest, every value once, the ends hold", ok);
+    bad += check("#48 DIV / RATE / TIME step longest -> shortest, every value once, the ends hold", ok);
     ok = 1;                                         /* the real knob on the pages that show them, the gauge follows */
     for (id = 0; id < NPAGES; id++)
         for (c = 0; c < 4u; c++) {

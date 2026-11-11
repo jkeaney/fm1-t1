@@ -87,7 +87,6 @@ static void fresh(uint32_t e, uint32_t pi)        /* the boot state (no FX tails
     mod_seed = 0x2545F491u;
     memset(trk, 0, sizeof trk);
     memset(&mod, 0, sizeof mod);
-    memset(sl, 0, sizeof sl);
     host_tracks_init();
     for (k = 0; k < NPART; k++)
         host_preset(&trk[k], k ? 0u : e, k ? 0u : pi);
@@ -570,43 +569,13 @@ static void test_spread(void)
     check(msg, a.lr == 0 && b.lr > b.m * 0.01);
 }
 
-/* the SLICER's gate and the mute key close the side too; the sends stay mono */
+/* the mute key closes the side too; the sends stay mono */
 static void test_spread_fx(void)
 {
     static const uint8_t CHORD[4] = {48, 55, 60, 64};
     track_t *t = &trk[0];
-    uint32_t k, i, closed = 0;
-    double side_closed = 0, side_open = 0;
+    uint32_t k, i;
     char msg[160];
-    /* SLICER GATE, pattern 1 (x.x.), DEPTH 100 %: in the closed steps L and R both near silent */
-    fresh(0, preset_by_name(0, "SOFT PAD"));
-    dry(t);
-    t->p[P_ATK] = 0;
-    t->p[P_SPRD] = 127;
-    t->p[P_SLCR] = SL_GATE;
-    t->p[P_SLPAT] = 1;
-    t->p[P_SLDEPTH] = 127;
-    slicer_start();
-    for (i = 0; i < 4u; i++)
-        trk_note_on(t, CHORD[i], 100);
-    blocks(FS / 4u / CTL);
-    for (k = 0; k < FS / CTL; k++) {
-        double s = 0;
-        blocks(1);
-        for (i = 0; i < CTL; i++) {
-            double d = (double)out_buf[2u * i] - out_buf[2u * i + 1u];
-            s += d * d;
-        }
-        if (sl[0].gc >= 32000 && !sl[0].bit) {
-            side_closed += s;
-            closed++;
-        } else if (!sl[0].gc) {
-            side_open += s;
-        }
-    }
-    snprintf(msg, sizeof msg, "SLICER GATE: the side closes with the gate (L - R energy closed / open %.2e, %u blocks)",
-             side_closed / (side_open + 1), closed);
-    check(msg, closed > 10u && side_closed < side_open * 1e-4);
     /* the mute key (FX layer, black key 1): both sides ramp to silence. What is left after it is the master's DC
      * blockers settling: as much at SPRD 127 as at 0, and L - R no more than that (the side muted with the mid) */
     {
