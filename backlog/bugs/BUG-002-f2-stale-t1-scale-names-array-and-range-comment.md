@@ -3,7 +3,7 @@ id: BUG-002
 title: F2 - stale T1_SCALE_NAMES array mislabels the scale masks
 phase: P3
 type: bug
-status: review
+status: done
 priority: 3
 executor: haiku
 depends_on: [P3-001]
@@ -63,3 +63,7 @@ CHECK PASS
 ```
 Decisive lines: `ALL HOST TESTS PASSED` (tests.log), `131 items, 0 errors` (backlog.log). The word "fail" in tests.log
 only matches test names such as "erase failure keeps old data".
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS (gate none). Reran `sh tools/check.sh`: CHECK PASS. `./build.sh`: `RAM .data+.bss 23060 B of 73728` (headroom 50668 B, above 8192).
+Findings: `T1_SCALE_NAMES` is gone from firmware, tests, tools and web; remaining mentions are only docs/backlog text describing it as stale or deleted (docs/design/*, ADR refs), which is accurate history. The UI uses its own table (`torso_t1_ui.c:23`, CHROM..), so nothing used the deleted array. Header comment now says semitones, matching `torso_t1_algo.c:325` (`max_semitones = range`). Scope: only the 3 expected files changed. docs/T1_ISSUES.md F2 set to FIXED and Counts updated (5 fixed, 1 partial); the "AEOL duplicates MINOR" note is a design point, not part of F2's mislabel defect.

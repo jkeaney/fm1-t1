@@ -21,7 +21,7 @@ Background and the algorithm write-ups are in [t1-algorithms/](t1-algorithms/REA
 | ID | Status | Severity | Area | One-line description |
 | --- | --- | --- | --- | --- |
 | [F1](#f1) | FIXED | High | Harmony | Five scale masks held the wrong notes |
-| [F2](#f2) | PARTIAL | High | Harmony / UI | UI scale names and engine order disagreed; a stale name array remains |
+| [F2](#f2) | FIXED | High | Harmony / UI | UI scale names and engine order disagreed (fixed; stale name array deleted by BUG-002) |
 | [F3](#f3) | FIXED | Medium | Harmony | ARCH and INV A contours are constant |
 | [F4](#f4) | FIXED | High | Harmony | `range` was multiplied by 7 semitones |
 | [F5](#f5) | OPEN | Medium | Harmony | Arpeggio style added on every pulse, twice above style 0; RAND/ORDER wrong |
@@ -40,7 +40,7 @@ Background and the algorithm write-ups are in [t1-algorithms/](t1-algorithms/REA
 | [F18](#f18) | FIXED | Low | Tests | The Phase 3 timing test is wall-clock and flaky |
 | [F19](#f19) | OPEN | Medium | Random | Consecutive LFSR draws are dependent: pitch and velocity jitter are tied together |
 
-Counts: 19 issues: 4 fixed (F1, F3, F4, F18), 2 partial (F2, F13), 13 open. The 13 open items are 3 High (F6, F7, F12), 5 Medium (F5, F8, F9, F11, F19) and 5 Low (F10, F14 to F17).
+Counts: 19 issues: 5 fixed (F1, F2, F3, F4, F18), 1 partial (F13), 13 open. The 13 open items are 3 High (F6, F7, F12), 5 Medium (F5, F8, F9, F11, F19) and 5 Low (F10, F14 to F17).
 
 ---
 
@@ -66,7 +66,7 @@ Counts: 19 issues: 4 fixed (F1, F3, F4, F18), 2 partial (F2, F13), 13 open. The 
 ---
 
 <a id="f2"></a>
-## F2. Scale names and engine order disagreed: PARTIAL
+## F2. Scale names and engine order disagreed: FIXED (BUG-002)
 
 **Triage (P2-006):** Tracked as BUG-002 (backlog/bugs/BUG-002-f2-stale-t1-scale-names-array-and-range-comment.md). `torso_t1_algo.c` survives; ADR-0003 section 13 reuses `T1_SCALE_MASKS` and deletes `T1_SCALE_NAMES`.
 
@@ -75,7 +75,7 @@ Counts: 19 issues: 4 fixed (F1, F3, F4, F18), 2 partial (F2, F13), 13 open. The 
   Ids 4 to 15 displayed one name and played another.
 - **Visible consequence:** the device default bassline (`t1_glue.c` line 52, `scale_id = 10`, comment "minor pentatonic") actually played **A Locrian**. Raw 57 to 69 with root A returned `57 58 58 60 60 62 63 63 65 65 67 67 69`, containing B♭ and E♭.
 - **Current state:** the masks were re-ordered to the UI order and each mask now matches its name. The default bass is now genuinely A minor pentatonic (raw 57 to 69 → `57 57 57 60 60 62 62 64 64 64 67 67 69`), and a test asserts `quantize(70, A, 10) == 69`.
-- **Residue (OPEN, Low):** `T1_SCALE_NAMES` in `torso_t1_algo.c` (line 242) still lists the **old** order (Chromatic, Major, Minor, Dorian, Mixolydian, Maj Pent, …), so it now mislabels the masks. Nothing references it (declared in `torso_t1_algo.h` line 75, used nowhere), but it will mislead anyone who uses it.
+- **Residue (FIXED, BUG-002):** `T1_SCALE_NAMES` was deleted (declaration and definition); the UI table in `torso_t1_ui.c` is the only names table. Previously, `T1_SCALE_NAMES` in `torso_t1_algo.c` (line 242) still lists the **old** order (Chromatic, Major, Minor, Dorian, Mixolydian, Maj Pent, …), so it now mislabels the masks. Nothing references it (declared in `torso_t1_algo.h` line 75, used nowhere), but it will mislead anyone who uses it.
   The old table also had both a "Dim H-W" and a "Dim W-H"; the new table keeps only Half-Whole, and Aeolian (id 7) duplicates Natural Minor (id 2).
 - **Fix:** delete `T1_SCALE_NAMES`, or reorder it to match, and expose a single names-plus-masks table to both the engine and the UI.
 
