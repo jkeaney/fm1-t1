@@ -125,8 +125,7 @@ const AlgoDesc ALGO_ACID = {
    and the chord stage needs a floor: `harm_apply` takes `lo` (ACID -12, others 0) and floors with floor division. The HARMONY.md golden tables use `lo = 0, hi = 24`
    and are unchanged (compared bit for bit). If the owner prefers octave +1 as the ceiling, it is the `oct` clamp in `acid_build` plus `acid_hi` = 24, and the golden is regenerated.
 2. **HarmChord is 14 B**, not 16 B as HARMONY.md says (the fields it lists add up to 14); `sq_types.h` asserts 14.
-3. **`drone_pitch` in harmony_proto.py folds on 7 degrees**; HARMONY.md 3.3 says `n' = min(7, scale size)`. They agree for 7-note scales and for p up to 7 in the 5-note
-   default; above that the C follows the spec text. The compared dump stops at p = 7 for the pentatonic scale.
+3. **`drone_pitch` in harmony_proto.py folded on 7 degrees** (fixed in P2-029: it now uses `n' = min(7, scale size)` and clamps at `2n'` as HARMONY.md 3.3 and `harm.c` do; the compared dump covers p 1..14 on 7-note scales and 1..11 on the pentatonic).
 4. **The progression dice** (HARMONY 6.1) seed their generator **without** SP1's four-draw warm-up, because the golden table of 6.1 comes from `harmony_proto.py`, which does not discard.
 5. **Snap tie rule at the octave wrap:** nearest scale tone by the distance between the pitches, ties to the lower pitch, so `snap[r]` can be 12 (MAJPEN: r = 11 snaps up to the next key note).
    sting.md's "numerically lower pitch class" reading would send a tie across the wrap to pitch class 0; the two readings differ only for a tie that straddles the wrap.

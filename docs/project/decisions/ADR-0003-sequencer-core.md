@@ -92,7 +92,7 @@ typedef struct {
 #define PO_HIT        0x01   /* this step sounds */
 #define PO_SLIDE_IN   0x02   /* stored glide flag "step reached by a glide from step t-1" (ACID); core decides if effective */
 #define PO_HOLD       0x04   /* long note: ignores global GATE, lasts `hold` pulses (STAGE) */
-#define PO_PACE_DEC   0x08   /* ratchet spacing decelerates (else accelerates/even, per SP5) */
+#define PO_PACE_DEC   0x08   /* ratchet spacing decelerates (else accelerates; two-way, owner decision 115, section 22) */
 #define PO_REP_SHIFT  4      /* bits 4..5: repeats-1 (0..3 -> 1..4 triggers in this step; EUCLID uses 1..3) */
 #define PO_REP_MASK   0x30
 #define PO_PIN        0x40   /* set by the core when a pin overlaid this step (UI: outline) */
@@ -884,8 +884,8 @@ Additive; for owner review. Full spec: [HARMONY.md](../../design/HARMONY.md). Th
 | --- | --- | --- |
 | 1 | **A chord stage after the algorithm, at emit time** (`harm_apply()` between `step()` and `sq_note()`, section 5 and SEQUENCER_UX 9.2). `build()` and `step()` stay pure and unchanged; caches are not invalidated by a chord change, because the chord is not an input of `build()`. | ISR: a few integer ops per sounding step |
 | 2 | **`HarmonySave` (8 B) joins `SeqPreset`** (1388 -> 1396 B, version 3), saved per slot. `GlobalSave` is unchanged; key, scale and octave stay there. | pool +144 B (18 preset-sized copies) |
-| 3 | **Runtime**: `HarmonySave harm_db[2]` (double buffer, read once per block like `sq_gdb`), `HarmRT` (14 B, ISR-owned), `HarmUndo` (9 B), one `undo_last` byte. `ChanRT` stays 24 B, `ChanSave` 344 B, `UndoRec` 92 B. | .bss +42 B |
-| 4 | **`AlgoDesc.hi(m)`**: a const function per algorithm returning the highest semitone it can emit for morphs `m` (ACID 12 + 12 if JUMP > 0; EUCLID `max(SPAN, 12)`; SNAKE and STAGE `max(RANGE, 12)`), used to fold a pulled note back into the algorithm's own range. ROM only. | 0 B RAM |
+| 3 | **Runtime**: `HarmonySave harm_db[2]` (double buffer, read once per block like `sq_gdb`), `HarmRT` (14 B, ISR-owned; the query result `HarmChord` is also **14 B as compiled**, not the 16 B first written), `HarmUndo` (9 B), one `undo_last` byte. `ChanRT` stays 24 B, `ChanSave` 344 B, `UndoRec` 92 B. | .bss +42 B |
+| 4 | **`AlgoDesc.hi(m)`**: a const function per algorithm returning the highest semitone it can emit for morphs `m` (P2-029 amendment, prototype values: ACID **36** when JUMP > 0, and its floor is **-12** (octave -1..+2 as sting.md 6.3 allows, not 0..24); EUCLID `SPAN + 3`; SNAKE and STAGE `RANGE + 1`; ARP and PATTERNS **60**; the old `max(..., 12)` forms are too low once jitter and snap-up are counted), used to fold a pulled note back into the algorithm's own range. `harm_apply` therefore takes `lo` as well as `hi` (`lo` = -12 for ACID, 0 for the others) and folds into `lo..hi` with floor division (HARMONY.md 4.2). ROM only. | 0 B RAM |
 
 The chord position is a pure function of `sq_bar` (ticks since PLAY / restart, section 10) and `HarmonySave`, so PLAY resets it with no extra state, a preset load
 that lands on a bar boundary swaps the progression and the position together, and RESTRT (F#5) does not touch it. With the default progression, `VOICE 2`,
@@ -902,3 +902,20 @@ Additive and superseding where it says so. Full design: [PREVIEW.md](../../desig
 | 3 | **Slot CCs also drive the part** (`prv_cc`, a (device, CC) map from the profile column `prv`); the override parks with the slot. | about 40 B flash, a few bytes of override state |
 | 4 | Gestures: hold a mute key 0.4 s = PREVIEW on/off; hold it and turn ALGO = sound (PREVIEW.md 1.4). | UI only |
 | 5 | `sq_all_off` releases all four parts; selecting a channel releases nothing. | none |
+
+## 22. Addendum (P2-029): contract changes after the six locked prototypes (owner lock, P2-017, 2026-11-12)
+
+Additive; supersedes the figures it names. The authoritative header is `docs/design/algorithms/common/sq_types.h` (final for six algorithms, LOCK.md section 5). The golden files fix the behaviour.
+
+| # | Change | Where it was | Cost |
+| --- | --- | --- | --- |
+| 1 | **`SeqPreset` is 1556 B, preset version 4** (six `AlgoState` slots, `st[SQ_NALGO]`, `SQ_NALGO` 4 to 6; version 3 had four, the bump is the storage layer's, P7-005). `ChanSave` 344 to **384 B**, `UndoRec` 92 to **94 B** (the other `s_mod`), plus `ModSave` 100 B per preset (MODULATION.md 7). Supersedes 1388 / 1396 B (sections 11.2 and 20). | sections 3, 11, 20 | pool: 18 x 1656 B = 29808 B (+4680 B over the 25128 B plan), pool free about 188 KB; `.bss` +160 B (`ChanSave`) +8 B (`UndoRec`) |
+| 2 | **`PO_TIE = 0x80`** in `PulseOut.flags`: PATTERNS' stored T flag, the gate holds into the next sounding step (the core's TIE path of section 3 / SEQUENCER_UX 9.2). `PO_PIN` 0x40 stays reserved. `PulseOut` stays 6 B. | section 3 | none |
+| 3 | **Mod lanes come from `AlgoDesc.mod(cache, g, hc, o, ModIdx *out)`, not from `PulseOut.mod_a / mod_b`.** The algorithm says which index each lane is read at (`ModIdx`, 8 B); the shared primitives SP18..SP20 turn the indices into values. A `PulseOut` field would have moved `ChanRT` offsets (MODULATION.md wrote `mod_a / mod_b`; **not adopted**). New: `SQ_SEED_MOD` (the seventh seed id, held in `ModSave`, not in `AlgoState`) and `SQ_SMOD_DEFAULT(ch)`; every SHAPE layer re-rolls `s_mod` with the seed it already had. | MODULATION.md 3.1, 7 | ROM only |
+| 4 | **ARP core additions (arp/SPEC.md 6.10, AM-1 to AM-4).** `AF_CHORD = 0x02` in `AlgoDesc.flags`; `step(cache, g, const HarmChord *hc, PulseOut *out)` gains the chord argument (`NULL` unless `AF_CHORD`; the other algorithms ignore it); `AlgoDesc.sub_note(cache, g, k, hc)` (final MIDI note of repeat `k`; used whenever a step has `PO_REP`; `NULL` for the others); for an `AF_CHORD` algorithm the core skips `harm_apply` and fills `hc` from `HarmRT` (current bar) or `harm_chord_at_bar(bar + 1)` (lookahead) after applying the channel ROLE; `SQ_NALGO` is 6. | arp/SPEC.md 6.10 | ROM only |
+| 5 | **Two shared primitives:** `sq_mix(x)` (the 32-bit integer hash of ARP SPEC 3) and `sq_seeded_perm(perm, n, x)` (ARP RAND: a shuffle of `0..n-1` from a stream whose state is `x`, two draws discarded, `n <= 24`); `sp18_cell` takes the whole index (ARP figures reach 137), not `i & 15`. | sq_prims.h | ROM only |
+| 6 | **`hi(m)` and the floor** as amended in section 20 row 4 (EUCLID `SPAN + 3`, SNAKE and STAGE `RANGE + 1`, ACID 36 with floor -12, ARP and PATTERNS 60). | section 20 | ROM only |
+| 7 | **Owner decision 115: EUCLID's ratchet pace is two-way.** `PulseOut` keeps **one** pace bit (`PO_PACE_DEC`, 0x08): a ratchet accelerates or decelerates; t1.md's third outcome ("even") is not stored (the draw count is kept, `d == 2` decelerates, the other two accelerate). No data-model change, so P4-001 locks the `PulseOut` flags as they stand. The earlier phrase "accelerates/even" (section 3 and the SP5 comment) reads "accelerates". | euclid/SPEC.md 6, OWNER_QUESTIONS 115 | none |
+| 8 | EUCLID's cache is **38 B** (hit ordinals for mod lane A); ARP's `step()` has no `SeqGlobal`, so its cache keeps `base`; PATTERNS cache 22 B; ACID 54, SNAKE 55, STAGE 43, ARP 48: every cache is at most 64 B, so the 2 x 64 B x 4 channels of section 11 stand. | LOCK.md 2, 4 | none |
+
+Test evidence: `sh tests/design/run_protos.sh` prints `PROTOS PASS` (six algorithms) and `python3 tests/design/harmony_proto.py --check` prints `CHECK OK`.

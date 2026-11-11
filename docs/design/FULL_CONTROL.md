@@ -201,6 +201,8 @@ Gen Clip (not applicable); a gate-length morph (the GATE dice layer plus global 
 | S3 | `PUNCH` | `pun` | 0..47 | 40 | 1 / 4 | accented velocity `min(127, 80 + pun)`, unaccented and pinned 80 | t1-algorithms 04 section 4.3 velocity slope (as an accent depth) |
 | S4 | `CURVE` | `crv` | 0..6 | 0 | 1 / 1 | `shape = crv if crv > 0 else 1 + rnd(6)`; 1 SINE 2 TRI 3 SAW+ 4 SAW- 5 ARCH 6 INV | t1-algorithms 05 section 5.3 melodic contour (selectable shape) |
 
+**Panel slots (P2-029; `knob_map.tsv` and `knob_morph[]` `{0,4,5,3,1,2,6,7}`).** The `Slot` column above is the morph id. On the panel the order is K1 `HITS`, K2 `OFFSET`, K3 `RATCH`, K4 `ACCNT`, S1 `LEN`, S2 `SPAN`, S3 `PUNCH`, S4 `CURVE`.
+
 Value names for `CURVE`: 0 `AUTO`, 1 `SINE`, 2 `TRI`, 3 `SAW+`, 4 `SAW-`, 5 `ARCH`, 6 `INV`.
 
 Still cut, with reason: steps 17..64 (keys reach 16; owner question 26); probability and the random depth/rate/targets
@@ -239,6 +241,8 @@ scale, dice-all and undo replace them).
 | S2 | `RDIV` | `rdiv` | 1..4 | 4 | 1 / 1 | ratchet divider cap: `div_eff[k] = min(div[k], rdiv)`; eligibility uses `div_eff` | ml185-algorithms 03 per-stage Div (cut as a hand control in ml185.md 6) |
 | S3 | `DYN` | `dyn` | 0..10 | 10 | 1 / 1 | `vel[k]` as SNAKE S3 (SP17) | ml185-algorithms 04 velocity lane range |
 | S4 | `DIR` | `dir` | 0..2 | 0 | 1 / 1 | `p = dir_map(u, tot, dir)` over the `tot` pulses (SP16) | ml185-algorithms 05 section 5.3 Direction (`>`, `<`, `><`) |
+
+**Panel slots (P2-029; `knob_map.tsv` and `knob_morph[]` `{0,1,7,3,4,5,6,2}`).** The `Slot` column above is the morph id. On the panel the order is K1 `DENS`, K2 `TOTAL`, K3 `DIR`, K4 `RATCH`, S1 `OFFSET`, S2 `RDIV`, S3 `DYN`, S4 `RANGE`.
 
 Still cut, with reason: per-stage Mode, Length and Div as hand controls (24 settings; the MODE, LENS and RESTS dice
 layers replace them); Direction `R` and the unconfirmed values 3 and 4 (non-deterministic or unconfirmed); Length Mode

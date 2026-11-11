@@ -246,9 +246,9 @@ ROLE is per channel (the ARP button on the HARMONY page, for the channel SELECT 
 
 ### 4.1 Where it runs
 
-`harm_apply(ch, t, strong, s, hi, tick)` runs once per sounding generated step, in `sq_eval` after the algorithm's `step()` and SP6, before SP9 (`sq_note`). It does not run for a step whose
+`harm_apply(ch, t, strong, s, lo, hi, pull, tick)` runs once per sounding generated step, in `sq_eval` after the algorithm's `step()` and SP6, before SP9 (`sq_note`). It does not run for a step whose
 PITCH is set (1.2), nor for the audition. Inputs: the channel, the step position `t` within the channel pattern (0..len-1), `strong`, the scale-snapped semitone `s` (0..96), the
-algorithm's range ceiling `hi` (`AlgoDesc.hi(m)`, ADR-0003 section 20), the tick. It returns a semitone in `0..hi`.
+algorithm's range floor `lo` (0 for every algorithm except ACID, whose octave lane reaches -1: `lo = -12`) and ceiling `hi` (`AlgoDesc.hi(m)`, ADR-0003 section 20; ACID 36, ARP and PATTERNS 60), the tick. It returns a semitone in `lo..hi` (ACID `-12..36`, i.e. octave -1..+2 as sting.md 6.3 allows; the others `0..hi`). P2-029 amended the text from `0..hi` to match the prototype.
 
 ### 4.2 The rule, in order
 
@@ -256,17 +256,17 @@ Let `inert` be 1.1, `role` the channel's ROLE, `C` the chord of the step's tick 
 
 1. `role = OFF`, or `role = AUTO` and `inert`: return `s`.
 2. `role = ROOT`: `x = (drone if set else r) % 12 + 12 * (s / 12)`.
-3. `role = FULL`: `x = vt[ min(n-1, (s * n) / (hi + 1)) ]` (the line's contour is mapped onto the voiced notes from the bottom voice to the top one; the drone is one of the voices).
+3. `role = FULL`: `x = vt[ clamp((s - lo) * n / (hi - lo + 1), 0, n-1) ]` (the line's contour is mapped onto the voiced notes from the bottom voice to the top one; the drone is one of the voices).
 4. `role = AUTO` (active), by priority:
    - **Root default (anchor):** if this channel has an `anchor` bit set (set at PLAY and at every chord change) this is the **first sounding generated hit** of the chord: `x = r % 12 + 12 * (s / 12)`; clear the bit.
    - **Chord-tone priority:** otherwise `peff = min(8, pull + 4 * strong)`; `h = ((t * 0x9E3779B1) >> 29)` (3 bits, a fixed hash of the step position, no random number consumed so the generator's seeds never shift); if `h < peff` then `x` is the pitch of the chord-tone set (all octaves of `pcs`) nearest to `s`, ties to the lower.
    - **Scale-tone fallback:** otherwise `x = s` (a passing scale tone stays, because `s` is already on the scale).
-5. Octave handling: chord tones exist in every octave, so the register of `s` is kept. After the choice fold into the range: `while x > hi: x -= 12; while x < 0: x += 12`. A channel with a **fixed octave range** (RANGE, SPAN or JUMP kept small) therefore never leaves it, and the pulled note is the nearest chord tone that fits.
+5. Octave handling: chord tones exist in every octave, so the register of `s` is kept. After the choice fold into the range: `while x > hi: x -= 12; while x < lo: x += 12` (`lo` is 0 except for ACID, -12; the floor division of the prototype keeps negative `s` in its octave). A channel with a **fixed octave range** (RANGE, SPAN or JUMP kept small) therefore never leaves it, and the pulled note is the nearest chord tone that fits.
 6. Return `x`; the core adds key, octave and base with `sq_note` as before.
 
 `strong` is table data per algorithm (the table below). The root default needs no extra state beyond the one bit per channel.
 
-Golden (C major, key C, bar 2 of `1451`, the IV chord F A C, an ACID channel with the default JUMP 5 so `pull = 3`, `hi = 24`, the generated line s = 0 2 4 5 7 9 11 12 at step positions
+Golden (C major, key C, bar 2 of `1451`, the IV chord F A C, an ACID channel with the default JUMP 5 so `pull = 3`, `lo = 0`, `hi = 24` (the table fixes the test window; the real ACID window is `-12..36`, 4.2), the generated line s = 0 2 4 5 7 9 11 12 at step positions
 t = 16..23, strong when `t % 4 = 0`):
 
 | t | s | h(t) | strong | peff | rule | x |
@@ -440,7 +440,7 @@ that dice touch one channel's layers. So the PROG dice is the `SCL` button on th
 | **Total .bss** | **42** | target <= 64 met |
 | `HarmonySave` in each of the 18 preset-sized pool copies (16 slots, staging, undo-last-load) | 144 | .pool |
 
-`ChanRT` stays **24 B**, `ChanSave` 344, `UndoRec` 92. Stack: `harm_chord_at_bar` uses `HarmChord` (16 B) plus two 6-byte voicings, under 64 B. Pool spare: 780 - 144 = 636 B before the
+`ChanRT` stays **24 B**, `ChanSave` 344, `UndoRec` 92. Stack: `harm_chord_at_bar` uses `HarmChord` (14 B as compiled, P2-029) plus two 6-byte voicings, under 64 B. Pool spare: 780 - 144 = 636 B before the
 fx-bus removal (HANDOFF budget; the removal lands before preset storage, decision 80). RAM headroom after: 39635 B with the removals, 11123 B without (SEQUENCER_UX 9.4).
 
 ### 7.3 Undo
@@ -504,7 +504,7 @@ typedef struct {
     int8_t   drone;             /* drone pitch, semitones above the key, or -1 */
     int8_t   vt[HARM_MAXV];   /* voiced notes ascending, semitones above the key (VOICE + MOVE + drone) */
     uint16_t pcs;             /* 12-bit pitch-class set of the chord tones and the drone, bit k = key+k */
-} HarmChord;                  /* 16 B */
+} HarmChord;                  /* 14 B (sq_types.h asserts it; the fields add up to 14) */
 
 uint8_t  harm_active(void);                                   /* ruling 2: false for the default state */
 void     harm_chord_at_bar(uint16_t bar, HarmChord *out);     /* the chord of bar number `bar` (any size; taken % bars); builds the voice-leading chain */

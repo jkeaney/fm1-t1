@@ -52,7 +52,7 @@ typedef struct {
 #define PO_HIT        0x01   /* this step sounds */
 #define PO_SLIDE_IN   0x02   /* stored glide flag "step reached by a glide from the step played before" (core decides if effective) */
 #define PO_HOLD       0x04   /* long note: ignores global GATE, lasts `hold` pulses (STAGE) */
-#define PO_PACE_DEC   0x08   /* ratchet spacing decelerates (else accelerates / even, SP5) */
+#define PO_PACE_DEC   0x08   /* ratchet spacing decelerates (else accelerates; two-way, decision 115) */
 #define PO_REP_SHIFT  4      /* bits 4..5: repeats-1 (0..3 -> 1..4 triggers in this step) */
 #define PO_REP_MASK   0x30
 #define PO_PIN        0x40   /* reserved (the pin overlay is replaced by StepEdit, SEQUENCER_UX 9.2) */

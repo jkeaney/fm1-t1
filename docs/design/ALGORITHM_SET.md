@@ -165,9 +165,9 @@ Every ROW 2 default is the neutral value, so the output equals the 4-morph desig
 | Algorithm | K1 DENSITY | K2 FORM | K3 PITCH | K4 SPICE |
 | --- | --- | --- | --- | --- |
 | `ACID` | `DENS` 0..16, default 12 | `SLIDE` 0..8, default 4 (re-locked by P1-017, SEQUENCER_UX 4.2; `PEDAL` 0..12, default 6 moved to ROW 2 S2) | `JUMP` 0..20, default 5 | `ACCNT` 0..8, default 3 |
-| `EUCLID` | `HITS` 0..16, default 5 | `LEN` 2..16, default 16 | `SPAN` 0..24, default 12 | `ACCNT` 0..8, default 2 |
+| `EUCLID` | `HITS` 0..16, default 5 | `OFFSET` 0..15, default 0 (P1-017 3B re-lock; `LEN` moved to ROW 2 S1) | `RATCH` 0..8, default 4 (`SPAN` moved to S2) | `ACCNT` 0..8, default 2 |
 | `SNAKE` | `DENS` 0..16, default 10 | `LEN` 1..16, default 7 | `RANGE` 0..48, default **12** (was 24) | `PATH` 1..14, default 7 |
-| `STAGE` | `DENS` 0..8, default 6 | `TOTAL` 8..64, default 16 | `RANGE` 0..36, default 12 | `RATCH` 0..8, default 2 |
+| `STAGE` | `DENS` 0..8, default 6 | `TOTAL` 8..64, default 16 | `DIR` 0..2, default 0 (3B re-lock; `RANGE` moved to S4) | `RATCH` 0..8, default 2 |
 | `ARP` | `DENS` 0..16, default 12 | `SHAPE` 0..5, default 0 (LINE) | `SPAN` 1..4 octaves, default 2 | `RATE` 0..5, default 2 (1X) |
 
 Fit argument per cell (where it is not obvious):
@@ -180,17 +180,17 @@ Fit argument per cell (where it is not obvious):
 | SNAKE K4 `PATH` as SPICE | The most dramatic stepped change per detent (re-orders melody and rhythm at once), the "twist" control. |
 | STAGE K2 `TOTAL` as FORM | Exact loop length 8 to 64 pulses, one pulse per detent. |
 | STAGE K4 `RATCH` as SPICE | Repeats on top of the pattern. |
-| EUCLID K2 `LEN` as FORM | Loop length and polymeter. K2 stays `LEN`, not `ROTATE` (question 28). |
+| EUCLID K2 `OFFSET` (was `LEN` as FORM) | The 3B re-lock puts the rotation on K2 and `LEN` on S1 (`knob_map.tsv`); the column names FORM / PITCH are the 4-morph vocabulary and no longer describe EUCLID and STAGE K2..K3. |
 | EUCLID K1 `HITS` as DENSITY | Bjorklund pulse count; every value is a groove, but it is still "how many". |
 
-### 5.2b ROW 2 parameters (P1-013)
+### 5.2b ROW 2 parameters (P1-013; EUCLID and STAGE rows follow `knob_map.tsv`, P2-029)
 
 | Algorithm | S1 START | S2 ARTIC | S3 DYNAMICS | S4 READ |
 | --- | --- | --- | --- | --- |
 | `ACID` | `OFFSET` 0..15, 0 | `SLIDE` 0..8, 4 | `PUNCH` 0..47, 40 | `DIR` 0..2, 0 |
-| `EUCLID` | `OFFSET` 0..15, 0 | `RATCH` 0..8, 4 | `PUNCH` 0..47, 40 | `CURVE` 0..6, 0 |
+| `EUCLID` | `LEN` 2..16, 16 | `SPAN` 0..24, 12 | `PUNCH` 0..47, 40 | `CURVE` 0..6, 0 |
 | `SNAKE` | `OFFSET` 0..15, 0 | `GLEN` 1..16, 16 | `DYN` 0..10, 10 | `DIR` 0..2, 0 |
-| `STAGE` | `OFFSET` 0..63, 0 | `RDIV` 1..4, 4 | `DYN` 0..10, 10 | `DIR` 0..2, 0 |
+| `STAGE` | `OFFSET` 0..63, 0 | `RDIV` 1..4, 4 | `DYN` 0..10, 10 | `RANGE` 0..36, 12 |
 | `ARP` | `OFFSET` 0..15, 0 | `LEGATO` 0..8, 3 | `DYN` 0..10, 10 | `DIR` 0..5, 0 (UP) |
 
 Formulas, restored source parameters and the list of parameters that stay cut: FULL_CONTROL.md section 3.

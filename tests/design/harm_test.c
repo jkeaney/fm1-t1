@@ -32,7 +32,7 @@ int main(void)
         printf("\n"); }
     for (int si = 0; si < 3; si++) {
         mk(&g, &h, SID[si], 2, 8, 0); harm_bind(&g, &h);
-        for (int p = 1; p < (si < 2 ? 15 : 8); p++) {
+        for (int p = 1; p < (si < 2 ? 15 : 12); p++) {
             printf("DRONE %s p%d pitch %d ", SN[si], p, harm_drone_pitch((uint8_t)p));
             for (int sl = 0; sl < 4; sl++) { int8_t vt[HARM_MAXV]; uint8_t n = harm_voicing((uint8_t)sl, vt); putchar(harm_drone_mark(vt, n, harm_drone_pitch((uint8_t)p))); }
             printf("\n"); } }

@@ -101,8 +101,9 @@ def progression(sc, degs, voice, move):
 def drone_pitch(sc, p):
     if p == 0:
         return None
-    d = (p - 1) % 7 + 1
-    return degree_root(sc, d) + (12 if p > 7 else 0)
+    np_ = min(7, len(sc))             # HARMONY.md 3.3: n' degrees, then the same again an octave up, clamped to 2n'
+    p = min(p, 2 * np_)
+    return degree_root(sc, (p - 1) % np_ + 1) + (12 if p > np_ else 0)
 
 
 def drone_mark(sc, chord, ped):
@@ -281,7 +282,7 @@ def dump():
     for scn in ("MAJOR", "NATMIN", "MINPEN"):
         sc = SCALES[scn]
         chords = progression(sc, [1, 4, 5, 1], 2, 8)
-        for ped in range(1, (15 if len(sc) == 7 else 8)):   # drone_pitch folds on 7 degrees: the 5-note scale is compared up to p 7
+        for ped in range(1, 15 if len(sc) == 7 else 12):   # 7-note scales walk p 1..14, 5-note scales p 1..10 (11 clamps)
             pp = drone_pitch(sc, ped)
             marks = "".join({"in": "+", "clash": "X", "tension": "-"}[drone_mark(sc, c, pp)] for c in chords)
             print("DRONE %s p%d pitch %d %s" % (scn, ped, pp, marks))
