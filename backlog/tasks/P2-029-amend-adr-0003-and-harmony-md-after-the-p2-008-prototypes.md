@@ -22,6 +22,9 @@ Make the specs say what the reviewed prototypes do, so P4-001 and P4-002 copy fi
 - HARMONY.md says `HarmChord` is 14 B (lines ~443, ~507).
 - `drone_pitch` in tests/design/harmony_proto.py matches HARMONY.md 3.3 above degree 7 on 5-note scales (or the text is corrected to match, whichever the spec intends), and `harmony_proto.py --check` still prints CHECK OK.
 
+- From the P2-016 review: ADR-0003 section 20 `hi(m)` bounds become EUCLID `SPAN+3`, SNAKE and STAGE `RANGE+1` (prototype values; the old `max(...,12)` is too low with jitter and snap-up).
+- From the P2-016 review: ALGORITHM_SET.md 5.2 and FULL_CONTROL.md 3.2/3.4 knob order is updated to match `knob_map.tsv` (EUCLID `{0,4,5,3,1,2,6,7}`, STAGE `{0,1,7,3,4,5,6,2}`).
+
 ## Acceptance criteria
 - [ ] `sh tests/design/run_protos.sh` prints PROTOS PASS and golden.txt is unchanged unless the log explains why
 - [ ] `python3 tests/design/harmony_proto.py --check` prints CHECK OK
