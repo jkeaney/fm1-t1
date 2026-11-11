@@ -3,7 +3,7 @@ id: BUG-001
 title: F3 - ARCH and INV A phrase contours are constant
 phase: P3
 type: bug
-status: todo
+status: review
 priority: 2
 executor: sonnet
 depends_on: [P3-001]
@@ -42,3 +42,10 @@ sh tools/check.sh
 
 ## Log
 Created by P2-006 (triage of F3: the function survives into the new design, so the defect is tracked).
+
+### 2026-11-11 executor (sonnet)
+- Fix: quad now `norm*norm*max/(total*total)` in cases 5 and 6 (torso_t1_algo.c); test added in tests/torso_phase2_test.c.
+- Old code (stash): `FAILED: test_harmony_and_voicing_engine (line 263): ARCH has more than one value`.
+- New code: `ALL 106 TORSO T-1 PHASE 2 TESTS PASSED`.
+- `sh tools/check.sh`: `RAM .data+.bss 23060 B of 73728`, `CHECK PASS`.
+- docs/T1_ISSUES.md F3 marked FIXED (summary counts line not updated).

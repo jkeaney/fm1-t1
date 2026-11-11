@@ -362,14 +362,15 @@ int16_t t1_harmony_eval_phrase(uint8_t phrase_shape, uint8_t range, uint8_t step
             break;
         case 5: { /* Exponential Arch (peaking at midpoint) */
             int32_t norm = (2 * step_idx - total_steps);
-            int32_t quad = (norm * norm) / (total_steps * total_steps + 1);
-            delta = max_semitones - (quad * max_semitones);
+            /* multiply before dividing: the old quotient was always 0 (F3) */
+            int32_t quad = (norm * norm * max_semitones) / ((int32_t)total_steps * total_steps);
+            delta = max_semitones - quad;
             break;
         }
         case 6: { /* Inverted Arch (dip in middle) */
             int32_t norm = (2 * step_idx - total_steps);
-            int32_t quad = (norm * norm) / (total_steps * total_steps + 1);
-            delta = (quad * max_semitones);
+            int32_t quad = (norm * norm * max_semitones) / ((int32_t)total_steps * total_steps);
+            delta = quad;
             break;
         }
         case 7: { /* Deterministic pseudo-random S&H */

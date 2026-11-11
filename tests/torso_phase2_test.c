@@ -249,6 +249,25 @@ static void test_harmony_and_voicing_engine(void)
     TEST_ASSERT(p_mid > p_start, "Triangle peaks in middle");
     TEST_ASSERT(p_mid > p_end, "Triangle falls back down");
 
+    /* BUG-001 / F3: ARCH (5) and INV A (6) must have a shape: ARCH peaks mid, INV A dips mid */
+    {
+        int arch_min = 99, arch_max = -99, inv_min = 99, inv_max = -99;
+        for (int i = 0; i < 16; i++) {
+            int a = t1_harmony_eval_phrase(5, 4, (uint8_t)i, 16);
+            int v = t1_harmony_eval_phrase(6, 4, (uint8_t)i, 16);
+            if (a < arch_min) arch_min = a;
+            if (a > arch_max) arch_max = a;
+            if (v < inv_min) inv_min = v;
+            if (v > inv_max) inv_max = v;
+        }
+        TEST_ASSERT(arch_max > arch_min, "ARCH has more than one value");
+        TEST_ASSERT(inv_max > inv_min, "INV A has more than one value");
+        TEST_ASSERT(t1_harmony_eval_phrase(5, 4, 8, 16) == arch_max, "ARCH peaks at the middle");
+        TEST_ASSERT(t1_harmony_eval_phrase(5, 4, 8, 16) > t1_harmony_eval_phrase(5, 4, 0, 16), "ARCH middle above start");
+        TEST_ASSERT(t1_harmony_eval_phrase(6, 4, 8, 16) == inv_min, "INV A dips at the middle");
+        TEST_ASSERT(t1_harmony_eval_phrase(6, 4, 8, 16) < t1_harmony_eval_phrase(6, 4, 0, 16), "INV A middle below start");
+    }
+
     /* 5. Style Directions */
     /* Up style (0) */
     TEST_ASSERT(t1_harmony_eval_style(0, 0, 4) == 0, "Up: step 0 -> note 0");
