@@ -9,20 +9,15 @@ A UX-first **sequencer firmware** for the M-VAVE FM-1 (fork of Felucca 1.6 via t
 device boots straight into the new sequencer UI and works immediately. The groovebox is out of the v1 UI (decision 32b).
 Branch: `t1-hardware-bringup`, remote `origin` = jkeaney/fm1-t1. Pushed through `6bdf675`; see PAUSED below.
 
-## UPDATE 2026-11-11 (late): newest state; read this first, then the section below it
+## UPDATE 2026-11-11 (night): newest state; read this first
 
-Done since the section below was written (all committed; branch pushed to origin at c8adb2b, later commits local):
-- Design, all owner-approved: P2-021 (closed), **P2-022 modulation layer** (docs/design/MODULATION.md, decision 108; supersedes the RIG/ROW 3 wire design), **P2-023..P2-028 preview / CUE** (docs/design/PREVIEW.md, decisions 109-113): per-channel PREVIEW gate independent of the MIDI gate (mute = MIDI gate only), presets ACID LEAD BASS PAD STRINGS PIANO (PIANO = ANALOG e-piano, so no sample/FM6 engine kept), all channels preview OFF by default, MASTER pot = preview level, hold mute key 0.4 s = preview on/off, hold + ALGO = sound, one shared mix on the master output (speaker, rear headphone jack; headphones auto-mute the speaker [V on owner's unit]). TB-3 TUNING (CC104) = pitch offset on the synth. VISION rule 3 reworded.
-- Code removal chain: P3-001, P3-002 (slicer), BUG-003 (test-harness race, not firmware), P3-014 (fx buses; pool 342876 -> 192808), P3-003 (DIGITAL engine) all done and reviewed. Build line now RAM .data+.bss 55248 of 73728 (18480 free), pool 192808.
-
-In flight / next:
-- **P3-004 (web editor removal) is blocked** on a spec gap; Sonnet planner ae32209c6c22164dc is rewriting it (FB-005), rehearsing in a scratch copy, and statically auditing P3-005..P3-012 for the same gaps. If it is gone: re-dispatch a Sonnet planner on backlog/tasks/P3-004 + feedback FB-005, then the Haiku executor on P3-004.
-- Then P3-005, P3-006 (sonnet), P3-007, P3-008..P3-012 (P3-008..P3-010 are now clear: ANALOG only), BUG-001/BUG-002, then P3-013 (HW-0, owner flashes).
-- P2-008 (prototype harness, Sonnet) is ready but waits so test runs never overlap; then P2-016/P2-017 (must carry the mod-lane hooks and the MIDI/PREVIEW gates).
-- Not yet scheduled: ADR-0003 amendment for the four ARP core additions; P4 tasks need updating for MODULATION.md and PREVIEW.md effects (listed in those docs).
-- Owner items still open: Ableton Sync check on JIANT FM (decision 83) goes in the HW-0 session; H-MOD1..H-MOD4 by-ear tests later. Ask before any push or flash.
-
-Lessons: run only ONE check.sh / run_tests at a time (concurrent runs stall); spec gaps go to a Sonnet planner, never to the owner; after a design change, grep for stale claims in ADR-0003/SEQUENCER_UX (reviewers caught several).
+- **The clean-up chain is complete and reviewed:** P3-001..P3-012, P3-014, BUG-001..BUG-005 are done. Firmware is ANALOG-only. Final build: `image 168876 B; RAM .data+.bss 23060 B of 73728 (50668 free); pool 92500 B of 368640`. `docs/design/CLEAN_HOUSE_REPORT.md` has the table (its BUG-001/002 figure should read -192 B, not -208 B; minor).
+- **Design is owner-approved:** modulation layer (docs/design/MODULATION.md, decisions 107-108), per-channel PREVIEW and CUE (docs/design/PREVIEW.md, decisions 109-113), decision 114 (pushed; drop the installer page's SysEx backup flow, keep plain restore to V15). Last push f68d3df; many local commits since. Ask before any push.
+- **Next step, tomorrow morning: P3-013 (HW-0).** The owner said "1A" (flash the cleaned build) and "lets pick it up in the morning". So the flash is approved in principle: confirm the FM-1 and TB-3 are powered and on USB (TB-3 receive ch 2, its sequencer stopped), then run `.venv/bin/python tools/fm1_install.py build/felucca.fwsc --port "JIANT" --yes` (rebuild first if the tree changed), then `--info --port "JIANT"` (expect FM-1_9xx), the HARDWARE_TEST.md smoke checklist, and `fm1_midi_listen.py --seconds 120 --out /tmp/hw0.log`. Fold in the Ableton Sync check on JIANT FM (decision 83). Recovery: `fm1_install.py restore/FM-1-official-V15.fwsc --port "JIANT"`, then power-cycle. Log needs an "Approved:" line with date and firmware SHA.
+- **After HW-0:** P2-008 (prototype harness, Sonnet), then P2-016/P2-017 (carry the mod-lane hooks and the MIDI/PREVIEW gates; P2-017 needs owner human-review), then P4. P4-004/P4-012/P6-003 apply mute and SOLO at the MIDI gate. By-ear tests later: H-MOD1..H-MOD4.
+- **Not yet scheduled:** ADR-0003 amendment for the four ARP core additions; P4 task updates for MODULATION.md and PREVIEW.md effects.
+- **Open caveats:** web emulator edits unverifiable (no Emscripten); `eng_slice.c` slc_man_load/save never set; `engine_t.mem` unused; RAVE preset says PAT(13) but the table has 9 entries (harmless).
+- **Lessons:** never run two `tools/check.sh` at once (shared build/); a Haiku task blocked on missing callers is a spec gap, so route it to a Sonnet planner; removal patches can go stale when an earlier task changes comments (the `--3way` fallback is in the tasks); hardware facts are tested live and logged as decisions.
 
 ## UPDATE 2026-11-11 (end of the Sonnet orchestrator's first session; read this before the older text below)
 - **Done this session:** P0-005 (TB-3 listening test, owner signed off), P2-013 ARP, P2-014 PATTERNS, P2-015 keybed (UC5 parked to v2), P3-001, P4-008, and the whole hardware-support design: P2-018 (high level, Option B), P2-019 (low level), P2-020 (TB-3 profile). Decisions 92-106 are in OWNER_QUESTIONS.md.
