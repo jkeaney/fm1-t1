@@ -3,7 +3,7 @@ id: P2-008
 title: Prototype harness, sq_types/sq_prims reference and the ACID prototype with golden output
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P1-010, P2-004, P1-013, P1-014, P1-017, P2-012]
@@ -72,3 +72,11 @@ Extra assurance: tests/design/acid_ref.py is an independent re-implementation fr
 1. ACID reaches semitone -12..+36 (sting.md 6.3: octave -1..+2); ADR-0003 section 20 / HARMONY 4.2 assume 0..24. I followed sting.md, added a `lo` fold floor to `harm_apply` (spec tables unchanged, bit-exact vs Python). Owner/reviewer choice: keep, or clamp octave to +1.
 2. HarmChord compiles to 14 B (HARMONY.md says 16). harmony_proto.drone_pitch disagrees with HARMONY 3.3 text above p 7 on 5-note scales (C follows the text; not in any documented table).
 3. `sq_ratchet` (SP5) is generic; EUCLID's pace curve is left to P2-016. ARP/PATTERNS fields are left as `P2-017 fills` (NULL sub_note, ids 4 and 5, st[4] kept at 4 per SEQUENCER_UX 9.1). AF_CHORD, the `hc` argument, `sub_note`, `sq_mix` and `sq_seeded_perm` are in place and the purity test also varies hc.
+
+### 2026-11-12 review (sonnet)
+Verdict: PASS (gate none, set done). No firmware change, so no ./build.sh / RAM line needed (git diff HEAD~1 -- firmware empty). UX gate n/a.
+Re-ran: `sh tests/design/run_protos.sh` -> PROTOS PASS (H-GOLDEN 3566 lines, acid_ref 53 cases 0 mismatches, 58 golden sections); golden.txt md5 512de3f8... unchanged after my run (deterministic); `harmony_proto.py --check` CHECK OK; `backlog.py check` 132 items 0 errors; `cc -std=c11 -Wall -Wextra -Werror -fsyntax-only` ok on harm.c, sq_prims.c, acid/proto.c; no TBD in SPEC.md. Scope: only docs/design, tests/design and the task file changed.
+Judgement on the executor's flags (SPEC section 7):
+1. Octave range -12..+36 vs ADR-0003 0..24: no owner decision needed now; following the assessed sting.md behaviour and adding a `lo` floor to harm_apply is reasonable, and the HARMONY tables are unchanged. It does diverge from ADR-0003 section 20 / HARMONY 4.2, so it needs recording: follow-up for the architect to amend ADR-0003 section 20 (`hi`/`lo`) and HARMONY 4.2 before P4-001/P4-002 copy sq_types/harm. Escalate to the owner only if the amendment would change the ACID octave feel (+2 ceiling).
+2. HarmChord 14 B vs 16 B: pure doc fix (HARMONY.md:507 and :443, stack-only struct, no flash/layout impact). Fold into the same amendment; no owner input.
+3. drone_pitch mismatch above p=7 on 5-note scales: undocumented in any table; note for the amendment as well (python or text should be aligned).
