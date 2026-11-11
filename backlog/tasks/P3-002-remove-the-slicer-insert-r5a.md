@@ -19,22 +19,34 @@ Delete slicer.c and every caller of it (FB-002 A-D), keeping the build green. Th
 - tests/run_tests.sh
 
 ## Deliverable
-Do the edits in this order; run `sh tools/check.sh` at the end only.
-- Delete: firmware/src/slicer.c; tests/slicer_test.c; tests/perform_test.c (perform.c is removed in P3-007; its tests need the slicer and the buses). Remove the `#include "slicer.c"` line (felucca.c:68) and the run_tests.sh blocks for slicer_test and perform_test (plus their header comments).
-- firmware/src/perform.c: it borrows slicer.c's `sl_buf` as its loop buffer. Add `static int16_t pf_buf[NTRK][4096] __attribute__((section(".pool")));` (same size as `sl_buf`, 32768 B; the pool is not zeroed, as before), replace the four `&sl_buf[0][0]` uses (lines 440, 448, 508-509, 590-591) by `&pf_buf[0][0]`, and change `PB_FRAMES` (line 60) to `(NTRK * 4096u / 2u)`. Delete `perf_drop_slicer()` (209-216), the `sl_lent` guard at 229-231 and at 552-554 (keep the code each guard wraps only if it is not about the slicer; if unsure stop), and the comment lines naming sl_buf. pf_buf goes away with perform.c in P3-007.
-- firmware/src/fx.c: delete the call sites `slicer_track_sd` (811), `slicer_busy`/`slicer_track` (842-843, 856) and keep the rest of the condition at 842 unchanged apart from dropping `&& !slicer_busy(t)`. The `#include "perform.c"` at fx.c:229 stays.
-- firmware/src/seq.c:851: delete `slicer_start();` and its comment.
-- firmware/src/midi_control.c:194: delete `sl[track].rec = sl[track].loop = 0;` (and its comment).
-- firmware/src/ui_graph.c: delete `graph_slicer` (about 483-540), the `GR_SLCR` hash lines (1222-1223) and `case GR_SLCR:` (2294-2296). In firmware/src/params.c:454 change the SLICER page's graph from `GR_SLCR` to `GR_NONE`. Keep the `GR_SLCR` enum value, the page row, `N_SLCR`, `N_SLDIV` and every `P_SLCR..P_SLDEPTH` parameter slot: they are dead slots now (FB-002 C); the page row goes in P3-006, the slots stay until the v2 params prune.
-- Tests, exact edits: replace `SL_GATE` by `1` and `SL_STUT` by `2` in tests/ui_test.c (421, 430, 465, 470, 4008, 4019) and tests/midi_control_test.c (827, 840); tests/sound14_test.c: delete the SLICER GATE case (about 580-610, `slicer_start`, `sl[0]`); tests/swing_test.c: delete `test_slicer()` (99-146) and its call at 170; tests/ui_render.c:1113: delete the `S_SLICER` case and its enum/table entry; tests/regress.c: delete `job_slicer` (232-250), its job-table entries, and the slicer block `if (j->arg) {...}` at 293-300 (delete the job entry whose only difference was that arg). Then `GOLDEN_UPDATE=1 sh tests/run_tests.sh` and `BUDGET_UPDATE=1 sh tests/run_tests.sh` once and list in the Log which golden lines were removed or changed (only slicer cases may go; any other change: stop).
-- Not touched (dead slots, FB-002 C): core.h P_SL* enum, params.c descriptors, ui.c:1269, project.c, upreset_test, project_test, descdump.c, regress P_SLCR constants beyond those above.
-- Log: before/after build line (image, RAM, pool).
+Found by applying the removal in a scratch copy and running the device build, `sh tests/run_tests.sh` and a syntax-only compile of every tests/*.c (FB-003). This list is complete for that run. Line numbers are those of HEAD afca063.
+- Delete (`git rm`): firmware/src/slicer.c; tests/slicer_test.c; tests/perform_test.c (perform.c stays until P3-007; its test needs the slicer and the buses). Delete the line `#include "slicer.c"` in firmware/src/felucca.c (68) and the slicer_test and perform_test blocks plus their header comments in tests/run_tests.sh (slicer_test, perform_test; also reword "sequencer and SLICER step lengths" and the SLICER mentions at about line 32 and 102 of the header comments).
+- firmware/src/fx.c: (a) the constants `SL_RAMP_LOG2`, `SL_RAMP`, `SL_SLOPE` lived in slicer.c; paste them (`#define SL_RAMP_LOG2 7`, `#define SL_RAMP (1 << SL_RAMP_LOG2)`, `#define SL_SLOPE (32768 / SL_RAMP)`) at the top of fx.c, above `#define DLY_LEN` (FB-003 A). fx.c is included before perform.c, which uses all three. `SL_LEN` is NOT moved. (b) Delete `slicer_track_sd(t, b, d, n);` (811), `slicer_track(t, 0, n);` (843) and `slicer_track(t, b, n);` (856); in the condition at 842 drop ` && !slicer_busy(t)`. (c) Reword the comment at 790 that names `slicer_track_sd`.
+- firmware/src/perform.c: add `static int16_t pf_buf[NTRK][4096] __attribute__((section(".pool")));` above `PB_FRAMES`; `PB_FRAMES` (60) becomes `(NTRK * 4096u / 2u)`; replace `sl_buf[0][0]` by `pf_buf[0][0]` at 440, 448, 508, 509, 590, 591; delete `perf_drop_slicer` with its comment (209-216), the `if (!sl_lent) {...}` block (229-232) and the `if (sl_lent) {...}` block (552-555); reword the comments at 35 and 61 that name `sl_buf`.
+- firmware/src/seq.c:851 delete `slicer_start();` and its comment. firmware/src/midi_control.c:194 delete `sl[track].rec = sl[track].loop = 0;`.
+- firmware/src/ui_graph.c: delete `graph_slicer` with its comment (481-503), the two `GR_SLCR` hash lines (1222-1223) and `case GR_SLCR:` with its two lines (2294-2296). firmware/src/params.c:454 graph `GR_SLCR` -> `GR_NONE`; reword the comments at params.c:58, 59 and 130 (they name `SL_OFF .. SL_STUT`, `SL_DEN`, `SL_PAT[]`) and core.h:57 and 437 (`slicer.c`, `sl_enter`). Keep the `GR_SLCR` enum value, `N_SLCR`, `N_SLDIV`, the page row and all `P_SL*` slots (dead; FB-002 C).
+- Tests, every file the scratch run needed:
+  - tests/hostsim.c:36 delete `#include "../firmware/src/slicer.c"` (FB-003 B).
+  - tests/target_budget.py:23 delete `"slicer_track",` and tests/target_budget.txt:39 delete the `slicer_track 632` row (FB-003 C).
+  - tests/ui_test.c: `SL_GATE` -> `1` and `SL_STUT` -> `2` at 421, 430, 465, 470, 4008, 4019; in `test_div_order` (7645-7660) remove `&TP[P_SLRATE]` from `LISTS` (7649) and the `d->names == N_SLDIV ? 1000000u / SL_DEN[v] :` branch (7657).
+  - tests/midi_control_test.c: `SL_GATE` -> `1` at 827 and 840.
+  - tests/sound14_test.c: delete the SLICER GATE case (about 580-610, from the `/* SLICER GATE` comment through its `check(msg, closed > 10u ...)`; it uses `slicer_start`, `sl[0]`) and the line `memset(sl, 0, sizeof sl);` (90). tests/fold155_test.c:412, tests/sound15_test.c:83 and tests/insert_test.c:83: delete `memset(sl, 0, sizeof sl);`.
+  - tests/swing_test.c: delete `test_slicer()` (99-146, with its section comment) and ` + test_slicer()` in `main` (170).
+  - tests/regress.c: delete `J_SLICER` from the enum (164), `job_slicer` (235-250), its `case J_SLICER` (389-391) and the `{ /* the SLICER */ ... }` block that adds the slicer jobs (1066-1074), replacing the block with `add(J_SONG, "song/4track_swing20")->arg = 1;`; in `job_song` keep only `song.g[G_SWING] = 20;` of the `if (j->arg)` block (293-301); reword the comments at 8 and 253.
+  - tests/ui_render.c: leave `S_SLICER` alone (the SLICER page row stays until P3-006).
+- Then `GOLDEN_UPDATE=1 BUDGET_UPDATE=1 sh tests/run_tests.sh` once. Expected in the Log: exactly the two slicer golden lines gone (`slicer/gate/ANALOG_ACID`, `slicer/song_gate_stut`) and one new line `song/4track_swing20`; **0 existing renders changed**. Any other golden or budget change: stop and file an FB.
+- If the "DRUM grid stress" (drumfuzz) step stops with a UBSan `division by zero` at `beat_samples` (`G_BPM` 0), it appeared once in the scratch P3-002 run and not in the next one: rerun it once; if it repeats, file a BUG (it is not a slicer caller) and do not edit around it.
+- Log: before/after build line (image, RAM, pool). Scratch result for reference: pool 342876 -> 342876, RAM .data+.bss 55744 -> 55584.
 
 ## Acceptance criteria
 - [ ] slicer.c, tests/slicer_test.c and tests/perform_test.c show `D` in `git status`, and felucca.c has no `#include "slicer.c"`
-- [ ] `grep -rnw -e slicer_start -e slicer_busy -e slicer_track -e slicer_track_sd -e sl_pattern -e sl_enter -e sl_buf -e sl_lent -e SL_LEN -e SL_PAT -e SL_OFF -e SL_GATE -e SL_STUT -e graph_slicer firmware/src tests` returns nothing; `grep -rn 'sl\[' firmware/src tests` returns nothing; `grep -rn GR_SLCR firmware/src` shows only the enum declaration and the page-table comment, if any
-- [ ] `beat_samples` and `mix_part` still exist in fx.c; `grep -n 'pf_buf' firmware/src/perform.c` shows the declaration with `section(".pool")`
-- [ ] Pool used does not rise against the pre-task build line (32768 B moves from sl_buf to pf_buf); RAM .data+.bss drops (slicer state was 164 B)
+- [ ] `grep -rnwE 'slicer_start|slicer_busy|slicer_track|slicer_track_sd|slicer_test|sl_pattern|sl_enter|sl_buf|sl_lent|sl_t|SL_LEN|SL_NPAT|SL_PAT|SL_DEN|SL_OFF|SL_GATE|SL_STUT|graph_slicer|perf_drop_slicer|job_slicer|J_SLICER|test_slicer' firmware tests tools BUILDING.md` returns nothing
+- [ ] `grep -rnE '(^|[^A-Za-z0-9_])sl\[' firmware tests --exclude=ui_draw.c` returns nothing (ui_draw.c has unrelated local `char sl[..]` buffers; they stay)
+- [ ] `grep -rn 'slicer\.c' firmware tests tools BUILDING.md` returns nothing
+- [ ] `grep -n 'SL_RAMP_LOG2\|SL_SLOPE' firmware/src/fx.c` shows the three defines at the top of fx.c; `grep -n 'pf_buf' firmware/src/perform.c` shows the `.pool` declaration
+- [ ] `beat_samples` and `mix_part` still exist in fx.c
+- [ ] Pool used does not rise against the pre-task build line (32768 B moves from sl_buf to pf_buf); RAM .data+.bss drops
+- [ ] The golden/budget result is exactly as stated in the Deliverable
 - [ ] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
 - [ ] The build line `image ... RAM .data+.bss N of 73728; pool ...` is pasted into the Log; RAM headroom (73728 - N) is at least 8192 B, else stop and file an FB (E9 trigger)
 
@@ -54,3 +66,15 @@ sh tools/check.sh            # last line: CHECK PASS
 Blocked before any edit (FB-002). Hidden callers found: fx.c:229 includes perform.c, which uses sl_buf, sl[] and sl_lent; seq.c:851 slicer_start; ui_graph.c GR_SLCR page; midi_control.c:194 sl[track]; many tests.
 ### 2026-11-10 orchestrator
 FB-002 resolved: scope rewritten above (slicer only, perform.c given its own buffer, dead P_SL* slots kept); the fx buses moved to new task P3-014, which P3-003 now depends on.
+
+### 2026-11-10 executor (haiku), second attempt
+Blocked again before any edit, on FB-003. The re-scoped deliverable still misses callers and definitions:
+- `slicer.c:20-24` defines `SL_LEN`, `SL_RAMP_LOG2`, `SL_RAMP`, `SL_SLOPE`. `fx.c:667, 709, 730` (MIX glide) and
+  `perform.c:276-783` need them, and the deliverable does not say where they move.
+- `tests/hostsim.c:36` includes `slicer.c` (hostsim is built at `tests/run_tests.sh:274`). Not named.
+- `tests/target_budget.py:23` and `tests/target_budget.txt:39` name `slicer_track`. Not named.
+- The `sl\[` acceptance grep also matches the unrelated local arrays `char sl[3]` / `char sl[8]` in ui_draw.c.
+- Comments naming slicer symbols: core.h:440, params.c:58-59, 130, perform.c:35, 60.
+Filed FB-003 with questions A-E. No files edited. Task back in `blocked` until the owner answers.
+### 2026-11-10 orchestrator (FB-003)
+Second inspection resolved by a scratch-copy audit (build, run_tests, syntax check of every tests/*.c); FB-003 A-E answered with its recommendations. Deliverable and greps rewritten above.
