@@ -3,7 +3,7 @@ id: P2-016
 title: EUCLID, SNAKE and STAGE prototypes with golden output
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P2-008]
@@ -65,3 +65,12 @@ Checks of the prototypes against the assessments: SNAKE's snake.md informative c
 Reviewer, please look at (SPEC section 7 of each): (1) `hi(m)`: ADR-0003 section 20 gives max(SPAN,12) / max(RANGE,12), too low once jitter and the snap-up are counted; I used SPAN+3 and RANGE+1 (ADR not edited, P2-029 owns it); (2) EUCLID's "even" pace is not storable in PulseOut (one PO_PACE_DEC bit), so d==2 decelerates, the other two accelerate; (3) knob_morph for EUCLID {0,4,5,3,1,2,6,7} and STAGE {0,1,7,3,4,5,6,2} follow knob_map.tsv (3B re-lock), while ALGORITHM_SET 5.2 / FULL_CONTROL 3 show the older order; (4) STAGE's I- `hold` is computed by step() from the traversal (exact for FWD/BWD/PEND); (5) the HARMONY chord run in the driver marks strong steps from vel>=100 and holds only (EUCLID ordinal 0 and STAGE stage starts are the core's).
 Not run: sh tools/check.sh (no firmware change; the firmware build needs Docker).
 
+
+### 2026-11-12 review (sonnet)
+Verdict: PASS (gate none). Re-ran `sh tests/design/run_protos.sh`: PROTOS PASS, 4 algorithms, goldens equal and byte-identical on two runs; euclid_ref 51 cases 0 mismatches; `backlog.py check` 0 errors; no TBD in any SPEC; cache 30/55/43 B. No firmware change, so no build or RAM line is required (E9 n/a). Scope: only deliverable files plus euclid_ref.py and a small proto_main.c/run_protos.sh change. Gate A marked locked; sections 7-9 filled as prototype-level (Gate B proper at P5).
+The four flagged items:
+1. hi(m) bounds (SPAN+3, RANGE+1): needs no new task. P2-029 already owns the ADR-0003 s20 amendment; add these numbers to its scope. Not edited here.
+2. EUCLID even pace not storable in PulseOut: owner-visible musical loss (three-way pace becomes two-way). Decision needed before P4-001 locks PulseOut flags: either accept two-way (record in ADR via P2-029) or reserve a second pace bit (PO_PIN is not free). Recommend accept two-way for v1.
+3. knob_morph order: the prototypes follow knob_map.tsv (3B re-lock), correct. ALGORITHM_SET 5.2 and FULL_CONTROL 3.2/3.4 are stale doc text; fold into P2-029 (doc-only fix) or a small doc task. No owner decision.
+4. Harness chord run (strong = vel>=100 or hold): acceptable as a test approximation; the core's strong-step marking governs. Note in P2-017, no task.
+Additional finding the executor did not flag: P2-022 (done) makes EUCLID SHAPE a real layer (MOD, second seed s_mod) and SNAKE ARTIC/DRIFT likewise, so the "absent layer" goldens (euclid/SPEC.md:53,131, snake equivalent) are stale against ALGORITHM_SET.md lines 3 and 136. Fix: P2-017 (or a small P2-016b) must add s_mod and mod lanes to all prototypes and regenerate goldens; P2-017 should list this in its scope before the owner locks all six.

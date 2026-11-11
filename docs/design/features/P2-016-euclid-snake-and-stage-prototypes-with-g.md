@@ -60,17 +60,20 @@ Deviations that touch a surface and are for the reviewer / P2-029: ADR-0003 sect
 - [x] Survives stop/start, clock-source change, preset load: yes. `step()` is a pure function of `(cache, g)` with no stored phase (purity test: call order does not matter), so stop/start and a clock change cannot desynchronise it; seeds and morphs are in the preset.
 - [x] Cost recorded (RAM headroom >= 8 KB): caches EUCLID 30 B, SNAKE 55 B, STAGE 43 B (each <= 64, ACID 54 B); each is within the 64 B cache limit (`SQ_CACHE_MAX`, enforced by the table test), and the memory budget is ADR-0003 section 11. No firmware change in this task, so RAM headroom is unchanged.
 
-Design locked: pending reviewer (Sonnet) 2026-11-12
+Design locked: Sonnet reviewer 2026-11-12 (Gate A; predictions consistent with the locked tables; the SHAPE-absent premise is superseded by P2-022, see section 9)
 
 ## 7. Walk-through (after the build)
-Method (host test / real FM-1), firmware SHA, and per step: what the screen showed, what MIDI left.
+Prototype task, no firmware: Gate B proper waits for P5. Reviewer walked the steps against the prototypes on 2026-11-12 (`sh tests/design/run_protos.sh`: PROTOS PASS, four algorithms).
+Steps 1-3, 5, 6: golden.txt carries min/mid/max for every knob and two diced seeds per present layer; E(5,16) = steps 0 3 6 9 12 (euclid_ref.py, 51 cases); turning a morph back restores the output (purity test). Step 4 (absent layer): `dice SHAPE absent (no change)` in euclid golden and ARTIC in snake golden, the driver checks no seed moved. Screen text and toasts are not rendered by a prototype (not walked).
+Difference from prediction: step 4 and the "SHAPE -" label are superseded by P2-022 (EUCLID SHAPE is now MOD, a second seed). The prototypes still model the pre-P2-022 layer set.
 
 ## 8. Actual ease score
 | Function | V | I | O | L | /12 | Predicted | Delta | Pass? |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Pick / morph / dice / absent press | n/a | n/a | n/a | n/a | n/a | 12 / 12 / 11 / 12 | n/a | Sound side supports the predictions; V/I/O/L need firmware and device (Gate B at P5) |
 
 ## 9. Sync re-check and outcome
-- check_scenarios.py / check_help.py / host UI tests: <result>
-- Live checklist re-answered from observation: <result>
-- Outcome: Pass | Pass with debt (FB-nnn) | Fail (<function, sub-score>)
-- Approved: <owner> <date>
+- check_scenarios.py / check_help.py: not re-run by the reviewer (no control table changed); backlog check 133 items, 0 errors.
+- Live checklist: purity, cache <= 64 B and next-step landing are supported by the tests; screen latency and RAM remain for Gate B.
+- Outcome: Pass for the prototype task, with debt: the absent-layer premise (EUCLID SHAPE, SNAKE ARTIC) needs the P2-022 MOD seed added (follow-up, see task Log).
+- Approved: n/a (gate none)
