@@ -3,7 +3,7 @@ id: P3-009
 title: Remove the sample family and FM6 (R6b)
 phase: P3
 type: task
-status: review
+status: done
 priority: 2
 executor: haiku
 depends_on: [P3-008]
@@ -113,3 +113,16 @@ sh tools/check.sh
 - Known failure "web pages" did not occur (check.sh passed).
 - Not done (per spec step 3, P3-012): BUILDING.md, LICENSING.md text beyond the patch.
 - Acceptance criteria ticked: 5 of 5 (all verified above). Set to review.
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS (gate none).
+- Acceptance grep prints nothing (exit 1); no `#include` of any deleted file remains in firmware, tests, web or tools.
+- `sh tools/check.sh`: CHECK PASS. `RAM .data+.bss 26676 B of 73728` (headroom 47052 B, over the 8192 B floor).
+- Image size: check.sh's build printed 189808 B, but a standalone `./build.sh`, and a build after `rm -rf build`, both print 189792 B
+  (same RAM 26676, pool 144052). No timestamp, version string or git state is embedded by build.sh or tools/build.py, so the 16 B is
+  most likely stale incremental state in the pre-existing build/ dir at check time (not proven). The clean, repeatable figure is 189792,
+  matching the earlier rehearsal; the criterion's 189808 is not reproducible from a clean tree. Harmless: RAM and pool are identical, and the shrink is 347096 - 189792 = 157304 B (at least 140000 B).
+- Goldens: besides removed preset/FM6|GRAIN|SAMPLE|SLICE rows, only `song/4track_mix` and `song/4track_swing20` changed, as the spec expected.
+- tools/gen_tables.py: generated header from HEAD~1's script, truncated at the FM6 block, is byte-identical to the new script's output. Only fm6_tables and FM6_LFO_SOURCE went; no other table changed.
+- storage.c flash-map comments: the sample slots and the voice bank are labelled retired and the object ids are kept. Accurate. The "(retired P3-009)" for the staging reference is terse but correct.
+- Note for P3-012: the criterion's 189808 should read 189792.
