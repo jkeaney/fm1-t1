@@ -52,3 +52,10 @@ Verification output:
 - width_probe.sh: `292 strings, 0 over`
 - backlog.py check: `121 items, 0 errors`
 Note for reviewer: owner decision on the PAD Y/Z, TUNING mapping is "no equivalent" (kept honest rather than invented stand-ins); the 100-velocity accent threshold is approximated continuously.
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS on content; gate is human-review, so left at `review`. Awaiting owner: read docs/design/PREVIEW.md sections 1.4 (gestures), 3 (mapping tables, "no equivalent" rows) and 8, and confirm that a MIDI OFF channel is silent on the preview too and that the PAD Y/Z, TUNING, EFFECT rows stay "no equivalent".
+- Re-ran all five checkers: scenarios 23 files, 0 with no scenario; help OK 392 rows; check_sequencer_ux OK; width_probe 292 strings, 0 over; backlog check 121 items, 0 errors. No firmware changed, no build run (design only).
+- Decision 110 point by point: 1A, 2 (all OFF, 0/1.1), 4A (MASTER only), 7 (one `sq_emit` condition for MIDI and preview; MIDI OFF = silent, stated in 1.2 and ADR-0003 addendum 21), 8A (ADR-0003 and SEQUENCER_UX 4.4 edited) all present. On/off = 1 gesture, sound = hold + ALGO (2), with strip label and ALGO cell role. Mapping covers notes, gate, velocity, accent, slide, ratchet, 11 TB-3 CCs, GENERIC CCs, with honest "no equivalent" and a 3.3 limits list. Toast strings are in widths.tsv.
+- BASS MONO -> LEGATO is justified: voice.c:403 MONO always retriggers, so an overlap re-attacks; LEGATO (voice.c:405) glides without retrigger, matching TB-3 slide. Sensible.
+- Minor doc nits (not blocking, fix with the next PREVIEW edit): (1) section 7 last bullet says S01/S04 were not edited, but the diff edited both; (2) 3.1 slide row says "no new envelope trigger" for MONO or LEGATO, but LEAD stays MONO and does retrigger (voice.c:403); say LEGATO-only gives a true slide, or switch LEAD to LEGATO.
