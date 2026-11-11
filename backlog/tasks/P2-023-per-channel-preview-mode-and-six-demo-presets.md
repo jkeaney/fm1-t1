@@ -52,3 +52,12 @@ Verification:
 - check_sequencer_ux.py -> OK
 - width_probe.sh -> 286 strings, 0 over
 - backlog.py check -> 120 items, 0 errors
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS on the mechanical and design checks; gate is human-review, so the task stays at `review`.
+- Re-ran all five checkers: check_scenarios (23 files, 490 rows, 0 unscenarioed), check_help OK (392 rows), check_sequencer_ux OK, width_probe 286 strings 0 over, backlog check 120 items 0 errors.
+- Commit 795ccde touches only docs/design/PREVIEW.md and this task file. No BUG-003/P3-014 files, no firmware.
+- Presets: ACID, LEAD, BASS, PAD, STRINGS each map to ANALOG with concrete E0..E7, ADSR, mode and LFO values; spot-checked against ANALOG_PRESETS in eng_analog.c:202-215 (values match; SPREAD is POLY/UNISON only, as the doc uses it). PIANO is honestly flagged as not feasible on ANALOG, with options A/B/C and costs.
+- Labelling: [M] measured vs [E] estimate is declared up front and applied per figure (41.4 KB PIANO data [M], eng_sample ~5 KB [E], CPU [E], nothing [V]).
+- Superseded rules: ADR-0003 and SEQUENCER_UX 4.4 are named as superseded in section 0 and 6, not edited, and put to the owner (question 8).
+Awaiting owner: answer questions 1-8 in PREVIEW.md section 8 (chiefly Q1 PIANO: A/B/C, which unblocks P3-009/P3-010, and Q8 amending ADR-0003 / SEQUENCER_UX 4.4). Also confirm the hold-mute-key gesture.
