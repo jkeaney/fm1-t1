@@ -61,7 +61,6 @@
 #                   underrun / overrun, restart; SET_CUR; the 44.1 -> 48 kHz resampler (every frame against a
 #                   double-precision one, response, SNR, cost); the stream at 48 kHz (47..49 frames per packet,
 #                   fast and slow I2S clocks, switching rates mid-stream).
-# web (web/test_backup.mjs): the backup capture, validation before writes, restore order.
 # Browser emulator (web/emu, when emcc is there): the firmware in WebAssembly (build/emu) boots, plays keys and MIDI,
 #                   draws, lights its LEDs, keeps a save across instances, plays a song bit for bit as the same file
 #                   built with cc (web/emu/native_check.c); the cost of 1 s of a heavy song against real time.
@@ -242,12 +241,6 @@ run "regression: target cost of the render loops (pi32v2 disassembly)" python3 t
 run "installer CLI (fm1_install.py) against a simulated FM-1" python3 tests/install_test.py
 
 run "timing tool self-test (P4-008): synthetic logs through the TIMING_SPEC 6.2 verdicts" python3 tests/fm1_timing_selftest.py
-
-if command -v node >/dev/null 2>&1; then
-    run "web backup: capture, validation before writes, restore order" node web/test_backup.mjs
-else
-    echo "== skip web tests (no node)"
-fi
 
 if ! command -v emcc >/dev/null 2>&1; then
     echo "== skip the browser emulator (no emcc: Emscripten builds web/emu)"

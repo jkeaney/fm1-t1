@@ -3,7 +3,7 @@ id: P3-015
 title: Remove the installer page's SysEx backup flow (keep plain restore to V15)
 phase: P3
 type: task
-status: todo
+status: review
 priority: 2
 executor: sonnet
 depends_on: [P3-013]
@@ -21,9 +21,9 @@ Decision 114: the installer page's SysEx backup flow times out on the cleaned fi
 - Installer page without the backup flow or "use the editor" text; restore-to-V15 path unchanged; a log entry listing what was removed.
 
 ## Acceptance criteria
-- [ ] No SysEx backup code or text remains on the installer page
-- [ ] Restore to official V15 still present and unchanged
-- [ ] `sh tools/check.sh` ends CHECK PASS (the web pages step has the known spaces-in-path failure; note it if seen)
+- [x] No SysEx backup code or text remains on the installer page
+- [x] Restore to official V15 still present and unchanged
+- [x] `sh tools/check.sh` ends CHECK PASS (the web pages step has the known spaces-in-path failure; note it if seen)
 
 ## Verification
 ```sh
@@ -38,3 +38,13 @@ n/a, internal work (tooling, plumbing, docs, process); no producer-visible contr
 - Firmware changes; the web emulator.
 
 ## Log
+### 2026-11-12 executor (sonnet)
+Removed:
+- web/index_pkg.html: backup branch of the stock-restore click handler (BackupConnection, archiveInfo, captureBackup, saveArchive), the `stockBackup`, `stockRecovery`, `stockNeedBackup`, `stockUnsupported` and `backup` strings (ja and en), the "resume" checkbox, and the "use the editor" text. "Back up and" dropped from the button label. Added `stockWarn` ("Official V15 cannot open Felucca music") and reworded `stockConfirm` to match.
+- web/fm1backup.js and web/test_backup.mjs (git rm); the fm1backup.js inlining in web/make_site.py; the node backup test step and its comment in tests/run_tests.sh.
+Kept: file pick and validation, update-mode resume, plain `up.install` to V15, with a confirm.
+Verification:
+- `sh tools/check.sh` -> CHECK PASS (RAM .data+.bss 23060 of 73728)
+- `grep -rniI "backup\|use the editor" web/` (excluding web/emu) -> no output
+- The installer script block parses (`node --check`).
+Note: the page's restore flow was not run in a browser.
