@@ -32,8 +32,8 @@ Each contour has more than one distinct value for `range >= 2` and `steps >= 4`;
 `quad = (norm * norm) / (total_steps * total_steps + 1)` is integer division and is always 0, so ARCH is a constant `+max` (`1 1 1 ...`) and INV A a constant 0.
 
 ## Acceptance criteria
-- [ ] The new test fails on the old code and passes on the new.
-- [ ] `tools/check.sh` passes.
+- [x] The new test fails on the old code and passes on the new.
+- [x] `tools/check.sh` passes.
 
 ## Verification
 ```sh

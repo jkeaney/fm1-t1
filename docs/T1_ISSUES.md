@@ -22,7 +22,7 @@ Background and the algorithm write-ups are in [t1-algorithms/](t1-algorithms/REA
 | --- | --- | --- | --- | --- |
 | [F1](#f1) | FIXED | High | Harmony | Five scale masks held the wrong notes |
 | [F2](#f2) | PARTIAL | High | Harmony / UI | UI scale names and engine order disagreed; a stale name array remains |
-| [F3](#f3) | OPEN | Medium | Harmony | ARCH and INV A contours are constant |
+| [F3](#f3) | FIXED | Medium | Harmony | ARCH and INV A contours are constant |
 | [F4](#f4) | FIXED | High | Harmony | `range` was multiplied by 7 semitones |
 | [F5](#f5) | OPEN | Medium | Harmony | Arpeggio style added on every pulse, twice above style 0; RAND/ORDER wrong |
 | [F6](#f6) | OPEN | High | UI | GLOBAL mode: unmapped knobs change STEPS on all tracks |
@@ -82,7 +82,7 @@ Counts: 19 issues: 3 fixed (F1, F4, F18), 2 partial (F2, F13), 14 open. The 14 o
 ---
 
 <a id="f3"></a>
-## F3. ARCH and INV A phrase contours are broken: OPEN
+## F3. ARCH and INV A phrase contours are broken: FIXED (BUG-001)
 
 **Triage (P2-006):** Tracked as BUG-001 (backlog/bugs/BUG-001-f3-arch-and-inv-a-phrase-contours-are-constant.md). ADR-0003 section 13 reuses `t1_harmony_eval_phrase` after this fix (section 16 prerequisite 4).
 
