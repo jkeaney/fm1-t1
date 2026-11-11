@@ -3,7 +3,7 @@ id: P2-026
 title: Align SEQUENCER_UX mute/SOLO wording with the MIDI gate (decision 111)
 phase: P2
 type: task
-status: review
+status: done
 priority: 2
 executor: sonnet
 depends_on: [P2-025]
@@ -43,3 +43,6 @@ Verdict: FAIL (minor). All five checkers re-run and pass (scenarios 490 rows, he
 - [ ] Optional: SEQUENCER_UX.md U49 (~582) "while held only ch sounds" should say MIDI (SOLO leaves previews sounding, PREVIEW.md 1.2).
 ### 2026-11-11 executor (sonnet), review fixes
 Fixed: ADR-0003 step-start step 4 (dropped `muted` from the skip test, added decision-111 note) and step 5 tie text ("a mute" removed); PREVIEW.md:267 reworded (old wording attributed to U48/hit(n)/ADR step 4, now aligned); U49 "while held only ch sends MIDI (previews keep sounding)". Re-grepped docs/ (excluding *-algorithms/ catalogue) for muted+hit/skip/source claims: T1_ISSUES.md:192 is history about the old T-1 code, left. Five checkers re-run: pass (296 strings 0 over; 123 items 0 errors).
+
+### 2026-11-11 re-review (sonnet)
+Verdict: PASS. Fixes in c8efa18 verified: ADR-0003:441 step 4 no longer tests `muted` (and the tie line drops "a mute"), stating mute is dropped at the MIDI gate in sq_emit; PREVIEW.md:267 now says the old wording is aligned by P2-026; U49 says "only ch sends MIDI (previews keep sounding)". Read each checker output in full, all exit 0: scenarios (490 rows, 0 unmapped), help ("OK: 392 help rows"), sequencer_ux (OK), width_probe ("296 strings, 0 over", no non-OK lines), backlog ("123 items, 0 errors"). Re-grep of docs/ for mute-in-step-resolution claims: none left (remaining mute hits are the per-step MUTE field and key-role text).
