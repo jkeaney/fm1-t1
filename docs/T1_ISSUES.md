@@ -40,7 +40,7 @@ Background and the algorithm write-ups are in [t1-algorithms/](t1-algorithms/REA
 | [F18](#f18) | FIXED | Low | Tests | The Phase 3 timing test is wall-clock and flaky |
 | [F19](#f19) | OPEN | Medium | Random | Consecutive LFSR draws are dependent: pitch and velocity jitter are tied together |
 
-Counts: 19 issues: 3 fixed (F1, F4, F18), 2 partial (F2, F13), 14 open. The 14 open items are 3 High (F6, F7, F12), 6 Medium (F3, F5, F8, F9, F11, F19) and 5 Low (F10, F14 to F17).
+Counts: 19 issues: 4 fixed (F1, F3, F4, F18), 2 partial (F2, F13), 13 open. The 13 open items are 3 High (F6, F7, F12), 5 Medium (F5, F8, F9, F11, F19) and 5 Low (F10, F14 to F17).
 
 ---
 

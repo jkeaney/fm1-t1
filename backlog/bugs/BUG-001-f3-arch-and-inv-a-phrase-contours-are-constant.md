@@ -3,7 +3,7 @@ id: BUG-001
 title: F3 - ARCH and INV A phrase contours are constant
 phase: P3
 type: bug
-status: review
+status: done
 priority: 2
 executor: sonnet
 depends_on: [P3-001]
@@ -49,3 +49,9 @@ Created by P2-006 (triage of F3: the function survives into the new design, so t
 - New code: `ALL 106 TORSO T-1 PHASE 2 TESTS PASSED`.
 - `sh tools/check.sh`: `RAM .data+.bss 23060 B of 73728`, `CHECK PASS`.
 - docs/T1_ISSUES.md F3 marked FIXED (summary counts line not updated).
+
+### 2026-11-11 review (sonnet)
+- Verdict: PASS.
+- Fix checked: guard `range==0 || total_steps<=1` precedes the divide, so no div by 0; `norm` max 510, 510*510*255 ~ 66M fits int32; denominator cast to int32. ARCH = max - quad: peak `max` at the middle (norm 0), 0 at the ends; INV A mirrors. Odd lengths peak at the nearest step. Old quotient was always 0, so the new assertions (more than one value, middle vs start) fail on the old code.
+- `sh tools/check.sh`: `RAM .data+.bss 23060 B of 73728` (headroom 50668 B), CHECK PASS. No golden changes.
+- Fixed the missed Counts line in docs/T1_ISSUES.md (4 fixed, 13 open, 5 Medium).
