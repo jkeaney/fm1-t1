@@ -44,7 +44,7 @@ preview part `trk[ch-1]`. The two tests are independent: neither reads the other
 | MIDI gate | PREVIEW gate | State name | Result | Z1 cell (1.5) |
 | --- | --- | --- | --- | --- |
 | open | off | **MIDI** | notes to MIDI out only: the reference workflow with the TB-3 (the power-on default) | line 2 `MIDI 2`, no icon |
-| open | on | **MIDI + PREVIEW** | notes to MIDI out and to the speaker and USB audio, identical events | `MIDI 2`, speaker icon |
+| open | on | **MIDI + PREVIEW** | notes to MIDI out and to the master output (speaker or headphones) and USB audio, identical events | `MIDI 2`, speaker icon |
 | closed (muted, or MIDI OFF) | on | **CUE** | MIDI out is silent; the channel is heard in the preview mix only. The lane keeps running and showing. Unmute (tap the key) or give it a MIDI channel to send it out | line 2 `CUE 2` (or `CUE OFF`), speaker icon |
 | closed | off | **MUTED / OFF** | nothing from the channel on either output; it keeps running and showing its lane | `MUTE 2` or `MIDI OFF`, no icon, cell dim |
 
@@ -57,16 +57,17 @@ sounding `snd[]` entry on the part it started on). Closing the MIDI gate (a mute
 note-offs of sounding notes as before and leaves the preview notes to end by their own queued offs. Because the preview plays exactly the
 event stream, there is no preview-only logic to test apart from the patch table and the CC map (section 3); the CUE adds only the second gate.
 
-**Hardware limits, stated honestly.** The FM-1's audio leaves it in two places: **the built-in speaker and USB audio** (a stereo mix of the four
-preview parts; SYSTEM_MAP section 2, level = the MASTER pot). No document or firmware file shows a headphone or line output, and the 3.5 mm TRS
-jack is **MIDI IN only** (CLAUDE.md). **There is no separate cue bus**: the speaker and USB audio carry **one mix** of every previewing channel,
-and that mix is the only place a CUE can be heard. It still works like a DJ cue because the two worlds are separate: the **TB-3 and other DIN gear
-are heard from their own audio outputs** (into a mixer or audio interface), while the **FM-1 speaker, or its USB audio into the DAW, carries only
-the preview parts**. With CH1 on the TB-3 (MIDI) and CH2 in CUE, the TB-3 plays in the room and CH2 is heard on the FM-1's speaker or on the
-host's USB-audio monitor (headphones on the host). Consequences: (1) **every previewing channel is in the same mix**, so a CUE channel is heard
-together with the other previewing ones (nothing is excluded; section 8); (2) the cue has no level of its own (one MASTER pot, 110/4A); (3) the
-FM-1 cannot send a cue to headphones by itself. Whether a headphone jack exists on the unit is to be confirmed on HW-1; this document does not
-promise one.
+**Hardware limits, stated honestly.** The FM-1's audio leaves it through **the master output, which is the built-in speaker plus a rear headphone
+jack (owner-confirmed 2026-11-11, decision 112), and USB audio** (a stereo mix of the four preview parts; SYSTEM_MAP section 2, level = the MASTER
+pot). The 3.5 mm TRS MIDI jack is **MIDI IN only** (CLAUDE.md); it is not the headphone jack. The preview of **every channel with PREVIEW ON goes to
+the master output**, whichever of speaker or headphones the device routes it to. **No separate cue bus is designed**: the master output and USB audio
+carry **one mix** of every previewing channel. It still works like a DJ cue because the two worlds are separate: the **TB-3 and other DIN gear are
+heard from their own audio outputs** (into a mixer or audio interface), while the **FM-1 master output (speaker or headphones), or its USB audio into
+the DAW, carries only the preview parts**. With CH1 on the TB-3 (MIDI) and CH2 in CUE, the TB-3 plays in the room and CH2 is heard on the FM-1's
+headphones (or speaker), or on the host's USB-audio monitor. Consequences: (1) **every previewing channel is in the same mix**, so a CUE channel is
+heard together with the other previewing ones (nothing is excluded; section 8); (2) the cue has no level of its own (one MASTER pot, 110/4A); (3) the
+mute controls are the **MIDI gate only** and never silence a preview. **HW-1 check (the one thing not known):** whether the speaker mutes when
+headphones are plugged in. This document does not depend on the answer.
 
 ### 1.3 Keys and audition
 
@@ -323,7 +324,7 @@ The reference workflow in VISION is unchanged: a TB-3 user leaves PREVIEW OFF (t
 
 **No real choice blocks the design.** Decisions 110 and 111 settled the questions. Three consequences for the owner's information (no answer needed unless you disagree):
 
-1. **Cue mix (a small choice, default taken).** There is one audio mix (speaker and USB audio, no cue bus, 1.2). The default taken here: **every previewing channel is in the mix**, whether its MIDI is open or not. The alternative (a "cue only" mode that silences the previews of channels whose MIDI is open) would need a second gate per channel and a gesture; it is not designed. If you want it, say so and it becomes a task.
+1. **Cue mix (a small choice, default taken).** There is one audio mix (master output, speaker or headphones, plus USB audio; no cue bus, 1.2). The default taken here: **every previewing channel is in the mix**, whether its MIDI is open or not. The alternative (a "cue only" mode that silences the previews of channels whose MIDI is open) would need a second gate per channel and a gesture; it is not designed. If you want it, say so and it becomes a task.
 2. SOLO is a MIDI-gate action only and does not silence previews (1.2), so SOLO is not a cue tool; CUE is preview-on plus a mute.
 3. The preview has no threshold accent, no pad or effect equivalent (3.3); TB-3 TUNING is a +-50 cent pitch offset whose span is an estimate [E] until measured on HW-1.
 
@@ -332,7 +333,7 @@ The reference workflow in VISION is unchanged: a TB-3 user leaves PREVIEW OFF (t
 | Decision 111 point | Where |
 | --- | --- |
 | 1B: preview independent of MIDI out; a channel can preview with MIDI muted or OFF (a CUE); same events, separate destinations | 0, 1.2 (two gates, four states), 1.3, 3.1 (Mute, MIDI OFF row) |
-| CUE use and honest hardware limits | 1.2: speaker and USB audio only, one mix, no cue bus, no headphone jack documented |
+| CUE use and honest hardware limits | 1.2: master output (speaker or rear headphone jack, owner-confirmed, decision 112) plus USB audio, one mix, no cue bus; HW-1 checks only whether the speaker mutes on plug-in |
 | Gestures at most 2 each | 1.4: preview on/off 1 (hold), MIDI mute 1 (tap), sound 2 (hold + ALGO); tap versus hold rule |
 | Status of the four combinations | 1.5: icon plus `MIDI n` / `MUTE n` / `MIDI OFF` / `CUE n` / `CUE OFF` |
 | 2A: no-equivalent TB-3 controls stay unmapped; TUNING (CC 104) is pitch | 3.2: PIT, +-50 cents [E] |

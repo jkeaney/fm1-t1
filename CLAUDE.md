@@ -55,6 +55,7 @@ All work goes through the backlog. Don't patch firmware outside a task.
   MIDI IN only**, in hardware; `hal/fm1_uart.h` configures RX only. Driving DIN gear such as the TB-3 without a
   computer needs a USB-MIDI host box (FM-1 USB → host → DIN → TB-3 MIDI IN). The TB-3 receives on **channel 2** by
   default.
+- Audio out: speaker plus a rear headphone jack (owner-confirmed 2026-11-11).
 - Stock firmware (official V15) reports `FM-1_015` on the MIDI port "FM-1" (observed 2026-11-10). Felucca builds report `FM-1_9xx` on the port "JIANT FM", and the update loader shows as "JIANT Update", so the installer needs `--port "JIANT"` for a Felucca install but `--port "FM-1"` for `--info` on stock. After a factory restore the device may need a power-cycle.
 
 ## Commands
