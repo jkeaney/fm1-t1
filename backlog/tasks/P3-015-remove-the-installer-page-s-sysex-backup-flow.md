@@ -3,7 +3,7 @@ id: P3-015
 title: Remove the installer page's SysEx backup flow (keep plain restore to V15)
 phase: P3
 type: task
-status: review
+status: done
 priority: 2
 executor: sonnet
 depends_on: [P3-013]
@@ -48,3 +48,11 @@ Verification:
 - `grep -rniI "backup\|use the editor" web/` (excluding web/emu) -> no output
 - The installer script block parses (`node --check`).
 Note: the page's restore flow was not run in a browser.
+
+### 2026-11-12 review (sonnet)
+Verdict: PASS (gate none).
+- `sh tools/check.sh` -> CHECK PASS; RAM .data+.bss 23060 of 73728 (headroom 50668 B, above 8192).
+- grep for backup / use the editor / BackupConnection / captureBackup / stock-recovery / fm1backup in web, tools, tests: no hits outside web/emu.
+- Restore click handler read in full: the stock-recovery reference is gone, every `$("id")` used has a matching element, every sayK/t key (stockWarn, stockConfirm, stockValid, stockError, ...) is defined in both ja and en. Resume branch (update loader) now confirms then `up.resume`; normal branch closes the link, confirms, then `up.install` to V15. `link` variable and finally-clause cleanly removed. lockInstaller no longer touches the removed checkbox.
+- make_site.py and run_tests.sh diffs are minimal and consistent (fm1backup.js and test_backup.mjs deleted, no dangling refs).
+- UX (brief): restore reachable in the details section, warning (stockWarn) shown before and in the confirm, no dead UI. Not run in a browser (executor's note stands); the owner can try it when next flashing.
