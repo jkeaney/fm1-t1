@@ -3,7 +3,7 @@ id: P2-022
 title: Modulation layer redesign: per-algorithm mod lanes and 4-slot control setup
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: []
@@ -66,3 +66,6 @@ Verdict: PASS on all checkable criteria; gate is human-review, so left at `revie
 - Remote vs mod (section 2) tags [V-ear]/[V-doc]/[I]/[D] correctly: CC receive of the 11 is verified, knob-vs-CC overwrite and no read-back of TB-3 OUT are [I] until H-MOD1/3.
 - Minor nit (not blocking): MODULATION.md section 1 table row 3 describes ENV-X as "lane B" use, but 6.1 puts ENV-X on slot 3 = lane A. Align the wording.
 Awaiting owner: review MODULATION.md section 10 questions 1-9 (esp. Q1 shared SHAPE+MOD dice, Q2 DEPTH on hold OCT+, Q6 VISION rule 3 wording) and sign off in this log.
+
+### 2026-11-11 orchestrator
+Approved: owner 2026-11-11 (questions 1-9 all A; decision 108).

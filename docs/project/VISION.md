@@ -16,7 +16,7 @@ raise it as feedback (see [PROCESS.md](PROCESS.md)), don't silently pick one.
    sampling, effects authoring and sound design are out of scope unless they serve previewing.
 3. **Channels drive MIDI.**
    - The sequencer has channels, and each channel sends MIDI out.
-   - A channel's only setting is its MIDI output channel. MIDI channels are unique across the four channels: giving a channel one that another channel uses turns that other channel's MIDI to OFF (owner ruling 2026-11-10).
+   - A channel's settings are its MIDI channel, its algorithm and length, and (optional) a device with four mod slots (decisions 98, 108). MIDI channels are unique across the four channels: giving a channel one that another channel uses turns that other channel's MIDI to OFF (owner ruling 2026-11-10).
    - A channel's sequence comes from steps entered on the 16 white keys, or from an algorithm.
 4. **Algorithms are dialled in and performed.**
    - Each channel picks an algorithm.
