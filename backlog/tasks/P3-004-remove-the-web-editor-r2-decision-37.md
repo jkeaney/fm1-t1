@@ -3,7 +3,7 @@ id: P3-004
 title: Remove the web editor (R2, decision 37)
 phase: P3
 type: task
-status: todo
+status: review
 priority: 2
 executor: haiku
 depends_on: [P3-003]
@@ -40,14 +40,14 @@ Scope rehearsed in a scratch copy (FB-005): device build, syntax-only compile of
 - Log: before/after build line and the bytes freed vs SYSTEM_MAP §9; the lost-coverage note; whether the full run_tests.sh result matches the rehearsal (rehearsal: ALL HOST TESTS PASSED, 0 budget rows over, test_backup.mjs passed, emulator skipped for lack of emcc).
 
 ## Acceptance criteria
-- [ ] Every file listed under `git rm` is gone (`git status` shows `D`); `grep -n 'editor.c' firmware/src/felucca.c` is empty
-- [ ] `grep -rnE 'ed_service|ed_handle|ed_ui_set|ed_menu_handle|ed_backup_handle|ed_fm6_handle|editor_test\.c' firmware tests tools web build.sh` returns nothing except comments in tests/ui_test.c
-- [ ] `grep -n 'editor' tools/size_fns.py web/make_site.py web/index_pkg.html web/emu/index.html tests/run_tests.sh` has no file name, link or test run left (comments naming past history are fine)
-- [ ] web/fm1backup.js, web/test_backup.mjs, web/fukiai.ttf, web/FUKIAI-LICENSE.txt still exist; `node web/test_backup.mjs` passes
-- [ ] `sh tests/run_tests.sh` still runs ota_test and ldr_test and both pass; `python3 web/make_site.py build/felucca.fwsc dev /tmp/site-check` succeeds (if the package identity check allows) and writes no `webapp/editor`
-- [ ] Syntax-only compile of every tests/*.c that compiled before still compiles (uac_test and usb_desc_test need run_tests.sh flags; skip them)
-- [ ] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
-- [ ] The build line is pasted into the Log; RAM headroom (73728 - N) is at least 8192 B, else stop and file an FB (E9 trigger)
+- [x] Every file listed under `git rm` is gone (`git status` shows `D`); `grep -n 'editor.c' firmware/src/felucca.c` is empty
+- [x] `grep -rnE 'ed_service|ed_handle|ed_ui_set|ed_menu_handle|ed_backup_handle|ed_fm6_handle|editor_test\.c' firmware tests tools web build.sh` returns nothing except comments in tests/ui_test.c
+- [x] `grep -n 'editor' tools/size_fns.py web/make_site.py web/index_pkg.html web/emu/index.html tests/run_tests.sh` has no file name, link or test run left (comments naming past history are fine)
+- [x] web/fm1backup.js, web/test_backup.mjs, web/fukiai.ttf, web/FUKIAI-LICENSE.txt still exist; `node web/test_backup.mjs` passes
+- [x] `sh tests/run_tests.sh` still runs ota_test and ldr_test and both pass; `python3 web/make_site.py build/felucca.fwsc dev /tmp/site-check` succeeds (if the package identity check allows) and writes no `webapp/editor`
+- [x] Syntax-only compile of every tests/*.c that compiled before still compiles (uac_test and usb_desc_test need run_tests.sh flags; skip them)
+- [x] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
+- [x] The build line is pasted into the Log; RAM headroom (73728 - N) is at least 8192 B, else stop and file an FB (E9 trigger)
 
 ## Verification
 ```sh
@@ -83,3 +83,26 @@ Also not yet measured: the before build line (`./build.sh | grep RAM`). Not run 
 Needed decision: name the files for items 1-6 and 8 in the Deliverable (or accept the proposed scope: delete fm6bank_test, fuzz_proj, fuzz_smp, web/test_web.mjs and web/test_backup.mjs; drop the editor link and copy in make_site.py and index_pkg.html; edit the usb.c comment; split robust_test at lines 122-128). Then re-run this task.
 
 Filed as blocked. No bug or feedback file is written here because the spec is incomplete rather than contradicted; the owner or orchestrator can choose the route.
+
+### 2026-11-11 executor (claude-haiku-5-5), run 2
+
+The Deliverable now names every file the earlier block listed (fm6bank_test, fuzz_proj, fuzz_smp, web/test_web.mjs, robust_test deleted whole, the run_tests.sh, make_site.py, index_pkg.html, emu/index.html, usb.c comment, size_fns.py). Done as written.
+
+Removed (`git rm`): firmware/src/editor{,_backup,_fm6,_learn,_menu,_palette,_preferences}.c; web/editor.html, EDITOR_PROTOCOL.md, test_web.mjs; tests/editor_test, fuzz_ed, backup_test, fm6bank_test, fuzz_proj, fuzz_smp, descdump, robust_test (.c).
+
+Edited: felucca.c (`#include "editor.c"` deleted); main.c (`ed_service()` in the FELUCCA_OTA block and the 15 ms loop block deleted, `ui_input()` kept); usb.c:798 comment now `ota_take()`; tools/size_fns.py (5 editor entries and the comment word dropped); tests/persistence_test.c (editor stubs and the two ed_ blocks cut, autosave_hold kept); tests/run_tests.sh (runs, descdump, ASan loop now `project_test fun10_test`, header comments; test_backup.mjs kept in its node block); web/make_site.py (editor copy, ed dir, docstring, print); web/index_pkg.html (editor link and both `editor:` strings; stockBackup text untouched as the Deliverable requires); web/emu/index.html (Editor link).
+
+Not edited on purpose: BUILDING.md (line 89 names "the editor" as a feature, not the page); comments in tests/ratchet_test.c:14, drum_test.c:23, v16_test.c:6 and ui_test.c:3807 that name editor_test.c; tests/run_tests.sh:257 label "editor"; index_pkg.html stockBackup text.
+
+Build (`./build.sh | grep RAM`): `image 500212 B; RAM .data+.bss 54064 B of 73728; pool 191048 B of 368640`. Headroom 19664 B (>= 8192). The before line was not re-measured here; the rehearsal numbers (515492 / 55248 / 192808) give freed 15280 B image, 1184 B RAM, 1760 B pool, matching SYSTEM_MAP §9.
+
+Lost coverage (interim): robust_test (sample slots, engine numbers, retained projects, preset patterns, malformed requests), fm6bank_test, editor protocol and MENU settings over the editor, fuzz_ed / fuzz_proj / fuzz_smp, the web editor protocol test. Projects, backup and T-1 suites still run.
+
+Verification:
+- `sh tools/check.sh` -> `CHECK PASS`
+- `sh tests/run_tests.sh` (via check.sh, build/check/tests.log): `ALL HOST TESTS PASSED`; `backup web tests passed`; ota/loader lines ok (felucca.fwsc carries the loader marker, loader exit codes ok).
+- Syntax-only compile of every tests/*.c except uac_test and usb_desc_test: no failures.
+- `node web/test_backup.mjs`: `backup web tests passed`.
+- `python3 web/make_site.py build/felucca.fwsc dev /tmp/site-check`: exit 0, `webapp/installer` only, no `webapp/editor`.
+- Golden / budget not updated (no BUDGET_UPDATE or GOLDEN_UPDATE run); the full run passed with them unchanged.
+- Emulator skipped (no emcc), as in the rehearsal.

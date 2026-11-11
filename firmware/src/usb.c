@@ -795,7 +795,7 @@ static void sysex_byte(uint8_t b)
         else if (sx_collect && sx_pos) {
             sx_frame_len = sx_pos;
             RING_PUBLISH();
-            sx_ready = 1;                               /* main loop: ota_take() / ed_service() */
+            sx_ready = 1;                               /* main loop: ota_take() */
         }
         sx_collect = 0;
 #endif
