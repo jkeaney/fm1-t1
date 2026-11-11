@@ -3,7 +3,7 @@ id: P2-017
 title: ARP and PATTERNS prototypes with golden output; owner locks all six prototypes
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P2-013, P2-014, P2-016]
@@ -33,7 +33,7 @@ Prototype ARP and PATTERNS against the locked P2-013/P2-014 designs, finalise `s
 - [x] PATTERNS golden has morph min/mid/max for at least one pattern per category, and every shipped pattern stays in scale under three keys
 - [x] Pattern names are style names, never song titles (decision 90)
 - [x] RAM, pool and flash totals for all six are within PROGRAM_PLAN §5, else the overrun and a proposal are stated
-- [ ] Design locked: owner line in the log
+- [x] Design locked: owner line in the log
 
 ## Verification
 ```sh
@@ -102,3 +102,6 @@ Awaiting owner: LOCK.md section 6, items 1-7 (knob/dice tables and ROW 2 held sc
 ### 2026-11-12 executor (sonnet), owner answers applied
 Owner answers (via coordinator): O-5 yes (ARP THUMB walking tones skip the HOME note's pool index), SHAPE sub-labels option A (primary names, toast adds `+ MOD`), PATTERNS O1-O3 settled, contract changes and PATTERNS-CPU-later confirmed. Applied in `arp/proto.c`, `arp/SPEC.md` (6.3, 6.8, 6.13), `arp_ref.py`, `arp_extra.h`, all SPECs (sub-label decision), MODULATION.md 3.4 note, LOCK.md section 6 (marked decided). Only ARP THUMB lines (non-UP directions) and the drone case changed in `arp/golden.txt`; the other five goldens are byte-identical. No `Approved:` line written and status unchanged (orchestrator's).
 Results: run_protos PROTOS PASS (six; arp_ref 1728 cases 0 mismatches; patterns_ref 126, 0), check_scenarios 0 unmapped, check_help OK 392 rows, width_probe 297 strings 0 over, backlog check 134 items 0 errors.
+
+- Design locked: owner 2026-11-12 (answers: O-5 yes, SHAPE labels option A, PATTERNS idiom-faithful O1-O3, contract changes and PATTERNS-CPU-later confirmed; see docs/design/algorithms/LOCK.md section 6). Verified by orchestrator after 57555a4: run_protos.sh PROTOS PASS, six algorithms.
+- Approved: owner 2026-11-12

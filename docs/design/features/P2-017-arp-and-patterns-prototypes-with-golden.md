@@ -79,3 +79,5 @@ Difference from prediction: none yet; the THUMB-with-a-drone quirk (LOCK.md 4 it
 - Live checklist re-answered from observation: pending the device.
 - Outcome: pending (reviewer Gate B, owner design lock).
 - Approved: <owner> <date>
+
+Design locked: owner 2026-11-12
