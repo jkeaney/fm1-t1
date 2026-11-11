@@ -579,7 +579,7 @@ each channel whose PREVIEW is ON plays the same notes on its own preview part (a
 | U46 | GLO hold, any key | KEY = pitch class | next step; the new root sounds once | `KEY F` |
 | U47 | GLO hold, OCT- / OCT+ or K3 | OCTAVE | next step | `OCTAVE +1` |
 | U48 | black F#3..C#4 tap | `sq_set_mute` | the MIDI gate in `sq_emit` closes at once (the channel keeps computing its steps and feeds its preview; PREVIEW.md 1.2); sounding MIDI notes end by their queued offs | channel cell `m`, legend dim |
-| U49 | hold F#4 | `sq_perf(SOLO)` | while held only ch sounds | SOL cell inverted, strip `SOLO CH1: let go` |
+| U49 | hold F#4 | `sq_perf(SOLO)` | while held only ch sends MIDI (previews keep sounding) | SOL cell inverted, strip `SOLO CH1: let go` |
 | U50 | hold G#4 (+ pressure) | FILL: K1 morph raised by pressure, restored on release | next step | `FILL 80%` live |
 | U51 | hold A#4 (+ pressure) | `sq_perf(ROLL)`, repeats = pressure bin | next step: 2-4 triggers per step | `ROLL 3x` live |
 | U52 | F#5 tap | `sq_restart()` | all channels to step 1 at the next step | playheads to 1 |

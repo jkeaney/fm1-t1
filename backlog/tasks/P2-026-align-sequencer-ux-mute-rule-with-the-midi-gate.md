@@ -3,7 +3,7 @@ id: P2-026
 title: Align SEQUENCER_UX mute/SOLO wording with the MIDI gate (decision 111)
 phase: P2
 type: task
-status: todo
+status: review
 priority: 2
 executor: sonnet
 depends_on: [P2-025]
@@ -41,3 +41,5 @@ Verdict: FAIL (minor). All five checkers re-run and pass (scenarios 490 rows, he
 - [ ] docs/project/decisions/ADR-0003-sequencer-core.md:441 (step-start algorithm, step 4): "If `muted` or `!(out.flags & PO_HIT)` ... skip to step 8" still applies mute inside step resolution, which would starve the preview (the exact thing decision 111 forbids; line 902 row 2 says the test lives at the MIDI gate). Fix: drop `muted` from the condition, and have the note-on/emit step route through the two gates (MIDI gate = midi_ch set and not muted and SOLO-allowed; PREVIEW gate = prv_on); keep "muting keeps phase".
 - [ ] docs/design/PREVIEW.md:267 (P4-004 row) describes SEQUENCER_UX U48 and the hit(n) listing as "stop new hits at the source"; now stale. Reword to "were amended by P2-026" so P4-004 does not chase a fixed claim.
 - [ ] Optional: SEQUENCER_UX.md U49 (~582) "while held only ch sounds" should say MIDI (SOLO leaves previews sounding, PREVIEW.md 1.2).
+### 2026-11-11 executor (sonnet), review fixes
+Fixed: ADR-0003 step-start step 4 (dropped `muted` from the skip test, added decision-111 note) and step 5 tie text ("a mute" removed); PREVIEW.md:267 reworded (old wording attributed to U48/hit(n)/ADR step 4, now aligned); U49 "while held only ch sends MIDI (previews keep sounding)". Re-grepped docs/ (excluding *-algorithms/ catalogue) for muted+hit/skip/source claims: T1_ISSUES.md:192 is history about the old T-1 code, left. Five checkers re-run: pass (296 strings 0 over; 123 items 0 errors).
