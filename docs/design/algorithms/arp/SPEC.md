@@ -1,7 +1,8 @@
 # ARP: an arpeggio over the HARMONY chord progression (P2-013)
 
-Task P2-013. Status: **for owner review** (gate `human-review`). Design only: no firmware and no prototype code is written here (the prototype and golden files are
-scheduled into P2-008, section 11). Source: the deferred assessment [../steparp.md](../steparp.md) (Step Arp, `docs/steparp-algorithms/`), redesigned on the chord
+Task P2-013, prototype P2-017. Status: **prototype and golden written (P2-017), for the owner's design lock** (gate `human-review`). No firmware is written here. [`proto.c`](proto.c) is the firmware file (P4 copies it and adds `static`);
+[`golden.txt`](golden.txt) is its output; [`tests/design/arp_ref.py`](../../../../tests/design/arp_ref.py) re-implements sections 6.3 to 6.5 independently and agrees on all 1728 grid cases; [`tests/design/arp_extra.h`](../../../../tests/design/arp_extra.h)
+holds the ARP golden sections of section 11. Changes found while writing the prototype are in 6.13. Source: the deferred assessment [../steparp.md](../steparp.md) (Step Arp, `docs/steparp-algorithms/`), redesigned on the chord
 progression of [../../HARMONY.md](../../HARMONY.md) (P2-012). Vision: [../../../project/VISION.md](../../../project/VISION.md). Every worked example below was computed by a throwaway
 Python transcription of sections 6.3 to 6.5 and the HARMONY prototype (`tests/design/harmony_proto.py` for the chords); the golden files of P2-008 supersede them.
 
@@ -61,7 +62,7 @@ All five shared layers exist (ALGORITHM_SET 4.1). Every layer has its own 16-bit
 | `HITS` (SEQ) | `s_hits` (1) | `RESTS` | The priority order in which the 16 steps switch on as DENS rises: where the rests fall | Notes, velocities, lengths, phase |
 | `ACCNT` (ENV) | `s_vel` (2) | `VELO` | The 16 step velocities (50..127) | Notes, rests, lengths, phase |
 | `ARTIC` (ARP) | `s_gate` (3) | `LENGTH` | The 16 note-length factors (0.5x to 1.5x of the LEGATO length) | Notes, rests, velocities, phase |
-| `SHAPE` (LFO) | `s_rot` (4) | `PHASE` | Where in its cycle the figure starts: the start position `s_rot mod F`. Default seed 0 means the figure starts on its first note | Pool, order, rests, velocities, lengths |
+| `SHAPE` (LFO) | `s_rot` (4) and `s_mod` (MODULATION 3.4) | `PHASE` | Where in its cycle the figure starts: the start position `s_rot mod F`. Default seed 0 means the figure starts on its first note. `s_mod` re-rolls the mod lanes (6.12a) with it | Pool, order, rests, velocities, lengths, every note except through the phase |
 
 **Dice all** (FX) re-rolls the five in the order NOTES, HITS, ACCNT, ARTIC, SHAPE with one undo record; **undo** (EDIT tap) swaps them back (ADR-0003 4.1, one record per channel).
 Dice on NOTES or SHAPE gives the new seed from the entropy as for every layer; the chance of a result of 0 (the plain value) is 1 in 65536 and is harmless. No layer is absent, so no
@@ -132,13 +133,14 @@ The single source for labels, ranges, defaults and seeds; a remap is a table edi
 | `s_vel` | seed 2, layer ACCNT | `ACCNT` | 0..65535 | `(0x3A5D * (ch*5 + 3)) & 0xFFFF` (`seed_k` 3) | u16 |
 | `s_gate` | seed 3, layer ARTIC | `ARTIC` | 0..65535 | `(0x3A5D * (ch*5 + 4)) & 0xFFFF` (`seed_k` 4) | u16 |
 | `s_rot` | seed 4, layer SHAPE | `SHAPE` | 0..65535 | literal 0 (`seed_k` = `0xFF`) | u16 |
+| `s_mod` | seed id 6 (`SQ_SEED_MOD`), layer SHAPE (second seed) | `SHAPE` | 0..65535 | `SQ_SMOD_DEFAULT(ch)` | u16 in `ModSave`, not in `AlgoState` (MODULATION 7) |
 
 The default seeds of channel 0: `s_hits` 29882, `s_vel` 44823, `s_gate` 59764 (the same multiplier as the other algorithms, ADR-0003 3.1). The two literal-0 seeds make a fresh ARP the plain
 figure from its first note (no hops, no phase); their first dice makes them live. AlgoState stays 8 morphs + 6 seed slots = 20 B (slot 5 unused). The `AlgoDesc` row (ADR-0003 4.1 form):
 
 | Algo | Seeds (index: name, `seed_k`) | `layer[0..4]` (NOTES HITS ACCNT ARTIC SHAPE) | `sub[0..4]` | `knob_morph` | flags |
 | --- | --- | --- | --- | --- | --- |
-| ARP (id 4, n_seed 5, cache 48 B) | 0 NOTES `0xFF`; 1 HITS 2; 2 VEL 3; 3 GATE 4; 4 ROT `0xFF` | `{1,0}` `{1,1}` `{1,2}` `{1,3}` `{1,4}` | VARY RESTS VELO LENGTH PHASE | 0..7 | `AF_CHORD` (6.10) |
+| ARP (id 4, n_seed 5, cache 48 B) | 0 NOTES `0xFF`; 1 HITS 2; 2 VEL 3; 3 GATE 4; 4 ROT `0xFF` | `{1,0}` `{1,1}` `{1,2}` `{1,3}` `{2,{4,SQ_SEED_MOD}}` | VARY RESTS VELO LENGTH PHASE | 0..7 | `AF_CHORD` (6.10) |
 
 Morph rows for the ADR table (`label min,max,def,step,fast`): m0 `DENS 0,16,12,1,1`; m1 `SHAPE 0,5,0,1,1`; m2 `SPAN 1,4,2,1,1`; m3 `RATE 0,5,2,1,1`; m4 `OFFSET 0,15,0,1,1`; m5 `LEGATO 0,8,3,1,1`;
 m6 `DYN 0,10,10,1,1`; m7 `DIR 0,5,0,1,1`.
@@ -294,7 +296,7 @@ With **VOICE 0** the chord is one note (the root, or the root plus the drone), w
 
 | Case (pool `P`) | Result (notes, semitones above the key; SPAN 3 unless stated) |
 | --- | --- |
-| VOICE 0, SPAN 1, any shape or direction | `0 0 0 0 ...`: a re-triggered pedal; DENS, LEGATO, DYN and the dice still shape it (an acid 16th pedal) |
+| VOICE 0, SPAN 1, any direction and any shape but OCTV | `0 0 0 0 ...`: a re-triggered pedal; DENS, LEGATO, DYN and the dice still shape it (an acid 16th pedal). OCTV alternates `0 12 0 12` (found by the P2-017 golden; the earlier "any shape" was wrong for it) |
 | VOICE 0, LINE, UP, SPAN 3 | `0 12 24` repeating (octave run) |
 | VOICE 0, OCTV, SPAN 3 | `0 12 12 24 24 36` (octave bounce) |
 | VOICE 0, THUMB, SPAN 3 | `0 12 0 24` (root against the octaves) |
@@ -328,12 +330,55 @@ ARP is the first algorithm that reads the chord and the first whose repeats chan
 
 The purity contract (ADR-0003 4) is kept with `hc` as a third pure input: `step` still uses only `(cache, g, hc)` and `const` tables. The host test varies `hc` and checks the output depends on nothing else.
 
+### 6.12 The AlgoDesc table (the one `proto.c` reads; P2-017)
+
+`run_protos.sh` extracts the block between the two marker comments from this file and from `proto.c` and requires them to be identical: a remap (a knob, a dice button, a range, a default, a label) is an edit to this block and the same edit in the firmware copy, nothing else. `SQ_SEED_MOD` is the seed id of `s_mod` (MODULATION 3.4; stored in `ModSave`, not in `AlgoState`).
+
+```c
+/* ALGODESC-BEGIN (run_protos.sh diffs this block against SPEC.md section 5) */
+const AlgoDesc ALGO_ARP = {
+    .name = "ARP", .id = SQ_ALGO_ARP, .n_seed = 5, .flags = AF_CHORD, .cache_bytes = 48,
+    .knob_morph = { 0, 1, 2, 3, 4, 5, 6, 7 },
+    .seed_k = { 0xFF, 2, 3, 4, 0xFF },
+    .morph = {
+        { "DENS",   0, 16, 12, 1, 1 },
+        { "SHAPE",  0,  5,  0, 1, 1 },
+        { "SPAN",   1,  4,  2, 1, 1 },
+        { "RATE",   0,  5,  2, 1, 1 },
+        { "OFFSET", 0, 15,  0, 1, 1 },
+        { "LEGATO", 0,  8,  3, 1, 1 },
+        { "DYN",    0, 10, 10, 1, 1 },
+        { "DIR",    0,  5,  0, 1, 1 },
+    },
+    .layer = { {1, {0}}, {1, {1}}, {1, {2}}, {1, {3}}, {2, {4, SQ_SEED_MOD}} },
+    .sub = { "VARY", "RESTS", "VELO", "LENGTH", "PHASE" },
+    .build = arp_build, .loop_len = arp_loop_len, .step = arp_step, .hi = arp_hi, .sub_note = arp_sub_note, .mod = arp_mod,
+};
+/* ALGODESC-END */
+```
+
 ### 6.11 Flex points (ADR-0004 addendum): what is a table edit, what is not
 
 Remappable by a table edit, no algorithm code change: which knob drives which morph (`knob_morph`), every label, range and default of 6.1, the rate table `RATE_STP/RATE_SUB`, the dice button of each layer and the sub-labels, the velocity range 50..127, the gate factor range 2..6, the accent bonus 12,
 the number of hop positions (4), the fold ceiling 60, the salts' *table* (not their values), the default seeds.
 Not changeable without algorithm code: the shape and direction rules of 6.3 (they define the golden files), `mix`, the stateless counter, the `cell = g mod 16` lane clock, the sub-note mechanism of AM-2, the chord interface.
 A new shape or direction is a new case of the `switch` plus new goldens (one owner re-lock).
+
+### 6.12a The mod lanes (P2-017, MODULATION 4)
+
+`AlgoDesc.mod` is `arp_mod`: lane A (slots 1 and 3) is the cell of the **figure position** `m` of the step's first note (0..F-1, up to 137, so `sp18_cell` takes the whole `uint8_t`, not `i & 15`), leaning on the step's velocity; lane B (slots 2 and 4)
+is an LFO over the channel LENGTH (`ModIdx.period = 0`: the core fills it), read at `g`. Both are pure functions of `(cache, g, hc, step)`. The golden shows lanes for LENGTH 16.
+
+### 6.13 What the prototype changed in this design (found while writing it; each is a table or text edit, none moves a control)
+
+| # | Finding | Resolution |
+| --- | --- | --- |
+| 1 | `step()` has no `SeqGlobal`, so `sq_note` (SP9) cannot run in it | Chord tones are scale tones, so SP6 would leave them alone: the cache keeps `base = 36 + key + 12 * octave` (the spare pad byte, still 48 B) and the note is `base + s`. The cache does not depend on scale, gate, DIV or swing (purity test (b)) |
+| 2 | `hi(m)` of ADR-0003 section 20 for ARP | 60 semitones, the fold ceiling (no snap is added: the chord tones are scale tones). P2-029 writes it into section 20 |
+| 3 | SPEC 6.8 said "any shape" gives a plain pedal at VOICE 0, SPAN 1 | OCTV alternates the root and its octave; fixed in 6.8 and tested |
+| 4 | The brief's cost bounds (section 9) | Structural, asserted: cache 48 B; the RAND shuffle is at most 24 draws; the CHORD sort at most 6 values; no loop is longer. The golden has an `## ARP COST` line |
+| 5 | ROLE (6.4) is the core's job (AM-3) | The driver's `role_chords()` is the reference of what the core hands `step()`: AUTO and FULL the voiced chord, OFF the reference chord (degree 1, VOICE 2, no drone), ROOT the root (the drone if set) only. The golden `HARM` sections are those four runs |
+| 6 | The chord run of the driver is a test approximation | ARP is `AF_CHORD`, so the core bypasses `harm_apply` and there is no strong-step rule for ARP at all; the approximation of the other four SPECs (velocity >= 100 and holds) does not apply |
 
 ## 7. UX: roles, labels and gestures
 
@@ -411,7 +456,7 @@ F03), so no new control or page is added; the strip is an overlay state `ALGO_PI
 | `ChanRT` | 0 added (stays 24 B): ARP is stateless | .bss |
 | ARP cache: `hit_bits` 2, `vel[16]` 16, `gm[16]` 16, `hop_bits` 2, `s_notes` 2, `s_rot` 2, `shp spn rat dir off lg dyn` 7, pad 1 | 48 (cache max 64) | the per-channel cache already allocated |
 | `AlgoState` for the fifth algorithm | +20 per channel = +80 in the live preset | .bss |
-| `SeqPreset` | 1396 to 1476 B (+80); the 18 preset-sized pool copies (HARMONY.md 7.2) | +1440 B pool (shared with PATTERNS' own +80 B) |
+| `SeqPreset` | 1396 to 1476 B with ARP alone; **1556 B with ARP and PATTERNS** (`ChanSave` holds six `AlgoState`, 384 B; P2-017 `sq_types.h`); the 18 preset-sized pool copies (HARMONY.md 7.2) | +2880 B pool for both (ARP half 1440 B) |
 | `HarmChord` argument on the ISR stack | 16 | stack |
 | Flash | rate tables 12 B, shape and direction code about 1.5 KB | flash |
 | CPU: build | about 120 draws and a 16-shuffle, under 400 integer operations, main loop | |
@@ -443,6 +488,7 @@ See 6.4, 6.5 and 6.8 (all computed with the same transcription).
 
 ## 11. Hand-off to the dev tasks and to P2-008
 
+- **Delivered by P2-017:** `proto.c`, `golden.txt` (the matrix of the driver with the chord of each bar, plus the sections of `arp_extra.h`: the default of 10.1 checked against its twelve values, the two DIR x SHAPE x RATE x SPAN grids, the single-note cases, the RAND property, the cost line) and `arp_ref.py`.
 - **P2-008 scope addition (scheduled by this task, backlog/tasks/P2-008):** the reference prototype and golden files for ARP: `docs/design/algorithms/arp/` build/step/sub_note in the same Python style as the other four, the HARMONY chord from `harmony_proto.py`, goldens for (a) the default of 10.1, (b) every DIR x SHAPE x RATE
   combination at SPAN 1..4 for chord I and for the `1451` bars of 6.7, (c) the single-note cases of 6.8, (d) ROLE OFF/ROOT, (e) each dice layer from a fixed seed, (f) the RAND permutation property (a permutation of 0..P-1 for every `P` 1..24 and cycle `y`), (g) the cache size 48 B and the cost bounds of 9.
 - **Dev tasks that cite this document:** the ARP `step/build/sub_note` (needs AM-1 to AM-4 first), the table rows (knob_map, help_text, ALGORITHM_SET), the picker overlay. Each cites 6.1, 6.3, 6.5 and S19.

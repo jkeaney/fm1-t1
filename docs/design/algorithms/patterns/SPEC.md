@@ -1,6 +1,9 @@
 # PATTERNS: the preset pattern library (P2-014)
 
-Task P2-014. Status: **for owner review** (gate `human-review`). Design only: no firmware is changed. The maths is executable in
+Task P2-014, prototype P2-017. Status: **prototype written (P2-017), for the owner's design lock** (gate `human-review`). No firmware is changed.
+[`proto.c`](proto.c) is the firmware file (P4 copies it and adds `static`; P5-008 generates [`patterns_data.h`](patterns_data.h) from [`patterns.tsv`](patterns.tsv) with [`tests/design/gen_patterns.py`](../../../../tests/design/gen_patterns.py));
+[`golden.txt`](golden.txt) is its output (the driver matrix plus `PATTERNS-COMPACT` and `PATTERNS-LIBRARY` from [`tests/design/patterns_extra.h`](../../../../tests/design/patterns_extra.h)); `tests/design/patterns_ref.py` requires `PATTERNS-COMPACT` to equal
+`patterns_golden.txt`, which the Python prototype wrote, line for line (126 cases). The findings of writing it are in 4.9. The maths is executable in
 [`tests/design/patterns_proto.py`](../../../../tests/design/patterns_proto.py) (`--check` runs every check quoted here; every golden is its output). Data:
 [`patterns.tsv`](patterns.tsv) (120 patterns, read by the prototype and, via the P5-008 generator, by the firmware). Research and sources:
 [`RESEARCH.md`](RESEARCH.md). Goldens: [`patterns_golden.txt`](patterns_golden.txt). Scenario: [S20](../../scenarios/S20-patterns.md).
@@ -160,6 +163,47 @@ The generator loops over `len` (12, 16 or 32); the channel LENGTH is separate. A
 
 The pattern is a pure function of (pick, morphs, seeds, scale, key, chord, position): nothing is cached, so any change lands within one step, the global-scale re-quantise needs no stored pitch, and RAM is unchanged.
 
+### 4.8 The AlgoDesc table (the one `proto.c` reads; P2-017)
+
+`run_protos.sh` extracts the block between the two marker comments from this file and from `proto.c` and requires them to be identical: a remap (a knob, a dice button, a range, a default, a label) is an edit to this block and the same edit in the firmware copy, nothing else. `SQ_SEED_MOD` is the seed id of `s_mod` (MODULATION 3.4; stored in `ModSave`, not in `AlgoState`).
+
+```c
+/* ALGODESC-BEGIN (run_protos.sh diffs this block against SPEC.md section 5) */
+const AlgoDesc ALGO_PATTERNS = {
+    .name = "PATT", .id = SQ_ALGO_PATTERNS, .n_seed = 5, .flags = AF_CHORD, .cache_bytes = 22,
+    .knob_morph = { 0, 1, 2, 3, 4, 5, 6, 7 },
+    .seed_k = { 1, 2, 3, 4, 5 },
+    .morph = {
+        { "DENS",   0,  16,  8, 1, 1 },
+        { "VARY",   0,   8,  0, 1, 1 },
+        { "SPAN",   1,   4,  4, 1, 1 },
+        { "ACCNT",  0,   8,  4, 1, 1 },
+        { "PICK",   1, 120,  1, 1, 1 },
+        { "SLIDE",  0,   8,  4, 1, 1 },
+        { "DYN",    0,  14, 10, 1, 1 },
+        { "CTONE",  0,   8,  2, 1, 1 },
+    },
+    .layer = { {1, {0}}, {1, {1}}, {1, {2}}, {1, {3}}, {2, {4, SQ_SEED_MOD}} },
+    .sub = { "VARY", "ORDER", "ACCNT", "SLIDES", "UP/DN" },
+    .build = pat_build, .loop_len = pat_loop_len, .step = pat_step, .hi = pat_hi, .sub_note = 0, .mod = pat_mod,
+};
+/* ALGODESC-END */
+```
+
+### 4.9 What the prototype fixed (P2-017)
+
+| # | Finding | Resolution |
+| --- | --- | --- |
+| 1 | `AlgoDesc.name` is at most 6 characters and the cell is 4 letters | `name = "PATT"` (the short name of the header, the cell and the picker); the toast and status lines say PATTERNS |
+| 2 | The cache is "none", but the table test needs a cache and `step()` has no `SeqGlobal` | `PattCache` is 22 B: the five seeds, the eight morphs, the scale as a 12-bit mask derived from `g->snap[]` (a scale tone `r` has `snap[r] == r`, so the cache depends on the scale only through the input the purity test allows), and `base = 36 + key + 12 * octave`. Nothing else is cached; every step re-derives which steps sound (about 12 000 integer operations at 32 steps) |
+| 3 | `PulseOut` has no tie and the slide flag is on the *arriving* step | `PO_TIE` (0x80, new in `sq_types.h`) marks a stored `T` step and its gate is 100 %; short / normal / long gates are 25 / 50 / 95 %. A stored slide (`S` on step `i`) sets `PO_SLIDE_IN` on step `i + 1` (wrapping at the loop end) when both steps sound; a slide into a rest is dropped (the golden comparison removes the Python `S` before a rest) |
+| 4 | The accent has no flag in `PulseOut` | The accent is only its velocity (120, or 80 plain, through DYN); `patterns_ref.py` drops the accent letter before comparing |
+| 5 | The `gate` class was lost in `patterns_proto.py` (`x and 0 or y` reads `s` as normal) | Fixed in `parse_steps`; the golden text never printed the gate, so it is unchanged |
+| 6 | CTONE needs the chord | `PATT` is `AF_CHORD`: the core fills `hc`, applies the ROLE (OFF: `hc->active = 0`, so the figure is the plain one; ROOT: root only) and skips `harm_apply`. With `hc == 0` or `hc->active == 0` there is no pull (H-INERT, checked) |
+| 7 | `hi(m)` | 60 (a pattern is under 4 octaves, plus a VARY step, a snap and a chord pull of at most 6); P2-029 writes it into ADR-0003 section 20 |
+| 8 | `PICK` is `fast = 1` in the morph table | The category jump of 5.1 is the UI's rule (a detent under 40 ms jumps to the next category start), not a bigger step: the categories are 20 apart and the table only allows steps of 1 or 4 |
+| 9 | Mod lanes (MODULATION 4) | Lane A is the cell of the pattern step number `i` (the authored accents give the lean); lane B is an LFO of period `len` (12, 16 or 32) at `i` |
+
 ## 5. Selection UX
 
 ### 5.1 The control
@@ -238,7 +282,7 @@ Widths (px of ink, limit 40): ACID 26, EUCL 29, SNAK 30, STAG 29, ARP 22, PATT 2
 | SEQ | `HITS` | `s_hits` | which decoration notes DENS drops first and which optional notes it adds first (within a rank) | `ORDER` |
 | ENV | `ACCNT` | `s_acc` | which accents ACCNT removes or adds, and the DYN humanise offsets | `ACCNT` (drawn once) |
 | ARP | `ARTIC` | `s_art` | which slides SLIDE removes or adds | `SLIDES` |
-| LFO | `SHAPE` | `s_shape` | the up or down direction of each VARY replacement | `UP/DN` |
+| LFO | `SHAPE` | `s_shape` and `s_mod` (MODULATION 3.4) | the up or down direction of each VARY replacement, and the mod lanes (4.9) | `UP/DN` |
 | FX | dice all | all five | every layer; **the pattern pick is never diced** (the pick is a choice, not a layer) | `ALL` |
 
 All five layers are present, so none is dimmed (ALGORITHM_SET 4.4). Dice never changes the PICK, the morph values or any edit. Undo (`EDIT`) swaps each seed with its previous seed; a PICK is its own undo record.
@@ -257,6 +301,9 @@ Flash +4544 B of data (+ about 1.5 KB code, an estimate for P5-008). RAM +0 B. P
 | range and scale sweep: 120 patterns x 16 scales x 12 keys x 5 octaves x every dial extreme x HARMONY inert and a chord: all notes in 0..96 and `36 + key + 12 * octave + s` in 0..127; with HARMONY inert every note is in the scale | pass, 492000 note checks |
 | morph goldens at min / mid / max for one pattern per category | pass (`patterns_golden.txt`) |
 | song-title grep over patterns.tsv, firmware sources and design TSVs | pass, 13 titles absent |
+| the C prototype against the Python one: `PATTERNS-COMPACT` equals `patterns_golden.txt` (126 cases, the six categories, every dial at min / mid / max) | pass (`patterns_ref.py`) |
+| the C prototype over the library: 120 patterns x 16 scales x 3 keys x 3 dial sets, every note in the scale with HARMONY inert, neutral dials = the stored steps, DENS 1 = the anchors, `theory()` range | pass (`PATTERNS-LIBRARY` line of `golden.txt`) |
+| `patterns_data.h` is current (`gen_patterns.py --check`) | pass |
 
 ## 10. Table additions
 

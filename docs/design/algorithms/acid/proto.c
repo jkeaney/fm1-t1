@@ -120,6 +120,16 @@ static void acid_step(const void *cache, uint32_t g, const HarmChord *hc, PulseO
     out->pad = 0;
 }
 
+/* The mod lanes (MODULATION 4): lane A is the cell of the gate position i (the index the accent and slide flags use), leaning on this step's velocity;
+ * lane B sweeps once per 16 steps, read at the same i so OFFSET and DIR move the filter with the notes. */
+static void acid_mod(const void *cache, uint32_t g, const HarmChord *hc, const PulseOut *o, ModIdx *out)
+{
+    const AcidCache *c = (const AcidCache *)cache;
+    uint8_t i = sq_dir_map(g + c->off, 16, c->dir);
+    (void)hc;
+    out->a = i; out->vel = o->vel; out->b_cell = 0; out->b_lfo = 1; out->t = i; out->period = 16;
+}
+
 /* Highest semitone above the base: pitch class 11 (or 12, the next key note, when the scale snaps up) plus octave +2 once JUMP > 0 */
 static uint8_t acid_hi(const uint8_t m[SQ_NMORPH]) { return (uint8_t)(m[M_JUMP] ? 36 : 12); }
 
@@ -138,8 +148,8 @@ const AlgoDesc ALGO_ACID = {
         { "PUNCH",  0, 47, 40, 1, 4 },
         { "DIR",    0,  2,  0, 1, 1 },
     },
-    .layer = { {1, {0}}, {1, {1}}, {1, {4}}, {2, {3, 5}}, {1, {2}} },
+    .layer = { {1, {0}}, {1, {1}}, {1, {4}}, {2, {3, 5}}, {2, {2, SQ_SEED_MOD}} },
     .sub = { "NOTES", "HITS", "ACCNT", "GT+SLD", "OCTAVE" },
-    .build = acid_build, .loop_len = acid_loop_len, .step = acid_step, .hi = acid_hi, .sub_note = 0,
+    .build = acid_build, .loop_len = acid_loop_len, .step = acid_step, .hi = acid_hi, .sub_note = 0, .mod = acid_mod,
 };
 /* ALGODESC-END */

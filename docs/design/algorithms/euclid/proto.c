@@ -12,10 +12,11 @@ typedef struct {
     uint16_t hit;          /* bit i = step i sounds (Bjorklund, rotated) */
     uint16_t acc;          /* bit i = step i is an accented hit */
     uint8_t  rp[8];        /* 4 bits per step i (low nibble = even i): bits 0..1 repeats-1, bit 2 pace decelerates; 0 on a rest */
+    uint8_t  ho[8];        /* 4 bits per step i (low nibble = even i): the ordinal (0..15) of the hit that step carries; a rest carries the ordinal of the hit before it (mod lane A) */
     uint8_t  len;          /* LEN: the generator's own cycle, 2..16 */
     uint8_t  hv;           /* accented velocity min(127, 80 + PUNCH) */
-} EuclidCache;             /* 30 B */
-_Static_assert(sizeof(EuclidCache) == 30 && sizeof(EuclidCache) <= SQ_CACHE_MAX, "EuclidCache");
+} EuclidCache;             /* 38 B */
+_Static_assert(sizeof(EuclidCache) == 38 && sizeof(EuclidCache) <= SQ_CACHE_MAX, "EuclidCache");
 
 #define M_HITS 0
 #define M_LEN 1
@@ -137,6 +138,7 @@ static void euclid_build(const uint8_t m[SQ_NMORPH], const uint16_t seed[SQ_NSEE
         uint8_t j = (uint8_t)((i + R) % n), cnt = eu_popcount(m0 & ((2u << j) - 1u)), h = (uint8_t)(cnt ? cnt - 1 : 0);
         int16_t s = (int16_t)(eu_phrase(shape, m[M_SPAN], h, H) + (m[M_SPAN] ? (int16_t)jit[h] - 2 : 0));
         c->note[i] = sq_note(g, s < 0 ? 0 : s);                                 /* the line never goes below the root */
+        c->ho[i >> 1] = (uint8_t)(c->ho[i >> 1] | ((h & 15u) << ((i & 1u) * 4)));
         if ((m1 >> i) & 1u) {
             uint8_t nib = (uint8_t)((reps[h] - 1) | (dec[h] << 2));
             if ((accm >> h) & 1u) c->acc = (uint16_t)(c->acc | (1u << i));
@@ -161,12 +163,22 @@ static void euclid_step(const void *cache, uint32_t g, const HarmChord *hc, Puls
     out->pad = 0;
 }
 
+/* The mod lanes (MODULATION 4): lane A is the cell of the hit ORDINAL (the k-th hit gets the k-th cell, so the value stays with the note when OFFSET rotates;
+ * a rest reads the ordinal of the hit before it, like its contour pitch); lane B sweeps once per LEN steps. */
+static void euclid_mod(const void *cache, uint32_t g, const HarmChord *hc, const PulseOut *o, ModIdx *out)
+{
+    const EuclidCache *c = (const EuclidCache *)cache;
+    uint8_t i = (uint8_t)(g % c->len);
+    (void)hc;
+    out->a = (uint8_t)((c->ho[i >> 1] >> ((i & 1u) * 4)) & 15u); out->vel = o->vel; out->b_cell = 0; out->b_lfo = 1; out->t = i; out->period = c->len;
+}
+
 /* Highest semitone: SPAN + 2 (jitter) + 1 (a snap up to the next scale tone, never more than 1: no scale has a gap over 3), at least one octave for the chord stage's fold */
 static uint8_t euclid_hi(const uint8_t m[SQ_NMORPH]) { uint8_t h = (uint8_t)(m[M_SPAN] + 3); return h < 12 ? 12 : h; }
 
 /* ALGODESC-BEGIN (run_protos.sh diffs this block against SPEC.md section 5) */
 const AlgoDesc ALGO_EUCLID = {
-    .name = "EUCLID", .id = SQ_ALGO_EUCLID, .n_seed = 4, .flags = 0, .cache_bytes = 30,
+    .name = "EUCLID", .id = SQ_ALGO_EUCLID, .n_seed = 4, .flags = 0, .cache_bytes = 38,
     .knob_morph = { 0, 4, 5, 3, 1, 2, 6, 7 },
     .seed_k = { 0xFF, 1, 2, 3 },
     .morph = {
@@ -179,8 +191,8 @@ const AlgoDesc ALGO_EUCLID = {
         { "PUNCH",  0, 47, 40, 1, 4 },
         { "CURVE",  0,  6,  0, 1, 1 },
     },
-    .layer = { {1, {1}}, {1, {0}}, {1, {2}}, {1, {3}}, {0} },
-    .sub = { "NOTES", "ROTATE", "ACCNT", "RATCH", "-" },
-    .build = euclid_build, .loop_len = euclid_loop_len, .step = euclid_step, .hi = euclid_hi, .sub_note = 0,
+    .layer = { {1, {1}}, {1, {0}}, {1, {2}}, {1, {3}}, {1, {SQ_SEED_MOD}} },
+    .sub = { "NOTES", "ROTATE", "ACCNT", "RATCH", "MOD" },
+    .build = euclid_build, .loop_len = euclid_loop_len, .step = euclid_step, .hi = euclid_hi, .sub_note = 0, .mod = euclid_mod,
 };
 /* ALGODESC-END */

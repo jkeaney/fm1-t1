@@ -32,7 +32,7 @@ def parse_steps(txt):
             raise ValueError("bad token %r" % t)
         opt, p, fl, rk = m.groups()
         rank = int(rk) if rk else (2 if opt else 0)
-        out.append(dict(opt=bool(opt), p=int(p), acc="A" in fl, sld="S" in fl, tie="T" in fl, gate=("s" in fl) and 0 or (("l" in fl) and 2 or 1),
+        out.append(dict(opt=bool(opt), p=int(p), acc="A" in fl, sld="S" in fl, tie="T" in fl, gate=0 if "s" in fl else (2 if "l" in fl else 1),   # 0 short, 1 normal, 2 long (the P2-014 expression `x and 0 or ...` made 's' read as normal; gate is not in the golden)
                         ct="C" in fl, rank=rank))
     return out
 

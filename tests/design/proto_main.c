@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
-/* Generic driver for the algorithm prototypes (P2-008). Compiled once per algorithm folder with -DPROTO_SYM=ALGO_<NAME>.
- * stdout = the golden text (ADR-0003 section 14 matrix, t = 0..127, plus the HARMONY runs); stderr = test results.
+/* Generic driver for the algorithm prototypes (P2-008, P2-017). Compiled once per algorithm folder with -DPROTO_SYM=ALGO_<NAME>.
+ * stdout = the golden text (ADR-0003 section 14 matrix, t = 0..127, plus the HARMONY runs, the mod lanes of slots 1..4 and, for an
+ * AF_CHORD algorithm, the chord of each bar); stderr = test results. -DPROTO_EXTRA="<file>" adds an algorithm's own golden sections.
  * Exit status 1 on any failed check. Hosted libc is fine here: this is the test, not the firmware. */
 #include <stdio.h>
 #include <string.h>
@@ -22,15 +23,20 @@ static const char *LAYN[SQ_NLAYER] = { "NOTES", "HITS", "ACCNT", "ARTIC", "SHAPE
 #define SC_MAJOR 1
 #define SC_MINPEN 10
 
-typedef struct { uint8_t ch, scale, key; int8_t oct; uint8_t m[SQ_NMORPH]; uint16_t seed[SQ_NSEED]; } Case;
+typedef struct { uint8_t ch, scale, key; int8_t oct; uint8_t m[SQ_NMORPH]; uint16_t seed[SQ_NSEED]; uint16_t smod; } Case;
 
 static union { uint32_t w[16]; uint8_t b[SQ_CACHE_MAX]; } cache;
 
 static void defaults(Case *c, uint8_t ch)
-{   memset(c, 0, sizeof *c); c->ch = ch; c->scale = SC_MINPEN;
+{   memset(c, 0, sizeof *c); c->ch = ch; c->scale = SC_MINPEN; c->smod = SQ_SMOD_DEFAULT(ch);
     for (int i = 0; i < SQ_NMORPH; i++) c->m[i] = A.morph[i].def;
     for (int k = 0; k < A.n_seed; k++)
         c->seed[k] = A.seed_k[k] == 0xFF ? 0 : (uint16_t)((0x3A5Du * (uint32_t)(ch * A.n_seed + A.seed_k[k])) & 0xFFFFu); }
+
+/* AF_CHORD algorithms get the chord of the step's start tick (AM-3). HCS[b] = the chord of bar b (DIV 1/16 = 16 steps per bar); the test run builds it
+ * from a bound HarmonySave. */
+static HarmChord HCS[8];
+static const HarmChord *hcfor(const HarmChord *given, uint32_t t) { return (A.flags & AF_CHORD) ? &HCS[(t / 16) % 8] : given; }
 
 static void mkglobal(SeqGlobal *g, const Case *c)
 {   memset(g, 0, sizeof *g); g->s.key = c->key; g->s.octave = c->oct; g->s.scale = c->scale; g->s.gate = 50; g->s.div = 2; g->s.swing = 50; sq_gbuild(g); }
@@ -40,6 +46,7 @@ static void dice(Case *c, uint8_t layer, uint16_t e)
 {   for (int j = 0; j < A.layer[layer].n; j++) {
         uint8_t id = A.layer[layer].seed[j];
         uint16_t v = j ? (uint16_t)(e ^ 0x5A5A) : e;
+        if (id == SQ_SEED_MOD) { if (v == c->smod) v = (uint16_t)(v + 0x9E37); if (!v) v = 1; c->smod = v; continue; }   /* s_mod: ModSave, never 0 */
         if (v == c->seed[id]) v = (uint16_t)(v + 0x9E37);
         if (A.seed_k[id] == 0xFF && v == 0) v = 1;
         c->seed[id] = v; } }
@@ -49,7 +56,7 @@ static void hdr(const char *name, const Case *c)
     for (int i = 0; i < SQ_NMORPH; i++) printf("%s%u", i ? "," : "", c->m[i]);
     printf(" seeds=");
     for (int k = 0; k < A.n_seed; k++) printf("%s%04x", k ? "," : "", c->seed[k]);
-    printf("\n"); }
+    printf(" smod=%04x\n", c->smod); }
 
 /* theory: every note of the scale (relative to the key), inside [base - 12, base + hi(m)] */
 static void theory(const Case *c, const PulseOut *o)
@@ -59,17 +66,41 @@ static void theory(const Case *c, const PulseOut *o)
     CHECK(o->vel >= 1 && o->vel <= 127, "vel %u", o->vel);
     CHECK(o->gate >= 1 && o->gate <= 100, "gate %u", o->gate); }
 
+/* the four slot values of the mod gen at step g (slot 1 and 3 lane A, 2 and 4 lane B), channel LENGTH 16 */
+static void lanes(uint16_t smod, const void *ch, uint32_t g, const HarmChord *hc, const PulseOut *o, int8_t out[4])
+{   ModIdx mi;
+    A.mod(ch, g, hc, o, &mi);
+    for (uint8_t sl = 1; sl <= 4; sl++) out[sl - 1] = sq_mod_lane(smod, sl, &mi, 16); }
+
+static void build_hcs(const SeqGlobal *g, const HarmonySave *h)
+{   harm_bind(g, h); harm_reset();
+    for (uint16_t b = 0; b < 8; b++) harm_chord_at_bar(b, &HCS[b]); }
+
+static HarmonySave HDEF;                                                  /* the default HARMONY state: 1---, VOICE 2, MOVE 8, no drone, every ROLE AUTO */
+
 static void run_case(const char *name, const Case *c)
 {   SeqGlobal g; PulseOut o;
     mkglobal(&g, c);
+    if (A.flags & AF_CHORD) build_hcs(&g, &HDEF);
     memset(&cache, 0xAA, sizeof cache);
     A.build(c->m, c->seed, &g, &cache);
     hdr(name, c);
-    printf("t note vel gate flags hold\n");
+    printf("t note vel gate flags hold lanes(slots 1..4)%s\n", A.sub_note ? " subnotes" : "");
     for (uint32_t t = 0; t < NT; t++) {
-        A.step(&cache, t, 0, &o);
+        const HarmChord *hc = hcfor(0, t);
+        int8_t ln[4];
+        A.step(&cache, t, hc, &o);
         theory(c, &o);
-        printf("%3u %3u %3u %3u %02x %u\n", t, o.note, o.vel, o.gate, o.flags, o.hold); } }
+        lanes(c->smod, &cache, t, hc, &o, ln);
+        printf("%3u %3u %3u %3u %02x %u %4d %4d %4d %4d", t, o.note, o.vel, o.gate, o.flags, o.hold, ln[0], ln[1], ln[2], ln[3]);
+        if (A.sub_note && (o.flags & PO_HIT) && (o.flags & PO_REP_MASK)) {
+            uint8_t reps = (uint8_t)((o.flags & PO_REP_MASK) >> PO_REP_SHIFT);
+            printf("  +");
+            for (uint8_t k = 1; k <= reps; k++) {
+                PulseOut so = o; so.note = A.sub_note(&cache, t, k, hc);
+                theory(c, &so);
+                printf("%s%u", k > 1 ? "/" : "", so.note); } }
+        printf("\n"); } }
 
 static void matrix(void)
 {   Case c; char nm[64];
@@ -110,7 +141,9 @@ static uint32_t lcg(uint32_t *s) { *s = *s * 1664525u + 1013904223u; return *s >
 static void steps(const void *ch, PulseOut *out, const HarmChord *hc, int order)
 {   for (uint32_t i = 0; i < NT; i++) {
         uint32_t t = order == 0 ? i : order == 1 ? NT - 1 - i : (i * 37u + 5u) % NT;
-        A.step(ch, t, hc, &out[t]); } }
+        A.step(ch, t, hcfor(hc, t), &out[t]); } }
+
+static void hset(HarmonySave *h, uint8_t bars, uint8_t n, const uint8_t *deg, uint8_t voice, uint8_t move, uint8_t drone, uint8_t roles);
 
 static void purity(void)
 {   uint32_t rs = 12345;
@@ -121,6 +154,11 @@ static void purity(void)
         if (n) { for (int i = 0; i < SQ_NMORPH; i++) c.m[i] = (uint8_t)(A.morph[i].min + lcg(&rs) % (A.morph[i].max - A.morph[i].min + 1u));
                  for (int k = 0; k < A.n_seed; k++) c.seed[k] = (uint16_t)lcg(&rs); }
         mkglobal(&g, &c);
+        if (A.flags & AF_CHORD) {                              /* a real HARMONY state: random progression, VOICE, MOVE and DRONE, so the chords are scale tones as in the product */
+            HarmonySave hr; uint8_t dg[8], nch = (uint8_t)(1 + lcg(&rs) % 4);
+            for (int i = 0; i < 8; i++) dg[i] = (uint8_t)(1 + lcg(&rs) % 7);
+            hset(&hr, 4, nch, dg, (uint8_t)(lcg(&rs) % 7), (uint8_t)(lcg(&rs) % 9), (uint8_t)(lcg(&rs) % 3 ? 0 : 1 + lcg(&rs) % 14), 0);
+            build_hcs(&g, &hr); }
         memset(&c1, 0xAA, sizeof c1); memset(&c2, 0x55, sizeof c2);
         A.build(c.m, c.seed, &g, &c1); A.build(c.m, c.seed, &g, &c2);
         CHECK(memcmp(&c1, &c2, A.cache_bytes) == 0, "(a) build twice differs, case %d", n);       /* poison differs, result must not */
@@ -143,12 +181,23 @@ static void purity(void)
             CHECK(ref[t].vel >= 1 && ref[t].vel <= 127 && ref[t].gate >= 1 && ref[t].gate <= 100, "(e) vel %u gate %u at t=%d, case %d", ref[t].vel, ref[t].gate, t, n);
             CHECK(ref[t].pad == 0 && (!(ref[t].flags & PO_HOLD) || (ref[t].hold >= 1 && ref[t].hold <= 8)), "PulseOut pad / hold at t=%d", t);
             theory(&c, &ref[t]); }
-        { uint8_t ll = A.loop_len(&c1); CHECK(ll >= 2 && ll <= 64, "loop_len %u", ll); } } }
+        { uint8_t ll = A.loop_len(&c1); CHECK(ll >= 2 && ll <= 64, "loop_len %u", ll); }
+        /* the mod hook is pure like step(): same lanes in any call order; the lanes stay in -127..127. s_mod is no input of build() or step(), so dicing it can never
+         * move a note (T-MOD2) */
+        {   int8_t l1[NT][4], l2[NT][4];
+            for (uint32_t i = 0; i < NT; i++) lanes((uint16_t)(0x1111u * (n + 1)), &c1, i, hcfor(0, i), &ref[i], l1[i]);
+            for (uint32_t i = 0; i < NT; i++) { uint32_t t = (i * 37u + 5u) % NT; lanes((uint16_t)(0x1111u * (n + 1)), &c1, t, hcfor(0, t), &ref[t], l2[t]); }
+            CHECK(memcmp(l1, l2, sizeof l1) == 0, "(g) mod lanes depend on call order, case %d", n);
+            for (uint32_t i = 0; i < NT; i++) for (int k = 0; k < 4; k++) CHECK(l1[i][k] >= -127, "(g) lane %d at %u = %d", k + 1, i, l1[i][k]);
+            for (int sm = 0; sm < 8; sm++) {
+                int8_t l3[4];
+                lanes((uint16_t)lcg(&rs), &c1, (uint32_t)sm * 9u, hcfor(0, (uint32_t)sm * 9u), &ref[sm * 9], l3);
+                for (int k = 0; k < 4; k++) CHECK(l3[k] >= -127, "(g) lane %d = %d", k + 1, l3[k]); } } } }
 
 static int cl(const char *s) { return (int)strlen(s); }
 
 static void tables(void)
-{   int bound[SQ_NSEED] = {0}, perm[SQ_NMORPH] = {0};
+{   int bound[SQ_NSEED + 1] = {0}, perm[SQ_NMORPH] = {0};
     CHECK(cl(A.name) >= 1 && cl(A.name) <= 6, "name %s", A.name);
     CHECK(A.id == PROTO_ID, "id %u", A.id);
     CHECK(A.n_seed >= 1 && A.n_seed <= SQ_NSEED, "n_seed %u", A.n_seed);
@@ -164,8 +213,13 @@ static void tables(void)
         CHECK(d->n <= 2, "layer %d n", l);
         CHECK(cl(A.sub[l]) >= 1 && cl(A.sub[l]) <= 6, "sub-label %d", l);
         CHECK(d->n || strcmp(A.sub[l], "-") == 0, "absent layer %d must read -", l);
-        for (int j = 0; j < d->n; j++) { CHECK(d->seed[j] < A.n_seed, "layer %d seed id %u >= n_seed", l, d->seed[j]); if (d->seed[j] < SQ_NSEED) bound[d->seed[j]]++; } }
+        for (int j = 0; j < d->n; j++) { CHECK(d->seed[j] < A.n_seed || d->seed[j] == SQ_SEED_MOD, "layer %d seed id %u >= n_seed", l, d->seed[j]); if (d->seed[j] <= SQ_SEED_MOD) bound[d->seed[j]]++; } }
     for (int k = 0; k < A.n_seed; k++) CHECK(bound[k] == 1, "seed %d is bound by %d layers", k, bound[k]);
+    CHECK(bound[SQ_SEED_MOD] == 1, "s_mod must be bound by exactly one layer, the SHAPE layer (MODULATION 3.4): %d", bound[SQ_SEED_MOD]);
+    { int sh = 0; for (int j = 0; j < A.layer[4].n; j++) sh += A.layer[4].seed[j] == SQ_SEED_MOD; CHECK(sh == 1, "SHAPE layer does not hold s_mod"); }
+    CHECK(A.mod != 0, "no mod hook");
+    CHECK(((A.flags & AF_CHORD) != 0) == (A.id == SQ_ALGO_ARP || A.id == SQ_ALGO_PATTERNS), "AF_CHORD belongs to ARP and PATTERNS only");
+    CHECK((A.sub_note != 0) == (A.id == SQ_ALGO_ARP), "sub_note belongs to ARP only");
     for (int ch = 0; ch < SQ_NCH; ch++) {
         Case c; defaults(&c, (uint8_t)ch);
         for (int k = 0; k < A.n_seed; k++) {
@@ -203,9 +257,63 @@ static void harm_run(const Case *c, const HarmonySave *h, uint8_t *out_note, int
             out_note[t] = (uint8_t)(base + x); }
         if (print) printf("%3u %u %3u %s%3u\n", t, (t / 16) % 4, o.note, (o.flags & PO_HIT) ? "" : "(rest) ", out_note[t]); } }
 
+/* The core's part of AM-3 for an AF_CHORD algorithm (ARP, PATTERNS): the chord of each bar after the channel ROLE (ARP SPEC 6.4).
+ * AUTO and FULL: the voiced chord, drone included. OFF: ARP hears a fixed reference chord (degree 1, VOICE 2, no drone); PATTERNS hears no chord (inert).
+ * ROOT: the chord root only (the drone if set). */
+static void role_chords(const SeqGlobal *g, const HarmonySave *h, uint8_t role)
+{   HarmChord ref[8];
+    HarmonySave hd;
+    uint8_t one[1] = { 1 };
+    hset(&hd, 4, 1, one, 2, 8, 0, 0);
+    build_hcs(g, &hd); for (int b = 0; b < 8; b++) ref[b] = HCS[b];            /* the reference chord */
+    build_hcs(g, h);
+    for (int b = 0; b < 8; b++) {
+        HarmChord *x = &HCS[b];
+        if (role == HR_OFF) { if (A.id == SQ_ALGO_ARP) *x = ref[b]; else x->active = 0; }
+        else if (role == HR_ROOT) {
+            int8_t r = x->drone >= 0 ? x->drone : x->root;
+            x->n = 1; x->vt[0] = r; for (int i = 1; i < HARM_MAXV; i++) x->vt[i] = 0;
+            x->pcs = (uint16_t)(1u << (r % 12)); } } }
+
+static void harmony_chord_algo(void)
+{   Case c; HarmonySave h1451; uint8_t plain[NT], got[NT], prog[4] = { 1, 4, 5, 1 };
+    static const char *RN[4] = { "AUTO", "OFF", "ROOT", "FULL" };
+    SeqGlobal g;
+    defaults(&c, 0); c.scale = SC_MAJOR; mkglobal(&g, &c);
+    hset(&h1451, 4, 4, prog, 2, 8, 0, 0);
+    for (int r = 0; r < 4; r++) {
+        PulseOut o;
+        uint8_t role_pass[4] = { HR_AUTO, HR_OFF, HR_ROOT, HR_FULL };
+        role_chords(&g, &h1451, role_pass[r]);
+        memset(&cache, 0xAA, sizeof cache); A.build(c.m, c.seed, &g, &cache);
+        printf("## HARM 1-4-5-1 C MAJOR ROLE %s ch=0 voice=2 move=8 bars=4 (1 bar = 16 steps)\nt bar note%s\n", RN[r], A.sub_note ? " (+ repeats)" : "");
+        for (uint32_t t = 0; t < NT; t++) {
+            A.step(&cache, t, hcfor(0, t), &o);
+            got[t] = o.note;
+            printf("%3u %u %3u %s", t, (t / 16) % 4, o.note, (o.flags & PO_HIT) ? "" : "(rest)");
+            if (A.sub_note && (o.flags & PO_HIT) && (o.flags & PO_REP_MASK))
+                for (uint8_t k = 1; k <= (o.flags & PO_REP_MASK) >> PO_REP_SHIFT; k++) printf(" +%u", A.sub_note(&cache, t, k, hcfor(0, t)));
+            printf("\n"); }
+        if (r == 0) { for (uint32_t t = 0; t < NT; t++) plain[t] = got[t]; }
+        else if (r == 1) {                                                       /* OFF: ARP hears the reference chord whatever the progression says; PATTERNS hears none */
+            int diff = 0; PulseOut o2; HarmonySave hd; uint8_t one[1] = { 1 };
+            hset(&hd, 4, 1, one, 2, 8, 0, 0); build_hcs(&g, &hd);
+            for (uint32_t t = 0; t < NT; t++) { A.step(&cache, t, hcfor(0, t), &o2); diff += o2.note != got[t]; if (A.id == SQ_ALGO_PATTERNS) { HarmChord z = HCS[(t / 16) % 8]; z.active = 0; A.step(&cache, t, &z, &o2); diff += o2.note != got[t]; } }
+            CHECK(diff == 0, "ROLE OFF is not the default-chord output (%d notes differ)", diff);
+            printf("## ROLE OFF with 1-4-5-1: output equals the %s (128 of 128)\n", A.id == SQ_ALGO_ARP ? "reference-chord output" : "inert output"); }
+        else if (r == 3) { int d = 0; for (int t = 0; t < NT; t++) d += got[t] != plain[t]; CHECK(d == 0, "ROLE FULL differs from AUTO (the two are the same, ARP SPEC 6.4)"); }
+        else if (r == 2) { int d = 0; for (int t = 0; t < NT; t++) d += got[t] != plain[t]; CHECK(d > 0, "ROLE ROOT left the output unchanged"); } }
+    /* an inert HARMONY (the default state) must not change PATTERNS from its plain output; ARP plays the key's triad (ARP SPEC 6.8) */
+    build_hcs(&g, &HDEF);
+    { PulseOut o; int a = 0;
+      for (uint32_t t = 0; t < NT; t++) { HarmChord z = HCS[(t / 16) % 8]; A.step(&cache, t, hcfor(0, t), &o); if (A.id == SQ_ALGO_PATTERNS) { PulseOut o2; z.active = 0; A.step(&cache, t, &z, &o2); a += o.note != o2.note; CHECK(!HCS[0].active, "default HARMONY is active"); } }
+      CHECK(a == 0, "H-INERT: PATTERNS changed under an inert HARMONY");
+      printf("## H-INERT default HARMONY state: %s\n", A.id == SQ_ALGO_PATTERNS ? "PATTERNS output equals plain (128 of 128)" : "ARP plays the key triad"); } }
+
 static void harmony(void)
 {   Case c; HarmonySave hd, h1451; uint8_t plain[NT], got[NT], dflt[4] = { 1 }, prog[4] = { 1, 4, 5, 1 };
     static const char *RN[4] = { "AUTO", "OFF", "ROOT", "FULL" };
+    if (A.flags & AF_CHORD) { harmony_chord_algo(); return; }
     defaults(&c, 0); c.scale = SC_MAJOR;
     hset(&hd, 4, 1, dflt, 2, 8, 0, 0);
     memset(plain, 0, sizeof plain);
@@ -227,11 +335,20 @@ static void harmony(void)
         harm_run(&c, &h1451, got, 1, title);
         if (r == HR_FULL) { int diff = 0; for (int t = 0; t < NT; t++) diff += got[t] != plain[t]; CHECK(diff > 0, "ROLE FULL left the output unchanged"); } } }
 
+#ifdef PROTO_EXTRA
+#include PROTO_EXTRA
+#endif
+
 int main(void)
-{   matrix();
+{   uint8_t one[1] = { 1 };
+    hset(&HDEF, 4, 1, one, 2, 8, 0, 0);
+    matrix();
     purity();
     tables();
     harmony();
+#ifdef PROTO_EXTRA
+    proto_extra();
+#endif
     if (fails) { fprintf(stderr, "%s: %d check(s) failed\n", A.name, fails); return 1; }
     fprintf(stderr, "%s: matrix, purity, table and HARMONY checks OK\n", A.name);
     return 0; }

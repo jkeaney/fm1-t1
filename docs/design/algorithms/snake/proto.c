@@ -103,6 +103,17 @@ static void snake_step(const void *cache, uint32_t g, const HarmChord *hc, Pulse
     out->pad = 0;
 }
 
+/* The mod lanes (MODULATION 4): lane A is the "mod snake A", the cell of the PITCH lane (the same traversal cell, so the filter move is glued to the pitch);
+ * lane B is "mod snake B", a cell read like the VELOCITY lane (order[u mod vlen]), so it loops with the POLY length and drifts against the pitch lane.
+ * The gliding between B's neighbouring cells (MODULATION 4) is the CC emitter's job in the core; the prototype reports the cell. */
+static void snake_mod(const void *cache, uint32_t g, const HarmChord *hc, const PulseOut *o, ModIdx *out)
+{
+    const SnakeCache *c = (const SnakeCache *)cache;
+    uint32_t u = g + c->off;
+    (void)hc;
+    out->a = c->order[sq_dir_map(u, c->len, c->dir)]; out->vel = o->vel; out->b_cell = c->order[u % c->vlen]; out->b_lfo = 0; out->t = 0; out->period = 0;
+}
+
 /* Highest semitone: RANGE plus 1 (a snap up to the next scale tone), at least one octave for the chord stage's fold */
 static uint8_t snake_hi(const uint8_t m[SQ_NMORPH]) { uint8_t h = (uint8_t)(m[M_RANGE] + 1); return h < 12 ? 12 : h; }
 
@@ -121,8 +132,8 @@ const AlgoDesc ALGO_SNAKE = {
         { "DYN",    0, 10, 10, 1, 1 },
         { "DIR",    0,  2,  0, 1, 1 },
     },
-    .layer = { {1, {0}}, {1, {1}}, {1, {2}}, {0}, {1, {3}} },
+    .layer = { {1, {0}}, {1, {1}}, {1, {2}}, {0}, {2, {3, SQ_SEED_MOD}} },
     .sub = { "NOTES", "GATES", "VELO", "-", "DRIFT" },
-    .build = snake_build, .loop_len = snake_loop_len, .step = snake_step, .hi = snake_hi, .sub_note = 0,
+    .build = snake_build, .loop_len = snake_loop_len, .step = snake_step, .hi = snake_hi, .sub_note = 0, .mod = snake_mod,
 };
 /* ALGODESC-END */

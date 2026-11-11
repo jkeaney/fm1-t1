@@ -3,6 +3,8 @@
 # P2-008: build and test the algorithm prototypes in docs/design/algorithms/<name>/ against common/.
 #   sh tests/design/run_protos.sh              check everything, print PROTOS PASS
 #   GOLDEN_UPDATE=1 sh tests/design/run_protos.sh   accept an intended change of an algorithm's golden.txt
+# P2-017: six algorithms (ACID EUCLID SNAKE STAGE ARP PATTERNS), the mod lanes in every golden, an optional tests/design/<algo>_extra.h
+# (the algorithm's own golden sections, via -DPROTO_EXTRA) and the generated pattern table (gen_patterns.py --check).
 # Stages: header hygiene, -fsyntax-only on every common/ and <algo>/ file, primitives, HARMONY (H-GOLDEN against
 # harmony_proto.py), then per algorithm: SPEC table == proto.c table, matrix + purity + table tests, golden diff, a second
 # run that must be byte-identical, and (ACID) the independent Python re-implementation.
@@ -39,6 +41,10 @@ $CC $CF -I"$CMN" -o "$T/harm" "$HERE/harm_test.c" "$CMN/sq_prims.c" "$CMN/harm.c
 cmp -s "$T/harm_c.txt" "$T/harm_py.txt" || { diff "$T/harm_c.txt" "$T/harm_py.txt" | head -20; fail "H-GOLDEN: harm.c differs from harmony_proto.py"; }
 echo "H-GOLDEN: $(wc -l < "$T/harm_c.txt" | tr -d ' ') table lines equal harmony_proto.py"
 
+# 4b. the PATTERNS const table is generated from patterns.tsv: it must be current
+python3 "$HERE/gen_patterns.py" --check > /dev/null || fail "patterns_data.h is stale (python3 tests/design/gen_patterns.py)"
+python3 "$HERE/patterns_proto.py" --check > /dev/null || fail "patterns_proto.py --check"
+
 # 5. each algorithm folder that has a proto.c
 n=0
 for d in "$ALG"/*/; do
@@ -52,7 +58,9 @@ for d in "$ALG"/*/; do
     [ -s "$T/proto_tab.txt" ] || fail "$name: no ALGODESC block in proto.c"
     cmp -s "$T/spec_tab.txt" "$T/proto_tab.txt" || { diff "$T/spec_tab.txt" "$T/proto_tab.txt" | head; fail "$name: SPEC.md AlgoDesc table differs from proto.c"; }
     grep -q 'TBD' "$d/SPEC.md" && fail "$name: SPEC.md contains TBD"
-    $CC $CF -I"$CMN" -DPROTO_SYM=ALGO_$up -DPROTO_ID=SQ_ALGO_$up -o "$T/$name" "$HERE/proto_main.c" "$CMN/sq_prims.c" "$CMN/harm.c" "$d/proto.c" || fail "build $name"
+    XD=""
+    [ -f "$HERE/${name}_extra.h" ] && XD="-DPROTO_EXTRA=\"$HERE/${name}_extra.h\""
+    $CC $CF -I"$CMN" -DPROTO_SYM=ALGO_$up -DPROTO_ID=SQ_ALGO_$up ${XD:+"$XD"} -o "$T/$name" "$HERE/proto_main.c" "$CMN/sq_prims.c" "$CMN/harm.c" "$d/proto.c" || fail "build $name"
     "$T/$name" > "$T/$name.1" || fail "$name tests"
     "$T/$name" > "$T/$name.2" 2>/dev/null || fail "$name second run"
     cmp -s "$T/$name.1" "$T/$name.2" || fail "$name: two runs differ (not deterministic)"
@@ -63,6 +71,6 @@ for d in "$ALG"/*/; do
     echo "$name: $(grep -c '^## ' "$d/golden.txt") golden sections, golden.txt equal, two runs byte-identical"
     n=$((n + 1))
 done
-[ "$n" -ge 4 ] || fail "expected the four P2-008 / P2-016 algorithms (ACID EUCLID SNAKE STAGE), found $n"
+[ "$n" -eq 6 ] || fail "expected the six v1 algorithms (ACID EUCLID SNAKE STAGE ARP PATTERNS), found $n"
 echo "algorithms: $n"
 echo "PROTOS PASS"

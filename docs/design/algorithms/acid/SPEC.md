@@ -46,7 +46,12 @@ Default seed k of channel ch: `(0x3A5D * (ch * 6 + seed_k)) & 0xFFFF` (A3 3.1). 
 | HITS | `HITS` | 1 |
 | ACCNT | `ACCNT` | 4 |
 | ARTIC | `GT+SLD` | 3 and 5 (two reads of the entropy, the second `^ 0x5A5A`) |
-| SHAPE | `OCTAVE` | 2 |
+| SHAPE | `OCTAVE` | 2 and `s_mod` (the second read of the entropy, `^ 0x5A5A`) |
+
+### 2.1 The mod lanes and `s_mod` (P2-017, MODULATION 3 and 4)
+
+The mod gen adds **no morph and no button**. Its one input is `s_mod` (`SQ_SEED_MOD`, seed id 6): it is stored in `ModSave` (not in `AlgoState`), handed to the harness as a seventh seed, and **re-rolled by the SHAPE layer together with the seed the layer already had** (OCTAVE + `s_mod`). `build()` and `step()` never read it, so dicing it cannot move a note (checked by the purity test (g) and visible in the golden: the `dice SHAPE` cases keep the notes of the base case).
+`AlgoDesc.mod(cache, g, hc, out_pulse, ModIdx*)` reports **which index each lane is read at** (a pure function like `step()`); the shared SP18..SP20 turn it into the value of each of the 4 slots (`sq_mod_lane`). Lane A (slots 1, 3) is the cell of the gate position `i` (the index that the accent and slide flags use), leaning on the step's velocity so that accents open the filter. Lane B (slots 2, 4) is an LFO of period 16 read at the same `i`, so OFFSET and DIR move the filter with the notes. The golden shows the four slot values after `hold` on every row, for `s_mod` = the channel's default (`SQ_SMOD_DEFAULT`) and a channel LENGTH of 16.
 
 ## 3. Build (A3 4; pure; reads only `m`, `seed`, `g->s.key`, `g->s.octave`, `g->snap[]`)
 
@@ -93,9 +98,9 @@ const AlgoDesc ALGO_ACID = {
         { "PUNCH",  0, 47, 40, 1, 4 },
         { "DIR",    0,  2,  0, 1, 1 },
     },
-    .layer = { {1, {0}}, {1, {1}}, {1, {4}}, {2, {3, 5}}, {1, {2}} },
+    .layer = { {1, {0}}, {1, {1}}, {1, {4}}, {2, {3, 5}}, {2, {2, SQ_SEED_MOD}} },
     .sub = { "NOTES", "HITS", "ACCNT", "GT+SLD", "OCTAVE" },
-    .build = acid_build, .loop_len = acid_loop_len, .step = acid_step, .hi = acid_hi, .sub_note = 0,
+    .build = acid_build, .loop_len = acid_loop_len, .step = acid_step, .hi = acid_hi, .sub_note = 0, .mod = acid_mod,
 };
 /* ALGODESC-END */
 ```
@@ -108,6 +113,8 @@ const AlgoDesc ALGO_ACID = {
   `pull = 3 + JUMP * 3 / 20` (`harm_pull`), strong steps are accented steps (velocity >= 100) and octave-jump notes (semitone >= 12), the first hit of each chord
   is the anchor, and the fold range is `lo = -12 .. hi(m)` (`harm_lo`, `acid_hi`). The default HARMONY state gives the plain output (H-INERT, checked in `golden.txt`).
 - **Hi:** `hi(m) = 36` when JUMP > 0 (pitch class 11, or 12 when the scale snaps up, plus octave +2), else 12. The lowest note is 12 semitones under the base (octave -1).
+
+**Test approximation (P2-016 review, P2-017):** the chord run of `tests/design/proto_main.c` (`harm_run`) is not the core. It takes a step as *strong* when its velocity is >= 100 or it is a hold or an octave-jump note (semitone >= 12); the other strong steps of HARMONY.md 4.3 are the core's to add (it knows the cycle and the stage starts) and are not cached. The golden `HARM` sections therefore show the pull with that approximation.
 
 ## 7. Deviations and open points found while writing the prototype (for the reviewer)
 
@@ -126,7 +133,7 @@ const AlgoDesc ALGO_ACID = {
 
 ## 8. Golden file and tests
 
-`golden.txt` (regenerate with `GOLDEN_UPDATE=1 sh tests/design/run_protos.sh`) holds, each as `t note vel gate flags hold` for t = 0..127:
+`golden.txt` (regenerate with `GOLDEN_UPDATE=1 sh tests/design/run_protos.sh`) holds, each as `t note vel gate flags hold lane1 lane2 lane3 lane4` for t = 0..127:
 16 base cases (channel 0, 1 x MINPEN, CHROM x key 0, 5 x octave 0, -1 at the default morphs and seeds); every morph at min, mid and max (24 cases: all four ROW 1 and all four
 ROW 2 knobs); each of the five dice layers with two diced seeds (10 cases); three combinations (all minimum, all maximum, all layers diced); then the HARMONY runs: the default state
 and ROLE OFF with 1-4-5-1 (both equal to the plain output, H-INERT) and 1-4-5-1 in C major for ROLE AUTO, ROOT and FULL.

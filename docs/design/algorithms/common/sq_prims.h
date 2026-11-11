@@ -56,6 +56,19 @@ static inline uint8_t sq_note(const SeqGlobal *g, int16_t semi)
 /* SP16 direction map: d 0 FWD, 1 BWD, 2 PEND (ping-pong without repeating the ends). n >= 1. */
 uint8_t  sq_dir_map(uint32_t u, uint8_t n, uint8_t d);
 
+/* SP18..SP20 the mod gen (MODULATION 3.1; P2-017 fixes their bodies). None of them touches the SP1 generator, so no note output depends on s_mod.
+ * SP18: a cell of lane `lane` (0 A, 1 B) for slot 1..4 at index i (0..255; MODULATION wrote `i & 15`, the callers pass the algorithm's own index and
+ * ARP's figure positions reach 137): a hash of (s_mod, lane, slot, i) in -127..127.
+ * SP19: the LFO of a slot: shape = s_mod & 3 (0 TRI, 1 SAW up, 2 SAW down, 3 SINE through a 17 point table), phase = (s_mod >> 4) % period + (slot - 1) * period / 4,
+ * value at position t over `period` steps (period >= 1), -127..127.
+ * SP20: the lean on loudness, (vel - 90) * 2 clamped to -64..64: 90 (a plain step) = 0, 120 (an accent) = +60. */
+int8_t   sp18_cell(uint16_t s_mod, uint8_t lane, uint8_t slot, uint8_t i);
+int8_t   sp19_lfo(uint16_t s_mod, uint8_t slot, uint16_t t, uint16_t period);
+int8_t   sp20_lean(uint8_t vel);
+/* The value of one slot at one step from the algorithm's ModIdx: odd slot = lane A = clamp(sp18_cell(s_mod, 0, slot, a) / 2 + sp20_lean(vel));
+ * even slot = lane B = the LFO or a cell (b_lfo). `len` replaces a period of 0 (the channel LENGTH). */
+int8_t   sq_mod_lane(uint16_t s_mod, uint8_t slot, const ModIdx *m, uint16_t len);
+
 /* SP17 velocity depth: clamp(90 - ((90 - v) * dyn) / 10, 1, 127), truncating toward zero; dyn 10 returns v, 0 returns 90. */
 uint8_t  sq_dyn_vel(uint8_t v, uint8_t dyn);
 

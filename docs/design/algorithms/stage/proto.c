@@ -109,6 +109,17 @@ static void stage_step(const void *cache, uint32_t g, const HarmChord *hc, Pulse
     out->pad = 0;
 }
 
+/* The mod lanes (MODULATION 4): lane A is the cell of the STAGE number (one value per stage, held for the stage's whole duration: a long stage is one CC);
+ * lane B sweeps once per loop (period TOTAL pulses) at the pulse p the loop is read at. */
+static void stage_mod(const void *cache, uint32_t g, const HarmChord *hc, const PulseOut *o, ModIdx *out)
+{
+    const StageCache *c = (const StageCache *)cache;
+    uint8_t p = sq_dir_map(g + c->off, c->tot, c->dir), k = 0;
+    (void)hc;
+    while (k < 7 && p >= c->C[k]) k++;
+    out->a = k; out->vel = o->vel; out->b_cell = 0; out->b_lfo = 1; out->t = p; out->period = c->tot;
+}
+
 /* Highest semitone: RANGE plus 1 (a snap up to the next scale tone), at least one octave for the chord stage's fold */
 static uint8_t stage_hi(const uint8_t m[SQ_NMORPH]) { uint8_t h = (uint8_t)(m[M_RANGE] + 1); return h < 12 ? 12 : h; }
 
@@ -127,8 +138,8 @@ const AlgoDesc ALGO_STAGE = {
         { "DYN",    0, 10, 10, 1, 1 },
         { "DIR",    0,  2,  0, 1, 1 },
     },
-    .layer = { {1, {0}}, {1, {2}}, {1, {4}}, {1, {3}}, {1, {1}} },
+    .layer = { {1, {0}}, {1, {2}}, {1, {4}}, {1, {3}}, {2, {1, SQ_SEED_MOD}} },
     .sub = { "NOTES", "RESTS", "VELO", "RT+HLD", "LONG" },
-    .build = stage_build, .loop_len = stage_loop_len, .step = stage_step, .hi = stage_hi, .sub_note = 0,
+    .build = stage_build, .loop_len = stage_loop_len, .step = stage_step, .hi = stage_hi, .sub_note = 0, .mod = stage_mod,
 };
 /* ALGODESC-END */

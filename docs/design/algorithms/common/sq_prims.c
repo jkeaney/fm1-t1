@@ -111,3 +111,37 @@ uint8_t sq_dir_map(uint32_t u, uint8_t n, uint8_t d)
 uint8_t sq_dyn_vel(uint8_t v, uint8_t dyn)
 {   int32_t r = 90 - ((90 - (int32_t)v) * dyn) / 10;
     return (uint8_t)(r < 1 ? 1 : r > 127 ? 127 : r); }
+
+/* ---- SP18..SP20, the mod gen ---- */
+int8_t sp18_cell(uint16_t s_mod, uint8_t lane, uint8_t slot, uint8_t i)
+{   uint32_t x = sq_mix(((uint32_t)s_mod * 0x9E3779B1u) ^ (((uint32_t)lane << 24) | ((uint32_t)slot << 16) | i) ^ 0x6D0F27BDu);
+    return (int8_t)((int32_t)(x >> 24) * 254 / 255 - 127); }           /* 0..255 -> -127..127 */
+
+static const int8_t SIN17[17] = { 0, 49, 90, 117, 127, 117, 90, 49, 0, -49, -90, -117, -127, -117, -90, -49, 0 };
+
+int8_t sp19_lfo(uint16_t s_mod, uint8_t slot, uint16_t t, uint16_t period)
+{   uint32_t ph, pos, x;
+    int32_t v;
+    if (period < 1) period = 1;
+    ph = (uint32_t)(s_mod >> 4) % period + (uint32_t)(slot ? slot - 1u : 0u) * period / 4u;
+    pos = (t + ph) % period;
+    x = pos * 256u / period;                                             /* 0..255 along the cycle */
+    switch (s_mod & 3u) {
+    case 0: v = (int32_t)(x < 128 ? x * 2 : (255 - x) * 2) - 127; break;                        /* TRI: -127 .. +127 .. -127 */
+    case 1: v = (int32_t)(x * 254 / 255) - 127; break;                                          /* SAW up */
+    case 2: v = 127 - (int32_t)(x * 254 / 255); break;                                          /* SAW down */
+    default: { uint32_t q = x * 16u, k = q >> 8, f = q & 255u;                                  /* SINE: linear between table points */
+               v = SIN17[k] + ((SIN17[k + 1] - SIN17[k]) * (int32_t)f) / 256; break; } }
+    return (int8_t)(v < -127 ? -127 : v > 127 ? 127 : v); }
+
+int8_t sp20_lean(uint8_t vel)
+{   int32_t v = ((int32_t)vel - 90) * 2;
+    return (int8_t)(v < -64 ? -64 : v > 64 ? 64 : v); }
+
+int8_t sq_mod_lane(uint16_t s_mod, uint8_t slot, const ModIdx *m, uint16_t len)
+{   int32_t v;
+    if (slot & 1u) {                                                     /* slots 1 and 3: lane A, the step form that leans on accents */
+        v = sp18_cell(s_mod, 0, slot, m->a) / 2 + sp20_lean(m->vel);
+        return (int8_t)(v < -127 ? -127 : v > 127 ? 127 : v); }
+    if (m->b_lfo) return sp19_lfo(s_mod, slot, m->t, m->period ? m->period : len);
+    return sp18_cell(s_mod, 1, slot, m->b_cell); }

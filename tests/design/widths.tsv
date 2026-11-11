@@ -299,3 +299,5 @@ S	204	CH2 MIDI ON	Z6 toast, unmute tap on a previewing channel
 S	56	CUE 2	Z1 cell line 2, MIDI gate closed and PREVIEW on
 S	56	CUE 12	Z1 cell line 2, MIDI gate closed and PREVIEW on
 S	56	CUE OFF	Z1 cell line 2, MIDI OFF and PREVIEW on
+# ---- P2-017 (EUCLID SHAPE is alive: sub-label MOD; the six-name picker is already above, P2-013 / P2-014)
+S	42	MOD	EUCLID dice sub-label under LFO (P2-017; was `-`)

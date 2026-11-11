@@ -40,7 +40,12 @@ Four seeds (`n_seed` 4), one stream each (`sq_rng_init(seed, salt)`; the salts a
 | HITS | `GATES` | 1 |
 | ACCNT | `VELO` | 2 |
 | ARTIC | `-` | **absent** (`LayerDesc.n = 0`): pressing it changes nothing, the screen shows `ARTIC -` (AS 4.4) |
-| SHAPE | `DRIFT` | 3 (how long the velocity lane is, so how it drifts against the rhythm) |
+| SHAPE | `DRIFT` | 3 (how long the velocity lane is, so how it drifts against the rhythm) and `s_mod` |
+
+### 2.1 The mod lanes and `s_mod` (P2-017, MODULATION 3 and 4)
+
+The mod gen adds **no morph and no button**. Its one input is `s_mod` (`SQ_SEED_MOD`, seed id 6): it is stored in `ModSave` (not in `AlgoState`), handed to the harness as a seventh seed, and **re-rolled by the SHAPE layer together with the seed the layer already had** (DRIFT + `s_mod`). `build()` and `step()` never read it, so dicing it cannot move a note (checked by the purity test (g) and visible in the golden: the `dice SHAPE` cases keep the notes of the base case).
+`AlgoDesc.mod(cache, g, hc, out_pulse, ModIdx*)` reports **which index each lane is read at** (a pure function like `step()`); the shared SP18..SP20 turn it into the value of each of the 4 slots (`sq_mod_lane`). Lane A (slots 1, 3) is **mod snake A**: the cell of the PITCH lane (`order[dir_map(u, len, dir)]`, the same traversal cell as the note, so the filter move is glued to the pitch). Lane B (slots 2, 4) is **mod snake B**: a cell read like the VELOCITY lane (`order[u mod vlen]`, so it loops with the POLY length and drifts against the pitch lane); MODULATION 4 also has it glide between neighbouring cells, which the prototype leaves to the core's CC emitter (it reports the cell). The golden shows the four slot values after `hold` on every row, for `s_mod` = the channel's default (`SQ_SMOD_DEFAULT`) and a channel LENGTH of 16.
 
 ## 3. Build (A3 4; pure; reads only `m`, `seed`, `g->s.key`, `g->s.octave`, `g->snap[]`)
 
@@ -80,9 +85,9 @@ const AlgoDesc ALGO_SNAKE = {
         { "DYN",    0, 10, 10, 1, 1 },
         { "DIR",    0,  2,  0, 1, 1 },
     },
-    .layer = { {1, {0}}, {1, {1}}, {1, {2}}, {0}, {1, {3}} },
+    .layer = { {1, {0}}, {1, {1}}, {1, {2}}, {0}, {2, {3, SQ_SEED_MOD}} },
     .sub = { "NOTES", "GATES", "VELO", "-", "DRIFT" },
-    .build = snake_build, .loop_len = snake_loop_len, .step = snake_step, .hi = snake_hi, .sub_note = 0,
+    .build = snake_build, .loop_len = snake_loop_len, .step = snake_step, .hi = snake_hi, .sub_note = 0, .mod = snake_mod,
 };
 /* ALGODESC-END */
 ```
@@ -94,6 +99,8 @@ const AlgoDesc ALGO_SNAKE = {
 - **HARMONY** (HARMONY.md 4.3, A3 20): `pull = 2 + RANGE * 6 / 48` (`harm_pull`, default 3); strong steps are the lane notes with velocity >= 100; the first hit of each chord is the anchor; the fold range is `lo = 0 .. hi(m)`
   (`harm_lo`, `snake_hi`). PATH changes keep each lane note's pitch (the pull acts per lane note). The default HARMONY state gives the plain output (H-INERT, checked in `golden.txt`).
 - **`hi(m) = max(RANGE + 1, 12)`**: the raw value maps to at most RANGE, and a snap up to the next scale tone adds at most 1 (no scale of the 16 has a gap over 3 semitones).
+
+**Test approximation (P2-016 review, P2-017):** the chord run of `tests/design/proto_main.c` (`harm_run`) is not the core. It takes a step as *strong* when its velocity is >= 100 or it is a hold; the other strong steps of HARMONY.md 4.3 are the core's to add (it knows the cycle and the stage starts) and are not cached. The golden `HARM` sections therefore show the pull with that approximation.
 
 ## 7. Deviations and open points found while writing the prototype (for the reviewer)
 
@@ -107,7 +114,7 @@ const AlgoDesc ALGO_SNAKE = {
 
 ## 8. Golden file and tests
 
-`golden.txt` (regenerate with `GOLDEN_UPDATE=1 sh tests/design/run_protos.sh`) holds, each as `t note vel gate flags hold` for t = 0..127: 16 base cases (channel 0, 1 x MINPEN, CHROM x key 0, 5 x octave 0, -1 at the default morphs and seeds);
+`golden.txt` (regenerate with `GOLDEN_UPDATE=1 sh tests/design/run_protos.sh`) holds, each as `t note vel gate flags hold lane1 lane2 lane3 lane4` for t = 0..127: 16 base cases (channel 0, 1 x MINPEN, CHROM x key 0, 5 x octave 0, -1 at the default morphs and seeds);
 every morph at min, mid and max (24 cases: all four ROW 1 and all four ROW 2 knobs); each present dice layer with two diced seeds (8 cases), and the absent layer (ARTIC) as two `absent (no change)` lines, the driver checking that
 no seed moved; three combinations (all minimum, all maximum, all layers diced); then the HARMONY runs: the default state and ROLE OFF with 1-4-5-1 (both equal to the plain output, H-INERT) and 1-4-5-1 in C major for ROLE AUTO, ROOT and FULL.
 `tests/design/proto_main.c` also checks, for 40 random settings, the purity contract (A3 14), the table rules and the music theory: every note is in the scale and in `-12 .. hi(m)`, `vel` 1..127, `gate` 1..100.

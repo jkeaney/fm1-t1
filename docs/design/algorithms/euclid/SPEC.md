@@ -50,7 +50,12 @@ The default ROT seed is 0 (no rotation); a dice never lands on 0 (A3 3.1). The o
 | HITS | `ROTATE` | 0 (which step the figure starts on; the rhythm itself is fixed by HITS and LEN) |
 | ACCNT | `ACCNT` | 2 |
 | ARTIC | `RATCH` | 3 |
-| SHAPE | `-` | **absent** (`LayerDesc.n = 0`): pressing it changes nothing, the screen shows `SHAPE -` (AS 4.4) |
+| SHAPE | `MOD` | `s_mod` only (P2-022 / P2-017: EUCLID's SHAPE layer is no longer absent; the button re-rolls the mod lanes and nothing else) |
+
+### 2.1 The mod lanes and `s_mod` (P2-017, MODULATION 3 and 4)
+
+The mod gen adds **no morph and no button**. Its one input is `s_mod` (`SQ_SEED_MOD`, seed id 6): it is stored in `ModSave` (not in `AlgoState`), handed to the harness as a seventh seed, and **re-rolled by the SHAPE layer together with the seed the layer already had** (`s_mod` alone). `build()` and `step()` never read it, so dicing it cannot move a note (checked by the purity test (g) and visible in the golden: the `dice SHAPE` cases keep the notes of the base case).
+`AlgoDesc.mod(cache, g, hc, out_pulse, ModIdx*)` reports **which index each lane is read at** (a pure function like `step()`); the shared SP18..SP20 turn it into the value of each of the 4 slots (`sq_mod_lane`). Lane A (slots 1, 3) is the cell of the **hit ordinal** (the k-th hit gets the k-th cell, so the value stays with the note when OFFSET rotates; a rest reads the ordinal of the hit before it, like its contour pitch; 4 bits per step in the cache, `ho[8]`). Lane B (slots 2, 4) is an LFO of period LEN read at the step position. The golden shows the four slot values after `hold` on every row, for `s_mod` = the channel's default (`SQ_SMOD_DEFAULT`) and a channel LENGTH of 16.
 
 ## 3. Build (A3 4; pure; reads only `m`, `seed`, `g->s.key`, `g->s.octave`, `g->snap[]`)
 
@@ -66,7 +71,7 @@ The default ROT seed is 0 (no rotation); a dice never lands on 0 (A3 3.1). The o
 6. **RATCH.** `P2 = 15 * RATCH / 4`, `P3 = 20 * RATCH / 4`; per ordinal `reps = 2 if u < P2, 3 if u < P3, else 1`; `decelerating = (d == 2)`. A hit stores `(reps - 1) | decel << 2`; a rest stores 0.
 7. `len = n`, `hv = min(127, 80 + PUNCH)`.
 
-Cache (30 B, `EuclidCache`): `note[16] hit(u16) acc(u16) rp[8] len hv`. `cache_bytes = 30`.
+Cache (38 B, `EuclidCache`): `note[16] hit(u16) acc(u16) rp[8] ho[8] len hv`. `cache_bytes = 38` (was 30 before the mod lane A's ordinals).
 
 ## 4. Step (ISR; pure function of `(cache, g)`; `hc` is ignored and `AF_CHORD` is clear)
 
@@ -83,7 +88,7 @@ a remap (a knob, a dice button, a range, a default, a label) is an edit to this 
 ```c
 /* ALGODESC-BEGIN (run_protos.sh diffs this block against SPEC.md section 5) */
 const AlgoDesc ALGO_EUCLID = {
-    .name = "EUCLID", .id = SQ_ALGO_EUCLID, .n_seed = 4, .flags = 0, .cache_bytes = 30,
+    .name = "EUCLID", .id = SQ_ALGO_EUCLID, .n_seed = 4, .flags = 0, .cache_bytes = 38,
     .knob_morph = { 0, 4, 5, 3, 1, 2, 6, 7 },
     .seed_k = { 0xFF, 1, 2, 3 },
     .morph = {
@@ -96,9 +101,9 @@ const AlgoDesc ALGO_EUCLID = {
         { "PUNCH",  0, 47, 40, 1, 4 },
         { "CURVE",  0,  6,  0, 1, 1 },
     },
-    .layer = { {1, {1}}, {1, {0}}, {1, {2}}, {1, {3}}, {0} },
-    .sub = { "NOTES", "ROTATE", "ACCNT", "RATCH", "-" },
-    .build = euclid_build, .loop_len = euclid_loop_len, .step = euclid_step, .hi = euclid_hi, .sub_note = 0,
+    .layer = { {1, {1}}, {1, {0}}, {1, {2}}, {1, {3}}, {1, {SQ_SEED_MOD}} },
+    .sub = { "NOTES", "ROTATE", "ACCNT", "RATCH", "MOD" },
+    .build = euclid_build, .loop_len = euclid_loop_len, .step = euclid_step, .hi = euclid_hi, .sub_note = 0, .mod = euclid_mod,
 };
 /* ALGODESC-END */
 ```
@@ -111,6 +116,8 @@ const AlgoDesc ALGO_EUCLID = {
   the fold range is `lo = 0 .. hi(m)` (`harm_lo`, `euclid_hi`). The contour is built first and then pulled; a ratchet shares the pulled pitch. The default HARMONY state gives the plain output (H-INERT, checked in `golden.txt`).
   The prototype's chord run marks strong steps from `vel >= 100` only; ordinal 0 is the core's to add (it knows the cycle start), and it is not cached.
 - **`hi(m) = max(SPAN + 3, 12)`**: the contour peaks at SPAN, the jitter adds 2, and a snap up to the next scale tone adds at most 1 (no scale of the 16 has a gap over 3 semitones).
+
+**Test approximation (P2-016 review, P2-017):** the chord run of `tests/design/proto_main.c` (`harm_run`) is not the core. It takes a step as *strong* when its velocity is >= 100 or it is a hold; ordinal 0 of each cycle; the other strong steps of HARMONY.md 4.3 are the core's to add (it knows the cycle and the stage starts) and are not cached. The golden `HARM` sections therefore show the pull with that approximation.
 
 ## 7. Deviations and open points found while writing the prototype (for the reviewer)
 
@@ -127,8 +134,7 @@ const AlgoDesc ALGO_EUCLID = {
 
 ## 8. Golden file and tests
 
-`golden.txt` (regenerate with `GOLDEN_UPDATE=1 sh tests/design/run_protos.sh`) holds, each as `t note vel gate flags hold` for t = 0..127: 16 base cases (channel 0, 1 x MINPEN, CHROM x key 0, 5 x octave 0, -1 at the default morphs and seeds);
-every morph at min, mid and max (24 cases: all four ROW 1 and all four ROW 2 knobs); each present dice layer with two diced seeds (8 cases), and the absent layer (SHAPE) as two `absent (no change)` lines, the driver checking that
-no seed moved; three combinations (all minimum, all maximum, all layers diced); then the HARMONY runs: the default state and ROLE OFF with 1-4-5-1 (both equal to the plain output, H-INERT) and 1-4-5-1 in C major for ROLE AUTO, ROOT and FULL.
+`golden.txt` (regenerate with `GOLDEN_UPDATE=1 sh tests/design/run_protos.sh`) holds, each as `t note vel gate flags hold lane1 lane2 lane3 lane4` for t = 0..127: 16 base cases (channel 0, 1 x MINPEN, CHROM x key 0, 5 x octave 0, -1 at the default morphs and seeds);
+every morph at min, mid and max (24 cases: all four ROW 1 and all four ROW 2 knobs); each present dice layer with two diced seeds (8 cases), and the SHAPE layer (`MOD`, `s_mod` only) with two diced seeds (EUCLID has no absent layer now); three combinations (all minimum, all maximum, all layers diced); then the HARMONY runs: the default state and ROLE OFF with 1-4-5-1 (both equal to the plain output, H-INERT) and 1-4-5-1 in C major for ROLE AUTO, ROOT and FULL.
 `tests/design/euclid_ref.py` is an independent check of the rhythm written from section 3 (not from `proto.c`): every case must be periodic in LEN, have `min(HITS, LEN)` hits, form a maximally even set (a rotation of `floor(i * n / k)`),
 and E(5,16) must be steps 0 3 6 9 12. `tests/design/proto_main.c` also checks, for 40 random settings, the purity contract (A3 14), the table rules and the music theory: every note is in the scale and in `-12 .. hi(m)`, `vel` 1..127, `gate` 1..100.

@@ -42,9 +42,14 @@ Five seeds (`n_seed` 5), one stream each (`sq_rng_init(seed, salt)`; the salts a
 | HITS | `RESTS` | 2 |
 | ACCNT | `VELO` | 4 |
 | ARTIC | `RT+HLD` | 3 (which stages re-fire and which hold) |
-| SHAPE | `LONG` | 1 (which stages are long) |
+| SHAPE | `LONG` | 1 (which stages are long) and `s_mod` |
 
 All five layers are present.
+
+### 2.1 The mod lanes and `s_mod` (P2-017, MODULATION 3 and 4)
+
+The mod gen adds **no morph and no button**. Its one input is `s_mod` (`SQ_SEED_MOD`, seed id 6): it is stored in `ModSave` (not in `AlgoState`), handed to the harness as a seventh seed, and **re-rolled by the SHAPE layer together with the seed the layer already had** (LONG + `s_mod`). `build()` and `step()` never read it, so dicing it cannot move a note (checked by the purity test (g) and visible in the golden: the `dice SHAPE` cases keep the notes of the base case).
+`AlgoDesc.mod(cache, g, hc, out_pulse, ModIdx*)` reports **which index each lane is read at** (a pure function like `step()`); the shared SP18..SP20 turn it into the value of each of the 4 slots (`sq_mod_lane`). Lane A (slots 1, 3) is the cell of the **stage number** (one value per stage, held for the stage's whole duration: a long stage is one CC, not one per pulse). Lane B (slots 2, 4) is an LFO of period TOTAL pulses read at the loop pulse `p` (one sweep per loop). The golden shows the four slot values after `hold` on every row, for `s_mod` = the channel's default (`SQ_SMOD_DEFAULT`) and a channel LENGTH of 16.
 
 ## 3. Build (A3 4; pure; reads only `m`, `seed`, `g->s.key`, `g->s.octave`, `g->snap[]`)
 
@@ -88,9 +93,9 @@ const AlgoDesc ALGO_STAGE = {
         { "DYN",    0, 10, 10, 1, 1 },
         { "DIR",    0,  2,  0, 1, 1 },
     },
-    .layer = { {1, {0}}, {1, {2}}, {1, {4}}, {1, {3}}, {1, {1}} },
+    .layer = { {1, {0}}, {1, {2}}, {1, {4}}, {1, {3}}, {2, {1, SQ_SEED_MOD}} },
     .sub = { "NOTES", "RESTS", "VELO", "RT+HLD", "LONG" },
-    .build = stage_build, .loop_len = stage_loop_len, .step = stage_step, .hi = stage_hi, .sub_note = 0,
+    .build = stage_build, .loop_len = stage_loop_len, .step = stage_step, .hi = stage_hi, .sub_note = 0, .mod = stage_mod,
 };
 /* ALGODESC-END */
 ```
@@ -102,6 +107,8 @@ const AlgoDesc ALGO_STAGE = {
 - **HARMONY** (HARMONY.md 4.3, A3 20): `pull = 2 + RANGE * 6 / 36` (`harm_pull`, default 4); strong steps are the first pulse of a stage and the long holds; the first hit of each chord is the anchor; the fold range is `lo = 0 .. hi(m)`
   (`harm_lo`, `stage_hi`). A re-fired stage shares one pulled pitch. The default HARMONY state gives the plain output (H-INERT, checked in `golden.txt`). The prototype's chord run marks strong steps from `vel >= 100` and holds; the first pulse of a stage is the core's to add.
 - **`hi(m) = max(RANGE + 1, 12)`**: the raw value maps to at most RANGE, and a snap up to the next scale tone adds at most 1 (no scale of the 16 has a gap over 3 semitones).
+
+**Test approximation (P2-016 review, P2-017):** the chord run of `tests/design/proto_main.c` (`harm_run`) is not the core. It takes a step as *strong* when its velocity is >= 100 or it is a hold; the first pulse of each stage; the other strong steps of HARMONY.md 4.3 are the core's to add (it knows the cycle and the stage starts) and are not cached. The golden `HARM` sections therefore show the pull with that approximation.
 
 ## 7. Deviations and open points found while writing the prototype (for the reviewer)
 
@@ -115,7 +122,7 @@ const AlgoDesc ALGO_STAGE = {
 
 ## 8. Golden file and tests
 
-`golden.txt` (regenerate with `GOLDEN_UPDATE=1 sh tests/design/run_protos.sh`) holds, each as `t note vel gate flags hold` for t = 0..127: 16 base cases (channel 0, 1 x MINPEN, CHROM x key 0, 5 x octave 0, -1 at the default morphs and seeds);
+`golden.txt` (regenerate with `GOLDEN_UPDATE=1 sh tests/design/run_protos.sh`) holds, each as `t note vel gate flags hold lane1 lane2 lane3 lane4` for t = 0..127: 16 base cases (channel 0, 1 x MINPEN, CHROM x key 0, 5 x octave 0, -1 at the default morphs and seeds);
 every morph at min, mid and max (24 cases: all four ROW 1 and all four ROW 2 knobs, including TOTAL 8 and 64); each of the five dice layers with two diced seeds (10 cases); three combinations (all minimum, all maximum, all layers diced);
 then the HARMONY runs: the default state and ROLE OFF with 1-4-5-1 (both equal to the plain output, H-INERT) and 1-4-5-1 in C major for ROLE AUTO, ROOT and FULL.
 `tests/design/proto_main.c` also checks, for 40 random settings, the purity contract (A3 14), the table rules and the music theory: every note is in the scale and in `-12 .. hi(m)`, `vel` 1..127, `gate` 1..100, and a `PO_HOLD` carries `hold` 1..8.
