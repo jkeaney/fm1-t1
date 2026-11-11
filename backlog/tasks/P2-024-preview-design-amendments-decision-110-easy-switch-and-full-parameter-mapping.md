@@ -3,7 +3,7 @@ id: P2-024
 title: Preview design amendments (decision 110): easy on/off, preset per channel, full parameter mapping
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P2-023]
@@ -62,3 +62,6 @@ Verdict: PASS on content; gate is human-review, so left at `review`. Awaiting ow
 
 ### 2026-11-11 review addendum (sonnet)
 The two doc nits above were fixed in P2-025 (a2a409b): PREVIEW.md section 7 and the 3.1 slide row. Decision 110's "MIDI OFF => silent" rule was superseded by decision 111. Checkers re-run clean. Still awaiting owner sign-off (human-review gate); status stays `review`.
+
+### 2026-11-11 orchestrator
+Approved: owner 2026-11-11 (decision 112: one shared mix on the master output, speaker or headphone jack; mute = MIDI gate).
