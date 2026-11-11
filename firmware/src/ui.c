@@ -457,7 +457,6 @@ static void load_begin(track_t *t, uint32_t what)
     uint32_t i = trk_index(t);
     if (what & UNDO_SOUND) {
         mom_back(t);                              /* (MOMENTARY: the sound as it was, then the load) */
-        drum_mute[i] = 0;                         /* (1.4.1: the lanes' mutes go with the sound) */
     }
     if (undo_depth++)
         return;
@@ -503,8 +502,6 @@ static void load_pat16(track_t *t, const uint8_t *note, const uint8_t *flags)
         s->vel = n ? 96 : 0;
         s->hit = s->acc = 0;
         s->probability = 0;
-        if (drum_track(t))                           /* a DRUM track: the lanes' notes as its grid */
-            step_to_grid(s);
     }
     t->p[P_SLEN] = 16;
 }
@@ -620,10 +617,8 @@ static void apply_preset_to(track_t *t, uint32_t pi)
         fm4_load_preset(t, pi);
         return;
     }
-    if (t->eng_req % NENGINES == ENGI_SAMPLE && pi == SMP_SET_PERC) {   /* SAMPLE preset 4 was PERC (retired, a stored */
-        set_engine_of(t, ENGI_DRUM);                  /* number: the editor's PRESET, a favourite): DRUM's kit */
-        return;                                       /* (core.h drum_from_perc) */
-    }
+    if (t->eng_req % NENGINES == ENGI_SAMPLE && pi == SMP_SET_PERC)   /* SAMPLE preset 4 was PERC (retired, past the */
+        return;                                                         /* presets): nothing to load */
     load_begin(t, UNDO_SOUND);
     panic_req |= (uint8_t)(1u << trk_index(t));       /* MONO/POLY may change: release what sounds */
     t->user = 0;
@@ -678,21 +673,13 @@ static void set_engine_of(track_t *t, uint32_t ei)
 
 /* MIDI Program Change (1.5.1, #179 by renebohne): program n on track t, as the PRESETS list numbers the engine's sounds
  * from 0: its n-th preset, the aliases skipped (preset_orig), loaded as from there (the track's own settings kept, one
- * undo for a run of them). DRUM: its n-th KIT, the retired variants skipped (enum_orig); FM6: its presets (F1..F8),
+ * undo for a run of them). FM6: its presets (F1..F8),
  * then the voice bank's B1..B32 through SLOT as the knob loads them (fm6_poll; the rest of the sound stays), an empty
  * one ignored. A program past the last is ignored, not wrapped: a number is always the same sound */
 static volatile uint8_t *const mpc_io = ui.mpc;
 static void midi_pc_load(track_t *t, uint32_t n)
 {
     uint32_t e = t->eng_req % NENGINES, k;
-    if (e == ENGI_DRUM) {
-        const param_desc_t *d = param_desc_of(e, P_E0);
-        for (k = (uint32_t)d->min; k <= (uint32_t)d->max && (enum_orig(d, (int32_t)k) != (int32_t)k || n--); k++)
-            ;
-        if (k <= (uint32_t)d->max)
-            t->p[P_E0] = (int16_t)k;
-        return;
-    }
     if (n >= preset_shown(e)) {
         int32_t s = (int32_t)(FM6_OWN + 1u + n - preset_shown(e));
         if (e == ENGI_FM6 && fm6_bank_slot(s) >= 0 && fm6_slot_ok(s))

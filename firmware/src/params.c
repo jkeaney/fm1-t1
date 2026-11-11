@@ -145,7 +145,7 @@ static const param_desc_t TP[P_COUNT] = {
 #undef FMOP
     [P_CHRD] = PE("CHRD", N_CHRD, 0),
     [P_VOIC] = PE("VOIC", N_VOIC, 0),
-/* the DRUM engine's lane levels (eng_drum.c, #97): 100 % = the kit as designed (the sound before 1.1) */
+/* step-lane levels (#97): 100 % = the level as designed (the sound before 1.1) */
 #define LANE(k, l) [P_LN0 + (k)] = PD(l, F_PCT, 0, 127, 127)
     LANE(0, "KICK"), LANE(1, "SNARE"), LANE(2, "CLAP"), LANE(3, "HATCL"),
     LANE(4, "HATOP"), LANE(5, "TOM"), LANE(6, "RIM"), LANE(7, "BELL"),
@@ -243,19 +243,16 @@ static const param_desc_t *param_desc_of(uint32_t e, uint32_t id)
 }
 
 /* a retired F_ENUM value kept as an alias, so stored values stay valid: SAMPLE SET and GRAIN SRC 1, once
- * TRANH, and 4, once PERC (a SAMPLE sound of it loads as DRUM: core.h drum_from_perc), play PIANO
- * (tools/gen_samples.py SMP_SET_ORIG); DRUM KIT 1..3, once HAND CYM H+CYM, play 66 10 77 (eng_drum.c DK_PLAYS).
+ * TRANH, and 4, once PERC play PIANO
+ * (tools/gen_samples.py SMP_SET_ORIG).
  * It shows the original's name; knobs step over it and the editor's SET lands on the original. -> the value v
  * stands for */
 static int32_t enum_orig(const param_desc_t *d, int32_t v)
 {
-    if (d->names == N_DRUM_KIT)
-        return v >= 0 && v < DK_COUNT ? (int32_t)DK_PLAYS[v] : v;
     return d->names == SMP_ALL_NAMES && v >= 0 && v < SMP_NSETS ? SMP_SET_ORIG[v] : v;
 }
 
-/* a stored value as the parameter takes it (projects, user presets, motion): inside d's range, and a retired
- * DRUM KIT (1..3) as the kit it plays, so KIT never holds one again. (SAMPLE / GRAIN's aliases keep their
+/* a stored value as the parameter takes it (projects, user presets, motion): inside d's range. (SAMPLE / GRAIN's aliases keep their
  * number: they are what the sound was saved with, and play the original anyway.) FM6's SLOT is never stored as a
  * bank slot: 9..40 (1.4.1's B1..B32; 1.0.2's B1..B27 were 8..34) is 8, OWN, and the patch comes with what is loaded */
 static int32_t param_fit(const param_desc_t *d, int32_t v)
@@ -263,7 +260,7 @@ static int32_t param_fit(const param_desc_t *d, int32_t v)
     v = clamp(v, d->min, d->max);
     if (d->names == N_FM6_PATCH)
         return v > (int32_t)FM6_OWN ? (int32_t)FM6_OWN : v;
-    return d->names == N_DRUM_KIT ? enum_orig(d, v) : v;
+    return v;
 }
 
 /* v is a value a knob passes over: an alias, or one of FM6's bank slots without a voice */

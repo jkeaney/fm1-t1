@@ -3,7 +3,7 @@ id: P3-008
 title: Remove the DRUM and PHYS engines (R6a)
 phase: P3
 type: task
-status: todo
+status: review
 priority: 2
 executor: haiku
 depends_on: [P3-011, P2-023]
@@ -54,11 +54,11 @@ Rehearsed on top of P3-007 + P3-011; the change exists as a verified patch. The 
    The target budget step may print a `note` for `fm1_alnk0_irq` (cheaper, about -30 %): expected, not a failure.
 
 ## Acceptance criteria
-- [ ] The files in P3-008.deletes.txt show `D`; no `#include` of them remains in felucca.c / engines.c / tests
-- [ ] `grep -rnEI 'ENGI_(DRUM|PHYS)|ENG_(DRUM|PHYS)|drum_track|drum_voice|eng_drum|eng_phys|phys_dsp|phys_symp|\bdv_[a-z_]+|\bpx_(modal|memb|string|symp)[a-z_]*|drum_from_(phys|perc)|\bN_DRUM_KIT|DK_(PLAYS|COUNT)' firmware/src tests tools web LICENSING.md BUILDING.md` prints nothing (a hit left in a comment: reword it, one line each, so nothing remains; the regenerated patch leaves such comments in core.h 6/63, params.c 148, seq.c 970 and tests/hostsim.c 137; hits in eng_sample.c:8 and tools/gen_samples.py:23 are files P3-009 deletes: leave them)
-- [ ] Build line `image 347112 B; RAM .data+.bss 34340 B of 73728; pool 144720 B of 368640` (regenerated on HEAD d03c6c8; the old rehearsal said 347096)
-- [ ] `sh tools/check.sh` ends CHECK PASS; RAM headroom at least 8192 B; the Log lists the golden lines that changed
-- [ ] The Log states that no BUDGET_UPDATE was run and what was written by hand into cpu_baseline.txt, if anything
+- [x] The files in P3-008.deletes.txt show `D`; no `#include` of them remains in felucca.c / engines.c / tests
+- [x] `grep -rnEI 'ENGI_(DRUM|PHYS)|ENG_(DRUM|PHYS)|drum_track|drum_voice|eng_drum|eng_phys|phys_dsp|phys_symp|\bdv_[a-z_]+|\bpx_(modal|memb|string|symp)[a-z_]*|drum_from_(phys|perc)|\bN_DRUM_KIT|DK_(PLAYS|COUNT)' firmware/src tests tools web LICENSING.md BUILDING.md` prints nothing (a hit left in a comment: reword it, one line each, so nothing remains; the regenerated patch leaves such comments in core.h 6/63, params.c 148, seq.c 970 and tests/hostsim.c 137; hits in eng_sample.c:8 and tools/gen_samples.py:23 are files P3-009 deletes: leave them)
+- [x] Build line `image 347112 B; RAM .data+.bss 34340 B of 73728; pool 144720 B of 368640` (regenerated on HEAD d03c6c8; the old rehearsal said 347096)
+- [x] `sh tools/check.sh` ends CHECK PASS; RAM headroom at least 8192 B; the Log lists the golden lines that changed
+- [x] The Log states that no BUDGET_UPDATE was run and what was written by hand into cpu_baseline.txt, if anything
 
 ## Verification
 ```sh
@@ -88,3 +88,18 @@ error: web/emu/felucca_web.c: patch does not apply
 - Per Deliverable step 1 ("stop and file a BUG") I applied nothing and deleted nothing. Filed backlog/bugs/BUG-004-p3-008-patch-does-not-apply-to-head.md.
 - Not run: `git apply`, `git rm`, `sh tools/check.sh`, `./build.sh`, the golden/budget steps. Nothing else was changed.
 - Status set to blocked until BUG-004 is fixed.
+
+### 2026-11-11 executor (claude-haiku-5-5)
+- BUG-004 is fixed on HEAD (commit c6a6a16; BUG-004 status done). The previous blocked attempt is superseded.
+- Verification, decisive lines:
+  - `git apply --check docs/design/rehearsal/P3-008.patch`: exit 0.
+  - `git apply docs/design/rehearsal/P3-008.patch` applied, then `git rm` of every line of P3-008.deletes.txt (11 files, all show `D`).
+  - Comment rewording: core.h 6 and 63, params.c 148, seq.c 970, tests/hostsim.c 137 reworded to drop the removed names (one line each, no code change). Left as allowed: eng_sample.c:8, tools/gen_samples.py:23.
+  - Grep from the criteria: only `firmware/src/eng_sample.c:8` and `tools/gen_samples.py:23` match (both allowed, P3-009 deletes them).
+  - `grep '#include.*(eng_drum|eng_phys|drum_voice|phys_)'` over firmware, tests, web: no output.
+  - `sh tools/check.sh`: `CHECK PASS`. RAM line: `RAM .data+.bss 34340 B of 73728` (headroom 39388 B, above the 8192 B floor).
+  - Build line: `ok    image 347112 B; RAM .data+.bss 34340 B of 73728; pool 144720 B of 368640` (matches the criterion exactly).
+  - Tests: `regress: 75 golden renders (0 changed, 0 gone), 0 health failures ...`, `union_test: 396 engine switch sequences, 0 differ`, `target: fm1_alnk0_irq ... note: -32 %` (the expected note), `ALL HOST TESTS PASSED`.
+- Golden lines that changed (accepted in the patch, no GOLDEN_UPDATE run): `tests/golden.txt` adds `song/4track_mix 0537ab5e4a6a39a0` and `song/4track_swing20 7935db39f87dee54` (replacing the old hashes 351764e3e2056e34 and 5117b1b1fd9c8c40). The demo song's track 4 is ANALOG now. All `preset/ANALOG/*` and `mode/ANALOG/*` lines are unchanged.
+- No BUDGET_UPDATE was run. tests/cpu_baseline.txt and tests/target_budget.txt are changed only by the patch (deletions of PHYS, DRUM, dv_, px_ rows). Nothing was hand-written into cpu_baseline.txt.
+- Not touched: restore/, .venv/, no flashing, no push.

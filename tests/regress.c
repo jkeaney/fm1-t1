@@ -160,7 +160,7 @@ static void phrase(track_t *t, uint32_t base)
 }
 
 /* ------------------------------------------------------------- jobs --- */
-enum { J_PRESET, J_MODE, J_SENDS, J_DRUMS, J_SONG, J_CPU, J_CHECK };
+enum { J_PRESET, J_MODE, J_SENDS, J_SONG, J_CPU, J_CHECK };
 typedef struct {
     char name[64];
     uint8_t kind, e, pi, arg, cpu_notes;
@@ -202,33 +202,6 @@ static void job_sends(const job_t *j)           /* arg: 0 dry, 1 chorus, 2 delay
     for (i = 0; i < 4u; i++)
         t->p[P_DIST + i] = S[j->arg][i];
     phrase(t, 60);
-}
-
-static void job_drums(const job_t *j)           /* every GM note through DRUM on part 4, a roll; arg: KIT (0: STD) */
-{
-    track_t *t = &trk[3];
-    uint32_t n, k = 0;
-    host_tracks_init();
-    host_drums(t);
-    t->p[P_E0] = j->arg;
-    for (n = 35; n <= 81u; n++, k++) {
-        input_on(t, n, 60u + (n * 7u) % 60u);
-        run_to(at(0.06 * (k + 1)));
-        input_off(t, n);
-    }
-    input_on(t, 46, 100);                      /* open hat, then the closed one */
-    run_to(fpos + FS / 10u);
-    input_on(t, 42, 100);
-    for (k = 0; k < 12u; k++) {                /* a snare roll: more hits than voices */
-        input_on(t, 38, 40u + 6u * k);
-        run_to(fpos + FS / 40u / CTL * CTL);
-    }
-    input_off(t, 46);
-    input_off(t, 42);
-    input_off(t, 38);
-    rel_at = fpos;
-    dc_end = fpos;
-    finish();
 }
 
 /* the 4-track mix: T1 ANALOG ACID, T2 the power-on pad (TRK_DEF: FM6 PAD since DIGITAL was retired; DIGITAL PAD
@@ -308,8 +281,6 @@ static void job_cpu(const job_t *j)
     host_tracks_init();
     for (p = 0; p < NPART; p++) {
         host_preset(&trk[p], parts[p][0], parts[p][1]);
-        if (j->arg && ENGINES[parts[p][0]] == &ENG_DRUM)
-            trk[p].p[P_E0] = j->arg;                    /* DRUM: a KIT (the model kits) */
         if (parts[p][2] == DRUM_HITS)
             continue;
         trk[p].p[P_VOICE] = V_POLY;
@@ -355,9 +326,6 @@ static int run_job_body(job_t *j)
         break;
     case J_SENDS:
         job_sends(j);
-        break;
-    case J_DRUMS:
-        job_drums(j);
         break;
     case J_SONG:
         job_song(j);
@@ -1012,11 +980,6 @@ int main(int argc, char **argv)
             j->e = (uint8_t)e;
             j->pi = (uint8_t)pi;
         }
-    add(J_DRUMS, "drums/drum_gm_kit");
-    for (i = 0; i < DV_NKIT; i++) {                 /* the model kits (KIT 80 10 66 55 77) */
-        snprintf(name, sizeof name, "drums/kit_%s", N_DRUM_KIT[DK_80 + i]);
-        add(J_DRUMS, name)->arg = (uint8_t)(DK_80 + i);
-    }
     for (i = 0; i < 3u; i++)
         for (k0 = 0; k0 < 4u && eng_ok(MODE_E[i][0]); k0++) {
             job_t *j;
@@ -1076,25 +1039,14 @@ int main(int argc, char **argv)
             j->e = (uint8_t)e;
             j->pi = (uint8_t)pi;
         }
-    for (i = 0; i < DV_NKIT; i++) {                 /* DRUM's model kits: the 8 lanes, as its preset above */
-        job_t *j;
-        snprintf(name, sizeof name, "cpu/DRUM/kit_%s", N_DRUM_KIT[DK_80 + i]);
-        j = add(J_CPU, name);
-        memset(cpu_parts[ncpu], 0, sizeof cpu_parts[ncpu]);
-        cpu_parts[ncpu][0][0] = ENGI_DRUM, cpu_parts[ncpu][0][1] = 0, cpu_parts[ncpu][0][2] = 8;
-        j->parts = (const uint8_t (*)[3])cpu_parts[ncpu++];
-        j->e = ENGI_DRUM;
-        j->pi = 0;
-        j->arg = (uint8_t)(DK_80 + i);
-    }
-    {   /* mixes: idle (subtracted from the presets' counts), idle + drums (part 4 DRUM; SAMPLE PERC until 1.0.2), FM (FM6) + PHASE + VOICE asking 8 + 8 + 4 + the drums (the budget keeps 8; FM6 plays 6) */
+    {   /* mixes: idle (subtracted from the presets' counts), idle + drums (part 4 ANALOG since P3-008), FM (FM6) + PHASE + VOICE asking 8 + 8 + 4 + the drums (the budget keeps 8; FM6 plays 6) */
         job_t *j = add(J_CPU, "cpu/mix/idle");
         memset(cpu_parts[ncpu], 0, sizeof cpu_parts[ncpu]);
         j->parts = (const uint8_t (*)[3])cpu_parts[ncpu++];
         j->e = 0xFF;
         j = add(J_CPU, "cpu/mix/idle_drums");
         memset(cpu_parts[ncpu], 0, sizeof cpu_parts[ncpu]);
-        cpu_parts[ncpu][3][0] = ENGI_DRUM, cpu_parts[ncpu][3][1] = 0, cpu_parts[ncpu][3][2] = DRUM_HITS;
+        cpu_parts[ncpu][3][0] = 0, cpu_parts[ncpu][3][1] = 0, cpu_parts[ncpu][3][2] = DRUM_HITS;
         j->parts = (const uint8_t (*)[3])cpu_parts[ncpu++];
         j->e = 0xFF;
         j = add(J_CPU, "cpu/mix/3parts_full_drums");
@@ -1102,7 +1054,7 @@ int main(int argc, char **argv)
         cpu_parts[ncpu][0][0] = ENGI_FM6, cpu_parts[ncpu][0][1] = 0, cpu_parts[ncpu][0][2] = 8;
         cpu_parts[ncpu][1][0] = 2, cpu_parts[ncpu][1][1] = 0, cpu_parts[ncpu][1][2] = 8;
         cpu_parts[ncpu][2][0] = 5, cpu_parts[ncpu][2][1] = 0, cpu_parts[ncpu][2][2] = 4;
-        cpu_parts[ncpu][3][0] = ENGI_DRUM, cpu_parts[ncpu][3][1] = 0, cpu_parts[ncpu][3][2] = DRUM_HITS;
+        cpu_parts[ncpu][3][0] = 0, cpu_parts[ncpu][3][1] = 0, cpu_parts[ncpu][3][2] = DRUM_HITS;
         j->parts = (const uint8_t (*)[3])cpu_parts[ncpu++];
         j->e = 0xFF;
         j = add(J_CPU, "cpu/mix/idle_click");          /* idle + the metronome's click (click.c) never silent */

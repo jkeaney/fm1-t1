@@ -2,8 +2,8 @@
  * Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments */
 /* FELUCCA core types: tracks, voices, engines, parameters.
  * Four tracks, each a synth part: its own engine, preset, parameters, voices and 64-step
- * pattern. The parts share one budget of NVOICE sounding voices (voice.c). Drums are the DRUM
- * engine (General MIDI map) on any part; the SAMPLE engine's PERC set is retired (drum_from_perc).
+ * pattern. The parts share one budget of NVOICE sounding voices (voice.c). Drums are the
+ * General MIDI map on any part; the SAMPLE engine's PERC set is retired.
  * Sections: sizes, parameters, voices and engines, tracks and the song, system. */
 #include <stdint.h>
 
@@ -18,7 +18,7 @@
 #endif
 #define NENGINES (13 + FELUCCA_SLICE)   /* SLICE (13) comes last: the other engines keep their numbers */
 #define ENGI_DIGITAL 1u          /* reserved (DIGITAL, retired): never selectable (eng_ok), its sounds load as FM6 */
-#define NENG_SHOWN (NENGINES - 1)   /* the engines one can pick: PRESETS, the EDIT layer, the editor,
+#define NENG_SHOWN (NENGINES - 3)   /* the engines one can pick: PRESETS, the EDIT layer, the editor,
                                                 * in the display order of engines.c ENGINE_ORDER */
 #define UP_SLOTS 32u             /* user preset slots (removed in P3-011: the constant stays for favorites.c) */
 #define NELEM(a) (sizeof(a) / sizeof((a)[0]))
@@ -60,7 +60,7 @@ enum {                          /* per-track parameters */
     P_FM3_ATK, P_FM3_DEC, P_FM3_SUS, P_FM3_REL, P_FM3_LEVEL,
     P_FM4_ATK, P_FM4_DEC, P_FM4_SUS, P_FM4_REL, P_FM4_LEVEL,
     P_CHRD, P_VOIC,                            /* retired chord keys (removed in P3-007): dead slots, kept for the table layout */
-    P_LN0, P_LN1, P_LN2, P_LN3, P_LN4, P_LN5, P_LN6, P_LN7,   /* DRUM lane levels (eng_drum.c, #97): KICK .. BELL */
+    P_LN0, P_LN1, P_LN2, P_LN3, P_LN4, P_LN5, P_LN6, P_LN7,   /* step-lane levels (#97): KICK .. BELL */
     P_LSYNC, P_LTRIG, P_LPOL,                  /* 1.2 (#154): LFO SYNC (OFF, a note value), TRIG (NOTE, FREE), POL (BI, UNI) */
     P_SQNT,                                    /* 1.2 (#162): QUANTIZE, the steps' recorded / nudged timing (ON: none) */
     P_SPRD,                                    /* (#148): SPREAD, the voices of a POLY / UNISON track around PAN (fx.c) */
@@ -104,40 +104,9 @@ static void params_by_count(int16_t *out, const int16_t *in, uint32_t np, const 
 }
 
 /* engine indices the stores name (engines.c ENGINES[]: append-only) */
-#define ENGI_PHYS 9u
-#define ENGI_DRUM 10u
-/* PHYS MODEL DRUM (MODEL 4, before 1.0) -> the DRUM engine, its E values in place: {MODEL, TUNE, TONE, DECY,
- * SNAP, ACC, KICK 0..127, PERC 0..127} -> {KIT, TUNE, TONE, DECY, SNAP, ACC, KICK 0..1, DRV 0}. 1 = it was one
- * (its engine is ENGI_DRUM now); the projects and user presets of the old formats (removed, P3-011) */
-static int drum_from_phys(uint32_t engine, int16_t *e)
-{
-    if (engine != ENGI_PHYS || e[0] != 4)
-        return 0;
-    e[0] = (int16_t)((e[7] < 0 ? 0 : e[7] > 127 ? 127 : e[7]) >> 5);   /* PERC -> KIT: STD HAND CYM H+CYM */
-    e[6] = (int16_t)(e[6] >= 64);                                       /* KICK: PUNCH, ROUND */
-    e[7] = 0;
-    return 1;
-}
-
-/* SAMPLE SET 4 was PERC, the GM-mapped drum kit (tools/gen_samples.py); retired after 1.0.2: its index stays
- * (SET / GRAIN SRC 4 is an alias of PIANO, USR1..3 keep 5..7). A sound that selected it is the DRUM engine with
- * its default kit (eng_drum.c DRUM_PRESETS[0]: the same GM key map, so its patterns still play as drums): its E
- * values become the kit's, the rest of the sound (mix, sends, matrix, ..) stays. 1 = it was one (its engine is
- * ENGI_DRUM now); the old projects and user presets (removed, P3-011), factory preset 4 and
- * favourites (ui.c, settings_persist.c). Idempotent */
+/* SAMPLE SET 4 was PERC (retired after 1.0.2): its index stays (SET / GRAIN SRC 4 is an alias of PIANO, USR1..3 keep 5..7) */
 #define ENGI_SAMPLE 4u
 #define SMP_SET_PERC 4u
-#define DRUM_KIT_E {0, 64, 70, 64, 64, 100, 0, 0}   /* {KIT STD, TUNE, TONE, DECY, SNAP, ACC, KICK PUNCH, DRV} */
-static int drum_from_perc(uint32_t engine, int16_t *e)
-{
-    static const int16_t KIT[8] = DRUM_KIT_E;
-    uint32_t i;
-    if (engine != ENGI_SAMPLE || e[0] != (int16_t)SMP_SET_PERC)
-        return 0;
-    for (i = 0; i < 8u; i++)
-        e[i] = KIT[i];
-    return 1;
-}
 
 /* ------------------------------------------------- voices, engines --- */
 enum { V_POLY, V_MONO, V_LEGATO, V_UNISON };   /* P_VOICE */
@@ -194,7 +163,7 @@ typedef struct {                 /* an engine (engines.c ENGINES[]; the eng_*.c 
     uint8_t sampled;             /* 1 = plays recorded material (a position, not a phase): voice.c keeps
                                   * no phases over a retrigger, spreads none for UNISON, renders at SUS 0 */
     uint8_t keep;                /* bit k: s[k] is kept when a sounding voice is retriggered (filters) */
-    uint8_t oneshot;             /* 1 = hits (DRUM): always POLY, no glide; amp ends its voices (eng_drum.c) */
+    uint8_t oneshot;             /* 1 = hits (DRUM): always POLY, no glide; amp ends its voices (no engine sets it since P3-008) */
     void (*note_on)(struct track *t, voice_t *v);
     void (*render)(struct track *t, voice_t *v, int32_t *out, uint32_t n, const vmod_t *m);
     /* optional (0 = none): the voice amplitude instead of the ADSR curve, once per control tick;
@@ -225,7 +194,7 @@ enum { ST_NOTE, ST_TIE, ST_REST };
 #define SF_SLIDE 2u
 #define SF_RATCH_SH 3u                   /* RATCH: the hits of a NOTE step - 1 (0..3: x1..x4, seq.c seq_ratchet); */
 #define SF_RATCH (3u << SF_RATCH_SH)     /* bits 3..4, so a user preset's pattern (flag 4 = tie) carries it too */
-#define NLANE 8                  /* drum lanes of a step (the DRUM engine's: eng_drum.c DRUM_LANE_NOTE) */
+#define NLANE 8                  /* drum lanes of a step (DRUM_LANE_NOTE, seq.c) */
 typedef struct {                 /* acid-style step: up to 4 notes (POLY), time, accent, slide; drum hits */
     uint8_t note[4];
     uint8_t n;                   /* notes in use, 0 = empty */

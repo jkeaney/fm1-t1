@@ -40,8 +40,6 @@ static void uplay(track_t *t, uint32_t e, uint32_t pi, uint32_t base, uint32_t w
 {
     static const uint8_t CH[4] = {0, 4, 7, 12};
     uint32_t i;
-    if (e == ENGI_DRUM)                          /* (DRUM had one preset until 1.5.6 (#216): the 1.4 hashes play DRUM KIT */
-        pi = 0;                                  /* at every pi; the new kits' presets are not engine-memory cases) */
     host_preset_req(t, e, pi);                   /* eng_req: the audio side switches (voice.c engine_block) */
     urun(wait_ms);
     for (i = 0; i < 4u; i++)
@@ -55,7 +53,7 @@ static void uplay(track_t *t, uint32_t e, uint32_t pi, uint32_t base, uint32_t w
     urun(250);                                   /* still ringing at the next switch */
 }
 
-static const uint32_t UE[] = {0 /* ANALOG */, ENGI_SAMPLE, 7 /* WHEEL */, 8 /* GRAIN */, ENGI_PHYS, ENGI_DRUM, ENGI_FM6,
+static const uint32_t UE[] = {0 /* ANALOG */, ENGI_SAMPLE, 7 /* WHEEL */, 8 /* GRAIN */, ENGI_FM6,
 #if FELUCCA_SLICE
                               13 /* SLICE */
 #endif

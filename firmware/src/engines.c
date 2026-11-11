@@ -29,8 +29,6 @@ static uint8_t eng_mem_owner[NPART];       /* engine index + 1 whose state is in
 #include "eng_trio.c"
 #include "eng_wheel.c"
 #include "eng_grain.c"
-#include "eng_phys.c"           /* PHYS: DaisySP physical models (phys_dsp.c, MIT) */
-#include "eng_drum.c"           /* DRUM: the 8-lane kit (drum_voice.c) */
 #include "eng_noise.c"
 #include "eng_fm6.c"            /* FM6: 6-operator FM, msfa ported (fm6_core.c, Apache-2.0) */
 #include "fm4_convert.c"        /* DIGITAL's tables, and its sounds -> FM6 */
@@ -49,8 +47,8 @@ static const engine_t *const ENGINES[NENGINES] = {
     &ENG_TRIO,                   /* 6 */
     &ENG_WHEEL,                  /* 7 */
     &ENG_GRAIN,                  /* 8 */
-    &ENG_PHYS,                   /* 9 (ENGI_PHYS) */
-    &ENG_DRUM,                   /* 10 (ENGI_DRUM) */
+    &ENG_FM4_GONE,               /* 9: reserved (PHYS, removed in P3-008) */
+    &ENG_FM4_GONE,               /* 10: reserved (DRUM, removed in P3-008) */
     &ENG_NOISE,                  /* 11 */
     &ENG_FM6,                    /* 12 (ENGI_FM6) */
 #if FELUCCA_SLICE
@@ -107,17 +105,16 @@ static const char *snd_missing(const track_t *t, uint32_t *code)
 static const uint8_t ENGINE_ORDER[NENG_SHOWN] = {
     0,                           /* ANALOG */
     12,                          /* FM6 */
-    2, 3, 4, 5, 6, 7, 8, 9,      /* PHASE LOFI SAMPLE VOICE TRIO WHEEL GRAIN PHYS */
+    2, 3, 4, 5, 6, 7, 8,         /* PHASE LOFI SAMPLE VOICE TRIO WHEEL GRAIN */
     11,                          /* NOISE */
 #if FELUCCA_SLICE
     13,                          /* SLICE */
 #endif
-    10,                          /* DRUM */
 };
 
 /* the engines one can pick (engine 1 never: retired), in ENGINE_ORDER: eng_ok(e), the n-th of them
  * eng_vis(n), e's place among them eng_rank(e), the next / previous one eng_step(e, dir) (wraps) */
-static int eng_ok(uint32_t e) { return e < NENGINES && e != ENGI_DIGITAL; }
+static int eng_ok(uint32_t e) { return e < NENGINES && ENGINES[e] != &ENG_FM4_GONE; }
 static uint32_t eng_vis(uint32_t n) { return ENGINE_ORDER[n % NENG_SHOWN]; }
 static uint32_t eng_rank(uint32_t e)
 {
@@ -177,6 +174,6 @@ static const struct {
 #define NPATTERNS (sizeof PATTERNS / sizeof PATTERNS[0])
 
 /* the parts at power-on (engine, preset, PATTERNS[n - 1] in the sequencer, 0 = empty: all are): bass, pad, lead, drums */
-static const uint8_t TRK_DEF[NPART][3] = {{0, 4, 0}, {ENGI_FM6, 4, 0}, {3, 0, 0}, {ENGI_DRUM, 0, 0}}; /* ANALOG ACID,
-                                                                       * FM6 PAD (was DIGITAL PAD), LOFI PULSE LD, DRUM KIT */
+static const uint8_t TRK_DEF[NPART][3] = {{0, 4, 0}, {ENGI_FM6, 4, 0}, {3, 0, 0}, {0, 0, 0}}; /* ANALOG ACID,
+                                                                       * FM6 PAD (was DIGITAL PAD), LOFI PULSE LD, ANALOG (P3-008: the DRUM kit is gone) */
 static uint32_t trk_def_engine(uint32_t i) { return TRK_DEF[i % NPART][0]; }

@@ -49,8 +49,6 @@ static int controls_test(void)
     bad += check("Reset Controllers centres bend and preserves RPN sensitivity", !midi_bend_target[0] && midi_ch[0].semis == 12 && gate_note(t, 60));
     queued(0xB0, 1, 87, 1); queued(0xB0, 11, 23, 1); queued(0xD0, 90, 0, 1);
     bad += check("existing modwheel/expression/aftertouch stay routed to the track", t->mw == 87 && t->ex_off == 104 && t->at == 90);
-    queued(0xE3, 127, 127, 1);
-    bad += check("drum track ignores pitch bend", !midi_bend_target[3]);
     return bad;
 }
 static int sustain_test(void)
@@ -64,8 +62,6 @@ static int sustain_test(void)
     bad += check("All Notes Off honours sustain rather than hard-killing", gate_note(t, 62) && (midi_notes[0][62] & MIDI_PEDAL_NOTE));
     queued(0xB0, 121, 0, 1);
     bad += check("Reset Controllers releases pedal-held notes", !gate_note(t, 62) && !midi_notes[0][62]);
-    queued(0x93, 36, 100, 1); queued(0xB3, 64, 127, 1); queued(0x83, 36, 0, 1);
-    bad += check("drum note-offs do not accumulate pedal-held owners", !midi_notes[3][36] && !midi_owners[3]);
     queued(0x90, 67, 100, 1); queued(0xB0, 64, 127, 1); queued(0x80, 67, 0, 1); queued(0xB0, 120, 0, 1);
     bad += check("All Sound Off ignores pedal and discards all track ownership", !midi_notes[0][67] && !midi_owners[0] && !t->nheld && !gate_note(t, 67));
     return bad;
@@ -476,8 +472,8 @@ static int cc_map_test(void)
     };
     int bad = 0, ok = 1; uint32_t i, e; int16_t before[P_COUNT];
     midi_test_reset();
-    bad += check("power-on parts: ANALOG, FM6, LOFI, DRUM", trk[0].eng_req == 0u && trk[1].eng_req == ENGI_FM6 &&
-                 trk[2].eng_req == 3u && trk[3].eng_req == ENGI_DRUM);
+    bad += check("power-on parts: ANALOG, FM6, LOFI, ANALOG", trk[0].eng_req == 0u && trk[1].eng_req == ENGI_FM6 &&
+                 trk[2].eng_req == 3u && trk[3].eng_req == 0u);
     for (i = 0; i < NELEM(COMMON); i++) {
         queued(0xB0, COMMON[i].cc, 127, 1);
         ok &= trk[0].p[COMMON[i].id] == TP[COMMON[i].id].max;
@@ -497,8 +493,6 @@ static int cc_map_test(void)
     bad += check("CC74 on FM6 (channel 2): MLVL, bipolar (127: +63)", trk[1].p[P_E2] == 63);
     memcpy(before, trk[1].p, sizeof before); queued(0xB1, 71, 99, 1);
     bad += check("CC71 on FM6 (no resonance): ignored", !memcmp(before, trk[1].p, sizeof before));
-    queued(0xB3, 74, 10, 1);
-    bad += check("CC74 on DRUM (channel 4): TONE", trk[3].p[P_E2] == 10);
     for (e = 0, ok = 1; e < NENGINES; e++) {   /* the table names a continuous EDIT value of every engine */
         uint32_t m = MIDI_CC_ENG[e], k;
         for (k = 0; k < 2u; k++) {
@@ -597,7 +591,7 @@ static int pc_test(void)
     /* every engine: program n = the n-th sound PRESETS shows, then nothing */
     ok = 1;
     for (e = 0; e < NENGINES; e++) {
-        if (!eng_ok(e) || e == ENGI_DRUM || !preset_shown(e))
+        if (!eng_ok(e) || !preset_shown(e))
             continue;
         set_engine_of(t, e);
         for (n = 0, last = -1; n < preset_shown(e); n++) {
@@ -615,30 +609,7 @@ static int pc_test(void)
     ok = str_eq(ENGINES[ENGI_SAMPLE]->presets[t->preset].name, "FLUTE");
     pc(0, 4); frame();
     ok &= t->eng_req == ENGI_SAMPLE && str_eq(ENGINES[ENGI_SAMPLE]->presets[t->preset].name, "FLUTE");
-    bad += check("  SAMPLE: PC 1 is FLUTE (not PIANO's alias); PC 4 (once PERC) does not turn the track into DRUM", ok);
-
-    /* DRUM: the kits as KIT steps through them */
-    {
-        const param_desc_t *d = param_desc_of(ENGI_DRUM, P_E0);
-        track_t *dr = &trk[3];
-        set_engine_of(dr, ENGI_DRUM);
-        dr->p[P_E0] = 1;                                 /* (HAND, retired: plays 66) */
-        ok = 1;
-        for (n = 0, last = -1;; n++) {
-            was = *dr;
-            pc(3, n); frame();
-            if (!memcmp(was.p, dr->p, sizeof was.p))
-                break;
-            ok &= dr->p[P_E0] > last && enum_orig(d, dr->p[P_E0]) == dr->p[P_E0] && dr->preset == was.preset;
-            for (k = 0; k < P_COUNT; k++)
-                ok &= k == P_E0 || dr->p[k] == was.p[k];
-            last = dr->p[P_E0];
-        }
-        ok &= n == 9u && last == d->max;                 /* (1.5.6, #216: DEEP TIGHT PERC 6..8) */
-        pc(3, DK_COUNT + 2u); frame();
-        ok &= dr->p[P_E0] == last;
-        bad += check("  DRUM: 0..8 the nine kits (STD 80 10 66 55 77 DEEP TIGHT PERC; HAND CYM H+CYM skipped), only KIT; 9.. ignored", ok);
-    }
+    bad += check("  SAMPLE: PC 1 is FLUTE (not PIANO's alias); PC 4 (once PERC) loads nothing", ok);
 
     /* FM6: its presets, then the bank's voices */
     {

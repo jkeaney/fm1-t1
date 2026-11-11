@@ -38,8 +38,6 @@ static uint32_t midi_targets(uint32_t ch)
 static void midi_expression(track_t *t, const midi_channel_t *c)
 {
     int32_t range = ((int32_t)c->semis * 100 + c->cents) * 256 / 100;
-    if (drum_track(t))
-        return;
     midi_bend_target[trk_index(t)] = (int32_t)c->bend * range / (c->bend < 0 ? 8192 : 8191);
 }
 
@@ -111,7 +109,7 @@ static void midi_note_event(uint32_t ch, uint32_t note, uint32_t vel)
         midi_owners[trk_index(t)]++;
         c->owned[trk_index(t)]++;
     } else if (id) {
-        if (c->pedal && !drum_track(&trk[id - 1u]))
+        if (c->pedal)
             midi_notes[ch][note] |= MIDI_PEDAL_NOTE;
         else
             midi_release(ch, note);
@@ -184,7 +182,7 @@ static const uint8_t MIDI_CC_MAP[][2] = {
 static const uint8_t MIDI_CC_ENG[NENGINES] = {
     0x56, 0x00, 0x30, 0x80, 0x50, 0x07, 0x67, 0x00,   /* ANALOG CUT RES, -, PHASE DCW, LOFI TONE, SAMPLE CUT, VOICE Q,
                                                        * TRIO CUT RES, WHEEL - */
-    0x80, 0x30, 0x30, 0x34, 0x30,                     /* GRAIN TONE, PHYS BRIT, DRUM TONE, NOISE FREQ RES, FM6 MLVL */
+    0x80, 0x00, 0x00, 0x34, 0x30,                     /* GRAIN TONE, - (PHYS), - (DRUM), NOISE FREQ RES, FM6 MLVL */
 #if FELUCCA_SLICE
     0x80,                                             /* SLICE TONE */
 #endif

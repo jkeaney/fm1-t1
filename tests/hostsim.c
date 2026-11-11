@@ -134,7 +134,7 @@ static void host_preset(track_t *t, uint32_t e, uint32_t pi)
 }
 
 /* A saved SAMPLE PERC sound, as 1.0.2 and earlier stored it (SET 4, the GM kit; retired since: every load
- * turns it into DRUM, core.h drum_from_perc). Put straight into a track it plays SET 4's alias (PIANO): only
+ * turns it into a melodic part). Put straight into a track it plays SET 4's alias (PIANO): only
  * for the migration tests, which pass it through a load */
 static void host_legacy_sample_perc(track_t *t)
 {
@@ -143,7 +143,7 @@ static void host_legacy_sample_perc(track_t *t)
     t->engine = ENGI_SAMPLE;
 }
 /* the drums of the render tests: DRUM's kit (the power-on track 4; until 1.0.2 these used SAMPLE PERC) */
-static void host_drums(track_t *t) { host_preset(t, ENGI_DRUM, 0); }
+static void host_drums(track_t *t) { host_preset(t, 0, 0); }   /* (ANALOG since P3-008: the DRUM kit is gone) */
 
 static void put_step(track_t *t, uint32_t i, uint32_t n, const uint8_t *notes, uint32_t time, uint32_t flags)
 {
@@ -298,19 +298,14 @@ static int tracks_demo(const char *dir, const char *name, uint32_t solo)
         return bmax > NVOICE;
     {
         const step_t *s4 = &td->step[4], *l1 = &t3->step[1], *p14 = &t2->step[14];
-        /* (DRUM: the clap goes into the grid, its lane's hit, seq.c; a sampled kit took it as a 4th note) */
-        int clap = drum_track(td) ? s4->n == 3u && ((s4->hit >> DV_CLAP) & 1u) : s4->n == 4u && s4->note[3] == 39u;
-        int ok_clap = clap && clap_hits == 3u;
         int ok_lead = l1->n == 1u && l1->note[0] == 84u && l1->time == ST_NOTE;
         int ok_keys = p14->n == 2u && p14->time == ST_NOTE && p14->note[0] == 60u && p14->note[1] == 64u;
-        printf("tracks: recording: drums step 4 = %u notes (kick snare hat) + clap 39: %s, hits when step 4 played right "
-               "after: %u (want 3: the clap is not triggered twice) %s\n", s4->n, clap ? "yes" : "no", clap_hits,
-               ok_clap ? "ok" : "FAIL");
+        /* (the clap-into-the-DRUM-lane check is gone with the DRUM engine, P3-008: a melodic part's recording replaces the step) */
         printf("tracks: recording: MIDI ch 3 -> lead step 1 = %u (want 84) %s; keys -> pad step 14 = %u notes %u %u %s\n",
                l1->note[0], ok_lead ? "ok" : "FAIL", p14->n, p14->note[0], p14->note[1], ok_keys ? "ok" : "FAIL");
         printf("tracks: voices sounding at most %u (budget %u) %s; given up to another part %u; %u samples near full "
                "scale\n", bmax, NVOICE, bmax <= NVOICE ? "ok" : "FAIL", voice_kills - kills0, clips);
-        fail = !ok_clap + !ok_lead + !ok_keys + (bmax > NVOICE) + (clips > 0);
+        fail = !ok_lead + !ok_keys + (bmax > NVOICE) + (clips > 0);
     }
     return (int)fail;
 }
@@ -800,11 +795,11 @@ static int tracks_test(const char *dir)
          * 3 + 3 + 2 notes and the hits in the budget of 8 */
         const uint8_t fm = ENGI_FM6;
         uint8_t parts[NPART][3] = {{fm, (uint8_t)heavy[fm], 3}, {2, (uint8_t)heavy[2], 3}, {5, (uint8_t)heavy[5], 2},
-                                   {ENGI_DRUM, 0, DRUM_HITS}};
+                                   {0, 0, DRUM_HITS}};
         uint8_t full[NPART][3] = {{fm, (uint8_t)heavy[fm], 8}, {2, (uint8_t)heavy[2], 8}, {5, (uint8_t)heavy[5], 4},
-                                  {ENGI_DRUM, 0, DRUM_HITS}};
+                                  {0, 0, DRUM_HITS}};
         uint8_t vv[NPART][3] = {{5, (uint8_t)heavy[5], 4}, {5, (uint8_t)heavy[5], 4}, {0, 0, 0}, {0, 0, 0}};
-        uint8_t idle[NPART][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {ENGI_DRUM, 0, DRUM_HITS}};
+        uint8_t idle[NPART][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, DRUM_HITS}};
         uint32_t bm2 = 0, bm3 = 0;
         double two_voice, none;
         four = tracks_cost(parts, &bm);

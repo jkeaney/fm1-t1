@@ -309,18 +309,6 @@ static void tap_key(uint32_t k)                   /* a key down for a frame, the
     fm1_in.notes &= ~(1u << k);
     frame();
 }
-static uint32_t lane_steps(const track_t *t, uint32_t l)   /* bit i: lane l strikes at step i (0..31) */
-{
-    uint32_t i, m = 0;
-    for (i = 0; i < 32u; i++)
-        m |= ((step_lanes(&t->step[i]) >> l) & 1u) << i;
-    return m;
-}
-
-
-
-
-
 /* key k of colour black (1) / white (0) at place p (seq.c key_place) */
 static uint32_t key_at(int black, uint32_t p)
 {
@@ -1453,12 +1441,6 @@ static int test_scale_leds(void)
     ok &= sc == ALL && root == C_KEYS;
     bad += check("#127 QNT SNAP: the keys of the scale; QNT WHITE: all the white keys, its roots; CHR: every key", ok);
     t->p[P_SCALE] = 1;
-    set_engine_of(t, ENGI_DRUM);
-    t->engine = t->eng_req;
-    sc = scale_leds(&root);
-    ui_leds();
-    ok = !sc && !root && lit_keys(fm1_led_dim) == ALL && !lit_keys(fm1_led_mid);
-    bad += check("#127 a DRUM track (its keys as before) keeps its own LEDs", ok);
     menu_put(MI_SCLLED, 0);
     ok = !(ui_rec_prefs & 0x40u) && !scale_leds(&root);
     bad += check("#127 SCALE LEDS OFF again: the bit clears", ok);

@@ -68,26 +68,18 @@ static uint32_t kick_pattern(void)
 {
     static const char *const NAME[2] = {"PUNCH", "ROUND"};
     static float f[2 * FS];
-    static dv_coef_t c;
-    static dv_voice_t v;
-    static dv_metal_t mb;
     uint32_t type, gi, mode, i, k, fails = 0;
     for (type = 0; type < 2u; type++) {
-        dv_param_t p;
-        int32_t y[CTL], m[CTL], pk = 1;
-        dv_default(&p, type);
-        dv_setup(&c, &p);
-        dv_init(&v, c.type);
-        memset(&mb, 0, sizeof mb);
-        dv_metal_tune(&mb, &c);
+        /* a kick of this test's own (the DRUM engine's was removed in P3-008): a sine sweeping down from 180 Hz (PUNCH) or
+         * 120 Hz (ROUND) to 48 Hz, 0.5 s apart, decaying over ~0.25 s; the same shape of load for the limiter and BASS+ */
+        double f0 = type ? 120.0 : 180.0, ph = 0;
+        int32_t pk = 1;
         for (i = 0; i < 2u * FS; i += CTL) {
-            if (i % (FS / 2u) < CTL)
-                dv_trigger(&v);
-            dv_metal_run(&mb, m, CTL);
-            dv_run(&c, &v, m, y, CTL);
             for (k = 0; k < CTL; k++) {
-                f[i + k] = (float)y[k];
-                pk = abs(y[k]) > pk ? abs(y[k]) : pk;
+                double t = (double)((i + k) % (FS / 2u)) / FS, fr = 48.0 + (f0 - 48.0) * exp(-t * 40.0);
+                ph += 2.0 * M_PI * fr / FS;
+                f[i + k] = (float)(sin(ph) * exp(-t * 9.0) * 20000.0);
+                pk = abs((int32_t)f[i + k]) > pk ? abs((int32_t)f[i + k]) : pk;
             }
         }
         for (gi = 1; gi <= 2u; gi++) {

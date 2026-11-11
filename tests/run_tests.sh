@@ -74,13 +74,6 @@
 # Browser emulator (web/emu, when emcc is there): the firmware in WebAssembly (build/emu) boots, plays keys and MIDI,
 #                   draws, lights its LEDs, keeps a save across instances, plays a song bit for bit as the same file
 #                   built with cc (web/emu/native_check.c); the cost of 1 s of a heavy song against real time.
-# PHYS (tests/phys_test.c): stability over the whole parameter and pitch range, the worst-case cost against
-#                   the heaviest factory preset, demos in build/phys_demo/; tests/phys_ref.cpp compares the
-#                   fixed-point models with DaisySP's float originals when DaisySP is there (DAISYSP=path).
-# DRUM (tests/drum_test.c): the drum voices (src/drum_voice.c): pitch, decay, centroid and level against
-#                   Felucca's targets, the controls' directions, no clipping, DC, retriggers, the hat choke, the
-#                   kick on a small speaker; the DRUM engine (src/eng_drum.c): its key map, the 8 lanes together,
-#                   one hit per lane, the choke between lanes; the cost per voice; demos in build/drum_demo/.
 # NOISE (tests/noise_test.c): the engine (src/eng_noise.c): COLR's slope (white, pink, brown), the filter and the
 #                   register clock following the key, META periodic at the key, no DC, no clipping at the
 #                   corners, a note from silence the same twice, the cost per voice; demos in build/noise_demo/.
@@ -232,25 +225,8 @@ if [ -f build/gen/felucca_tables.h ]; then
     $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/regress" tests/regress.c -lm
     run "regression: golden renders, health, voices, CPU budget" "$OUT/regress" tests/golden.txt tests/cpu_baseline.txt
     $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/union_test" tests/union_test.c -lm
-    run "engine memory (1.5): every switch between the engines with per-part state sounds as in 1.4 (720 sequences)" \
+    run "engine memory (1.5): every switch between the engines with per-part state sounds as in 1.4 (396 sequences)" \
         "$OUT/union_test" tests/union_golden.txt
-    $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/phys_test" tests/phys_test.c -lm
-    mkdir -p build/phys_demo
-    run "PHYS: stability C-1..G9 over the parameter corners, worst-case cost against PHASE WIRE, demos" "$OUT/phys_test" build/phys_demo
-    D=${DAISYSP:-vendor/DaisySP}/Source
-    if [ -d "$D/PhysicalModeling" ] && command -v c++ >/dev/null 2>&1; then
-        $CC -O2 -w -Ibuild/gen -Ifirmware/src -Itests -c -o "$OUT/phys_fixed.o" tests/phys_fixed.c
-        c++ -O2 -std=c++14 -w -I"$D" -I"$D/Utility" -o "$OUT/phys_ref" tests/phys_ref.cpp \
-            "$D/PhysicalModeling/modalvoice.cpp" "$D/PhysicalModeling/resonator.cpp" "$D/PhysicalModeling/stringvoice.cpp" \
-            "$D/PhysicalModeling/KarplusString.cpp" "$D/Filters/svf.cpp" "$D/Utility/dcblock.cpp" \
-            "$D/Dynamics/crossfade.cpp" "$OUT/phys_fixed.o"
-        run "PHYS: the fixed-point models against DaisySP's float originals (mode frequencies, decays, Svf)" "$OUT/phys_ref"
-    else
-        echo "== skip PHYS reference test (no DaisySP: set DAISYSP to a checkout)"
-    fi
-    $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/drum_test" tests/drum_test.c -lm
-    mkdir -p build/drum_demo
-    run "DRUM: voice targets, controls, no clipping, retrigger, hat choke, the kick on a small speaker, keys, 8 lanes, cost, demos" "$OUT/drum_test" build/drum_demo
     $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/noise_test" tests/noise_test.c -lm
     mkdir -p build/noise_demo
     run "NOISE: colour slopes, key-tracked filter and clock, META period, DC, clipping, retrigger, cost, demos" "$OUT/noise_test" build/noise_demo
