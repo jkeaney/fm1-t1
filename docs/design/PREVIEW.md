@@ -60,14 +60,13 @@ event stream, there is no preview-only logic to test apart from the patch table 
 **Hardware limits, stated honestly.** The FM-1's audio leaves it through **the master output, which is the built-in speaker plus a rear headphone
 jack (owner-confirmed 2026-11-11, decision 112), and USB audio** (a stereo mix of the four preview parts; SYSTEM_MAP section 2, level = the MASTER
 pot). The 3.5 mm TRS MIDI jack is **MIDI IN only** (CLAUDE.md); it is not the headphone jack. The preview of **every channel with PREVIEW ON goes to
-the master output**, whichever of speaker or headphones the device routes it to. **No separate cue bus is designed**: the master output and USB audio
+the master output**: the speaker, or the headphones when they are plugged in. Plugging in headphones switches the speaker off automatically (owner-verified on the FM-1, 2026-11-11, decision 113), so the preview goes to one place, never both. **No separate cue bus is designed**: the master output and USB audio
 carry **one mix** of every previewing channel. It still works like a DJ cue because the two worlds are separate: the **TB-3 and other DIN gear are
 heard from their own audio outputs** (into a mixer or audio interface), while the **FM-1 master output (speaker or headphones), or its USB audio into
 the DAW, carries only the preview parts**. With CH1 on the TB-3 (MIDI) and CH2 in CUE, the TB-3 plays in the room and CH2 is heard on the FM-1's
 headphones (or speaker), or on the host's USB-audio monitor. Consequences: (1) **every previewing channel is in the same mix**, so a CUE channel is
 heard together with the other previewing ones (nothing is excluded; section 8); (2) the cue has no level of its own (one MASTER pot, 110/4A); (3) the
-mute controls are the **MIDI gate only** and never silence a preview. **HW-1 check (the one thing not known):** whether the speaker mutes when
-headphones are plugged in. This document does not depend on the answer.
+mute controls are the **MIDI gate only** and never silence a preview. The headphone behaviour is settled (decision 113): the speaker switches off when headphones are plugged in, so there is no open hardware check here.
 
 ### 1.3 Keys and audition
 
@@ -333,7 +332,7 @@ The reference workflow in VISION is unchanged: a TB-3 user leaves PREVIEW OFF (t
 | Decision 111 point | Where |
 | --- | --- |
 | 1B: preview independent of MIDI out; a channel can preview with MIDI muted or OFF (a CUE); same events, separate destinations | 0, 1.2 (two gates, four states), 1.3, 3.1 (Mute, MIDI OFF row) |
-| CUE use and honest hardware limits | 1.2: master output (speaker or rear headphone jack, owner-confirmed, decision 112) plus USB audio, one mix, no cue bus; HW-1 checks only whether the speaker mutes on plug-in |
+| CUE use and honest hardware limits | 1.2: master output (speaker or rear headphone jack, owner-confirmed, decision 112) plus USB audio, one mix, no cue bus; headphones auto-mute the speaker (decision 113, verified 2026-11-11), so no HW-1 check remains here |
 | Gestures at most 2 each | 1.4: preview on/off 1 (hold), MIDI mute 1 (tap), sound 2 (hold + ALGO); tap versus hold rule |
 | Status of the four combinations | 1.5: icon plus `MIDI n` / `MUTE n` / `MIDI OFF` / `CUE n` / `CUE OFF` |
 | 2A: no-equivalent TB-3 controls stay unmapped; TUNING (CC 104) is pitch | 3.2: PIT, +-50 cents [E] |

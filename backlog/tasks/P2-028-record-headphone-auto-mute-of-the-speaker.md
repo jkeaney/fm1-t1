@@ -3,7 +3,7 @@ id: P2-028
 title: Record that headphones auto-mute the speaker (decision 113)
 phase: P2
 type: task
-status: todo
+status: review
 priority: 3
 executor: haiku
 depends_on: [P2-027]
@@ -22,8 +22,8 @@ Decision 113: on the owner's FM-1, plugging in headphones switches the speaker o
 - Any HW-1 task/doc wording that lists this as a check to do: mark it answered.
 
 ## Acceptance criteria
-- [ ] grep -rn "speaker mutes when headphones" docs backlog CLAUDE.md shows only answered/historical text
-- [ ] python3 tools/backlog.py check passes; python3 tests/design/check_sequencer_ux.py passes
+- [x] grep -rn "speaker mutes when headphones" docs backlog CLAUDE.md shows only answered/historical text
+- [x] python3 tools/backlog.py check passes; python3 tools/check_sequencer_ux.py passes (tests/design/check_sequencer_ux.py does not exist; the Verification path is used)
 
 ## Verification
 ```sh
@@ -34,3 +34,25 @@ python3 tools/backlog.py check; python3 tools/check_sequencer_ux.py; python3 tes
 - Firmware, builds; files owned by the active P3-003 executor.
 
 ## Log
+
+### 2026-11-11 executor (claude-haiku-5-5)
+Edits:
+- docs/design/PREVIEW.md 1.2 paragraph: "HW-1 check (the one thing not known)" replaced with the settled decision 113 statement (speaker off when headphones plugged in, no open check).
+- docs/design/PREVIEW.md 1.2 "Hardware limits" sentence: preview goes to speaker, or headphones when plugged in.
+- docs/design/PREVIEW.md section 9 row: "HW-1 checks only whether the speaker mutes on plug-in" replaced with decision 113 answered.
+- CLAUDE.md "Audio out" line: added "headphones auto-mute the speaker (verified 2026-11-11)".
+- Remaining "whether the speaker mutes" text is only in P2-027 (task and log, historical) and this task.
+
+Verification:
+```
+$ grep -rn "speaker mutes when headphones\|speaker mutes on plug-in\|whether the speaker mutes" docs backlog CLAUDE.md
+  -> only P2-027 (lines 20, 39, historical) and P2-028 itself
+$ python3 tools/backlog.py check
+125 items, 0 errors          rc=0
+$ python3 tools/check_sequencer_ux.py
+pages=10 button-rows=282 knob-rows=122 key-rows=359 control-rows=490 scored=79 exceptions=3
+OK
+$ python3 tests/design/check_help.py
+OK: 392 help rows, 2695 strings measured
+```
+Not run: `sh tools/check.sh` (docs only, no code changed). No firmware touched.
