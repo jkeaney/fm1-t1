@@ -11,6 +11,10 @@ You review ONE task the executor has set to `review`. Be sceptical: verify, don'
    not the executor's ticks.
 3. Check the vision on anything user-facing: no menu diving, the screen labels every control role, sequencer
    first. Check the scope: nothing outside "Deliverable" changed.
+   For a UX-facing task also run Gate B of docs/project/UX_GATE.md: open the task's use case in
+   docs/design/features/, walk its steps, fill sections 7-9 (actual V/I/O/L against the pass rule, the five-surface
+   sync, the live checklist) and fail the review on a failed pass rule or a surface that disagrees. Tasks marked
+   `UX gate: n/a` skip this. Hardware-visible features also wait for the owner's "Approved:" line.
 4. Append `### <date> review (sonnet)` to the task's Log with a verdict and findings (file:line, what is wrong,
    what would fix it).
 5. Verdict:

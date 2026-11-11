@@ -26,6 +26,9 @@ One or two sentences: the outcome, and why it serves docs/project/VISION.md.
 # commands to run, and the output that means pass
 ```
 
+## UX gate
+For anything a producer can touch: the use case `docs/design/features/<ID>-<slug>.md` (docs/project/UX_GATE.md); Gate A filled before the build, Gate B after. Otherwise write `n/a, <reason>`.
+
 ## Out of scope
 - What not to touch.
 

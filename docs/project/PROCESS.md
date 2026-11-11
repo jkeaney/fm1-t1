@@ -36,9 +36,16 @@ its log ("Approved: <name> <date>"). The reviewer subagent can't pass a human ga
 
 - Front matter is complete: `id title phase type status priority executor depends_on gate`.
 - It has **Goal**, **Read first**, **Deliverable**, **Acceptance criteria** and **Verification** sections.
+- UX-facing tasks have Gate A done in the use case (predicted score passes, sync rows named, live checklist answered).
 - Every acceptance criterion can be checked by a command or a file inspection, never "works well".
 - **Haiku-executed tasks name exact files, exact commands and the expected output.** A task that needs judgement
   across many files, or design taste, is `executor: sonnet` or `opus`, or is split.
+
+## UX gate (UX_GATE.md)
+
+Any task a producer can touch has a feature use case (`docs/design/features/`). Gate A (steps a producer takes,
+predicted ease score, button/UI/UX/workflow sync, live-performance checklist) is part of Definition of Ready.
+Gate B (walk it, actual score, sync re-check) is part of Definition of Done. Internal work writes `UX gate: n/a`.
 
 ## Design lock (ADR-0004)
 
@@ -50,6 +57,7 @@ is the quality check on design.
 
 ## Definition of Done
 
+- For UX-facing tasks, Gate B is filled in the use case: actual ease score meets the pass rule and the five surfaces agree.
 - Every acceptance criterion is met, and the verification commands pass, with their output pasted into the task log.
 - `tools/check.sh` prints `CHECK PASS` (build, RAM headroom, host tests, backlog check; logs in build/check/).
 - RAM headroom of at least 4 KB, reported by the build.
