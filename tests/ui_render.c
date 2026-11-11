@@ -761,7 +761,6 @@ enum { S_HOME, S_HOME_IDLE, S_MESSAGE, S_MESSAGE_KEY, S_MESSAGE_NOFILE, S_PRESET
        S_HEAD_BPM_LOCKED, S_HEAD_GLO_TURN, S_HEAD_DOWNBEAT, S_HEAD_BEAT_2,
        S_SONG_LANES, S_SONG_LANES_PLAYING, S_SONG_LANES_SILENT, S_SONG_PICTURES, S_HEAD_SLOT, S_HEAD_SLOT_EDITED, S_HEAD_SLOT_SONG,
        S_MENU_TUNE, S_MENU_INFO, S_HOME_TRACKS, S_HOME_TRACKS_STOPPED, S_HOME_TRACKS_HOT, S_MENU_HOME, S_HOME_LEVELS, S_HELP_HOME, S_HELP_USER, S_HELP_GRID, S_HELP_LFO, S_HELP_GLO, S_HELP_SEQ, S_MENU_HELP,
-       S_INSERT_CRUSH, S_INSERT_FOLD, S_INSERT_PHASER, S_INSERT_OFF, S_INSERT_MIX,
        S_ENV_SYNC, S_ENV_DEST_SYNC, S_FILTER,
        S_LEARN_WAIT, S_LEARN_PICK, S_LEARN_SET, S_LEARN_LONG, S_GLO_LEARN, S_MENU_LCLEAR, S_MENU_LCLEAR_NONE,
        S_DLY_DOT, S_DLY_DOT16, S_FX_THROW,
@@ -791,7 +790,6 @@ static const char *const S_NAME[S_COUNT] = {"home", "home_idle", "message", "mes
     "head_bpm_locked", "head_glo_turn", "head_downbeat", "head_beat_2",
     "song_lanes", "song_lanes_playing", "song_lanes_silent", "song_pictures", "head_slot", "head_slot_edited", "head_slot_song",
     "menu_tune", "menu_info", "home_tracks", "home_tracks_stopped", "home_tracks_hot", "menu_home", "home_levels", "help_home", "help_user", "help_grid", "help_lfo", "layer_glo_help", "layer_seq_help", "menu_help",
-    "insert_crush", "insert_fold", "insert_phaser", "insert_off", "insert_mix",
     "env_sync", "env_dest_sync", "filter",
     "learn_wait", "learn_pick", "learn_set", "learn_long", "layer_glo_learn", "menu_learn_clear", "menu_learn_clear_none",
     "dly_dotted", "dly_dotted_16", "perform_throw",
@@ -959,16 +957,6 @@ static void tracks_scene(int playing)
     if (!playing) { song.playing = 0; song.sel = 0; ui.cursor = 20; ui.bank = 1; }
     go_home();
     ui_home_view = HV_TRACKS;
-}
-
-/* the INSERT of the selected track (1.5): TYPE, A B C, MIX */
-static void set_ins_ui(int32_t ty, int32_t a, int32_t b, int32_t c, int32_t mix)
-{
-    TSEL->p[P_ITYPE] = (int16_t)ty;
-    TSEL->p[P_IA] = (int16_t)a;
-    TSEL->p[P_IB] = (int16_t)b;
-    TSEL->p[P_IC] = (int16_t)c;
-    TSEL->p[P_IMIX] = (int16_t)mix;
 }
 
 static void setup(int s)
@@ -1148,12 +1136,6 @@ static void setup(int s)
     case S_HELP_SEQ: ui_prefs2 |= PREF_HELP >> 16; go_page(GR_ROLL); ui.help_t = 0; ui.layer = LAYER_SEQ; break;
     case S_MENU_HELP: ui_prefs2 |= PREF_HELP >> 16; ui.menu = 1; ui.menu_sel = MI_HELP; break;
     case S_HOME_LEVELS: tracks_scene(1); ui_home_view = HV_LEVELS; trk[1].p[P_LEVEL] = 90; ui.hot_col = 1; ui.hot_t = 30; break;
-    /* 1.5: the INSERT pages (fx.c track_insert): CRUSH (#177: BITS RATE LPF), FOLD at MIX 60 %, PHASR, OFF; INSERT 2 */
-    case S_INSERT_CRUSH: set_ins_ui(IT_CRUSH, 64, 96, 80, 127); go_title("INSERT"); break;
-    case S_INSERT_FOLD: set_ins_ui(IT_FOLD, 100, 96, 100, 76); go_title("INSERT"); break;
-    case S_INSERT_PHASER: set_ins_ui(IT_PHASER, 70, 110, 90, 127); go_title("INSERT"); break;
-    case S_INSERT_OFF: go_title("INSERT"); break;
-    case S_INSERT_MIX: set_ins_ui(IT_FLANGER, 40, 127, 110, 90); go_title("INSERT 2"); break;
     /* 1.5 MIDI LEARN (midi_learn.c): on, nothing picked (MIXER); T1 CUT picked, no CC yet (EDIT 2); T1 CUT on CC74 (its
      * message in the header); the widest line, a 5-letter label waiting; GLO's map with LEARN on (D4) */
     case S_LEARN_WAIT: go_page(GR_TRK); ml_toggle(); ui.msg_t = 0; break;

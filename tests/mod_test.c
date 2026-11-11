@@ -21,7 +21,9 @@
 #include <sys/resource.h>
 #endif
 
-#define MOD_COST_MAX 5.0          /* % more instructions per sample with every slot active, at most */
+/* % more instructions per sample with every slot active, at most. 6 since the effect buses went (decision 80): the mix
+ * is cheaper, so the matrix's share grew; the matrix's own cost did not change */
+#define MOD_COST_MAX 6.0
 
 static int bad;
 static void check(const char *what, int ok)
@@ -80,11 +82,6 @@ static uint32_t preset_by_name(uint32_t e, const char *n)
 static void fresh(uint32_t e, uint32_t pi)        /* the boot state (no FX tails), track 1 = engine e preset pi */
 {
     uint32_t k;
-    memset(dly_buf, 0, sizeof dly_buf);
-    memset(cho_buf, 0, sizeof cho_buf);
-    memset(rev_comb, 0, sizeof rev_comb);
-    memset(rev_ap, 0, sizeof rev_ap);
-    memset(&fx, 0, sizeof fx);
     lim_env = LIM_T;
     memset(trk, 0, sizeof trk);
     memset(&mod, 0, sizeof mod);

@@ -446,38 +446,6 @@ static void graph_fx(const track_t *t, uint16_t c)
         cv_rrect(x - 4, 85 - h, 12, 6, 3, c, T_SURF);
     }
 }
-/* INSERT pages (1.5, fx.c track_insert): the drives and CRUSH as their curve, input (-1.5 .. +1.5 of a voice's full
- * scale) across, output up, dry and wet blended by MIX (fx.c ins_shape: the same shape; the dry diagonal RAISE); the
- * swept ones as two cycles of their sweep, as deep as DEPTH (FLANG the squared triangle, CHOR a sine, PHASR a
- * triangle). OFF: the dry diagonal, dim */
-static void graph_insert(const track_t *t, uint16_t c)
-{
-    int32_t x, cy = graph_ht / 2, a = 38 * graph_ht / 100, py = cy, ty = clamp(t->p[P_ITYPE], 0, IT_N - 1);
-    int32_t m = ins_mixq(t->p[P_IMIX]), g = 4096 + t->p[P_IA] * t->p[P_IA] * 3, lvl = LEVEL_Q12[t->p[P_IC] & 127];
-    uint32_t sh = ins_bits_sh(t->p[P_IA]);
-    cv_rect(PANEL_X0, cy, PANEL_W, 1, T_RAISE);
-    cv_line(PANEL_X0 + PANEL_W / 2, cy - a, PANEL_X0 + PANEL_W / 2, cy + a, T_RAISE);
-    if (ty == IT_OFF || ty >= IT_PHASER || !m)
-        cv_line(PANEL_X0 + PANEL_W / 6, cy + a, PANEL_X0 + PANEL_W * 5 / 6, cy - a, ty ? T_RAISE : T_DIM);
-    if (ty == IT_OFF)
-        return;
-    for (x = 0; x < PANEL_W; x++) {
-        int32_t y, w;
-        if (ty >= IT_PHASER) {                       /* the sweep, two cycles */
-            uint32_t ph = (uint32_t)x * (0xFFFFFFFFu / (PANEL_W / 2u)), tr = pf_tri(ph);
-            w = ty == IT_CHORUS ? osc_sine(ph) * 2 : ty == IT_FLANGER ? (int32_t)((tr * tr) >> 16) * 2 - 65536 : (int32_t)tr * 2 - 65536;
-            y = cy - (w >> 1) * a / 32768 * t->p[P_IB] / 127;
-        } else {                                     /* the curve: v in, dry v, wet shaped */
-            int32_t v = (x - PANEL_W / 2) * 49152 / (PANEL_W / 2), o;
-            o = ty == IT_CRUSH ? ins_shape(IT_CRUSH, v, sh) : (ins_shape((uint32_t)ty, ((v >> 3) * g) >> 9, 0) * lvl) >> 12;
-            w = v + mulq16(o - v, (uint32_t)m << 1);
-            y = cy - clamp(w, -49152, 49152) * a / 49152;
-        }
-        if (x)
-            cv_line_t(PANEL_X0 + x - 1, py, PANEL_X0 + x, y, c, 2);
-        py = y;
-    }
-}
 /* MOD page: the four slots as rows "1 LFO > CUT +50%" (M, a list's rows: the source to x 78, the arrow 84..98, the
  * destination of up to 5 characters 106..160, the amount from 172), the one KNOB 2..4 edit selected, slots that do
  * nothing (SRC, DST or AMT at 0) dim */
@@ -2265,9 +2233,6 @@ static void draw_graph(void)
             break;
         case GR_FX:
             graph_fx(t, c);
-            break;
-        case GR_INS:
-            graph_insert(t, c);
             break;
         case GR_MOD:
             cv_oy = 0;

@@ -41,7 +41,7 @@ static int motion_param(uint32_t id)
         id == P_SPRD || (id >= P_ITYPE && id <= P_IMIX) || id >= P_E0);   /* (not the chord keys, nor 1.2's LFO SYNC TRIG
                                         * POL and QUANTIZE, nor 1.5's filter TYPE and ENV SYNC: settings; the DRUM lane
                                         * levels, SPREAD (#148: continuous, as PAN), 1.5's INSERT (TYPE too: a lock
-                                        * switches it for a step, fx.c track_insert fades over), E0..E7) */
+                                        * switches it for a step; its slots are read by no effect since the effect buses went), E0..E7) */
 }
 static int motion_valid(const motion_store_t *m)
 {

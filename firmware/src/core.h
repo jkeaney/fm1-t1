@@ -378,11 +378,8 @@ typedef struct track {
     uint8_t rr;                  /* POLY ROTATE: next voice to try */
     /* mix runtime */
     int32_t peak;
-    int32_t dist_hp, dist_lp1, dist_lp2;   /* DIST insert state (fx.c) */
-    uint8_t tail;                /* blocks to mix after the last voice (the DIST / INSERT tail) */
-    uint8_t ins_run;             /* the INSERT still sounds (fx.c track_insert: its wet share above 0) */
     uint8_t cond_loop;           /* 1.5.5 (#209): the loop of its LEN playing (0..COND_LOOPS - 1, seq.c seq_tick) */
-    uint8_t rsv_sz[14];          /* (sizeof(track_t) a multiple of 16: below) */
+    uint8_t rsv_sz[28];          /* (sizeof(track_t) a multiple of 16: below; 14 bytes freed with the DIST / INSERT state) */
     int16_t armp, aholdp;        /* P_AMODE / P_AHOLD as last seen by the ISR */
     /* engine switch (voice.c engine_block): the old engine's voices fade out, then it switches */
     uint8_t xf_on, xf;           /* fading; blocks of the fade still to render */

@@ -9,7 +9,7 @@
  *   THROW (1.5.1, D5 E5);  the other 2 white keys nothing; black keys 1..4 (F#3 G#3 A#3 C#4): tracks 1..4 muted while
  *   held (not P_MUTE, never saved).
  * REV THROW / ECHO THROW (1.5.1): while held every track's reverb / delay send is full (as REV / DLY 127; perf_throw),
- * ECHO THROW also lifts the delay's feedback to 0.7 if it is lower (fx.c fx_buses); both glide in and out over 11.6 ms
+ * ECHO THROW also lifts the delay's feedback to 0.7 if it is lower (the delay bus it fed went with the effect buses); both glide in and out over 11.6 ms
  * (THR_SLOPE). Let go, the sends are the tracks' own again and what the buses hold rings out. The buses are the song's
  * (no RAM of their own); the tracks' REV / DLY / FDBK values are never touched (nothing saved, nothing recorded).
  * REPEAT and REVERSE start on the next 1/16 (at once while stopped); the others at once; all end when let go,

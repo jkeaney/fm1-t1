@@ -79,7 +79,7 @@
 #                   OCT- (1.5.6: #205's "OCT- held + a knob = default" taken out): the octave on the press as in 1.5.1, a
 #                   knob with OCT- held an ordinary turn, the menu's OCT- back; SAVE > PROJECT ERASE (#199): KNOB 2, the dialog,
 #                   refused playing / empty (tests/persistence_test.c: the flash side, a cut before the record keeps it);
-#                   CLEAN INIT (#190): every engine's basic sound (no sends, INSERT, LFO / ENV / MOD amounts; neutral ENV; FM6
+#                   CLEAN INIT (#190): every engine's basic sound (no sends, LFO / ENV / MOD amounts; neutral ENV; FM6
 #                   the init voice), heard and ending; TOOLS' KNOB 2 on, EDIT + F5; one undo; INIT as before. OCT- next to
 #                   EUCLID (OCT- cancels, OCT+ applies, no octave) and FILL (GLO + E4).
 # 1.5.6 (tests/v156_test.c): HUMANIZE (#213): the matrix's VEL (a note-on's velocity, RAND per note, clamped 1..127) and
@@ -95,16 +95,12 @@
 #                   cursor, an edit of its step or step entry, free again after 3 s or one pass round; reset by stop / track.
 # MOD (tests/mod_test.c): the modulation matrix: slots that do nothing are bit-identical, every source on each
 #                   kind of destination, clamping, MIDI CC1 / CC11 / aftertouch routing, the cost of 4 active
-#                   slots (at most +5 %), demos in build/mod_demo/.
+#                   slots (at most +6 %), demos in build/mod_demo/.
 # SOUND (tests/sound14_test.c; #132 #104 #148): the matrix's S&H / SLEW sources (a value per LFO cycle, the glide) and
 #                   DEPTH destination (the LFO's gain; none = untouched), ANALOG WAVE SYNC / SUB (pitch, no DC, bounded,
 #                   the band-limited restart), SPREAD (SPRD 0 / MONO / LEGATO bit for bit, a note hard left / right, the
 #                   mono sum, UNISON, the mute key on both sides, mono sends), the cost; demos in
 #                   build/sound14_demo/.
-# INSERT (tests/insert_test.c, 1.5; #78 #177): the per-track INSERT (src/fx.c track_insert): TYPE OFF and MIX 0 bit for
-#                   bit (POLY, SPREAD), each TYPE at its corners on 3 and 8 voices (no DC, bounded, MIX 50 % halfway
-#                   to the wet), the MIX glide and TYPE changes, MIX / TYPE as automation and locks, FUN10 and user
-#                   presets of 109 and 104, the pages' labels, the cost per type; demos in build/insert_demo/.
 # SOUND 1.5 (tests/sound15_test.c; #104 #175): ANALOG's filter TYPE (LP bit for bit, every other engine ignores it, BP / HP
 #                   responses around the cutoff, RES, bounded at the corners), ENV SYNC (OFF bit for bit, the note values
 #                   on the knob, attack / decay / release times at 60 / 120 / 173 BPM and on the external clock), the cost;
@@ -112,13 +108,6 @@
 # PHASE FOLD 1.5.5 (tests/fold155_test.c; #104): E7 FOLD (0..127, default 0, the presets at 0), FOLD 0 bit for bit with
 #                   1.5.1's loop, bounded and without DC at FOLD 1..127 (every WAVE, MIX / RING, SUB, notes 12..127),
 #                   brighter with FOLD, the gain falling with the pitch above A4, the cost; build/fold155_demo/phase_fold.wav.
-# REVERB (tests/reverb_test.c): REVERB TYPE (src/fx.c): ROOM bit for bit as before, SPRING's decay against SIZE,
-#                   its chirp (group delay rising with frequency), stability at the corners, level, a model change
-#                   without a click, its cost against ROOM (+30 % at most); demos in build/fx_demo/. 1.2's HALL: SPRING
-#                   bit for bit as before, decay against SIZE and DAMP, stability, exact silence after the tail (27
-#                   settings and levels), no offset, level, stereo, echo density / ringing / flutter against ROOM, SPRING
-#                   and COMB8 (8 combs + 4 allpasses, host only, for comparison), model changes both ways, cost; the
-#                   listening set in build/reverb_demo/ (drums, pluck, piano: dry and each model at SIZE 40 / 90 / 127).
 # SLICE (tests/slice_test.c): slice tables, AUTO onsets of a user-slot loop, reverse, keys, modes, the MAN slices
 #                   (SLICES page) and their store in the slot (src/slice_store.c); the presets and the loop;
 #                   demos in build/slice_demo/.
@@ -360,10 +349,6 @@ if [ -f build/gen/felucca_tables.h ]; then
     mkdir -p build/sound14_demo
     run "sound items: matrix S&H / SLEW / DEPTH, ANALOG SYNC / SUB, SPREAD (bit for bit at 0, L / R, mono sum), cost, demos" \
         "$OUT/sound14_test" build/sound14_demo
-    $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/insert_test" tests/insert_test.c -lm
-    mkdir -p build/insert_demo
-    run "INSERT (1.5): OFF / MIX 0 bit for bit, each TYPE (no DC, bounded, dry / wet), MIX glide, automation, stored, cost, demos" \
-        "$OUT/insert_test" build/insert_demo
     $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/sound15_test" tests/sound15_test.c -lm
     mkdir -p build/sound15_demo
     run "1.5 sound items: ANALOG filter TYPE LP / BP / HP (responses, LP and other engines bit for bit), ENV SYNC (times at several tempi), cost, demos" \
@@ -374,9 +359,6 @@ if [ -f build/gen/felucca_tables.h ]; then
         "$OUT/fold155_test" build/fold155_demo
     $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/swing_test" tests/swing_test.c -lm
     run "SWING: track + global at most 100, sequencer step lengths, the SWG display" "$OUT/swing_test"
-    $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/reverb_test" tests/reverb_test.c -lm
-    mkdir -p build/reverb_demo
-    run "REVERB TYPE: ROOM / SPRING bit-identical, SPRING and HALL decay / stability / level, HALL silence / stereo / ringing, model changes, cost, demos" "$OUT/reverb_test" build/fx_demo build/reverb_demo
     $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/regress" tests/regress.c -lm
     run "regression: golden renders, health, voices, CPU budget" "$OUT/regress" tests/golden.txt tests/cpu_baseline.txt
     $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/union_test" tests/union_test.c -lm

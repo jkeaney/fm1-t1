@@ -12,7 +12,7 @@ static const char *const N_AMODE[] = {"OFF", "UP", "DN", "UPDN", "RND", "ORD", "
                                        "DNUP", "UP+8", "CONV", "DIVG", "PINKY", "THUMB", "WALK", "CHORD"};
 static const char *const N_DIV[] = {"1/4", "1/8", "1/16", "1/32", "8T", "16T", "1/2", "1/1", "2BAR", "4BAR"};
 /* the delay's TIME (G_DTIME): N_DIV's ten (their values kept), then 1.5.1's dotted ones appended (stored values:
- * append-only). A list of its own: ARP RATE, SEQ DIV and LFO SYNC keep N_DIV's ten (fx.c delay_samples) */
+ * append-only). A list of its own: ARP RATE, SEQ DIV and LFO SYNC keep N_DIV's ten */
 static const char *const N_DTIME[] = {"1/4", "1/8", "1/16", "1/32", "8T", "16T", "1/2", "1/1", "2BAR", "4BAR",
                                       "1/8D", "1/16D", "1/4D"};
 static const char *const N_SCALE[] = {"CHR", "MAJ", "MIN", "DOR", "MIX", "PEN", "MPEN", "HARM",
@@ -59,7 +59,7 @@ static const char *const N_SLCR[] = {"OFF", "GATE", "STUT"};             /* the 
 static const char *const N_SLDIV[] = {"1/8", "1/16", "1/32", "8T", "16T", "32T"};   /* the SLICER rate (dead, FB-002 C) */
 /* the INSERT's types (1.5, fx.c IT_*; append-only: stored). Its three values A B C mean what the type says (ins_desc) */
 static const char *const N_ITYPE[] = {"OFF", "SOFT", "HARD", "FOLD", "FUZZ", "CRUSH", "PHASR", "FLANG", "CHOR"};
-/* CRUSH: BITS 1..16 and RATE (the held sample's rate, fx.c INS_HOLD) over the range in 16 even parts (0-terminated) */
+/* CRUSH: BITS 1..16 and RATE (the held sample's rate) over the range in 16 even parts (0-terminated) */
 static const char *const N_IBITS[] = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15",
                                       "16", 0};
 static const char *const N_IRATE[] = {"689", "919", "1.1k", "1.4k", "1.8k", "2.2k", "2.8k", "3.7k", "4.4k", "5.5k",
@@ -156,8 +156,8 @@ static const param_desc_t TP[P_COUNT] = {
     [P_LPOL] = PE("POL", N_LPOL, 0),
     [P_SQNT] = PE("QNTZ", N_ONOFF, 1),            /* ON: every step on its start, as before 1.2 */
     [P_SPRD] = PD("SPRD", F_PCT, 0, 127, 0),      /* #148: 0 = every voice on PAN, as before (fx.c mix_spread) */
-    /* the INSERT (1.5, fx.c track_insert): TYPE OFF = as before. A B C as the editor protocol names them; the device
-     * shows the type's own labels (ins_desc) */
+    /* the INSERT slots (1.5): no effect reads them since the effect buses went (kept as dead slots, FB-002 C). A B C
+     * as the editor protocol names them; the device shows the type's own labels (ins_desc) */
     [P_ITYPE] = PE("INSRT", N_ITYPE, 0),
     [P_IA] = PD("INS A", F_PCT, 0, 127, 64),
     [P_IB] = PD("INS B", F_PCT, 0, 127, 96),
@@ -180,7 +180,7 @@ static const param_desc_t *ins_desc(int32_t type, uint32_t k)
 {
     if (type <= 0 || type >= (int32_t)NELEM(N_ITYPE))
         return &TP[P_IA + k];
-    return &INS_DESC[type < 5 ? 0 : type == 5 ? 1 : 2][k];   /* (IT_SOFT .. IT_FUZZ, IT_CRUSH, the swept ones) */
+    return &INS_DESC[type < 5 ? 0 : type == 5 ? 1 : 2][k];   /* (types 1..4: the drives; 5: CRUSH; 6..8: the swept ones) */
 }
 
 static const param_desc_t GP[G_COUNT] = {
@@ -452,8 +452,8 @@ static const page_t PAGES[] = {
     {"MOD", FAM_LFO, SC_TRACK, GR_MOD, {0xFF, P_M1SRC, P_M1DST, P_M1AMT}},   /* KNOB 1: the slot (mod_ui_slot) */
     {"FX", FAM_FX, SC_TRACK, GR_FX, {P_DIST, P_CHOR, P_DLY, P_REV}},
     {"SLICER", FAM_FX, SC_TRACK, GR_NONE, {P_SLCR, P_SLPAT, P_SLRATE, P_SLDEPTH}},
-    {"INSERT", FAM_FX, SC_TRACK, GR_INS, {P_ITYPE, P_IA, P_IB, P_IC}},   /* 1.5: the track's INSERT (fx.c) */
-    {"INSERT 2", FAM_FX, SC_TRACK, GR_INS, {P_IMIX, 0xFF, 0xFF, 0xFF}},  /* .. its dry / wet */
+    {"INSERT", FAM_FX, SC_TRACK, GR_NONE, {P_ITYPE, P_IA, P_IB, P_IC}},   /* 1.5: the track's INSERT (fx.c) */
+    {"INSERT 2", FAM_FX, SC_TRACK, GR_NONE, {P_IMIX, 0xFF, 0xFF, 0xFF}},  /* .. its dry / wet */
     {"DLY", FAM_FX, SC_GLOBAL, GR_NONE, {G_DTIME, G_DFDBK, G_DCOLOR, G_DMIX}},
     {"REVERB", FAM_FX, SC_GLOBAL, GR_NONE, {G_RTYPE, G_RSIZE, G_RDAMP, 0xFF}},   /* TYPE: ROOM / SPRING / HALL */
     {"CHORUS", FAM_FX, SC_GLOBAL, GR_NONE, {G_CRATE, G_CDEPTH, 0xFF, 0xFF}},

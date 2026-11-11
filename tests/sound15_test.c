@@ -64,11 +64,6 @@ static uint32_t preset_by_name(uint32_t e, const char *n)
 static void fresh(uint32_t e, uint32_t pi)        /* the boot state (no FX tails), track 1 = engine e preset pi */
 {
     uint32_t k;
-    memset(dly_buf, 0, sizeof dly_buf);
-    memset(cho_buf, 0, sizeof cho_buf);
-    memset(rev_comb, 0, sizeof rev_comb);
-    memset(rev_ap, 0, sizeof rev_ap);
-    memset(&fx, 0, sizeof fx);
     memset(&pf, 0, sizeof pf);
     for (k = 0; k < NTRK; k++)
         pf.mg[k] = 32768;

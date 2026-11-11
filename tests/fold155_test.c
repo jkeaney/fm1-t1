@@ -393,11 +393,6 @@ static uint64_t instr_now(void)
 static void fresh(uint32_t pi)                         /* the boot state, track 1 = PHASE preset pi */
 {
     uint32_t k;
-    memset(dly_buf, 0, sizeof dly_buf);
-    memset(cho_buf, 0, sizeof cho_buf);
-    memset(rev_comb, 0, sizeof rev_comb);
-    memset(rev_ap, 0, sizeof rev_ap);
-    memset(&fx, 0, sizeof fx);
     memset(&pf, 0, sizeof pf);
     for (k = 0; k < NTRK; k++)
         pf.mg[k] = 32768;
