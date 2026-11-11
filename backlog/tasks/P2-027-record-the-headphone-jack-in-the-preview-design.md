@@ -3,7 +3,7 @@ id: P2-027
 title: Record the owner-confirmed headphone jack in the preview design (decision 112)
 phase: P2
 type: task
-status: review
+status: done
 priority: 2
 executor: sonnet
 depends_on: [P2-025]
@@ -40,3 +40,9 @@ python3 tests/design/check_scenarios.py; python3 tests/design/check_help.py; pyt
 - CLAUDE.md hardware facts: added "Audio out: speaker plus a rear headphone jack (owner-confirmed 2026-11-11)."
 - grep of docs/ backlog/ CLAUDE.md for headphone / cue bus: remaining hits are P2-025 historical logs (review records of the earlier state, left as history) and P2-025 task text; no other doc claims "no headphone".
 - check_scenarios.py: 23 files, 0 with no scenario. check_help.py: OK 392 help rows. check_sequencer_ux.py: OK. width_probe.sh: 296 strings, 0 over. backlog.py check: 124 items, 0 errors.
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS (gate none). Design-only; no firmware build run, per instruction.
+- Re-ran all five checkers: check_scenarios 23 files 0 with no scenario; check_help OK 392 rows; check_sequencer_ux OK; width_probe 296 strings 0 over; backlog check 124 items 0 errors.
+- Decision 112 matches PREVIEW.md 1.1/1.2/section 9: speaker plus rear headphone jack owner-confirmed, all PREVIEW-ON channels to master output, no cue bus designed, mute = MIDI gate only, HW-1 checks only speaker-mute on plug-in. CLAUDE.md hardware line added.
+- grep headphone/cue bus/line output in docs, backlog, CLAUDE.md: remaining "no headphone" text is only in P2-025 historical log entries (superseded by its own Approved line citing decision 112). No live doc contradicts.
