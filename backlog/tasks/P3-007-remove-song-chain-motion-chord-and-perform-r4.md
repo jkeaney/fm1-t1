@@ -3,7 +3,7 @@ id: P3-007
 title: Remove song chain, motion, chord and perform (R4)
 phase: P3
 type: task
-status: review
+status: done
 priority: 2
 executor: haiku
 depends_on: [P3-006]
@@ -154,3 +154,11 @@ Commands and decisive output:
 - `git status` shows `D` for firmware/src/chord.c, motion.c, perform.c, song_chain.c, tests/chord_test.c, tests/song_probe.h.
 
 Acceptance criteria ticked after verification above. All are verified.
+
+### 2026-11-11 review (sonnet)
+Verdict: **PASS** (gate none). Independent checks:
+- Acceptance grep prints nothing. `sh tools/check.sh` ends CHECK PASS (single run, no rerun needed).
+- Build line: `image 377872 B; RAM .data+.bss 34372 B of 73728; pool 154624 B of 368640`. Headroom 39356 B (>= 8192). Pool drop 33156 B. Image is 16 B over the 377856 expectation, inside the 2 KB tolerance.
+- tests/golden.txt and tests/cpu_baseline.txt unchanged vs 06d0a96; no BUDGET_UPDATE/GOLDEN_UPDATE.
+- project_t keeps rsv_song[84] / rsv_auto[388] (PROJ_CHAIN_BYTES 84, PROJ_MOTION_BYTES 388); proj_pack writes them in place, proj_unpack skips them; offsets/checksum code untouched.
+- Commit touches only firmware, tests, tools and the task file; no unrelated files staged.
