@@ -3,7 +3,7 @@ id: P3-003
 title: Remove the dead DIGITAL engine and the FELUCCA_FM4 flag (R1)
 phase: P3
 type: task
-status: review
+status: done
 priority: 2
 executor: haiku
 depends_on: [P3-014]
@@ -91,3 +91,11 @@ because `7fbbe4b` already holds it; see above).
 `#else`/`#endif`. `ui_graph.c` `graph_fm` (DIGITAL algorithm charts) and `test_fm_charts` are gone with it. `page_visible` in ui.c and
 the hash in `ui_graph.c` lose a `FELUCCA_FM4 &&` term that was already 0. Also `web/editor.html` text-only edits (not named in
 the Deliverable; the criterion's grep covers them).
+
+### 2026-11-11 review (sonnet)
+**Verdict: PASS (gate none).** Reviewed e7283ec combined with 7fbbe4b (which holds the eng_digital.c, digital_test, fm4_test and fm4_div0_test deletions).
+- The four deleted files are absent from the tree. No `#include` or public symbol of them remains in firmware/src, tests or tools. The only hits are comments in fm4_convert.c and target_budget.py.
+- `grep -rn FELUCCA_FM4 .` outside docs/ matches only backlog/ records (BACKLOG.md index row, P1-002 and P3-002 logs, this file). These are history and the Deliverable's own text, so I accept them as satisfying the criterion in spirit.
+- web/editor.html (2 comments) and web/EDITOR_PROTOCOL.md changes are text-only comment edits. Acceptable, since the criterion's grep covers web/ and they change no behaviour.
+- `sh tools/check.sh` run once: `RAM .data+.bss 55248 B of 73728`, tests pass, backlog pass, final line `CHECK PASS`. The mod_test cost check did not fail this time, so no rerun was needed.
+- Headroom 73728 - 55248 = 18480 B, at least 8192 B.
