@@ -3,7 +3,7 @@ id: P3-005
 title: Menu rows 37 to 28 and the T-1 always on (R3a)
 phase: P3
 type: task
-status: review
+status: done
 priority: 2
 executor: haiku
 depends_on: [P3-004]
@@ -84,7 +84,7 @@ Tests (rehearsed; every file the grep finds):
 - [x] `tests/t1_link_test.c` passes unchanged (its line 41 `t1_mode == 0` still holds)
 - [x] `test_retired_menu_bits` passes (boot rule + retired bits import as defaults)
 - [x] `sh tools/check.sh` ends with `CHECK PASS` (the known failures in CLAUDE.md, and the intermittent `mod: cost: 4 active slots` host-counter check, are not regressions; rerun once if only those fail)
-- [ ] Expected build line (rehearsal): `image 499168 B; RAM .data+.bss 54048 B of 73728; pool 191048 B of 368640` (before: 500212 / 54064 / 191048). Paste the real line into the Log; RAM headroom (73728 - N) must be at least 8192 B, else stop and file an FB (E9 trigger)
+- [x] Expected build line (rehearsal): `image 499168 B; RAM .data+.bss 54048 B of 73728; pool 191048 B of 368640` (before: 500212 / 54064 / 191048). Paste the real line into the Log; RAM headroom (73728 - N) must be at least 8192 B, else stop and file an FB (E9 trigger)
 
 ## Verification
 ```sh
@@ -150,3 +150,12 @@ Build: before 500212 / 54064 / 191048; after 499168 / 54048 / 191048 (1044 B of 
 above the 8192 B trigger. Goldens and budget unchanged (GOLDEN_UPDATE / BUDGET_UPDATE not run).
 Note for the reviewer: the build prints `torso_t1_pipeline.c:262 unused variable 'q_note'`, a warning in a file this task does not touch.
 Not done here (per the Out of scope): the dead readers (PREF_BPM_LOCK, PREF_CHORD_ADD, PREF_LATCH, sel_play, kb_vel, SEL_*), v156/ui155 files, the CLAUDE.md line (P3-012).
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS. `sh tools/check.sh` -> CHECK PASS (first run, no rerun needed). Retired-row grep over firmware/src tests tools web is empty.
+`t1u_always` is 1 under `#ifdef T1_DEVICE` and 0 otherwise (ui_t1.c:19,21); `t1_poll` uses it; PREF_T1 gone from ui.c and ui_t1.c.
+Build line: `image 499152 B; RAM .data+.bss 54048 B of 73728; pool 191048 B of 368640` (RAM and pool match the expected line; image is 16 B
+under the 499168 quoted, harmless). Headroom 19680 B, above the 8192 B trigger.
+SYSTEM_MAP check: read sections 3 (item 3), rows 21/23/31/40, R3, and section 7 myself. They require exactly the 37 -> 28 row removal
+(LATCH, BPMLOCK, SELECT, TCH1..4, T1SEQ, CHADD), tab counts 8 4 6 4 6, always-on t1_mode, and the ui_test/midi_control_test/ui155 edits; no
+hidden requirement beyond the task's Deliverable. Scope: the diff touches only the Deliverable files; dead readers left for P3-006/007 as specified.
