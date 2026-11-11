@@ -3,7 +3,7 @@ id: P3-003
 title: Remove the dead DIGITAL engine and the FELUCCA_FM4 flag (R1)
 phase: P3
 type: task
-status: todo
+status: in_progress
 priority: 2
 executor: haiku
 depends_on: [P3-014]
