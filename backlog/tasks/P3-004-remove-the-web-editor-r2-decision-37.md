@@ -3,7 +3,7 @@ id: P3-004
 title: Remove the web editor (R2, decision 37)
 phase: P3
 type: task
-status: review
+status: todo
 priority: 2
 executor: haiku
 depends_on: [P3-003]
@@ -106,3 +106,15 @@ Verification:
 - `python3 web/make_site.py build/felucca.fwsc dev /tmp/site-check`: exit 0, `webapp/installer` only, no `webapp/editor`.
 - Golden / budget not updated (no BUDGET_UPDATE or GOLDEN_UPDATE run); the full run passed with them unchanged.
 - Emulator skipped (no emcc), as in the rehearsal.
+
+### 2026-11-11 review (sonnet)
+
+Verdict: FAIL (small, comment/doc only). Checked: `sh tools/check.sh` = CHECK PASS; build line `image 500212 B; RAM .data+.bss 54064 B of 73728; pool 191048 B` matches the rehearsal, headroom 19664 B (>= 8192). Deleted files gone, felucca.c/main.c/size_fns/make_site/emu edits present, keep-files present. Lost coverage (robust, fm6bank, editor protocol/MENU, fuzz, web editor test) is logged in run 2.
+
+Findings:
+- Acceptance 2 is not met literally: `grep -rn 'editor_test\.c' tests` still hits tests/ratchet_test.c:14, tests/drum_test.c:23, tests/v16_test.c:6 (allowed only for ui_test.c). Fix: reword each comment to say the editor protocol test was removed in P3-004 (drop the file name).
+- BUILDING.md:89 lists "the editor" among what the emulator does not emulate. It is a removed feature in a user-facing doc: delete ", the editor" there.
+- web/index_pkg.html:101 stockBackup "use the editor": left on purpose (Out of scope; recorded in FB-005 as the owner follow-up with the V15 backup flow). Acceptable now, no fix in this task.
+- tests/run_tests.sh:257 label "editor" is a stale label for seq155_test; optional.
+
+Next executor: edit the 3 test comments and BUILDING.md:89, re-run the acceptance grep, `sh tools/check.sh`.
