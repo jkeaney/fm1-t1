@@ -3,7 +3,7 @@ id: P3-010
 title: Remove the remaining engines and eng_mem; ANALOG only (R6c)
 phase: P3
 type: task
-status: review
+status: done
 priority: 2
 executor: haiku
 depends_on: [P3-009]
@@ -105,3 +105,19 @@ Notes for the reviewer:
 - `./build.sh | grep RAM` was run through `sh tools/check.sh`, which builds the same image; the RAM line is above.
 
 Acceptance: all six criteria verified above and ticked.
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS (gate none).
+- `sh tools/check.sh` run once: CHECK PASS. Build line `image 169084 B; RAM .data+.bss 23060 B of 73728; pool 92500 B of 368640`
+  (headroom 50668 B, over 8192). Matches expected.
+- Acceptance grep prints nothing; `grep -c ENG_MEM firmware/src/*.c` is 0 everywhere; the eight files are deleted.
+- Patch fallback: logged. The two differing hunks (engines.c deleted comment lines only) are named; I read the final engines.c
+  and it is equivalent to the intended removal: `ENGINES[] = {&ENG_ANALOG}`, `eng_idx()` clamps any stored engine number to 0
+  (project.c uses `ENGINES[e]` after that clamp), `PATTERNS[]` is 9 long, `TRK_DEF` ANALOG presets 4,0,1,0, `MIDI_CC_ENG` one row.
+- Golden: only `song/4track_mix` (a5f5f88872a0cfa4) and `song/4track_swing20` (81316d9df95fddf4) changed; the other removed lines
+  are the deleted engines' presets/modes. 26 lines remain (24 renders + header lines); 0 changed, 0 health failures.
+- Budget: target_budget.txt/.py and cpu_baseline.txt show deletions only (FUNCS list shortened); no BUDGET_UPDATE.
+- Preview design: ANALOG presets (ACID LEAD, BASS, PAD, STRINGS, PIANO-type) are untouched in eng_analog.c; nothing made impossible.
+- `engine_t.mem` left unused deliberately: accepted.
+- Non-blocking observation: eng_analog.c presets RAVE `PAT(13)` and SUB BASS `PAT(8)` hold pattern numbers; `.pat` is not read
+  anywhere, so PAT(13) (now beyond the 9-entry PATTERNS, ARP is entry 9) is harmless but stale. Tidy in the v2 params prune.
