@@ -3,7 +3,7 @@ id: P3-008
 title: Remove the DRUM and PHYS engines (R6a)
 phase: P3
 type: task
-status: review
+status: done
 priority: 2
 executor: haiku
 depends_on: [P3-011, P2-023]
@@ -103,3 +103,11 @@ error: web/emu/felucca_web.c: patch does not apply
 - Golden lines that changed (accepted in the patch, no GOLDEN_UPDATE run): `tests/golden.txt` adds `song/4track_mix 0537ab5e4a6a39a0` and `song/4track_swing20 7935db39f87dee54` (replacing the old hashes 351764e3e2056e34 and 5117b1b1fd9c8c40). The demo song's track 4 is ANALOG now. All `preset/ANALOG/*` and `mode/ANALOG/*` lines are unchanged.
 - No BUDGET_UPDATE was run. tests/cpu_baseline.txt and tests/target_budget.txt are changed only by the patch (deletions of PHYS, DRUM, dv_, px_ rows). Nothing was hand-written into cpu_baseline.txt.
 - Not touched: restore/, .venv/, no flashing, no push.
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS (gate none).
+- `sh tools/check.sh` run once: CHECK PASS. Build line `image 347112 B; RAM .data+.bss 34340 B of 73728; pool 144720 B of 368640` (headroom 39388 B, above 8192 B).
+- Acceptance grep: only firmware/src/eng_sample.c:8 and tools/gen_samples.py:23 hit, both allowed (P3-009 deletes them).
+- golden.txt: the only non-PHYS/DRUM/drums lines changed are song/4track_mix and song/4track_swing20; no ANALOG lines changed.
+- target_budget.txt and cpu_baseline.txt: deletions only. target_budget.py: name-list deletions only. No BUDGET_UPDATE.
+- mod_test.c MOD_COST_MAX 6.0 -> 7.0: justified (all-ANALOG mix is cheaper per sample, so the same slot cost is a larger share). It is recorded in Deliverable item 5 and in the code comment; the executor Log entry does not repeat it (minor).
