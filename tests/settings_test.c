@@ -165,9 +165,9 @@ int main(void)
         persist_t q;
         p = original; p.magic = 0x50455233u;
         assert(settings_import(&p, sizeof p - sizeof p.favorites) == 2 && !(favorites.factory[15][30] & 128u));
-        p = original; p.favorites.factory[15][30] = 128u | 64u | 1u;
-        assert(settings_import(&p, sizeof p) == 1 && favorites.factory[15][30] == (128u | 64u | 1u));
-        q = p; settings_export(&q); assert(q.favorites.factory[15][30] == (128u | 64u | 1u));
+        p = original; p.favorites.factory[15][30] = 128u | 64u | 4u;
+        assert(settings_import(&p, sizeof p) == 1 && favorites.factory[15][30] == (128u | 64u | 4u));
+        q = p; settings_export(&q); assert(q.favorites.factory[15][30] == (128u | 64u | 4u));
         p = original; assert(settings_import(&p, sizeof p) == 1);
     }
     {   /* 1.2 the FX layer's key map (ui_layer.c fx_keys, favorites.factory[15][14..23], 16 x 5 bits, 0 = the key's

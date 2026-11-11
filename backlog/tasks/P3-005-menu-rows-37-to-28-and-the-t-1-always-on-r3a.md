@@ -3,7 +3,7 @@ id: P3-005
 title: Menu rows 37 to 28 and the T-1 always on (R3a)
 phase: P3
 type: task
-status: todo
+status: review
 priority: 2
 executor: haiku
 depends_on: [P3-004]
@@ -78,12 +78,12 @@ Tests (rehearsed; every file the grep finds):
 - Log: before/after build line and the bytes freed.
 
 ## Acceptance criteria
-- [ ] `MI_COUNT` is 28; the tab rows are 8 4 6 4 6 (asserted in ui_test)
-- [ ] `grep -rnE 'MI_LATCH|MI_BPMLOCK|MI_SELECT|MI_TCH|MI_T1SEQ|MI_CHADD|PREF_T1' firmware/src tests tools web` returns nothing
-- [ ] `grep -n 't1u_always' firmware/src/ui_t1.c` shows the value 1 under `#ifdef T1_DEVICE` and 0 otherwise; `PREF_T1` is gone from ui.c and ui_t1.c
-- [ ] `tests/t1_link_test.c` passes unchanged (its line 41 `t1_mode == 0` still holds)
-- [ ] `test_retired_menu_bits` passes (boot rule + retired bits import as defaults)
-- [ ] `sh tools/check.sh` ends with `CHECK PASS` (the known failures in CLAUDE.md, and the intermittent `mod: cost: 4 active slots` host-counter check, are not regressions; rerun once if only those fail)
+- [x] `MI_COUNT` is 28; the tab rows are 8 4 6 4 6 (asserted in ui_test)
+- [x] `grep -rnE 'MI_LATCH|MI_BPMLOCK|MI_SELECT|MI_TCH|MI_T1SEQ|MI_CHADD|PREF_T1' firmware/src tests tools web` returns nothing
+- [x] `grep -n 't1u_always' firmware/src/ui_t1.c` shows the value 1 under `#ifdef T1_DEVICE` and 0 otherwise; `PREF_T1` is gone from ui.c and ui_t1.c
+- [x] `tests/t1_link_test.c` passes unchanged (its line 41 `t1_mode == 0` still holds)
+- [x] `test_retired_menu_bits` passes (boot rule + retired bits import as defaults)
+- [x] `sh tools/check.sh` ends with `CHECK PASS` (the known failures in CLAUDE.md, and the intermittent `mod: cost: 4 active slots` host-counter check, are not regressions; rerun once if only those fail)
 - [ ] Expected build line (rehearsal): `image 499168 B; RAM .data+.bss 54048 B of 73728; pool 191048 B of 368640` (before: 500212 / 54064 / 191048). Paste the real line into the Log; RAM headroom (73728 - N) must be at least 8192 B, else stop and file an FB (E9 trigger)
 
 ## Verification
@@ -119,3 +119,34 @@ Verification: not run (no change made). `python3 tools/backlog.py check` is run 
 
 ### 2026-11-11 planner (sonnet)
 FB-006 answered. Deliverable, decisions and acceptance rewritten after applying the plan in a scratch copy: device build `image 499168 B; RAM .data+.bss 54048 B of 73728; pool 191048 B of 368640` (before 500212 / 54064 / 191048), one full tests/run_tests.sh = ALL HOST TESTS PASSED, goldens and budget unchanged. Status todo.
+
+### 2026-11-11 executor (haiku)
+Done. The FB-006 decisions are applied as written. SYSTEM_MAP.md was not re-read in full this run: the Deliverable,
+Decisions and Tests lists were followed exactly, and the grep / check results below are the proof.
+
+Edits: firmware/src/menu_items.c (enum, MI_NAME, MI_TAB, MENU_FLAGS, menu_n / menu_get / menu_vname / menu_put, MI_PROJECT,
+header comment), firmware/src/ui_menu.c (MI_TCH dim test removed), firmware/src/ui.c (PREF_T1 removed, sel_mode -> SEL_BPM),
+firmware/src/ui_t1.c (t1u_always 1 under T1_DEVICE, 0 otherwise; t1_poll uses it), firmware/src/settings_persist.c
+(the retired bits cleared on import), tests/ui_test.c, tests/ui155_test.c, tests/v156_test.c, tests/midi_control_test.c,
+tests/ui_render.c, tests/settings_test.c. tests/t1_link_test.c unchanged.
+
+Verification:
+```
+$ AC79_SDK=~/fw-AC79_AIoT_SDK sh tools/check.sh      -> CHECK PASS   (log: build/check/tests.log)
+== ram headroom
+RAM .data+.bss 54048 B of 73728
+$ ./build.sh | grep RAM
+  ok    image 499168 B; RAM .data+.bss 54048 B of 73728; pool 191048 B of 368640
+$ grep -rnE 'MI_LATCH|MI_BPMLOCK|MI_SELECT|MI_TCH|MI_T1SEQ|MI_CHADD|PREF_T1' firmware/src tests tools web   -> no output (exit 1)
+ui: MENU tabs: DISPLAY CONTROL AUDIO MIDI SYSTEM (8 4 6 4 6 rows), 1..8 each in a run, fit the page; tab gaps constant (S, LARGE) ok
+ui: P3-005: the T-1 mode is on from the first frame (t1u_always), and off again when it is 0 ok
+ui: P3-005: retired bits import as their defaults (FX LATCH, BPM LOCK OFF; SELECT BPM; CHORD ENTRY HOLD) ok
+ui: TRACK: channels 1..4 by default (song.mch all 0) ok
+ui: all passed
+t1_link: all checks ok
+ALL HOST TESTS PASSED
+```
+Build: before 500212 / 54064 / 191048; after 499168 / 54048 / 191048 (1044 B of image and 16 B of .bss freed). Headroom 19680 B,
+above the 8192 B trigger. Goldens and budget unchanged (GOLDEN_UPDATE / BUDGET_UPDATE not run).
+Note for the reviewer: the build prints `torso_t1_pipeline.c:262 unused variable 'q_note'`, a warning in a file this task does not touch.
+Not done here (per the Out of scope): the dead readers (PREF_BPM_LOCK, PREF_CHORD_ADD, PREF_LATCH, sel_play, kb_vel, SEL_*), v156/ui155 files, the CLAUDE.md line (P3-012).

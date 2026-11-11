@@ -81,13 +81,13 @@ static uint32_t up_gen;                      /* bumped on every user bank change
 #define PREF_SEL_PAGE (0x10u << 16)
 #define PREF_WAKE_PANEL (0x20u << 16)
 #define PREF_SEL_HI (0x40u << 16)
-#define PREF_T1 (0x80u << 16)                  /* SYSTEM > T1 SEQ ON: the Torso T-1 sequencer mode (ui_t1.c, t1_glue.c); bit 7
-                                                * of ui_prefs2, 0 in every older setting = OFF */
 /* MENU > CONTROL > SELECT: 0 BPM, 1 PAGE (1.5.5, #188), 2 MODW, 3 VEL (1.5.6, #84: ui_input.c sel_play), bit 4 and bit 6 of
  * ui_prefs2 (0 in every older setting = BPM; 1.5.5's PAGE keeps its bit; firmware before 1.5.6 reads MODW as BPM and
  * VEL as PAGE (its bit 4), before 1.5.5 both as BPM) */
 enum { SEL_BPM, SEL_PAGE, SEL_MODW, SEL_VEL, SEL_N };
-static uint32_t sel_mode(void) { return ((ui_prefs2 >> 4) & 1u) | ((ui_prefs2 >> 5) & 2u); }
+/* P3-005: the SELECT row is gone and the bits are cleared on import (settings_persist.c): the knob's mode is BPM. The
+ * readers of the bits (ui_input.c, ui_draw.c) go in P3-006 */
+static uint32_t sel_mode(void) { return SEL_BPM; }
 /* 1.3 (Discussions #112, #134): MENU > DISPLAY > HOME, what the HOME page shows under its four cards: 0 SCOPE (the
  * oscilloscope, as before), 1 TRACKS (the four tracks as rows: ui_graph.c draw_home_tracks), 2 LEVELS (1.5, #134: the
  * rows of TRACKS, and KNOB 1..4 the LEVEL of T1..T4 in place of the engine's four: home_param). A byte of its own no

@@ -55,6 +55,11 @@ static int settings_import(persist_t *p, int n)
         p->favorites.factory[15][27] = 0;
     if (p->favorites.factory[15][11] > 8u)         /* PRESETS LIST's category (1.2, ui.c ui_lcat, CAT_*): unknown = none */
         p->favorites.factory[15][11] = 0;
+    /* P3-005 (R3a): the retired rows read as their fixed defaults, whatever an old record saved: FX LATCH and BPM LOCK
+     * (factory[15][30] bits 0 and 4) OFF; CHORD ENTRY (bit 2), SELECT (bits 4 and 6: BPM) and T1 SEQ (bit 7, now always on)
+     * cleared in factory[15][24]. The code that still reads these bits goes in P3-006 / P3-007 */
+    p->favorites.factory[15][30] &= (uint8_t)~(1u | 16u);
+    p->favorites.factory[15][24] &= (uint8_t)~(0x04u | 0x10u | 0x40u | 0x80u);
     /* [15][26] HOME (1.3, ui.c ui_home_view): kept as saved; a value this firmware does not know draws SCOPE */
     {   /* CUSTOM (1.6, #244, favorites.c ui_cpal): [15][0..9] five RGB565 colours, [12] bit 0 stored, bit 1 in use. Anything else
          * in [12], or colours without the stored flag: none (zero). The colours themselves are whatever the user chose */

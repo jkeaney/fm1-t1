@@ -296,8 +296,6 @@ static void menu_row(uint32_t k, uint32_t row)
     int sel = row == ui.menu_sel;
     uint16_t bg = sel ? T_THEME : T_SURF, fg = sel ? T_INK : T_TEXT, val = sel ? T_INK : T_THEME;
     const char *v;
-    if (!sel && MI_TCH(row) && song.g[G_ROUTE] != ROUTE_TRACK)
-        val = T_MID;                                   /* (1.5.5: T1..T4 CHANNEL, unused but with MIDI IN TRACK) */
     v = menu_valued(row) ? menu_vname(row, menu_get(row)) : "";
     if (sel)
         cv_rrect(MR_X, y, MR_W, h, 6, T_THEME, T_SURF);

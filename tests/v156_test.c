@@ -339,92 +339,9 @@ static int leds(void)
     return bad;
 }
 
-/* ------------------------------------------------------------ SELECT --- */
-/* (#84) MENU > CONTROL > SELECT MODW / VEL after BPM / PAGE: MODW the selected track's mod wheel (the matrix's MODW, CC1
- * out on its channel), VEL the keys' velocity (sounding, MIDI OUT, recorded); GLO + SELECT the tempo; the bits (PAGE's
- * as 1.5.5's), saved; older settings BPM */
-static int select_play(void)
-{
-    int bad = 0, ok;
-    track_t *t;
-    int16_t b0;
-    uint32_t mo, pk;
-    ui_power_on();
-    ok = menu_n(MI_SELECT) == 4u && str_eq(menu_vname(MI_SELECT, 0), "BPM") && str_eq(menu_vname(MI_SELECT, 1), "PAGE") &&
-         str_eq(menu_vname(MI_SELECT, 2), "MODW") && str_eq(menu_vname(MI_SELECT, 3), "VEL") && menu_get(MI_SELECT) == 0u;
-    menu_put(MI_SELECT, 1);
-    ok &= ui_prefs2 == 0x10u && sel_mode() == SEL_PAGE;     /* (PAGE: 1.5.5's bit) */
-    menu_put(MI_SELECT, 2);
-    ok &= ui_prefs2 == 0x40u && sel_mode() == SEL_MODW;
-    menu_put(MI_SELECT, 3);
-    ok &= ui_prefs2 == 0x50u && sel_mode() == SEL_VEL;
-    {
-        persist_t p = {0};
-        p.magic = PERSIST_MAGIC; p.panel = panel;
-        settings_export(&p);
-        menu_put(MI_SELECT, 0);
-        ok &= settings_import(&p, (int)sizeof p) == 1 && menu_get(MI_SELECT) == 3u;
-        p.favorites.factory[15][24] = 0;
-        ok &= settings_import(&p, (int)sizeof p) == 1 && menu_get(MI_SELECT) == 0u;
-    }
-    bad += check("SELECT (#84): BPM PAGE MODW VEL; PAGE bit 4 as 1.5.5, MODW / VEL bit 6 too; saved, older settings BPM", ok);
-
-    menu_put(MI_SELECT, SEL_MODW);
-    go_home(); frame();
-    t = TSEL;
-    t->mw = 0;
-    b0 = song.g[G_BPM];
-    usb.config = 1;
-    mo = mo_w;
-    turn(EN_SELECT, 3);
-    ok = t->mw == 3u && str_eq(ui.msg, "MODW 3") && song.g[G_BPM] == b0 && ui.home;
-    ok &= mo_w == mo + 1u && midi_out_q[mo % MQ] == (0x0Bu | (0xB0u | trk_midi_ch(song.sel)) << 8 | 1u << 16 | 3u << 24);
-    turn(EN_SELECT, -5);
-    ok &= t->mw == 0u;                                  /* (stops at 0) */
-    t->p[P_M1SRC] = MS_MODW; t->p[P_M1DST] = MD_VEL; t->p[P_M1AMT] = 63;
-    turn(EN_SELECT, 127);
-    ok &= t->mw == 127u;
-    trk_note_on(t, 60, 40);
-    ok &= t->m_vel == 127u;                             /* (the matrix's MODW: the wheel SELECT turns) */
-    trk_all_off(t);
-    t->p[P_M1SRC] = t->p[P_M1DST] = t->p[P_M1AMT] = 0;
-    btn_down(B_GLO); frame();
-    turn(EN_SELECT, 2);
-    ok &= song.g[G_BPM] == b0 + 2 && t->mw == 127u;     /* GLO + SELECT: the tempo */
-    btn_up(B_GLO); frames(400);
-    song.g[G_BPM] = b0;
-    t->mw = 0;
-    bad += check("  MODW: the track's mod wheel 0..127 (shown), CC1 out on its channel, the matrix's MODW; GLO + SELECT tempo", ok);
-
-    menu_put(MI_SELECT, SEL_VEL);
-    go_home(); frame();
-    ok = kb_vel == 100u;
-    turn(EN_SELECT, -40);
-    ok &= kb_vel == 60u && str_eq(ui.msg, "VEL 60") && song.g[G_BPM] == b0;
-    mo = mo_w;
-    key_down(white(3)); frame();
-    pk = midi_out_q[mo % MQ];
-    ok &= mo_w == mo + 1u && (pk & 0xF0FFu) == 0x9009u && pk >> 24 == 60u && TSEL->m_vel == 60u;
-    key_up(white(3)); frame();
-    turn(EN_SELECT, -100);
-    ok &= kb_vel == 1u;
-    turn(EN_SELECT, 200);
-    ok &= kb_vel == 127u;
-    kb_vel = 100;
-    bad += check("  VEL: the keys' velocity 1..127 (100 at power-on), shown, sounding and sent; GLO + SELECT as ever", ok);
-
-    menu_put(MI_SELECT, SEL_MODW);
-    go_title("CLOCK");
-    ok = str_eq(help_page(), "[K1]TEMPO[GLO]HOLD: TAP");
-    menu_put(MI_SELECT, 0);
-    ok &= str_eq(help_page(), "[SELECT]TEMPO[GLO]HOLD: TAP");
-    bad += check("  HELP: CLOCK's hint names KNOB 1 the tempo with MODW / VEL too", ok);
-    return bad;
-}
-
 int main(void)
 {
-    int bad = humanize() + kits() + leds() + select_play();
+    int bad = humanize() + kits() + leds();
     printf("%s\n", bad ? "1.5.6 TEST FAILED" : "1.5.6 tests passed");
     return bad != 0;
 }

@@ -358,18 +358,15 @@ static int route_block_test(void)
  * aftertouch, the CC map, the panic CCs, Program Change and MIDI out all follow it; OMNI takes what no track has, OFF
  * nothing; two tracks on one channel: the first; a channel change lets go of what the old channel held; the defaults
  * (channels 1..4) are CH1-4 exactly */
-static void tch(uint32_t k, uint32_t ch) { menu_put(MI_TCH1 + k, ch); events_block(CTL); }
+static void tch(uint32_t k, uint32_t ch) { mch_set(k, ch); midi_route = MIDI_ROUTE_AGAIN; events_block(CTL); }
 static void pc(uint32_t ch, uint32_t prog) { queued(0xC0u | ch, prog, 0, 1); }
 static int route_track_test(void)
 {
     int bad = 0, ok; uint32_t ch, i, r;
     midi_test_reset();
-    ok = mch_get(0) == 0u && mch_get(1) == 1u && mch_get(2) == 2u && mch_get(3) == 3u && !song.mch[0] && !song.mch[3];
-    ok &= menu_n(MI_TCH1) == 18u && str_eq(menu_vname(MI_TCH1, 0), "1") && str_eq(menu_vname(MI_TCH1, 15), "16") &&
-          str_eq(menu_vname(MI_TCH1, MCH_OMNI), "OMNI") && str_eq(menu_vname(MI_TCH1, MCH_OFF), "OFF") &&
-          str_eq(MI_NAME[MI_TCH1], "T1 CHANNEL") && str_eq(MI_NAME[MI_TCH4], "T4 CHANNEL") && MI_TAB[MI_TCH3] == MTAB_MIDI &&
-          menu_get(MI_TCH2) == 1u && MI_PROJECT(MI_TCH1) && MI_PROJECT(MI_TCH4) && !MI_PROJECT(MI_LCLEAR);
-    bad += check("TRACK: T1..T4 CHANNEL (MENU > MIDI) 1..16 OMNI OFF, channels 1..4 by default (song.mch all 0)", ok);
+    ok = mch_get(0) == 0u && mch_get(1) == 1u && mch_get(2) == 2u && mch_get(3) == 3u && !song.mch[0] && !song.mch[3] &&
+         MI_PROJECT(MI_MIDIIN) && !MI_PROJECT(MI_LCLEAR);
+    bad += check("TRACK: channels 1..4 by default (song.mch all 0)", ok);
     /* the defaults: TRACK plays as CH1-4, note for note */
     for (r = 0; r < 2u; r++) {
         midi_test_reset(); song.sel = 2; song.g[G_ROUTE] = r ? ROUTE_TRACK : 0; trk[3].eng_req = trk[3].engine = 0u;

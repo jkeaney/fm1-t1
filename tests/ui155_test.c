@@ -3,7 +3,7 @@
 /* 1.5.5, fixes and UI, on the real UI sources (with the stubs of tests/ui_test.c):
  *   PAN        (#199) a bipolar value (-64..63, F_BIPCT) reads -100..+100 %: +100 at the top (was +98), the stored
  *              range and the sound unchanged; the MIXER strip's number the same
- *   (and AUTOMATION KNOB 3, SELECT PAGE, PROJECT ERASE, CLEAN INIT; OCT- on the press as in 1.5.1 (1.5.6: #205 taken
+ *   (and AUTOMATION KNOB 3, PROJECT ERASE, CLEAN INIT; OCT- on the press as in 1.5.1 (1.5.6: #205 taken
  *   out), next to EUCLID, FILL)
  * Built and run by tests/run_tests.sh. */
 #define UI_TEST_NO_MAIN 1
@@ -117,101 +117,6 @@ static int help_fits(const char *s)
     }
     if (!ok || w > 224) printf("  help: \"%s\" %u hints, %d px of 224\n", s, n, w);
     return ok && w <= 224;
-}
-
-/* --------------------------------------------------- SELECT = PAGE --- */
-static int title_is(const char *t) { return !ui.home && str_eq(cur_page()->title, t); }
-static int select_page(void)
-{
-    int bad = 0, ok;
-    int16_t b0;
-    uint8_t before[32];
-    uint32_t i;
-    ui_power_on();
-    memcpy(before, favorites.factory[15], 32);
-    ok = menu_get(MI_SELECT) == 0u && str_eq(MI_NAME[MI_SELECT], "SELECT") && MI_TAB[MI_SELECT] == MTAB_CONTROL &&
-         MI_SELECT < MI_VALUES && str_eq(menu_vname(MI_SELECT, 0), "BPM") && str_eq(menu_vname(MI_SELECT, 1), "PAGE") &&
-         mtab_rows(MTAB_CONTROL) <= MTAB_ROWS;
-    go_title("ENV"); frame();
-    b0 = song.g[G_BPM];
-    turn(EN_SELECT, 2);
-    ok &= song.g[G_BPM] == b0 + 2 && title_is("ENV");
-    bad += check("SELECT (#188): MENU > CONTROL > SELECT, BPM by default: SELECT sets the tempo as before", ok);
-
-    menu_put(MI_SELECT, 1);
-    ok = menu_get(MI_SELECT) == 1u && favorites.factory[15][24] == (uint8_t)(before[24] | 0x10u);
-    for (i = 0; i < 32u; i++)
-        ok &= i == 24u || favorites.factory[15][i] == before[i];
-    {   /* saved with the settings; settings from before it read BPM */
-        persist_t p;
-        settings_export(&p);
-        ui_prefs2 = 0;
-        ok &= settings_import(&p, (int)sizeof p) == 1 && menu_get(MI_SELECT) == 1u;
-        p.favorites.factory[15][24] &= (uint8_t)~0x10u;
-        ok &= settings_import(&p, (int)sizeof p) == 1 && menu_get(MI_SELECT) == 0u;
-        menu_put(MI_SELECT, 1);
-    }
-    bad += check("  PAGE: a bit of its own (MENU's 1.2 flags, bit 4), kept with the settings; 0 (older settings) = BPM", ok);
-
-    b0 = song.g[G_BPM];
-    go_title("ENV"); frame();
-    turn(EN_SELECT, 1);
-    ok = title_is("ENV DEST");
-    turn(EN_SELECT, 1);
-    ok &= title_is("ENV");                              /* (round) */
-    turn(EN_SELECT, -1);
-    ok &= title_is("ENV DEST");
-    go_title("LFO"); frame();
-    turn(EN_SELECT, 2);
-    ok &= title_is("LFO DEST");
-    turn(EN_SELECT, -3);
-    ok &= title_is("MOD");                              /* (LFO LFO 2 LFO DEST MOD, round) */
-    ok &= song.g[G_BPM] == b0;
-    bad += check("  PAGE: SELECT steps the family's pages, a detent each, round both ways; the tempo stays", ok);
-
-    go_home(); frame();
-    turn(EN_SELECT, 1);
-    ok = title_is("MIXER");
-    turn(EN_SELECT, 1);
-    ok &= title_is("CLOCK");
-    turn(EN_SELECT, 1);
-    ok &= ui.home;
-    turn(EN_SELECT, -1);
-    ok &= title_is("CLOCK");
-    b0 = song.g[G_BPM];
-    turn(EN_K1, 1);
-    ok &= song.g[G_BPM] == b0 + 1;                      /* CLOCK's KNOB 1: the tempo */
-    bad += check("  PAGE: HOME -> MIXER -> CLOCK -> HOME (as HOME's taps), back too; CLOCK's KNOB 1 still the tempo", ok);
-
-    go_title("EDIT 1"); frame();
-    for (i = 0; i < 12u && ok; i++) {                   /* EDIT's pages: only the ones the engine shows */
-        turn(EN_SELECT, 1);
-        ok &= !ui.home && cur_page()->fam == FAM_EDIT && page_visible(ui.page);
-    }
-    go_title("SONG"); frame();
-    turn(EN_SELECT, 1);
-    ok &= title_is("SONG");                             /* (GLO: one page) */
-    bad += check("  PAGE: EDIT's round is the engine's pages; a family of one page stays", ok);
-
-    go_title("ENV"); frame();
-    b0 = song.g[G_BPM];
-    btn_down(B_GLO); frame();
-    turn(EN_SELECT, 3);
-    ok = song.g[G_BPM] == b0 + 3 && ui.layer == LAYER_GLO;
-    btn_up(B_GLO); frame();
-    ok &= title_is("ENV");
-    btn_down(B_LFO); frame();                           /* LFO held (MOMENTARY): no page */
-    turn(EN_SELECT, 1);
-    ok &= title_is("ENV");
-    btn_up(B_LFO); frame();
-    bad += check("  PAGE: GLO + SELECT is the tempo (no page); nothing with LFO held", ok);
-
-    go_title("CLOCK"); frame();
-    ok = help_page() && str_eq(help_page(), "[K1]TEMPO[GLO]HOLD: TAP") && help_fits(help_page());
-    menu_put(MI_SELECT, 0);
-    ok &= str_eq(help_page(), "[SELECT]TEMPO[GLO]HOLD: TAP");
-    bad += check("  HELP: CLOCK's hint says KNOB 1 is the tempo with PAGE", ok);
-    return bad;
 }
 
 /* ---------------------------------------------- OCT- on the press (1.5.6) --- */
@@ -496,7 +401,7 @@ static int oct_layers(void)
 
 int main(void)
 {
-    int bad = pan_range() + auto_k3() + select_page() + oct_press() + project_erase_ui() + clean_init() + oct_layers();
+    int bad = pan_range() + auto_k3() + oct_press() + project_erase_ui() + clean_init() + oct_layers();
     printf("%s\n", bad ? "1.5.5 UI TEST FAILED" : "1.5.5 ui tests passed");
     return bad != 0;
 }

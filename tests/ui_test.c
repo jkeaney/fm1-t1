@@ -1654,12 +1654,12 @@ static int test_menu_tabs(void)
             }
     }
     ui_prefs = 0;
-    bad += check("MENU tabs: DISPLAY CONTROL AUDIO MIDI SYSTEM (8 8 6 8 7 rows; 1.5.5: SELECT, T1..T4 CHANNEL, AUTO SELECT, SCREEN WAKE; T1 SEQ), 1..8 each in a run, fit the page; tab gaps "
+    bad += check("MENU tabs: DISPLAY CONTROL AUDIO MIDI SYSTEM (8 4 6 4 6 rows), 1..8 each in a run, fit the page; tab gaps "
                  "constant (S, LARGE)",
                  ok && MTAB_COUNT == 5u && str_eq(MTAB_NAME[0], "DISPLAY") && str_eq(MTAB_NAME[MTAB_MIDI], "MIDI") &&
-                 mtab_rows(MTAB_DISPLAY) == 8u && MI_TAB[MI_HOME] == MTAB_DISPLAY && mtab_rows(MTAB_CONTROL) == 8u && MI_TAB[MI_SELECT] == MTAB_CONTROL && mtab_rows(MTAB_AUDIO) == 6u &&
-                 mtab_rows(MTAB_MIDI) == 8u && MI_TAB[MI_MFOLLOW] == MTAB_MIDI && MI_TAB[MI_SCRWAKE] == MTAB_MIDI && MI_SCRWAKE + 1u == MI_LCLEAR && MI_TAB[MI_LCLEAR] == MTAB_MIDI && MI_TAB[MI_TCH4] == MTAB_MIDI && mtab_rows(MTAB_SYSTEM) == 7u && MI_TAB[MI_T1SEQ] == MTAB_SYSTEM && MI_TAB[MI_TUNE] == MTAB_AUDIO &&   /* (1.5: LEARN CLEAR, HELP) */
-                 MI_TAB[MI_MIDIIN] == MTAB_MIDI && MI_TAB[MI_INFO] == MTAB_SYSTEM && MI_INFO >= MI_VALUES);
+                 mtab_rows(MTAB_DISPLAY) == 8u && MI_TAB[MI_HOME] == MTAB_DISPLAY && mtab_rows(MTAB_CONTROL) == 4u && MI_TAB[MI_PREVIEW] == MTAB_CONTROL && mtab_rows(MTAB_AUDIO) == 6u &&
+                 mtab_rows(MTAB_MIDI) == 4u && MI_TAB[MI_MFOLLOW] == MTAB_MIDI && MI_TAB[MI_SCRWAKE] == MTAB_MIDI && MI_SCRWAKE + 1u == MI_LCLEAR && MI_TAB[MI_LCLEAR] == MTAB_MIDI && mtab_rows(MTAB_SYSTEM) == 6u && MI_TAB[MI_TUNE] == MTAB_AUDIO &&   /* (P3-005: 28 rows; 1.5: LEARN CLEAR, HELP) */
+                 MI_TAB[MI_MIDIIN] == MTAB_MIDI && MI_TAB[MI_INFO] == MTAB_SYSTEM && MI_INFO >= MI_VALUES && MI_COUNT == 28u);
 
     ui_power_on();
     hold(B_HOME);
@@ -1671,20 +1671,20 @@ static int test_menu_tabs(void)
     turn(EN_PRESET, -1); turn(EN_PRESET, -1); turn(EN_PRESET, -1); ok &= ui.menu_sel == MI_LEDS;
     bad += check("MENU: PRESETS moves within the tab and wraps there (COLOR .. HOME)", ok);
     turn(EN_ALGO, 1); ok = ui.menu_sel == MI_HOLD && menu_tab() == MTAB_CONTROL;
-    turn(EN_PRESET, 1); turn(EN_PRESET, 1); ok &= ui.menu_sel == MI_LATCH;
+    turn(EN_PRESET, 1); turn(EN_PRESET, 1); ok &= ui.menu_sel == MI_SCLLED;
     turn(EN_ALGO, 1); ok &= ui.menu_sel == MI_LOWCUT && menu_tab() == MTAB_AUDIO;
     turn(EN_ALGO, 1); ok &= ui.menu_sel == MI_MIDIIN && menu_tab() == MTAB_MIDI;   /* (1.2) */
-    turn(EN_PRESET, 1); ok &= ui.menu_sel == MI_TCH1;    /* (1.5.5: T1..T4 CHANNEL) */
+    turn(EN_PRESET, 1); ok &= ui.menu_sel == MI_MFOLLOW;
     turn(EN_PRESET, -1); turn(EN_PRESET, -1); ok &= ui.menu_sel == MI_LCLEAR;   /* (1.5: LEARN CLEAR, the last: round) */
     turn(EN_PRESET, 1); ok &= ui.menu_sel == MI_MIDIIN;
     turn(EN_ALGO, 1); ok &= ui.menu_sel == MI_SERIAL && menu_tab() == MTAB_SYSTEM;
     turn(EN_ALGO, -1); turn(EN_ALGO, -1); ok &= ui.menu_sel == MI_LOWCUT;
-    turn(EN_ALGO, -1); ok &= ui.menu_sel == MI_LATCH;   /* (back at the row left there) */
+    turn(EN_ALGO, -1); ok &= ui.menu_sel == MI_SCLLED;   /* (back at the row left there) */
     turn(EN_ALGO, -1); ok &= ui.menu_sel == MI_LEDS;
     turn(EN_ALGO, -1); ok &= ui.menu_sel == MI_SERIAL && menu_tab() == MTAB_SYSTEM;   /* (wraps) */
     turn(EN_ALGO, 1); ok &= ui.menu_sel == MI_LEDS;
     bad += check("MENU: ALGORITHM steps between the tabs and wraps, each tab back at its last row", ok && ui.menu == 1);
-    turn(EN_ALGO, 1); turn(EN_PRESET, -1);            /* CONTROL: from FX LATCH up to KNOB ACCEL */
+    turn(EN_ALGO, 1); turn(EN_PRESET, -1);            /* CONTROL: from SCALE LEDS up to KNOB ACCEL */
     ok = ui.menu_sel == MI_ACCEL && !(ui_prefs & PREF_ACCEL);
     for (i = 0; i < 4u; i++) {                         /* any of KNOB 1..4: right ON, left OFF */
         turn(EN_K1 + i, 1); ok &= (ui_prefs & PREF_ACCEL) != 0u;
@@ -1738,7 +1738,7 @@ static int test_menu_tabs(void)
     song.g[G_TUNE] = 0; song.g[G_ROUTE] = 0;
     bad += check("MENU: OCT+ / OCT- step every value row up / down (COLOR wraps, the rest stop), the menu stays", ok);
     {   /* the ON / OFF rows: up (a knob right, OCT+) is ON, the switch's knob to the right, whichever bit it is */
-        static const uint8_t SW[] = {MI_LARGE, MI_ANIM, MI_ACCEL, MI_LATCH, MI_BPMLOCK, MI_SERIAL, MI_RESTORE};
+        static const uint8_t SW[] = {MI_LARGE, MI_ANIM, MI_ACCEL, MI_SERIAL, MI_RESTORE};
         ok = 1;
         for (i = 0; i < NELEM(SW); i++) {
             ui.menu_sel = SW[i];
@@ -4502,22 +4502,20 @@ static uint32_t gated(const track_t *t, uint32_t note)   /* voices of t sounding
 }
 static void blocks(uint32_t n) { while (n--) events_block(CTL); }
 static void tap_k(uint32_t k) { key_down(k); frame(); key_up(k); frame(); }
-static int test_step_preview_chord_entry(void)
+static int test_step_preview_menu(void)
 {
     int bad = 0, ok;
     track_t *t;
     step_t before[NSTEP];
     uint32_t i, rec0, mc0;
     ui_power_on();
-    ok = !ui_prefs2 && !menu_get(MI_SCOPE) && !menu_get(MI_PREVIEW) && !menu_get(MI_CHADD) && !scope_mix &&
+    ok = !ui_prefs2 && !menu_get(MI_SCOPE) && !menu_get(MI_PREVIEW) && !scope_mix &&
          str_eq(menu_vname(MI_SCOPE, 0), "OUT") && str_eq(menu_vname(MI_SCOPE, 1), "MIX") &&
-         str_eq(menu_vname(MI_PREVIEW, 1), "ON") && str_eq(menu_vname(MI_CHADD, 0), "HOLD") &&
-         str_eq(menu_vname(MI_CHADD, 1), "ADD") && MI_TAB[MI_SCOPE] == MTAB_DISPLAY && MI_TAB[MI_PREVIEW] == MTAB_CONTROL &&
-         MI_TAB[MI_CHADD] == MTAB_CONTROL;
+         str_eq(menu_vname(MI_PREVIEW, 1), "ON") && MI_TAB[MI_SCOPE] == MTAB_DISPLAY && MI_TAB[MI_PREVIEW] == MTAB_CONTROL;
     menu_put(MI_SCOPE, 1); ok &= ui_prefs2 == 1u && scope_mix && !ui_prefs && !(ui_rec_prefs & 0x40u);
-    menu_put(MI_PREVIEW, 1); menu_put(MI_CHADD, 1); ok &= ui_prefs2 == 7u;
-    menu_put(MI_SCOPE, 0); menu_put(MI_PREVIEW, 0); menu_put(MI_CHADD, 0); ok &= !ui_prefs2 && !scope_mix;
-    bad += check("1.2 MENU: SCOPE OUT / MIX, STEP PREVIEW OFF / ON, CHORD ENTRY HOLD / ADD: 0 by default, a bit each", ok);
+    menu_put(MI_PREVIEW, 1); ok &= ui_prefs2 == 3u;
+    menu_put(MI_SCOPE, 0); menu_put(MI_PREVIEW, 0); ok &= !ui_prefs2 && !scope_mix;
+    bad += check("1.2 MENU: SCOPE OUT / MIX, STEP PREVIEW OFF / ON: 0 by default, a bit each", ok);
 
     /* STEP PREVIEW */
     t = TSEL;
@@ -4596,67 +4594,7 @@ static int test_step_preview_chord_entry(void)
     bad += check("STEP PREVIEW on the DRUM grid: KNOB 1 to a step sounds its hits, writes nothing", ok);
     menu_put(MI_PREVIEW, 0);
 
-    /* CHORD ENTRY ADD */
     ui_power_on();
-    menu_put(MI_CHADD, 1);
-    t = TSEL;
-    t->p[P_VOICE] = V_POLY;
-    track_defaults_steps(t);
-    for (i = 0; i < NSTEP; i++) step_clear(&t->step[i]);
-    t->step[5] = (step_t){{50}, 1, ST_NOTE, 0, 100};
-    go_page(GR_ROLL);
-    cursor_set(3);
-    frame();
-    press(B_REC);
-    ok = song.rec == 1u && !transport_req && !song.playing && msg_is("KEYS ADD TO STEP");
-    bad += check("#155 CHORD ENTRY ADD: REC on STEP arms step recording, KEYS ADD TO STEP", ok);
-    tap_k(7);
-    ok = t->step[3].n == 1u && t->step[3].note[0] == kb_map(t, 7) && t->step[3].time == ST_NOTE && ui.cursor == 3u;
-    tap_k(11); tap_k(14);
-    ok &= t->step[3].n == 3u && t->step[3].note[1] == kb_map(t, 11) && t->step[3].note[2] == kb_map(t, 14) && ui.cursor == 3u;
-    tap_k(16); tap_k(18);
-    ok &= t->step[3].n == 4u && t->step[3].note[3] == kb_map(t, 16) && ui.cursor == 3u;   /* (a 5th: no room) */
-    bad += check("#155 ADD: keys one after another build the cursor step's chord (up to 4), the cursor stays", ok);
-    tap_k(11);
-    ok = t->step[3].n == 3u && t->step[3].note[0] == kb_map(t, 7) && t->step[3].note[1] == kb_map(t, 14) &&
-         t->step[3].note[2] == kb_map(t, 16) && ui.cursor == 3u;
-    tap_k(18);
-    ok &= t->step[3].n == 4u && t->step[3].note[3] == kb_map(t, 18);
-    bad += check("#155 ADD: a key whose note is there takes it out (the others keep their order); then there is room", ok);
-    turn(EN_K1, 2);
-    tap_k(9);
-    ok = ui.cursor == 5u && t->step[5].n == 2u && t->step[5].note[0] == 50u && t->step[5].note[1] == kb_map(t, 9) &&
-         t->step[3].n == 4u && !t->step[4].n;
-    tap_k(9);
-    ok &= t->step[5].n == 1u && t->step[5].note[0] == 50u && t->step[5].time == ST_NOTE;
-    turn(EN_K1, -1);
-    tap_k(9); tap_k(9);
-    ok &= ui.cursor == 4u && !t->step[4].n && t->step[4].time == ST_REST;
-    bad += check("#155 ADD: KNOB 1 moves on; a written step gets notes beside its own; the last one out leaves a REST", ok);
-    t->step[6].time = ST_TIE;
-    turn(EN_K1, 2);
-    tap_k(7);
-    ok = ui.cursor == 6u && t->step[6].time == ST_NOTE && t->step[6].n == 1u;
-    t->p[P_VOICE] = V_MONO;
-    turn(EN_K1, 1);
-    tap_k(7); tap_k(9);
-    ok &= ui.cursor == 7u && t->step[7].n == 1u && t->step[7].note[0] == kb_map(t, 9);
-    tap_k(9);
-    ok &= !t->step[7].n;
-    bad += check("#155 ADD: a TIE step becomes a note step; MONO keeps one note (another key replaces it, the same takes it out)", ok);
-    t->p[P_VOICE] = V_POLY;
-    turn(EN_K1, 1);
-    key_down(7); frame(); key_down(11); frame();       /* keys held together: each adds */
-    key_up(7); key_up(11); frame();
-    ok = ui.cursor == 8u && t->step[8].n == 2u;
-    press(B_EDIT);
-    ok &= !t->step[8].n && ui.cursor == 9u;             /* (EDIT still clears the step and moves on) */
-    bad += check("#155 ADD: keys held together add each; EDIT clears the step and moves on as before", ok);
-    song.rec = 0;
-    memcpy(before, t->step, sizeof before);
-    tap_k(7);
-    bad += check("#155 ADD, not armed: the keys only play, nothing written", !memcmp(before, t->step, sizeof before));
-    menu_put(MI_CHADD, 0);
     return bad;
 }
 
@@ -6101,8 +6039,8 @@ static int test_screen_wake(void)
         ok = p.favorites.factory[15][24] == 0x20u;
         ui_prefs2 = 0;
         ok &= settings_import(&p, sizeof p) && menu_get(MI_SCRWAKE) == 1u;
-        p.favorites.factory[15][24] = 0x1Fu;          /* 1.5.5 before SCREEN WAKE: every other flag of the byte set */
-        ok &= settings_import(&p, sizeof p) && menu_get(MI_SCRWAKE) == 0u && (ui_prefs2 & 0x10u);
+        p.favorites.factory[15][24] = 0x0Bu;          /* 1.5.5 before SCREEN WAKE: every other flag of the byte set (P3-005: bits 2, 4 retired) */
+        ok &= settings_import(&p, sizeof p) && menu_get(MI_SCRWAKE) == 0u && (ui_prefs2 & 0x08u);
         memset(&p.favorites, 0, sizeof p.favorites);   /* 1.0 .. 1.5.1: the byte 0 */
         ok &= settings_import(&p, sizeof p) && menu_get(MI_SCRWAKE) == 0u;
         p.magic = 0x50455233u;                         /* PER3 (no favorites at all) */
@@ -7557,26 +7495,8 @@ static int test_fx_latch(void)
     btn_down(B_FX); key_down(lpf); frame(); key_up(lpf); frame(); btn_up(B_FX); frame();
     hold(B_HOME);
     ok = ui.menu && !perf_latched;
-    ui.menu_sel = MI_LATCH;
-    press(B_OCTDN); ok &= !(fx_latch & 1u) && ui.menu;
-    press(B_OCTUP); ok &= (fx_latch & 1u) && ui.menu;
-    turn(EN_K1, -1); ok &= !(fx_latch & 1u);
-    turn(EN_K1, 1); ok &= (fx_latch & 1u) != 0u;
-    turn(EN_K1, -1); ok &= !(fx_latch & 1u);
     press(B_HOME);
-    bad += check("  the menu turns the latched effects off; MENU > FX LATCH: OCT+ / KNOB 1 right ON, OCT- / left OFF",
-                 ok && !ui.menu);
-    {   /* kept with the settings, in the favorites record (an older one: OFF) */
-        persist_t p;
-        fx_latch = 1;
-        settings_export(&p);
-        fx_latch = 0;
-        ok = settings_import(&p, (int)sizeof p) == 1 && (fx_latch & 1u);
-        memset(&p.favorites, 0, sizeof p.favorites);
-        p.magic = 0x50455233u;                                    /* PER3: no favorites */
-        ok &= settings_import(&p, (int)(sizeof p - sizeof p.favorites)) == 2 && !(fx_latch & 1u);
-        bad += check("  FX LATCH saved with the settings; settings from before it: OFF", ok);
-    }
+    bad += check("  the menu turns the latched effects off", ok && !ui.menu);
     fx_latch = 0;
     return bad;
 }
@@ -8035,110 +7955,31 @@ static int test_usb_serial(void)
     return bad;
 }
 
-/* #58 MENU > BPM LOCK: OFF by default (and in every older setting): SELECT sets the tempo on every page. ON: SELECT
- * leaves it on the pages ("BPM LOCKED" once per turn burst); HOME > CLOCK's BPM knob, GLO + SELECT (a combo: the map
- * opens, no GLO page; OCT- puts it back) and GLO's F4 TAP still set it; the menu never takes SELECT as the tempo */
-static int test_bpm_lock(void)
+/* P3-005 (R3a): the retired rows. The T-1 mode is on from the first main-loop frame on the device (t1u_always, ui_t1.c),
+ * and the bits of the retired rows (FX LATCH, BPM LOCK, CHORD ENTRY, SELECT, T1 SEQ) read as their fixed defaults
+ * whatever an old record saved (settings_import) */
+static int test_retired_menu_bits(void)
 {
     int bad = 0, ok;
-    int16_t b0;
-    uint32_t i, page;
+    persist_t p;
     ui_power_on();
-    ui_prefs = 0;
+    t1u_always = 1u;
     frame();
-    b0 = song.g[G_BPM];
-    turn(EN_SELECT, 2);
-    ok = song.g[G_BPM] == b0 + 2 && !msg_is("BPM LOCKED") && str_eq(menu_flag(MI_BPMLOCK)->name[0], "OFF");
-    bad += check("#58 BPM LOCK OFF (the default): SELECT sets the tempo as before", ok);
-
-    hold(B_HOME);
-    ui.menu_sel = MI_BPMLOCK;
+    ok = t1_mode == 1;
     ui.force = 1; ui_draw();
-    b0 = song.g[G_BPM];
-    turn(EN_SELECT, 3);
-    ok = str_eq(MI_NAME[MI_BPMLOCK], "BPM LOCK") && ui.menu == 1u && song.g[G_BPM] == b0;   /* (the menu: no tempo) */
-    turn(EN_K1, 1); ok &= (ui_prefs & PREF_BPM_LOCK) != 0u;          /* right: ON */
-    turn(EN_K1, -1); ok &= !(ui_prefs & PREF_BPM_LOCK);              /* left: OFF */
-    press(B_OCTUP); ok &= (ui_prefs & PREF_BPM_LOCK) && ui.menu;      /* OCT+: ON */
-    press(B_OCTDN); ok &= !(ui_prefs & PREF_BPM_LOCK) && ui.menu;     /* OCT-: OFF */
-    press(B_OCTUP);
-    ok &= ui_prefs == PREF_BPM_LOCK;                                  /* (no other setting moved) */
-    press(B_HOME);
-    bad += check("#58 MENU > BPM LOCK: KNOB 1 right / OCT+ ON, left / OCT- OFF; SELECT in the menu is no tempo", ok && !ui.menu);
+    t1u_always = 0u;
+    frame();
+    ok &= t1_mode == 0;
+    events_block(CTL);                                  /* (flushes the CC123 sweep t1_off_req asks for) */
+    bad += check("P3-005: the T-1 mode is on from the first frame (t1u_always), and off again when it is 0", ok);
 
-    /* ON: no tempo from SELECT on HOME and the pages; "BPM LOCKED" once per burst */
-    ok = 1;
-    for (i = 0; i < 3u; i++) {
-        if (i == 1u) go_title("ENV");
-        if (i == 2u) go_title("STEP");
-        frame();
-        ui.msg_t = 0; fm1_ms += 1200u;
-        b0 = song.g[G_BPM];
-        turn(EN_SELECT, 1);
-        ok &= song.g[G_BPM] == b0 && msg_is("BPM LOCKED") && !ui.bpm_t;
-        ui.msg_t = 0;
-        turn(EN_SELECT, -4);                                          /* (the same burst: said once) */
-        ok &= song.g[G_BPM] == b0 && !ui.msg_t;
-    }
-    fm1_ms += 1200u;
-    turn(EN_SELECT, 1);
-    ok &= msg_is("BPM LOCKED");                                       /* (a new burst: said again) */
-    ok &= text_w(&AF_S, "BPM LOCKED") <= 236 - 106;                   /* (fits the header's message zone) */
-    bad += check("#58 BPM LOCK ON: SELECT leaves the tempo on HOME and the pages, \"BPM LOCKED\" once per turn burst", ok);
-
-    /* ON: HOME > CLOCK's BPM knob (up to 1.1.5 GLO > GLOBAL's) */
-    go_home(); press(B_HOME); press(B_HOME); frame();   /* (HOME > MIXER > CLOCK) */
-    b0 = song.g[G_BPM];
-    turn(EN_K1, 1);
-    ok = str_eq(cur_page()->title, "CLOCK") && cur_page()->id[0] == G_BPM && song.g[G_BPM] == b0 + 1;
-    bad += check("#58 BPM LOCK ON: HOME > CLOCK KNOB 1 still sets the tempo", ok);
-
-    /* ON: GLO + SELECT (a quick turn: a combo, no GLO page), OCT- puts it back, F4 TAP */
-    go_title("ENV"); frame();
-    page = ui.page;
-    b0 = song.g[G_BPM];
-    ui.msg_t = 0;
-    btn_down(B_GLO); frame();
-    turn(EN_SELECT, 3);
-    ok = song.g[G_BPM] == b0 + 3 && ui.bpm_t && !msg_is("BPM LOCKED") && ui.layer == LAYER_GLO;
-    btn_up(B_GLO); frame();
-    ok &= ui.page == page && !ui.home;                                /* (no tap: still ENV) */
-    btn_down(B_GLO); frame();
-    turn(EN_SELECT, -5);
-    ok &= song.g[G_BPM] == b0 - 2;
-    oct_back();
-    ok &= song.g[G_BPM] == b0 + 3;                                    /* (OCT-: the tempo as this layer opened) */
-    btn_up(B_GLO); frame();
-    bad += check("#58 BPM LOCK ON: GLO + SELECT sets the tempo (a combo: the map, no GLO page; OCT- puts it back)",
-                 ok && ui.page == page);
-    song.g[G_BPM] = 100;
-    btn_down(B_GLO); frame();
-    for (i = 0; i < 3u; i++) { key_down(white(7)); frame(); key_up(white(7)); frames(480); }
-    ok = song.g[G_BPM] == 120;
-    btn_up(B_GLO); frame();
-    bad += check("#58 BPM LOCK ON: GLO + F4 TAP still sets the tempo", ok);
-
-    {   /* saved with the settings; settings from before it: OFF (and so again: idempotent) */
-        persist_t p, q;
-        settings_export(&p);
-        ui_prefs = 0;
-        ok = settings_import(&p, (int)sizeof p) == 1 && ui_prefs == PREF_BPM_LOCK;
-        q = p;
-        ok &= settings_import(&q, (int)sizeof q) == 1 && ui_prefs == PREF_BPM_LOCK && !memcmp(&p, &q, sizeof p);
-        memset(&p.favorites, 0, sizeof p.favorites);
-        p.magic = 0x50455233u;                                        /* (PER3: before the favorites record) */
-        ok &= settings_import(&p, (int)(sizeof p - sizeof p.favorites)) == 2 && !ui_prefs;
-        q = p;
-        ok &= settings_import(&q, (int)sizeof q) == 1 && !ui_prefs;
-        frame();
-        b0 = song.g[G_BPM];
-        go_home(); frame();
-        turn(EN_SELECT, 1);
-        ok &= song.g[G_BPM] == b0 + 1;
-        bad += check("#58 BPM LOCK saved with the settings; settings from before it: OFF (idempotent)", ok);
-    }
-    ui_prefs = 0;
-    ui_power_on(); frame();
+    settings_export(&p);
+    p.favorites.factory[15][30] = 0xFFu;                /* FX LATCH (bit 0), BPM LOCK (bit 4) */
+    p.favorites.factory[15][24] = 0xFFu;                /* CHORD ENTRY (2), SELECT (4, 6), T1 SEQ (7) */
+    ok = settings_import(&p, (int)sizeof p) == 1 && p.favorites.factory[15][30] == 0xEEu &&
+         p.favorites.factory[15][24] == 0x2Bu && sel_mode() == SEL_BPM;
+    bad += check("P3-005: retired bits import as their defaults (FX LATCH, BPM LOCK OFF; SELECT BPM; CHORD ENTRY HOLD)", ok);
+    ui_power_on();
     return bad;
 }
 
@@ -9760,7 +9601,7 @@ int main(void)
     bad += test_rec();
     bad += test_step_rec();
     bad += test_step_rec();
-    bad += test_step_preview_chord_entry();
+    bad += test_step_preview_menu();
     bad += test_presets_knob();
     bad += test_midi();
     bad += test_save();
@@ -9805,7 +9646,7 @@ int main(void)
     bad += test_usb_level();
     bad += test_click_menu();
     bad += test_usb_serial();
-    bad += test_bpm_lock();
+    bad += test_retired_menu_bits();
     bad += test_large();
     bad += test_browse_no_pattern();
     bad += test_name();

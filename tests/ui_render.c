@@ -1162,7 +1162,7 @@ static void setup(int s)
      * channels with MIDI IN CH1-4 (the rows' values dim: unused), T2 CHANNEL selected */
     case S_MENU_MIDI_TRACK: case S_MENU_MIDI_TCH_UNUSED:
         ui.menu = 1;
-        ui.menu_sel = s == S_MENU_MIDI_TRACK ? MI_TCH1 : MI_TCH2;
+        ui.menu_sel = s == S_MENU_MIDI_TRACK ? MI_MIDIIN : MI_MFOLLOW;
         song.g[G_ROUTE] = s == S_MENU_MIDI_TRACK ? ROUTE_TRACK : 0;
         mch_set(0, 9); mch_set(2, MCH_OMNI); mch_set(3, MCH_OFF);
         break;
@@ -1327,7 +1327,7 @@ static void setup(int s)
     /* the MENU's tabs (1.0.5): menu DISPLAY (COLOR), menu_hold CONTROL, menu_speaker AUDIO, menu_system SYSTEM (USB
      * SERIAL); menu_slide: from DISPLAY to CONTROL with ANIM ON, the frame half way (draw) */
     case S_MENU_SYSTEM: ui.menu = 1; ui.menu_sel = MI_SERIAL; break;
-    case S_MENU_SLIDE: ui.menu = 1; ui.menu_sel = MI_ACCEL; ui_prefs |= PREF_LATCH; break;
+    case S_MENU_SLIDE: ui.menu = 1; ui.menu_sel = MI_ACCEL; break;
     /* the GLO SCL EDIT layers (ui_layer.c): just opened (a peek), and in use: GLO with T2 muted, T3 soloed (its key
      * held) and KNOB 1 turned; with CLK EXT (TAP dimmed); SCL at D# minor, KNOB 2 turned; EDIT on DIGITAL preset 3,
      * a favourite; a user preset; the hint after a tap */
@@ -1513,7 +1513,7 @@ static void setup(int s)
         eu_render(TSEL); ui.msg_t = 0;
         break;
     /* 1.5.5 (#188): MENU > CONTROL > SELECT PAGE (the tab's eighth row) */
-    case S_MENU_SELECT: ui_prefs2 |= PREF_SEL_PAGE >> 16; ui.menu = 1; ui.menu_sel = MI_SELECT; break;
+    case S_MENU_SELECT: ui.menu = 1; ui.menu_sel = MI_PREVIEW; break;
     /* 1.5.5 (#199): SAVE > PROJECT with KNOB 2 ERASE picked on a used slot; its dialog with the project's name */
     case S_PROJECT_ERASE: song.playing = 0; project_save_as(1, "DUB SKETCH"); song.g[G_SLOT] = 2; go_page(GR_SLOTS); ui.act = 2; break;
     case S_CONFIRM_ERASE_PROJ: song.playing = 0; project_save_as(1, "A VERY LONG NAME"); ui.confirm = CF_ERASE_PROJ; ui.confirm_trk = 1; break;
@@ -1980,7 +1980,7 @@ static void align_sweeps(void)
         }
         cur_name = st ? "sweep LINE: menu T1..T4 CHANNEL" : "sweep FLAT: menu T1..T4 CHANNEL";   /* (1.5.5) */
         for (k = 0; k < 8u * MCH_N; k++) {              /* every channel, OMNI, OFF, selected or not, TRACK or not, S and M */
-            ui.menu_sel = (uint8_t)(k & 2u ? MI_TCH1 + (k / 8u) % 4u : MI_MIDIIN); ui_prefs = k & 1u ? PREF_LARGE : 0u;
+            ui.menu_sel = (uint8_t)(k & 2u ? MI_MFOLLOW : MI_MIDIIN); ui_prefs = k & 1u ? PREF_LARGE : 0u;
             song.g[G_ROUTE] = k & 4u ? ROUTE_TRACK : 0;
             mch_set((k / 8u) % 4u, k / 8u); ui.force = 1;
             draw_menu();
