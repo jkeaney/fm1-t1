@@ -3,7 +3,7 @@ id: P3-012
 title: Clean-house report and architecture update
 phase: P3
 type: task
-status: review
+status: done
 priority: 2
 executor: haiku
 depends_on: [P3-010, BUG-001, BUG-002]
@@ -79,3 +79,13 @@ Not done, on purpose:
 - FB-005 open item: decision 114 (OWNER_QUESTIONS, 2026-11-11) already drops the installer's SysEx backup flow. Measured behaviour (static reading only; not run on a device or in a browser): the firmware has no backup handler, so the page's first request times out ("Backup timed out ...") and the "does not support" text is not reached. Recommendation and follow-up in CLEAN_HOUSE_REPORT section 5.
 
 Reviewer: please check the R5b pool (+5026 over the bus figure) and the 16 B flash gap to the P3-001 baseline (both noted, not explained); and the BUG-001/002 attribution of -208 B (inferred from commit order, not rebuilt at 29c1b2b).
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS (gate none), set to done. Checked independently:
+- `sh tools/check.sh` = CHECK PASS; `./build.sh`: `ok    image 168876 B; RAM .data+.bss 23060 B of 73728; pool 92500 B of 368640`. Headroom 50668 B (>= 8192). build/felucca.fwsc produced (610086 B). `git status` clean.
+- Per-step table: every before/after build line matches the Logs of P3-001..P3-011 and P3-014 (chain is continuous; flash steps sum to 354124, + 208 BUG + 16 baseline gap = 354348; RAM and pool sum exactly). Acceptance grep returns nothing. Include order in CLAUDE.md matches felucca.c includes; no removed subsystems described as present in CLAUDE.md or BUILDING.md.
+- R5b pool +5026 over 145042: 145042 = dly_buf 131072 + rev_comb 9874 + cho_buf 4096 only. 338167d also removes the `hl` and `ins[NTRK]` .pool state (task text names "HALL/INSERT state"), which accounts for the difference. Plausible, the report says "not split"; not byte-verified.
+- 16 B gap (523224 vs 523208): this is the known 16 B image wobble between builds of the same tree, not a real difference.
+- -208 B for BUG-001/002: I rebuilt 29c1b2b from `git archive`: `image 169068 B; RAM 23060; pool 92500`. HEAD builds 168876. Like-for-like the two T-1 edits freed 192 B, not 208 (208 mixes in the 16 B wobble: the P3-010 Log's 169084 was a wobbled build). Minor doc inaccuracy; the report marks it inferred; RAM and pool conclusions unaffected. Optional tidy: change 208 to 192 in CLEAN_HOUSE_REPORT section 1.
+- FB-005: section 5 records decision 114 (OWNER_QUESTIONS row 114 confirmed, "decided") and a concrete follow-up scope, but no backlog task file exists yet for it; the orchestrator should file one after P3-013.
+- Web emulator marked UNVERIFIED as required.
