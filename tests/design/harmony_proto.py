@@ -269,5 +269,41 @@ def main():
         print("CHECK OK")
 
 
+def dump():
+    """--dump: one canonical integer-only text of every table in HARMONY.md 3.1, 3.2, 3.3, 4.2 and 6.1.  The C reference
+    (docs/design/algorithms/common/harm.c, tests/design/harm_test.c) prints the same text; run_protos.sh diffs the two (H-GOLDEN)."""
+    for scn in ("MAJOR", "NATMIN", "MINPEN"):
+        sc = SCALES[scn]
+        for vo in range(7):
+            for mv in range(9):
+                p = progression(sc, [1, 4, 5, 1], vo, mv)
+                print("PROG %s v%d m%d %s" % (scn, vo, mv, " | ".join(" ".join(str(x) for x in c) for c in p)))
+    for scn in ("MAJOR", "NATMIN", "MINPEN"):
+        sc = SCALES[scn]
+        chords = progression(sc, [1, 4, 5, 1], 2, 8)
+        for ped in range(1, (15 if len(sc) == 7 else 8)):   # drone_pitch folds on 7 degrees: the 5-note scale is compared up to p 7
+            pp = drone_pitch(sc, ped)
+            marks = "".join({"in": "+", "clash": "X", "tension": "-"}[drone_mark(sc, c, pp)] for c in chords)
+            print("DRONE %s p%d pitch %d %s" % (scn, ped, pp, marks))
+    for scn in ("MAJOR", "MINPEN"):
+        sc = SCALES[scn]
+        iv = progression(sc, [1, 4, 5, 1], 2, 8)[1]
+        pcs = sorted({n % 12 for n in iv})
+        root = degree_root(sc, 4)
+        for pull in (3, 8):
+            for first in (0, 1):
+                for t in range(16):
+                    for s in range(25):
+                        print("PULL %s pull%d first%d t%d s%d -> %d" % (scn, pull, first, t, s,
+                              pull_note(pcs, root, s, t, t % 4 == 0, pull, bool(first), 24)))
+    for nscale in (7, 5):
+        for sd in [0x0001, 0x1234, 0xBEEF, 0xFFFF] + list(range(2, 202, 3)):
+            bars, degs = dice(sd, nscale)
+            print("DICE n%d %04X bars %d degs %s" % (nscale, sd, bars, " ".join(str(d) for d in degs)))
+
+
 if __name__ == "__main__":
-    main()
+    if "--dump" in sys.argv:
+        dump()
+    else:
+        main()
