@@ -81,15 +81,6 @@ static int settings_import(persist_t *p, int n)
 #ifdef FELUCCA_FAVORITES
     memcpy(&favorites, &p->favorites, sizeof favorites);
     favorites.filter = favorites.filter == 1u;
-#if defined(FM4_NPRESETS)
-    {   /* DIGITAL's starred presets (engine 1, retired) -> the FM6 presets that cover them (fm4_convert.c) */
-        uint32_t k;
-        for (k = 0; k < FM4_NPRESETS; k++)
-            if ((favorites.factory[ENGI_DIGITAL][0] >> k) & 1u)
-                favorites.factory[ENGI_FM6][FM4_TO_FM6[k] / 8u] |= (uint8_t)(1u << (FM4_TO_FM6[k] % 8u));
-        memset(favorites.factory[ENGI_DIGITAL], 0, sizeof favorites.factory[ENGI_DIGITAL]);
-    }
-#endif
 #endif
     if (p->panel.magic == PANEL_MAGIC) panel = p->panel;
     return current ? 1 : 2;

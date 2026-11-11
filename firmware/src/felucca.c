@@ -4,9 +4,7 @@
  * define, so the order matters. */
 
 /* ---------------------------------------------------- build options --- */
-/* build.py: FELUCCA_<NAME>=0 / 1 in the environment overrides these. Elsewhere: FELUCCA_SLICE
- * (core.h: the SLICE engine),
- * FELUCCA_OTA_RAMONLY (ota.c). */
+/* build.py: FELUCCA_<NAME>=0 / 1 in the environment overrides these. Elsewhere: FELUCCA_OTA_RAMONLY (ota.c). */
 #ifndef FELUCCA_FLASH
 #define FELUCCA_FLASH 1          /* flash driver + storage.c: settings, projects, user presets */
 #endif

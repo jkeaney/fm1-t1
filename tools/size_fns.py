@@ -22,7 +22,7 @@ SIZE_FILES = ["ui.c", "favorites.c", "menu_items.c", "icons.c", "ui_draw.c", "ui
               "console.c",
               "usb.c", "midi_uart.c", "midi_control.c", "midi_clock.c", "seq.c",
               "panel.c", "lcd.c", "gfx.c", "ota.c", "ota_hw.c", "params.c",
-              "main.c", "libc.c", "storage_hw.c", "engines.c", "fm4_convert.c"]
+              "main.c", "libc.c", "storage_hw.c", "engines.c"]
 ISR_ROOTS = ("fm1_alnk0_irq", "fm1_timer5_irq")      # hal/fm1_isr.S: the audio ISR, the key / LED scan (+ USB poll)
 DEF = re.compile(r"^(?:static|void|int|uint\w*|int\w*|const)\b[^;=(]*?\b([A-Za-z_]\w*)\s*\(", re.M)
 IR_DEF = re.compile(r"^(define [^\n]*?@\"?([\w.]+)\"?\([^\n]*\)(?: unnamed_addr| local_unnamed_addr)?)( #\d+[^\n]*\{)$",

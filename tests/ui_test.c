@@ -41,8 +41,6 @@
 #endif
 #include <stddef.h>
 #include <stdint.h>
-static uint32_t host_slots[3u * 0x14000u / 4u];          /* USR1..3 (zero: empty), as the flash at 0xA0000 */
-#define SMP_USER_XIP(k) ((const uint8_t *)host_slots + (k) * SMP_USER_SIZE)
 #define main hostsim_main
 #include "hostsim.c"
 #undef main
@@ -213,7 +211,6 @@ static void ui_power_on(void)
     memset(kb_chn, 0, sizeof kb_chn);                   /* no key sounds */
     settings_hold = HOLD_DEF;
     fm1_in.buttons = fm1_in.notes = 0;
-    memset(snd_said, 0, sizeof snd_said);               /* (.bss at power-on: nothing said yet) */
     memset(&scrn, 0, sizeof scrn);                        /* MENU > SCREEN OFF: on, idle from now (main.c) */
     scrn.idle = fm1_ms;
     kb_asleep = 0;

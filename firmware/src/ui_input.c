@@ -305,11 +305,7 @@ static void ui_input(void)
     uint32_t pressed = fm1_input_edges(0), notes = fm1_input_note_edges(), now = fm1_ticks();
     uint32_t home, oct, k;
     midi_take();                                        /* (MIDI IN notes: lights, SCREEN WAKE) */
-    midi_pc_poll();                                     /* MIDI Program Change (before fm6_poll: a bank voice) */
-    fm6_poll();                                         /* FM6: PTCH turned -> its patch */
-    for (k = 0; k < NTRK; k++)                          /* a DIGITAL sound any other way (the paths convert it */
-        if (trk[k].eng_req == ENGI_DIGITAL)             /* already): FM6 (fm4_convert.c) */
-            fm4_track(&trk[k]);
+    midi_pc_poll();                                     /* MIDI Program Change */
     fx_usb_fixed = (ui_prefs & PREF_USB_FIXED) != 0u;   /* (MENU > USB LEVEL: fx.c, audio.c) */
     scope_mix = (ui_prefs2 & (PREF_SCOPE_MIX >> 16)) != 0u;   /* (MENU > SCOPE: fx.c, audio.c) */
     rp_apply();                                         /* (MENU > CLICK, CLICK LEVEL, COUNT-IN: click.c, seq.c) */

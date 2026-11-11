@@ -13,12 +13,9 @@
 #define NTRK NPART               /* tracks (the formats and the protocol count these): every track is a part */
 #define NSTEP 64
 #define HALF_FRAMES 128          /* I2S half buffer: 2.9 ms at 44.1 kHz (a key waits 0..1 half, then plays 1 half later) */
-#ifndef FELUCCA_SLICE
-#define FELUCCA_SLICE 1          /* the SLICE engine (eng_slice.c), engine 13; FELUCCA_SLICE=0 builds without it */
-#endif
-#define NENGINES (13 + FELUCCA_SLICE)   /* SLICE (13) comes last: the other engines keep their numbers */
-#define ENGI_DIGITAL 1u          /* reserved (DIGITAL, retired): never selectable (eng_ok), its sounds load as FM6 */
-#define NENG_SHOWN (NENGINES - 3)   /* the engines one can pick: PRESETS, the EDIT layer, the editor,
+#define NENGINES 13              /* the table keeps its indices until P3-010 (retired engines are placeholders) */
+#define ENGI_DIGITAL 1u          /* reserved (DIGITAL, retired): never selectable (eng_ok) */
+#define NENG_SHOWN 7   /* the engines one can pick: PRESETS, the EDIT layer, the editor,
                                                 * in the display order of engines.c ENGINE_ORDER */
 #define UP_SLOTS 32u             /* user preset slots (removed in P3-011: the constant stays for favorites.c) */
 #define NELEM(a) (sizeof(a) / sizeof((a)[0]))
@@ -104,9 +101,6 @@ static void params_by_count(int16_t *out, const int16_t *in, uint32_t np, const 
 }
 
 /* engine indices the stores name (engines.c ENGINES[]: append-only) */
-/* SAMPLE SET 4 was PERC (retired after 1.0.2): its index stays (SET / GRAIN SRC 4 is an alias of PIANO, USR1..3 keep 5..7) */
-#define ENGI_SAMPLE 4u
-#define SMP_SET_PERC 4u
 
 /* ------------------------------------------------- voices, engines --- */
 enum { V_POLY, V_MONO, V_LEGATO, V_UNISON };   /* P_VOICE */

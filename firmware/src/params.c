@@ -70,12 +70,8 @@ static const char *const N_IRATE[] = {"689", "919", "1.1k", "1.4k", "1.8k", "2.2
 static const char *const N_MSRC[] = {"OFF", "LFO", "ENV", "VEL", "KEY", "RAND", "MODW", "AT", "EXPR", "S&H", "SLEW"};
 static const char *const N_MDST[] = {"OFF", "PITCH", "CUT", "SHP", "AMP", "PAN", "DIST", "CHO", "DLY", "REV", "RATE",
                                      "VIB", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "DEPTH", "VEL", "TIME"};
-static const char *const N_ENGNAME[] = {"ANALOG", "-", "PHASE", "LOFI", "SAMPLE", "VOICE", "TRIO", "WHEEL", "GRAIN", "PHYS",
-                                             "DRUM", "NOISE", "FM6",
-#if FELUCCA_SLICE
-                                             "SLICE",
-#endif
-};
+static const char *const N_ENGNAME[] = {"ANALOG", "-", "PHASE", "LOFI", "-", "VOICE", "TRIO", "WHEEL", "-", "-",
+                                             "-", "NOISE", "-", "-"};   /* (the retired engines' places: "-") */
 
 #define PD(l, f, mn, mx, df) {l, f, mn, mx, df, 0, 0}
 #define PE(l, n, df) {l, F_ENUM, 0, (int16_t)(sizeof(n) / sizeof(n[0]) - 1), df, n, 0}
@@ -134,7 +130,7 @@ static const param_desc_t TP[P_COUNT] = {
                  [P_M##k##AMT] = PD("AMT" #k, F_BIPCT, -64, 63, 0)
     MSLOT(1), MSLOT(2), MSLOT(3), MSLOT(4),
 #undef MSLOT
-/* the OP ENV / OP LEVEL values of DIGITAL (ids 61..80): retired, so inert, on no page and in no editor layout, read only when a DIGITAL sound converts (fm4_convert.c). Their labels
+/* the OP ENV / OP LEVEL values of DIGITAL (ids 61..80): retired, so inert, on no page and in no editor layout, read only when a DIGITAL sound converted (until P3-009). Their labels
  * stay: the editor's library files key parameters by label ("ATK#2" ..), so an old file's values still find them */
 #define FMOP(k) [P_FM##k##_ATK] = PD("ATK", F_TIME, 0, 127, 0), \
                 [P_FM##k##_DEC] = PD("DEC", F_TIME, 0, 127, 0), \
@@ -242,31 +238,25 @@ static const param_desc_t *param_desc_of(uint32_t e, uint32_t id)
     return id >= P_E0 ? &ENGINES[e]->edit[id - P_E0] : &TP[id];
 }
 
-/* a retired F_ENUM value kept as an alias, so stored values stay valid: SAMPLE SET and GRAIN SRC 1, once
- * TRANH, and 4, once PERC play PIANO
- * (tools/gen_samples.py SMP_SET_ORIG).
- * It shows the original's name; knobs step over it and the editor's SET lands on the original. -> the value v
- * stands for */
+/* a retired F_ENUM value kept as an alias (SAMPLE SET, DRUM KIT) was handled here until P3-009: no engine has one now */
 static int32_t enum_orig(const param_desc_t *d, int32_t v)
 {
-    return d->names == SMP_ALL_NAMES && v >= 0 && v < SMP_NSETS ? SMP_SET_ORIG[v] : v;
-}
-
-/* a stored value as the parameter takes it (projects, user presets, motion): inside d's range. (SAMPLE / GRAIN's aliases keep their
- * number: they are what the sound was saved with, and play the original anyway.) FM6's SLOT is never stored as a
- * bank slot: 9..40 (1.4.1's B1..B32; 1.0.2's B1..B27 were 8..34) is 8, OWN, and the patch comes with what is loaded */
-static int32_t param_fit(const param_desc_t *d, int32_t v)
-{
-    v = clamp(v, d->min, d->max);
-    if (d->names == N_FM6_PATCH)
-        return v > (int32_t)FM6_OWN ? (int32_t)FM6_OWN : v;
+    (void)d;
     return v;
 }
 
-/* v is a value a knob passes over: an alias, or one of FM6's bank slots without a voice */
+/* a stored value as the parameter takes it: inside d's range */
+static int32_t param_fit(const param_desc_t *d, int32_t v)
+{
+    return clamp(v, d->min, d->max);
+}
+
+/* v is a value a knob passes over: none since P3-009 */
 static int enum_skip(const param_desc_t *d, int32_t v)
 {
-    return enum_orig(d, v) != v || (d->names == N_FM6_PATCH && !fm6_slot_ok(v));
+    (void)d;
+    (void)v;
+    return 0;
 }
 /* a knob moved an F_ENUM from `from` to v: past any value it skips in that direction; with none left to the end, the
  * last one it does not skip on the way from `from` (else `from`) */

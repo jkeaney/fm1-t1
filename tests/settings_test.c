@@ -6,8 +6,6 @@
 #define __attribute__(x)
 #define NENGINES 9u
 #define UP_SLOTS 32u
-#define ENGI_SAMPLE 4u                           /* (core.h) */
-#define SMP_SET_PERC 4u
 static uint8_t fx_lowcut;
 static void fm1_led_key(unsigned k, int on) { (void)k; (void)on; }
 static int fm1_enc_take(unsigned k) { (void)k; return 0; }

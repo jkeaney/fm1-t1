@@ -9,6 +9,7 @@
 #define PROJ_PHYS 2u                           /* project_t.phys: PHYS without DUST and DRUM (see the top) */
 #define PROJ_CHAIN_BYTES 84u                   /* FUN10: 4 + 16 x 5 */
 #define PROJ_MOTION_BYTES 388u                 /* FUN10: 4 + 128 x 3 */
+#define PROJ_FM6_PACKED 128u                   /* the packed FM6 patch of FUN8..FUN10 */
 #define PROJ_NAME_LEN 12u                      /* the name: FUN7 bytes PROJ_NAME_OFF.. (the reserved tail's end) */
 typedef struct {                               /* one track */
     int16_t p[P_COUNT];
@@ -26,7 +27,7 @@ typedef struct {
     proj_trk_t t[NTRK];
     uint8_t rsv_song[PROJ_CHAIN_BYTES];       /* the song chain and the motion events of FUN10: removed in P3-007, the bytes keep their */
     uint8_t rsv_auto[PROJ_MOTION_BYTES];     /* place in the layout (loads ignore them, saves write 0); P3-011 removes the format */
-    uint8_t fm6[NTRK][FM6_PACKED];             /* each track's FM6 patch, packed (eng_fm6.c) */
+    uint8_t rsv_fm6[NTRK][PROJ_FM6_PACKED];    /* the FM6 patches of FUN8..FUN10 (P3-009: opaque, zeros) */
     uint8_t mch[NTRK];                         /* 1.5.5: MIDI IN TRACK's channels, as song.mch (PROJ_MIDI_OFF) */
     char name[PROJ_NAME_LEN];                  /* the project's name: upper-case ASCII 32..126, 0-padded; "" = none */
     uint32_t sum;
@@ -40,7 +41,7 @@ typedef struct {
  * reserved tail were left for parameters added later. FUN9: the same, 3648 bytes (see the top). */
 #define PROJ_STORE_SIZE 3840u                  /* FUN10: a whole storage object (storage.c ST_PAYLOAD_MAX) */
 #define PROJ_NAME_OFF (PROJ_STORE_SIZE - 4u - PROJ_NAME_LEN)
-#define PROJ_FM6_OFF (PROJ_NAME_OFF - NTRK * FM6_PACKED)
+#define PROJ_FM6_OFF (PROJ_NAME_OFF - NTRK * PROJ_FM6_PACKED)
 /* 1.5.5 (#202): MIDI IN TRACK, the last 3 of FUN10's 16 spare bytes (just before the patches: the parameters a later
  * version adds grow from the other end, 13 bytes, 3 more track parameters). 24 bits LE: bits 5k..5k+4 track k's channel
  * as song.mch holds it (0..15 its distance up from channel k + 1, 16 OMNI, 17 OFF; 18..31 read as 0), bit 23 set: MIDI IN
@@ -128,9 +129,6 @@ static void proj_midi_unpack(project_t *q, const uint8_t *b)
 static int proj_pack(project_store_t *out, const project_t *q)
 {
     uint8_t *b = out->raw; uint32_t pos = 68u, t, i; uint32_t magic = PROJ_MAGIC, size = PROJ_STORE_SIZE, sum;
-    for (t = 0; t < NTRK; t++)
-        for (i = 0; i < FM6_PACKED; i++)
-            if (q->fm6[t][i] > 127u) return 0;
     if (P_COUNT > 127u) return 0;
     memset(out, 0, sizeof *out); memcpy(b, &magic, 4); memcpy(b + 4, &size, 4);
     memcpy(b + 8, q->g, sizeof q->g); b[62] = q->sel; b[63] = q->parts; b[64] = q->phys; b[66] = P_COUNT;
@@ -159,7 +157,7 @@ static int proj_pack(project_store_t *out, const project_t *q)
     memcpy(b + pos, q->rsv_song, sizeof q->rsv_song); pos += sizeof q->rsv_song;     /* (zeros: P3-007) */
     memcpy(b + pos, q->rsv_auto, sizeof q->rsv_auto);
     proj_midi_pack(b, q);
-    memcpy(b + PROJ_FM6_OFF, q->fm6, sizeof q->fm6);
+    memcpy(b + PROJ_FM6_OFF, q->rsv_fm6, sizeof q->rsv_fm6);   /* (zeros) */
     {   /* the name (0-padded; stops at the first 0) */
         char n[PROJ_NAME_LEN + 1u];
         memcpy(b + PROJ_NAME_OFF, n, proj_name_get(n, (const uint8_t *)q->name));
@@ -170,7 +168,7 @@ static int proj_pack(project_store_t *out, const project_t *q)
 static int proj_unpack(project_t *q, const uint8_t *b, uint32_t st)
 {
     uint32_t pos = 68u, t, i, magic, size, sum, np = b[66];
-    uint32_t name_off = st - 4u - PROJ_NAME_LEN, end = name_off - NTRK * FM6_PACKED;
+    uint32_t name_off = st - 4u - PROJ_NAME_LEN, end = name_off - NTRK * PROJ_FM6_PACKED;
     memcpy(&magic, b, 4); memcpy(&size, b + 4, 4); memcpy(&sum, b + st - 4u, 4);
     if (st != PROJ_STORE_SIZE || magic != PROJ_MAGIC || size != st || sum != proj_hash(b, st - 4u) ||
         np < 8u || np > P_COUNT || 68u + NTRK * (np + 2u + NSTEP * 9u) + PROJ_CHAIN_BYTES + PROJ_MOTION_BYTES > end)
@@ -202,9 +200,6 @@ static int proj_unpack(project_t *q, const uint8_t *b, uint32_t st)
         }
     }
     proj_midi_unpack(q, b);
-    for (t = 0; t < NTRK; t++)
-        for (i = 0; i < FM6_PACKED; i++)
-            q->fm6[t][i] = b[end + t * FM6_PACKED + i] & 0x7Fu;
     {
         char n[PROJ_NAME_LEN + 1u];
         memcpy(q->name, n, proj_name_get(n, b + name_off));
@@ -273,7 +268,6 @@ static void project_capture(project_t *p)
         p->t[i].engine = trk[i].eng_req;
         p->t[i].preset = trk[i].preset;
         memcpy(p->t[i].step, trk[i].step, sizeof trk[i].step);
-        fm6_pack(fm6_patch[i], p->fm6[i]);
     }
     memcpy(p->mch, song.mch, sizeof p->mch);
     isr_unguard(f);
@@ -312,12 +306,6 @@ static int project_restore_runtime(const project_t *input)
         t->preset = (uint8_t)(ENGINES[e]->npresets ? s->preset % ENGINES[e]->npresets : 0u);
         memcpy(t->step, s->step, sizeof t->step);
         proj_steps(t->step);
-        {   /* the project's own FM6 patch, never reloaded from SLOT: F n if it is that factory patch, else OWN */
-            uint8_t v[FP_SIZE + 1u];
-            fm6_unpack(p->fm6[k], v);
-            fm6_set_patch(k, v);
-            fm6_adopt(k);
-        }
     }
     song.sel = (uint8_t)(p->sel < NTRK ? p->sel : 0u);
     fm1_irq_on();
@@ -330,7 +318,6 @@ static int project_restore_runtime(const project_t *input)
     sync_reload = 1;
     ui.force = 1;
     ui_message("LOADED");
-    memset(snd_said, 0, sizeof snd_said);               /* a missing sample is said again, after LOADED */
     return 0;
 }
 
@@ -354,11 +341,6 @@ static void persist_boot(void)                    /* before settings_init / pane
         return;
     fl_plain_window_init();                        /* flash above 0x93000 reads as plaintext through XIP
                                                     * (user sample sets are played from there) */
-    {
-        uint32_t k;
-        for (k = 0; k < SMP_USER_SLOTS; k++)
-            smp_user_scan(k);
-    }
     {
         int n = st_load(OBJ_SETTINGS, &p, sizeof p);
         if (settings_import(&p, n))
@@ -447,7 +429,6 @@ static uint32_t autosave_sig(void)
         h = as_mix(h, &t->eng_req, 1);
         h = as_mix(h, &t->preset, 1);
         h = as_mix(h, t->step, sizeof t->step);
-        h = as_mix(h, fm6_patch[i], sizeof fm6_patch[i]);
     }
     for (i = 0; i < G_COUNT; i++)
         if (i != G_SLOT && i != G_NAME && i != G_LOAD && i != G_SAVE)

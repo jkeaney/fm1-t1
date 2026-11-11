@@ -2,7 +2,7 @@
  * Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments */
 /* Host test of the stored record (firmware/src/project.c, -DPROJ_HOST part): the FUN10 record ("FUNA", 3840 bytes) that
  * the autosave writes. The formats FUN1..FUN9 and the project slots were removed in P3-011. Round trip (a matrix slot,
- * an engine number, a name, the FM6 patches), the hash, a wrong size or magic refused.
+ * an engine number, a name), the hash, a wrong size or magic refused.
  * Run by tests/run_tests.sh (needs build/gen from one firmware build). */
 #define main hostsim_main
 #include "hostsim.c"
@@ -80,29 +80,6 @@ int main(void)
         }
         bad += check("FUN7 name with a byte outside 32..126: the project loads, no name",
                      proj_import(&c, &st2, sizeof st2) && !c.name[0] && c.t[1].p[P_LEVEL] == 99);
-    }
-
-    {   /* FUN8: each track's FM6 patch travels with the project; FUN7 and older get the init patch */
-        project_t a, c;
-        static project_store_t st;
-        uint32_t k;
-        memset(&a, 0, sizeof a);
-        a.magic = PROJ_MAGIC; a.size = sizeof a; a.parts = NPART; a.phys = PROJ_PHYS;
-        for (k = 0; k < NTRK; k++) {
-            memcpy(a.fm6[k], FM6_FACTORY[k * 2u], FM6_PACKED);
-            a.t[k].engine = ENGI_FM6;
-            a.t[k].p[P_E7] = (int16_t)(k * 2u);
-        }
-        memcpy(a.name, "FM SONG", 7);
-        a.sum = proj_sum(&a);
-        ok = proj_pack(&st, &a) && ((uint32_t *)st.raw)[0] == 0x46554E41u && proj_import(&c, &st, sizeof st);
-        for (k = 0; k < NTRK; k++)
-            ok &= !memcmp(c.fm6[k], FM6_FACTORY[k * 2u], FM6_PACKED) && c.t[k].engine == ENGI_FM6 &&
-                  !memcmp(st.raw + PROJ_FM6_OFF + k * FM6_PACKED, FM6_FACTORY[k * 2u], FM6_PACKED);
-        bad += check("FUN10: the four FM6 patches round trip (bytes at PROJ_FM6_OFF)", ok && !memcmp(c.name, "FM SONG", 7));
-        st.raw[PROJ_FM6_OFF + 5] ^= 1u;
-        bad += check("FUN10: a patch byte changed: the hash refuses it", !proj_import(&c, &st, sizeof st));
-        st.raw[PROJ_FM6_OFF + 5] ^= 1u;
     }
 
     printf("%s\n", bad ? "PROJECT FORMAT TEST FAILED" : "project format test passed");

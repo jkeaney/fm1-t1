@@ -101,21 +101,10 @@ static void host_preset_values(track_t *t, uint32_t e, uint32_t pi, const preset
     t->p[P_VOICE] = p->mono ? V_LEGATO : V_POLY;
     for (i = 0; i < 4u; i++)
         t->p[P_DIST + i] = (int16_t)(p->fx[i] ? p->fx[i] - 1 : FX_DEF[i]);
-    fm6_track_loaded(t);                          /* FM6: the preset's patch (ui.c apply_preset_to) */
 }
 static void host_preset_req(track_t *t, uint32_t e, uint32_t pi)
 {
     uint32_t n = ENGINES[e]->npresets;
-    if (e == ENGI_DIGITAL) {                      /* DIGITAL preset pi (retired): converted, as ui.c fm4_load_preset */
-        uint8_t v[FP_SIZE + 1u];
-        uint32_t tr = (uint32_t)(t - trk) % NTRK;
-        fm4_preset_values(t->p, pi);
-        t->preset = (uint8_t)fm4_convert(t->p, v);
-        t->eng_req = ENGI_FM6;
-        fm6_set_patch(tr, v);
-        fm6_slot[tr] = (uint8_t)t->p[P_E7];
-        return;
-    }
     if (!n) {
         t->eng_req = (uint8_t)e;
         t->preset = 0;
@@ -133,15 +122,6 @@ static void host_preset(track_t *t, uint32_t e, uint32_t pi)
     eng_mem_claim(t);                             /* (voice.c engine_block would at the next block) */
 }
 
-/* A saved SAMPLE PERC sound, as 1.0.2 and earlier stored it (SET 4, the GM kit; retired since: every load
- * turns it into a melodic part). Put straight into a track it plays SET 4's alias (PIANO): only
- * for the migration tests, which pass it through a load */
-static void host_legacy_sample_perc(track_t *t)
-{
-    static const preset_t PERC = {"PERC", {SMP_SET_PERC, 0, 0, 0, 127, 0, 0, 0}, {0, 127, 127, 60}, 0, 0, PAT(12)};
-    host_preset_values(t, ENGI_SAMPLE, SMP_SET_PERC, &PERC);
-    t->engine = ENGI_SAMPLE;
-}
 /* the drums of the render tests: DRUM's kit (the power-on track 4; until 1.0.2 these used SAMPLE PERC) */
 static void host_drums(track_t *t) { host_preset(t, 0, 0); }   /* (ANALOG since P3-008: the DRUM kit is gone) */
 
@@ -791,9 +771,9 @@ static int tracks_test(const char *dir)
         if (eng_ok(e))
             printf(" %s %s %.1f%s", ENGINES[e]->name, ENGINES[e]->presets[heavy[e]].name, best_e[e],
                    e + 1u < NENGINES ? "," : "\n");
-    {   /* FM (FM6), PHASE, VOICE (their heaviest presets) and drums on part 4 at once:
+    {   /* LOFI, PHASE, VOICE (their heaviest presets) and drums on part 4 at once:
          * 3 + 3 + 2 notes and the hits in the budget of 8 */
-        const uint8_t fm = ENGI_FM6;
+        const uint8_t fm = 3;
         uint8_t parts[NPART][3] = {{fm, (uint8_t)heavy[fm], 3}, {2, (uint8_t)heavy[2], 3}, {5, (uint8_t)heavy[5], 2},
                                    {0, 0, DRUM_HITS}};
         uint8_t full[NPART][3] = {{fm, (uint8_t)heavy[fm], 8}, {2, (uint8_t)heavy[2], 8}, {5, (uint8_t)heavy[5], 4},
@@ -843,7 +823,6 @@ int main(int argc, char **argv)
         inst.p[P_ATK] = p->env[0]; inst.p[P_DEC] = p->env[1];
         inst.p[P_SUS] = p->env[2]; inst.p[P_REL] = p->env[3]; inst.p[P_ED_FLT] = p->fenv;
     }
-    fm6_track_loaded(&inst);                            /* FM6: the preset's patch */
     inst.p[P_VOICE] = (int16_t)mono;
     inst.p[P_CHOR] = argc > 5 ? atoi(argv[5]) : 24;      /* as felucca_init */
     inst.p[P_DLY] = argc > 5 ? atoi(argv[5]) : 28;
