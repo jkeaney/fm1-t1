@@ -483,7 +483,7 @@ free-running and `step()` reduces it.
 main loop (UI)                         audio ISR (events_block -> sq_block -> sq_tick)             USB / synth
 sq_* API, sq_rebuild --cache flip--->  sq_step_start: step() + pins -> sq_sched() into EvQ[96]
                                        sq_dispatch(now): due events -> sq_emit() ---------------> midi_out_event(pkt)  [usb.c ring]
-                                                                       \-------(prv_on[chan], MIDI not OFF)--> trk_note_on/off(&trk[chan-1], ...)  [ANALOG]
+                                                                       \-------(prv_on[chan] only)------> trk_note_on/off(&trk[chan-1], ...)  [ANALOG]
 keyboard_block (white keys) --> sq_live_on/off: sq_emit(now), no queue
 ```
 
@@ -492,8 +492,8 @@ keyboard_block (white keys) --> sq_live_on/off: sq_emit(now), no queue
 - MIDI: unless `chan_byte & 0x10` (MIDI OFF), build the packet exactly as T-1 did:
   NOTE_ON `0x09 | (0x90 | m) << 8 | note << 16 | vel << 24`; NOTE_OFF `0x08 | (0x80 | m) << 8 | note << 16`;
   CC123 `0x0B | (0xB0 | m) << 8 | 123 << 16`; call `midi_out_event(pkt)`.
-- Preview (amended by P2-024, decision 110): if the channel's `prv_on` is set and its MIDI is not OFF (the same condition that
-  builds the MIDI packet), `trk_note_on(&trk[chan-1], note, vel)` / `trk_note_off(&trk[chan-1], note)`. Each channel has its own
+- Preview (amended by P2-024 decision 110 and P2-025 decision 111): if the channel's `prv_on` is set, **independently of the MIDI gate**
+  (MIDI OFF and mute close only the MIDI packet above; the preview is a CUE), `trk_note_on(&trk[chan-1], note, vel)` / `trk_note_off(&trk[chan-1], note)`. Each channel has its own
   part with one of six ANALOG patches (PREVIEW.md); all four are OFF at boot. Changing `prv_snd` or `prv_on` first releases that
   channel's `snd[]` notes on its part (tracked by `ChanRT.snd`); selecting another channel releases nothing.
 - A NOTE_OFF is sent only if its note is in `rt.snd[]` (otherwise its NOTE_ON was dropped by the reserve rule of 8.3 and the off is discarded), so the stream never carries an off without an on.
@@ -899,7 +899,7 @@ Additive and superseding where it says so. Full design: [PREVIEW.md](../../desig
 | # | Change | Cost |
 | --- | --- | --- |
 | 1 | **Each channel has `prv_on` and `prv_snd` (ACID LEAD BASS PAD STRINGS PIANO)** in `ChanSave` (1 B, `SeqPreset` +4 B). All channels boot OFF. The part is `trk[ch-1]`. | flash tables only |
-| 2 | **Preview and MIDI are one output.** `sq_emit` plays the preview part iff the channel's `prv_on` is set and its MIDI is not OFF; MIDI OFF therefore silences the preview. No speaker-only mode. | one condition shared with the MIDI packet |
+| 2 | **Preview and MIDI are the same events behind two independent gates (decision 111, P2-025).** `sq_emit` plays the preview part iff `prv_on` is set; it sends the MIDI packet iff the channel has a MIDI channel and is not muted and SOLO allows it. MIDI OFF and mute do **not** silence the preview, so a channel can be a CUE. The mute and SOLO test therefore lives at the MIDI gate in `sq_emit`, **not** in the step's hit resolution (which would also starve the preview). | two tests, no shared condition |
 | 3 | **Slot CCs also drive the part** (`prv_cc`, a (device, CC) map from the profile column `prv`); the override parks with the slot. | about 40 B flash, a few bytes of override state |
 | 4 | Gestures: hold a mute key 0.4 s = PREVIEW on/off; hold it and turn ALGO = sound (PREVIEW.md 1.4). | UI only |
 | 5 | `sq_all_off` releases all four parts; selecting a channel releases nothing. | none |

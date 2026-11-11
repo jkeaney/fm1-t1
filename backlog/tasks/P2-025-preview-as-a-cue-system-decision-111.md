@@ -3,7 +3,7 @@ id: P2-025
 title: Preview as a CUE system (decision 111): independent preview gate, tuning as pitch
 phase: P2
 type: task
-status: todo
+status: review
 priority: 1
 executor: sonnet
 depends_on: [P2-024]
@@ -26,9 +26,9 @@ Apply owner decision 111 to docs/design/PREVIEW.md and dependent tables: preview
 6. Owner sheet only if a real choice remains (e.g. whether cue mix includes other previewing channels).
 
 ## Acceptance criteria
-- [ ] Deliverables 1-5 present
-- [ ] Design checkers pass (check_scenarios.py, check_help.py, check_sequencer_ux.py, width_probe.sh, backlog.py check)
-- [ ] Decision 111 honoured; hardware limits stated honestly
+- [x] Deliverables 1-5 present
+- [x] Design checkers pass (check_scenarios.py, check_help.py, check_sequencer_ux.py, width_probe.sh, backlog.py check)
+- [x] Decision 111 honoured; hardware limits stated honestly
 
 ## Verification
 ```sh
@@ -39,3 +39,15 @@ python3 tests/design/check_scenarios.py; python3 tests/design/check_help.py; pyt
 - Firmware changes, tools/check.sh, builds. Do not touch files owned by the P3-003 executor (running in the repo).
 
 ## Log
+
+### 2026-11-11 executor (sonnet)
+Edited docs/design/PREVIEW.md (sections 0, 1.2-1.5, 3.1-3.3, 4, 5, 7-9), SEQUENCER_UX.md 4.4 row, ADR-0003 (8.1, diagram, section 21 row 2), S04 step 14, key_map/control_map/help_text/page_states.tsv, tests/design/widths.tsv (removed 2 stale strings, added 6).
+Two independent gates (MIDI: channel set, not muted, SOLO; PREVIEW: prv_on); four states with icon + `MIDI n/MUTE n/MIDI OFF/CUE n/CUE OFF` labels; hardware: speaker + USB audio only, one mix, no cue bus, no headphone jack documented (stated, HW-1 to confirm). TB-3 TUNING -> per-part PIT, +-50 cents [E]; other no-equivalent rows unmapped. Fixed P2-024 errors (section 7 S01/S04, 3.1 MONO/LEGATO). Task effects: mute/SOLO must move to the MIDI gate in sq_emit (P4-004/P4-012, P6-003), P4-011 icon/labels, new preview task adds P_FINE and T-PRV4.
+Owner note (section 8): default is that all previewing channels share the one mix; a "cue only" exclusive mode is not designed.
+```
+check_scenarios.py: 23 files, 490 control-map rows, 0 with no scenario
+check_help.py: OK: 392 help rows, 2695 strings measured
+check_sequencer_ux.py: OK
+width_probe.sh: 296 strings, 0 over
+backlog.py check: 122 items, 0 errors
+```

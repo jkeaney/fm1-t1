@@ -18,7 +18,7 @@ muted on MIDI channels OFF, 3, 4 (CH2's default 2 was taken by CH1 in S01: MIDI 
 | 11 | Turn ALGORITHM one detent counter-clockwise | HD `2 EUCL M5`; K1R `HITS 5` `OFFSET 3` `RATCH 4` `ACCNT 2` (the previous EUCLID morphs, seeds and edits are back) | the rotated EUCLID line again | EN_ALGO/PERF |
 | 12 | Turn SELECT five detents counter-clockwise | CHB cell 1 inverted (no wrap below CH1) | none | EN_SELECT/PERF |
 | 13 | Tap black key F#3 (M1) | CHB cell 1 reads `MUTE 2`; LEG cell M1 dim | no new `ch2 ON`; pending `ch2 OFF` still goes out | KEY_B01_F#3/PERF |
-| 14 | Tap black key F#3 (M1) again | mute cleared; phase kept running | `ch2 ON/OFF` resume on the running step grid | KEY_B01_F#3/PERF |
+| 14 | Tap black key F#3 (M1) again | mute cleared; phase kept running | `ch2 ON/OFF` resume on the running step grid (a mute closes only the MIDI gate: if CH1 PREVIEW is ON it kept sounding on the speaker while muted, a CUE) | KEY_B01_F#3/PERF |
 | 15 | Hold black key F#4 (SOL) for one bar and release | only CH1 sounds while held; CUE `SOLO CH1: let go`; on release the mutes are restored (CH2 stays unmuted) | `ch5` notes stop for the held bar, then resume | KEY_B06_F#4/PERF |
 | 16 | Tap black key A#3 (M3) and C#4 (M4) | CHB cells 3 and 4 lose `MUTE` | `ch3` SNAKE and `ch4` STAGE notes start at the next step; no preview part starts (PREVIEW is OFF on CH3 and CH4) | KEY_B03_A#3/PERF, KEY_B04_C#4/PERF |
 | 17 | Turn SELECT three detents clockwise | CHB cell 4 inverted; HD `4 STAG M4`; K1R `DENS 6` `TOTAL 16` `DIR FWD` `RATCH 2` | none | EN_SELECT/PERF |

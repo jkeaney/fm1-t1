@@ -208,52 +208,52 @@ RESET	KEY_W16_G5	tap	clear every edit of step 16 of the viewed page (back to the
 HELP	KEY_W16_G5	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_W16_G5	tap/hold	inert while the menu is open	-	-	-
 PERF	KEY_B01_F#3	tap	tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1	-	-
-PERF	KEY_B01_F#3	hold	held 0.4 s: PREVIEW on/off of CH1 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV1	-	-
+PERF	KEY_B01_F#3	hold	held 0.4 s: PREVIEW on/off of CH1 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV1	-	-
 NOTE_EDIT	KEY_B01_F#3	tap	tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1	-	-
-NOTE_EDIT	KEY_B01_F#3	hold	held 0.4 s: PREVIEW on/off of CH1 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV1	-	-
+NOTE_EDIT	KEY_B01_F#3	hold	held 0.4 s: PREVIEW on/off of CH1 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV1	-	-
 CHAN	KEY_B01_F#3	tap	tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1	-	-
-CHAN	KEY_B01_F#3	hold	held 0.4 s: PREVIEW on/off of CH1 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV1	-	-
+CHAN	KEY_B01_F#3	hold	held 0.4 s: PREVIEW on/off of CH1 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV1	-	-
 SET	KEY_B01_F#3	tap	tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1	-	-
-SET	KEY_B01_F#3	hold	held 0.4 s: PREVIEW on/off of CH1 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV1	-	-
+SET	KEY_B01_F#3	hold	held 0.4 s: PREVIEW on/off of CH1 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV1	-	-
 SCALE	KEY_B01_F#3	tap	not used on HARMONY (the KEY is K2)	-	-	-
 REC	KEY_B01_F#3	tap	play F#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B01_F#3	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B01_F#3	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B01_F#3	tap/hold	inert while the menu is open	-	-	-
 PERF	KEY_B02_G#3	tap	tap: mute / unmute CH2	MUTE2	-	-
-PERF	KEY_B02_G#3	hold	held 0.4 s: PREVIEW on/off of CH2 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV2	-	-
+PERF	KEY_B02_G#3	hold	held 0.4 s: PREVIEW on/off of CH2 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV2	-	-
 NOTE_EDIT	KEY_B02_G#3	tap	tap: mute / unmute CH2	MUTE2	-	-
-NOTE_EDIT	KEY_B02_G#3	hold	held 0.4 s: PREVIEW on/off of CH2 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV2	-	-
+NOTE_EDIT	KEY_B02_G#3	hold	held 0.4 s: PREVIEW on/off of CH2 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV2	-	-
 CHAN	KEY_B02_G#3	tap	tap: mute / unmute CH2	MUTE2	-	-
-CHAN	KEY_B02_G#3	hold	held 0.4 s: PREVIEW on/off of CH2 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV2	-	-
+CHAN	KEY_B02_G#3	hold	held 0.4 s: PREVIEW on/off of CH2 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV2	-	-
 SET	KEY_B02_G#3	tap	tap: mute / unmute CH2	MUTE2	-	-
-SET	KEY_B02_G#3	hold	held 0.4 s: PREVIEW on/off of CH2 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV2	-	-
+SET	KEY_B02_G#3	hold	held 0.4 s: PREVIEW on/off of CH2 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV2	-	-
 SCALE	KEY_B02_G#3	tap	not used on HARMONY (the KEY is K2)	-	-	-
 REC	KEY_B02_G#3	tap	play G#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B02_G#3	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B02_G#3	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B02_G#3	tap/hold	inert while the menu is open	-	-	-
 PERF	KEY_B03_A#3	tap	tap: mute / unmute CH3	MUTE3	-	-
-PERF	KEY_B03_A#3	hold	held 0.4 s: PREVIEW on/off of CH3 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV3	-	-
+PERF	KEY_B03_A#3	hold	held 0.4 s: PREVIEW on/off of CH3 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV3	-	-
 NOTE_EDIT	KEY_B03_A#3	tap	tap: mute / unmute CH3	MUTE3	-	-
-NOTE_EDIT	KEY_B03_A#3	hold	held 0.4 s: PREVIEW on/off of CH3 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV3	-	-
+NOTE_EDIT	KEY_B03_A#3	hold	held 0.4 s: PREVIEW on/off of CH3 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV3	-	-
 CHAN	KEY_B03_A#3	tap	tap: mute / unmute CH3	MUTE3	-	-
-CHAN	KEY_B03_A#3	hold	held 0.4 s: PREVIEW on/off of CH3 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV3	-	-
+CHAN	KEY_B03_A#3	hold	held 0.4 s: PREVIEW on/off of CH3 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV3	-	-
 SET	KEY_B03_A#3	tap	tap: mute / unmute CH3	MUTE3	-	-
-SET	KEY_B03_A#3	hold	held 0.4 s: PREVIEW on/off of CH3 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV3	-	-
+SET	KEY_B03_A#3	hold	held 0.4 s: PREVIEW on/off of CH3 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV3	-	-
 SCALE	KEY_B03_A#3	tap	not used on HARMONY (the KEY is K2)	-	-	-
 REC	KEY_B03_A#3	tap	play A#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B03_A#3	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B03_A#3	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B03_A#3	tap/hold	inert while the menu is open	-	-	-
 PERF	KEY_B04_C#4	tap	tap: mute / unmute CH4	MUTE4	-	-
-PERF	KEY_B04_C#4	hold	held 0.4 s: PREVIEW on/off of CH4 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV4	-	-
+PERF	KEY_B04_C#4	hold	held 0.4 s: PREVIEW on/off of CH4 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV4	-	-
 NOTE_EDIT	KEY_B04_C#4	tap	tap: mute / unmute CH4	MUTE4	-	-
-NOTE_EDIT	KEY_B04_C#4	hold	held 0.4 s: PREVIEW on/off of CH4 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV4	-	-
+NOTE_EDIT	KEY_B04_C#4	hold	held 0.4 s: PREVIEW on/off of CH4 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV4	-	-
 CHAN	KEY_B04_C#4	tap	tap: mute / unmute CH4	MUTE4	-	-
-CHAN	KEY_B04_C#4	hold	held 0.4 s: PREVIEW on/off of CH4 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV4	-	-
+CHAN	KEY_B04_C#4	hold	held 0.4 s: PREVIEW on/off of CH4 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV4	-	-
 SET	KEY_B04_C#4	tap	tap: mute / unmute CH4	MUTE4	-	-
-SET	KEY_B04_C#4	hold	held 0.4 s: PREVIEW on/off of CH4 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV4	-	-
+SET	KEY_B04_C#4	hold	held 0.4 s: PREVIEW on/off of CH4 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV4	-	-
 SCALE	KEY_B04_C#4	tap	not used on HARMONY (the KEY is K2)	-	-	-
 REC	KEY_B04_C#4	tap	play C#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B04_C#4	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
@@ -344,13 +344,13 @@ RIG	KEY_W14_E5	tap	inert on the RIG page (the lane is not shown); no toast	-	-	-
 RIG	KEY_W15_F5	tap	inert on the RIG page (the lane is not shown); no toast	-	-	-
 RIG	KEY_W16_G5	tap	inert on the RIG page (the lane is not shown); no toast	-	-	-
 RIG	KEY_B01_F#3	tap	tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1	-	-
-RIG	KEY_B01_F#3	hold	held 0.4 s: PREVIEW on/off of CH1 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV1	-	-
+RIG	KEY_B01_F#3	hold	held 0.4 s: PREVIEW on/off of CH1 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV1	-	-
 RIG	KEY_B02_G#3	tap	tap: mute / unmute CH2	MUTE2	-	-
-RIG	KEY_B02_G#3	hold	held 0.4 s: PREVIEW on/off of CH2 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV2	-	-
+RIG	KEY_B02_G#3	hold	held 0.4 s: PREVIEW on/off of CH2 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV2	-	-
 RIG	KEY_B03_A#3	tap	tap: mute / unmute CH3	MUTE3	-	-
-RIG	KEY_B03_A#3	hold	held 0.4 s: PREVIEW on/off of CH3 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV3	-	-
+RIG	KEY_B03_A#3	hold	held 0.4 s: PREVIEW on/off of CH3 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV3	-	-
 RIG	KEY_B04_C#4	tap	tap: mute / unmute CH4	MUTE4	-	-
-RIG	KEY_B04_C#4	hold	held 0.4 s: PREVIEW on/off of CH4 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap stays MUTE	PRV4	-	-
+RIG	KEY_B04_C#4	hold	held 0.4 s: PREVIEW on/off of CH4 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV4	-	-
 RIG	KEY_B05_D#4	tap	close the RIG page, back to PERF	BACK	-	-
 RIG	KEY_B06_F#4	hold	hold: only the selected channel sounds; release restores the mutes	SOLO	-	-
 RIG	KEY_B07_G#4	hold	hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores	FILL	aftertouch: depth light..firm = halfway..maximum density	no force (or FORCE OFF): maximum density
