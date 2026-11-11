@@ -1531,8 +1531,8 @@ static void ui_draw_page(uint32_t counting)
         ui.force = 0;
         return;
     }
-    if (!ui.home && !page_visible(ui.page)) {          /* an OP page of a track that is not DIGITAL (without
-                                                         * FELUCCA_FM4: any track): EDIT 1 */
+    if (!ui.home && !page_visible(ui.page)) {          /* an OP page of a track that is not DIGITAL
+                                                         * (retired: any track): EDIT 1 */
         ui.page = (uint8_t)page_first(FAM_EDIT);
         page_entered();
     }

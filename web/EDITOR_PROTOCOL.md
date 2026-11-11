@@ -112,7 +112,7 @@ P_COUNT 69): slot k (1..4) is `SRCk`, `DSTk`, `AMTk` at ids 49 + 3 (k − 1) .. 
 `DUMP` and the pushes report what was set.
 
 **DIGITAL (engine 1) was replaced by FM6 (Dexed-based)** in 1.0. The number stays reserved: `INFO` names it
-"-" (a build with `FELUCCA_FM4=1` has DIGITAL back, named "DIGITAL"), `NAMES 1` lists no presets, its EDIT
+"-" (DIGITAL is retired and was removed from the firmware in P3-003), `NAMES 1` lists no presets, its EDIT
 descriptors are "-" with DIGITAL's ranges, and no track ever has it. Whatever brings a DIGITAL sound plays it as
 FM6 with a patch converted from its values (`firmware/src/fm4_convert.c`; the patch is the track's own, `FM6_GET`
 reads it, a project keeps it): `SET` of `G_ENGSEL` = 1 (DIGITAL's first preset), `PRESET` 1 k (its preset k),
@@ -121,7 +121,7 @@ load converts them), projects with DIGITAL tracks (their motion on E1..E8 and id
 reports engine 12 (FM6) and the FM6 preset that covers the sound. The editor converts DIGITAL patches of library
 files the same way (it equals the firmware's, `test_web.mjs`).
 
-The four FM operator envelopes (the DIGITAL engine's OP1..OP4 ENV and OP LEVEL pages, `eng_digital.c`) are
+The four FM operator envelopes (the retired DIGITAL engine's OP1..OP4 ENV and OP LEVEL pages) are
 twenty track parameters at ids 61..80, five per operator: operator k (1..4) has `ATK`, `DEC`, `SUS`, `REL`,
 `LVL` at ids 61 + 5 (k − 1) .. 65 + 5 (k − 1). Since DIGITAL was retired they are inert: no page and no editor
 layout shows them, only the conversion of a DIGITAL sound reads them (its FM6 tracks hold the defaults). The ids

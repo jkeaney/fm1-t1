@@ -420,7 +420,7 @@ static int layer_locked(void);
 static uint32_t layer_leds(uint32_t *br);
 static uint32_t layer_btn(void);
 
-/* FM operator pages belong to DIGITAL; they never appear on other instruments (without FELUCCA_FM4: never). SLICES:
+/* FM operator pages belong to DIGITAL (retired: never shown). SLICES:
  * a SLICE track's (ui_slice.c); LANES / LANES 2 a DRUM track's (its lane levels); FILTER an ANALOG track's; OPERATOR, OP ENV, OPERATOR 2 an FM6
  * track's (its patch's operators, ui_fm6op.c) */
 static int page_visible(uint32_t i)
@@ -439,7 +439,7 @@ static int page_visible(uint32_t i)
         return 0;
 #endif
     return !(PAGES[i].fam == FAM_EDIT && PAGES[i].id[0] >= P_FM1_ATK &&
-             PAGES[i].id[0] <= P_FM4_LEVEL) || (FELUCCA_FM4 && TSEL->eng_req % NENGINES == ENGI_DIGITAL);
+             PAGES[i].id[0] <= P_FM4_LEVEL);
 }
 
 static uint32_t page_first(uint32_t fam)
@@ -1290,7 +1290,6 @@ static uint32_t preset_rank(const engine_t *e, uint32_t k)
 
 #define preset_shown(e) (ENGINES[e]->npresets - (ENGINES[e]->presets == SMP_PRESET_TABLE ? SMP_NALIAS : 0u))
 
-#if !FELUCCA_FM4
 /* DIGITAL (engine 1, retired): t's sound = p, values as DIGITAL has them, converted to FM6 with a patch of its own
  * (fm4_convert.c). Every path that brings a DIGITAL sound into a track ends here: a track never keeps engine 1 */
 static void fm4_apply(track_t *t, int16_t *p)
@@ -1330,7 +1329,6 @@ static void fm4_load_preset(track_t *t, uint32_t k)
     fm4_apply(t, p);
     load_end(t);
 }
-#endif
 
 static void set_engine_of(track_t *t, uint32_t ei);
 /* preset pi of the engine the track asked for: the sound only (not the steps, not param_kept) */
@@ -1338,12 +1336,10 @@ static void apply_preset_to(track_t *t, uint32_t pi)
 {
     const engine_t *e = ENGINES[t->eng_req % NENGINES];
     uint32_t i;
-#if !FELUCCA_FM4
     if (t->eng_req % NENGINES == ENGI_DIGITAL) {
         fm4_load_preset(t, pi);
         return;
     }
-#endif
     if (t->eng_req % NENGINES == ENGI_SAMPLE && pi == SMP_SET_PERC) {   /* SAMPLE preset 4 was PERC (retired, a stored */
         set_engine_of(t, ENGI_DRUM);                  /* number: the editor's PRESET, a favourite): DRUM's kit */
         return;                                       /* (core.h drum_from_perc) */
@@ -1386,12 +1382,10 @@ static void set_engine_of(track_t *t, uint32_t ei)
 {
     const engine_t *e = ENGINES[ei % NENGINES];
     uint32_t i;
-#if !FELUCCA_FM4
     if (ei % NENGINES == ENGI_DIGITAL) {             /* DIGITAL (retired): its first preset, as FM6 */
         fm4_load_preset(t, 0);
         return;
     }
-#endif
     load_begin(t, UNDO_SOUND);
     fm1_irq_off();
     t->eng_req = (uint8_t)(ei % NENGINES);
@@ -1416,12 +1410,10 @@ static void clean_engine_of(track_t *t)
 {
     uint32_t ei = t->eng_req % NENGINES, i;
     const engine_t *e = ENGINES[ei];
-#if !FELUCCA_FM4
     if (ei == ENGI_DIGITAL) {                         /* (retired: it becomes FM6, fm4_track) */
         set_engine_of(t, ei);
         return;
     }
-#endif
     load_begin(t, UNDO_SOUND);
     set_engine_of(t, ei);                             /* (nested in this load: one undo copy, from before) */
     fm1_irq_off();

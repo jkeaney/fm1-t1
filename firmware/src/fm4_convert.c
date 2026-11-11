@@ -2,9 +2,9 @@
  * Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments */
 /* DIGITAL (engine 1, four-operator FM): retired, and its sounds converted to FM6.
  *
- * "The DIGITAL engine has been replaced by FM6 (Dexed-based)" (1.0). Its DSP stays in the tree (eng_digital.c)
- * and builds with FELUCCA_FM4=1 (core.h; off by default, as FELUCCA_SLICE), so it can come back. Engine index 1
- * stays reserved: the stores name engines by index and the table is append-only. Without FELUCCA_FM4 engine 1 is
+ * "The DIGITAL engine has been replaced by FM6 (Dexed-based)" (1.0). Its DSP (eng_digital.c) was
+ * removed in P3-003 (git history has it). Engine index 1
+ * stays reserved: the stores name engines by index and the table is append-only. Engine 1 is
  * ENG_FM4_GONE below: no presets, never offered (PRESETS, the EDIT layer, the editor's lists skip it: engines.c
  * eng_ok), and a DIGITAL sound that arrives anyway -- a project (FUN1..FUN8), a user preset, the editor's PRESET /
  * SET G_ENGSEL / UP_PUT, a full backup, a stored DIGITAL preset number (TRK_DEF of old projects, favourites) --
@@ -56,7 +56,7 @@
  *                                  saved as a user preset again (a user preset keeps PTCH, not the patch); the
  *                                  OP ENV values their defaults (inert since; ids 61..80 stay, no id moves)
  * Not carried: the accent's index boost (velocity > 110), LFO / matrix amounts keep their values (FM6 reads FLT
- * as MLVL, SHP as the feedback). fm4_test.c renders DIGITAL (FELUCCA_FM4=1) against the conversion. */
+ * as MLVL, SHP as the feedback). The conversion was checked against DIGITAL's DSP before its removal (fm4_test.c, P3-003). */
 
 /* ------------------------------------------------- DIGITAL's tables --- */
 static const char *const N_FMALG[] = {"1", "2", "3", "4", "5", "6", "7", "8"};
@@ -85,7 +85,6 @@ static const uint8_t FM4_TO_FM6[FM4_NPRESETS] = {0, 1, 2, 3, 6, 4, 5, 7};
         {l4, F_PCT, 0, 127, 60, 0, 0}, {l5, f1, 0, 127, 60, 0, 0}, {l6, F_PCT, 0, 127, 0, 0, 0},               \
         {"-", F_INT, 0, 0, 0, 0, 0}}
 
-#if !FELUCCA_FM4
 /* engine 1 without the DSP: never selectable, no presets, silent (a track never keeps it: fm4_convert) */
 static void fm4_gone_note_on(struct track *t, voice_t *v) { (void)t; (void)v; }
 static void fm4_gone_render(struct track *t, voice_t *v, int32_t *out, uint32_t n, const vmod_t *m)
@@ -100,7 +99,6 @@ static const engine_t ENG_FM4_GONE = {
     .render = fm4_gone_render,
     .knob = {P_E4, P_E5, P_E6, P_REL},
 };
-#endif
 
 /* ------------------------------------------------------- conversion --- */
 #define FM4_MUTE (-100000)       /* the microsteps of silence */
@@ -220,7 +218,7 @@ static uint32_t fm4_convert(int16_t *p, uint8_t *v)
      * moves a divide the loop does not change ahead of the test that guards it (and folds a guard's `? x : 1` back
      * to x), and a divide by 0 trapped (firmware/hal/fm1_irq.h, up to 1.0.3). INDEX + FLT ENV == 0 (0.9's ORGAN: INDEX 0) then faulted in
      * persist_boot, before the LCD, on every start: UBOOT after three. Same values as the guarded forms
-     * (tests/fm4_div0_test.c) */
+     * (fm4_div0_test.c, removed in P3-003) */
     uint32_t isus_q = (uint32_t)isus * 32767u / (ipk > 0 ? (uint32_t)ipk : 1u);       /* read only when ipk > 0 */
     int32_t t_env = t_att * (fenv > 0 ? fenv : 0) / (idx + fenv > 0 ? idx + fenv : 1);   /* 0 unless fenv > 0 */
     const char *name = 0;

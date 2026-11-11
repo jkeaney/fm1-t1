@@ -316,13 +316,12 @@ static void proj_phys(project_t *q)
     q->sum = proj_sum(q);
 }
 
-/* DIGITAL tracks (engine 1; without FELUCCA_FM4) -> FM6 with the converted patch as the track's own (fm4_convert.c,
+/* DIGITAL tracks (engine 1, retired) -> FM6 with the converted patch as the track's own (fm4_convert.c,
  * whatever format the project is: the conversion runs on every load, the stored record keeps what it holds until it
  * is saved again). Their motion events on the EDIT values or the OP ENV values go: DIGITAL's meanings do not carry
  * over to FM6's macros. Idempotent */
 static void proj_fm4(project_t *q)
 {
-#if !FELUCCA_FM4
     uint32_t k, i, n, hit = 0;
     for (k = 0; k < NTRK; k++) {
         proj_trk_t *d = &q->t[k];
@@ -351,9 +350,6 @@ static void proj_fm4(project_t *q)
         memset(&q->motion.event[i], 0, sizeof q->motion.event[i]);
     q->motion.count = (uint8_t)n;
     q->sum = proj_sum(q);
-#else
-    (void)q;
-#endif
 }
 
 /* SAMPLE tracks of the retired PERC set (SET 4) -> DRUM with its default kit (see the top; core.h drum_from_perc,

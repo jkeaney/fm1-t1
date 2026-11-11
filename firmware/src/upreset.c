@@ -464,14 +464,12 @@ static int up_load(uint32_t k)
     up_values(r, v);
     load_begin(t, UNDO_SOUND);                          /* (ui.c: the copy for SAVE held = undo) */
     panic_req |= (uint8_t)(1u << song.sel);
-#if !FELUCCA_FM4
     if (r->engine == ENGI_DIGITAL) {                    /* a DIGITAL sound (kept as it was stored): FM6 */
         int16_t p[P_COUNT];
         for (i = 0; i < P_COUNT; i++)
             p[i] = param_kept(i) ? t->p[i] : v[i];
         fm4_apply(t, p);
     } else
-#endif
     {
         fm1_irq_off();                                  /* the audio ISR must not see half a sound */
         t->eng_req = r->engine;
@@ -537,7 +535,7 @@ static void up_pat_load(track_t *t, uint32_t k)
     t->p[P_SLEN] = (int16_t)clamp(v[P_SLEN], 1, 16);   /* (the pattern has 16 steps) */
 }
 
-/* the engine a used slot's sound plays on (a DIGITAL record: FM6, without FELUCCA_FM4) */
+/* the engine a used slot's sound plays on (a DIGITAL record: FM6) */
 static uint32_t up_engine(uint32_t k) { return eng_ok(up_rec(k)->engine) ? up_rec(k)->engine : ENGI_FM6; }
 
 static uint32_t up_count(void)                 /* used slots */
