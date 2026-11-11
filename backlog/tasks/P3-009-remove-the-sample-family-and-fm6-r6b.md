@@ -70,5 +70,24 @@ sh tools/check.sh
 - Any subsystem SYSTEM_MAP marks KEEP or ADAPT beyond the caller edits named here
 - Behaviour changes to the T-1 path (P3-001's test must still pass)
 - Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).
+- Patch fallback: if `git apply --check` fails only on comment or context-only hunks (no code line differs), you may apply with `git apply --3way` (or `patch` with fuzz) and must list in the Log which hunks differed. Any failing code hunk is still a stop: file a BUG (as BUG-004, BUG-005).
 
 ## Log
+
+### 2026-11-11 executor (haiku-5.5)
+- `python3 tools/backlog.py set P3-009 in_progress`: ok.
+- `git apply --check docs/design/rehearsal/P3-009.patch` on HEAD 8ae981b: FAILS, exit 1.
+  ```
+  error: while searching for:
+      eng_mem_claim(t);                             /* (voice.c engine_block would at the next block) */
+  error: patch failed: tests/hostsim.c:133
+  error: tests/hostsim.c: patch does not apply
+  ```
+  Only tests/hostsim.c fails. Cause: commit 7a8b4eb (P3-008) reworded the `host_legacy_sample_perc` comment ("turns it into
+  DRUM" is now "turns it into a melodic part") and the `host_drums` comment after the patch was regenerated on c6a6a16.
+- Stopped before `git apply`, the `git rm` of the 21 files and any build or test run. The deliverable's step 1 is a precondition
+  and the spec does not cover regenerating the patch (the BUG-004 fix). I did not edit hostsim.c by hand, since that would be guessing.
+- Filed backlog/bugs/BUG-005-p3-009-patch-does-not-apply-to-head.md. Set P3-009 to blocked.
+- Acceptance criteria: none ticked (no criterion verified).
+- Needed to unblock: a regenerated P3-009.patch on HEAD (BUG-005), then rerun P3-009.
+- BUG-005 fixed (2026-11-11): patch regenerated on HEAD 8ae981b, build line unchanged. Unblocked; set todo.

@@ -63,5 +63,6 @@ sh tools/check.sh
 - Any subsystem SYSTEM_MAP marks KEEP or ADAPT beyond the caller edits named here
 - Behaviour changes to the T-1 path (P3-001's test must still pass)
 - Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).
+- Patch fallback: if `git apply --check` fails only on comment or context-only hunks (no code line differs), you may apply with `git apply --3way` (or `patch` with fuzz) and must list in the Log which hunks differed. Any failing code hunk is still a stop: file a BUG (as BUG-004, BUG-005).
 
 ## Log
