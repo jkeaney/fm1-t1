@@ -60,9 +60,11 @@ on a 768-tick bar, one undo record per channel, no note cut on algorithm/MIDI-ch
 headroom < 8 KB or the ram stage fails, pull E9 (cleanup) forward. 2026-11-10: 79 empty preset slot loads nothing; 80 16 slots, fx-bus removal first; 81/90 PATTERNS = research-led famous-song + genre patterns, exact notes under style names; 82 six v1 algorithms, E5 split; 84 keybed needs use cases (P2-015).
 
 ## Budget facts
-Build line (today): RAM 55744 of 73728 (17984 B free before the 4 KB floor); pool 342876 of 368640. After the planned
-removals RAM headroom ~46 KB. The pool is the tight resource (preset slots: 16 x 1388 B = 24984 B vs 780 B spare today; the
-fx-bus removal must precede preset storage or v1 ships 8 slots).
+Build line (measured 2026-11-11 after the P3 removals, P3-012): `image 168876-168892 B (16 B varies between builds);
+RAM .data+.bss 23060 B of 73728; pool 92500 B of 368640`. RAM headroom 50668 B (floor 4 KB, E9 trigger 8 KB); pool 276140 B free. Before the removals (P3-001 log):
+`image 523224 B; RAM 55744 B; pool 342876 B`. The per-step figures and the predicted-versus-measured table are in
+docs/design/CLEAN_HOUSE_REPORT.md. The pool is no longer the tight resource; preset storage (P7-002 replaces the FUN10 record)
+should be sized against the 276 KB free pool, not the old 780 B spare.
 
 ## Hardware / lab state (2026-11-10)
 - FM-1 is flashed with the fixed bassline build (`FM-1_900`, port "JIANT FM" for Felucca builds; stock V15 shows as `FM-1_015`

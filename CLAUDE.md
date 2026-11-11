@@ -107,8 +107,12 @@ Flashing, restoring and testing on hardware:
 
 **Unity build.** `firmware/src/felucca.c` `#include`s every `.c` file into one translation unit, so **include order
 is the dependency order**. Everything is `static`. A file can only use what was included before it, unless it adds a
-forward declaration. The order is: HAL headers → libc/lcd/gfx → engines/voice/fx → usb, midi_uart, seq → the T-1
-sources → audio → panel, ui, menu_items, ui_draw, ui_menu, ui_input, ui_t1, ui_layer → storage/ota/editor → main.c.
+forward declaration. The order is (as `felucca.c` includes them; nested includes in brackets):
+HAL headers → libc/lcd/gfx → sound core (`engines.c` [dsp.c, eng_analog.c], params, mod, voice, fx [click.c]) → usb
+[uac_fir.h], midi_uart, seq [midi_control.c, midi_clock.c] → the T-1 sources (torso_t1_port, torso_t1, torso_t1_algo,
+torso_t1_pipeline, torso_t1_state, torso_t1_ui) → t1_glue → audio → panel, ui [favorites.c, midi_learn.c], menu_items,
+icons, ui_draw, ui_menu, ui_input, ui_t1 → fm1_flash, storage_hw, storage, project [settings_persist.c] → ota, ota_hw →
+console → master → main.c. The web editor (P3-004) and the groovebox pages and layers (P3-006) are gone from the build.
 
 **The target is freestanding.** There is no hosted libc: `libc.c` provides only memset/memcpy/memcmp, and only
 `<stdint.h>`, `<stddef.h>`, `<stdbool.h>` and `<stdarg.h>` are available (no `assert.h`, `stdio.h`, `time.h` or
@@ -118,7 +122,8 @@ code (`.ram_text`) makes no calls.
 
 **Two threads of execution:**
 - **Audio ISR.** `audio.c` calls `events_block(n)` in `seq.c` once per control block. It handles transport, MIDI in,
-  the keyboard (`keyboard_block`), each track's `seq_tick`, and here, the T-1 clock.
+  the keyboard (`keyboard_block`), and the T-1 clock (`t1_block`), which runs in place of the pattern tracks'
+  `seq_tick` because the T-1 is always on (`t1_mode`, seq.c).
 - **Main loop** (main.c, ~60 fps): `ui_input()` → settings and autosave → `ui_leds()` → `ui_draw()`.
 - The UI talks to the ISR through one-shot `volatile uint8_t` request flags that the ISR consumes and clears
   (`transport_req`, `panic_req` in seq.c). Single-byte state like `song.grid` is read at the start of a block.
@@ -127,18 +132,19 @@ code (`.ram_text`) makes no calls.
   follows the internal BPM or an external MIDI clock. Sequencer time is `events_block`'s `seq_n`.
 
 **MIDI out:** `midi_out_event(pkt)` in usb.c queues a 32-bit USB-MIDI packet `CIN | status<<8 | d1<<16 | d2<<24` into
-a 64-entry ring, and drops it if no host is configured. Felucca's own pattern sequencer only drives the internal
-synth; MIDI out comes from live key presses and from the T-1.
+a 64-entry ring, and drops it if no host is configured. The pattern tracks do not run while the T-1 is on (always,
+now), so MIDI out comes from the T-1 (`t1_glue.c` flushes its rings) and from live key presses.
 
 **UI structure:**
-- `ui_input()` in ui_input.c runs the button tap/hold timers (`btn_hold`), layers (buttons held as modifiers,
-  ui_layer.c), the menu, then the page. Full-screen modes take over with an early return; NAME mode (ui_name.c) and
-  T-1 mode (ui_t1.c) are the patterns to copy.
-- `ui_draw_page()` in ui_draw.c picks the screen in priority order: uboot → menu → count-in → confirm → T-1 → NAME
-  → layer → page.
+- `ui_input()` in ui_input.c runs the button tap/hold timers (`btn_hold`), the menu, then the page. The T-1 screen
+  (ui_t1.c) is the only page and takes over with an early return; it is the pattern to copy for any new full-screen mode.
+- `ui_draw_page()` in ui_draw.c picks the screen in priority order: uboot → menu → count-in → confirm → T-1 (the only
+  page).
 - Drawing uses a 240×124-max canvas: `cv_begin/cv_rect/cv_rrect/cv_text*/cv_blit`, fonts `AF_S`/`AF_M`/`AF_L`, and
   theme colours `T_*`. Redraw only when a state signature changes or `ui.force` is set.
-- `song.grid` decides what the keys do: 0 notes, 1 drum grid, 2 silent (owned by a mode), 3 song slots.
+- `song.grid` decides what the keys do: 0 notes, 2 silent (owned by a mode: the T-1 screen sets it). Values 1 (drum grid)
+  and 3 (song slots) belong to removed modes; their branches are still in seq.c (v2 clean-up, see
+  docs/design/CLEAN_HOUSE_REPORT.md).
 - Two-valued menu settings are bits in `ui_prefs`/`ui_rec_prefs`/`ui_prefs2` (ui.c), declared in `MENU_FLAGS`
   (menu_items.c). Adding a menu row changes the tab row counts asserted in `tests/ui_test.c`.
 
@@ -158,10 +164,13 @@ synth; MIDI out comes from live key presses and from the T-1.
   - It handles start/stop (`t1_on_start/t1_on_stop`, with note-offs and CC123) and sets the default pattern
     (track 2 = TB-3 bassline on channel 2).
   - The T-1 buffers live in `.pool`.
-- `ui_t1.c` (main-loop side): screen and controls. It's active when MENU → SYSTEM → T1 SEQ is ON (`PREF_T1`). While
-  it's on, `events_block` runs `t1_block()` **in place of** the pattern tracks' `seq_tick`.
-- **Host tests build `seq.c`/`ui*.c` without the T-1.** Under `#ifndef T1_DEVICE` the hooks become no-op stubs
-  (`t1_mode` defined as 0) in seq.c and ui.c. Any new hook needs the same treatment, or the host tests fail to link.
+- `ui_t1.c` (main-loop side): screen and controls. It is always on (the MENU row is gone, P3-005; `t1_poll` sets the
+  mode every frame). While it's on, `events_block` runs `t1_block()` **in place of** the pattern tracks' `seq_tick`.
+- **Host tests link the real sources.** The host tests build the real `seq.c`, `ui*.c` and `torso_t1*.c` (P3-001), with
+  no `t1_mode` stub. `tests/host_t1_hooks.h` supplies what the T-1 needs from the device (the host side of
+  `midi_out_event`, `beat_samples`, and the hosted libc), and `t1_glue.c` is linked as on the device. The `T1_DEVICE`
+  guards in `torso_t1*.c` select the hosted includes. A new hook needs a host counterpart in `tests/host_t1_hooks.h`,
+  or the host tests fail to link.
 
 ## Docs and the algorithm catalogue
 
@@ -174,7 +183,9 @@ synth; MIDI out comes from live key presses and from the T-1.
 - `TORSO_T1_GUIDE.md` and `PLAN.md` describe the upstream T-1 design. They don't always match the code: the guide's
   control mapping conflicts with itself, and the code ignores some documented parameters. Trust the code and
   T1_ISSUES.md.
-- `BUILDING.md` documents the build flags (`FELUCCA_*`), samples, the emulator and the full test coverage.
+- `BUILDING.md` documents the build flags (`FELUCCA_*`), the emulator and the test coverage.
+- `docs/design/CLEAN_HOUSE_REPORT.md` records the v1 removals (R1-R7): predicted against measured flash, RAM and pool,
+  the final build line and the inventory of the ADAPT rows that remain.
 
 ## Conventions
 
