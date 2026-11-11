@@ -20,7 +20,7 @@
 #define ENGI_DIGITAL 1u          /* reserved (DIGITAL, retired): never selectable (eng_ok), its sounds load as FM6 */
 #define NENG_SHOWN (NENGINES - 1)   /* the engines one can pick: PRESETS, the EDIT layer, the editor,
                                                 * in the display order of engines.c ENGINE_ORDER */
-#define UP_SLOTS 32u             /* user presets (upreset.c) */
+#define UP_SLOTS 32u             /* user preset slots (removed in P3-011: the constant stays for favorites.c) */
 #define NELEM(a) (sizeof(a) / sizeof((a)[0]))
 
 /* ------------------------------------------------------- parameters --- */
@@ -108,7 +108,7 @@ static void params_by_count(int16_t *out, const int16_t *in, uint32_t np, const 
 #define ENGI_DRUM 10u
 /* PHYS MODEL DRUM (MODEL 4, before 1.0) -> the DRUM engine, its E values in place: {MODEL, TUNE, TONE, DECY,
  * SNAP, ACC, KICK 0..127, PERC 0..127} -> {KIT, TUNE, TONE, DECY, SNAP, ACC, KICK 0..1, DRV 0}. 1 = it was one
- * (its engine is ENGI_DRUM now); projects (project.c) and user presets (upreset.c) */
+ * (its engine is ENGI_DRUM now); the projects and user presets of the old formats (removed, P3-011) */
 static int drum_from_phys(uint32_t engine, int16_t *e)
 {
     if (engine != ENGI_PHYS || e[0] != 4)
@@ -123,7 +123,7 @@ static int drum_from_phys(uint32_t engine, int16_t *e)
  * (SET / GRAIN SRC 4 is an alias of PIANO, USR1..3 keep 5..7). A sound that selected it is the DRUM engine with
  * its default kit (eng_drum.c DRUM_PRESETS[0]: the same GM key map, so its patterns still play as drums): its E
  * values become the kit's, the rest of the sound (mix, sends, matrix, ..) stays. 1 = it was one (its engine is
- * ENGI_DRUM now); projects (project.c proj_perc), user presets (upreset.c up_migrate), factory preset 4 and
+ * ENGI_DRUM now); the old projects and user presets (removed, P3-011), factory preset 4 and
  * favourites (ui.c, settings_persist.c). Idempotent */
 #define ENGI_SAMPLE 4u
 #define SMP_SET_PERC 4u
@@ -280,7 +280,7 @@ static void step_set_ratchet(step_t *s, uint32_t hits)
  * live recording keeps it, SEQ > AUTOMATION's NUDGE rows and STEP (steps held + PRESETS) set it, the track's QUANTIZE
  * OFF (P_SQNT, AUTOMATION's QUANTIZE row) plays it (seq.c seq_tick).
  * Four bits of the flags no other field uses: 4 (bit 3 of the nudge, its sign) and 32 64 128 (bits 0..2). 0 = on the
- * step: every older pattern. A user preset's pattern keeps none (upreset.c up_pat_norm) */
+ * step: every older pattern. A user preset's pattern keeps none (user presets removed, P3-011) */
 #define NUDGE_DIV 16
 #define SF_NUDGE (4u | 0xE0u)
 static int32_t step_nudge(const step_t *s)

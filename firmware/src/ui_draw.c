@@ -149,8 +149,8 @@ static int32_t roll_text(uint32_t k, int32_t x, int32_t y, const char *s, uint16
 }
 
 /* the header (y 0..24), three calm slots (1.2):
- *   left    the selected track's cushion (ink 4..20), the PROJECT slot letter of its pattern ("1 A", head_slot), the REC
- *           mark attached (filled: it is armed; outlined: another). A message centred hides the letter (its room)
+ *   left    the selected track's cushion (ink 4..20), the REC
+ *           mark attached (filled: it is armed; outlined: another)
  *   centre  the play state (stop, play, the song's disc), the metronome and the BPM (BPM LOCK ON: a lock right of
  *           it), the group's ink centred on x 120 (head_geo). The metronome swings on the click's beats (seq.c click_beat_now): mirrored
  *           on the bar's 2nd and 4th, the accent's on its 1st; stopped, still and MID
@@ -165,8 +165,7 @@ static int32_t roll_text(uint32_t k, int32_t x, int32_t y, const char *s, uint16
 #define HEAD_SY CAP_IN(S, H_HEAD)
 #define HEAD_MY CAP_IN(M, H_HEAD)
 #define HEAD_TRK_X 4                                   /* the track cushion's cell */
-#define HEAD_REC_X 20                                  /* the REC mark's cell (ink 23..33), after the slot letter if any */
-#define HEAD_SLOT_X 23                                 /* the slot letter's pen (ui_draw.c head_slot) */
+#define HEAD_REC_X 20                                  /* the REC mark's cell (ink 23..33), after the cushion */
 #define HEAD_BAT_X 214                                 /* the battery's cell */
 #define HEAD_GRP_R 208                                 /* the octave / song row ends here */
 #define HEAD_MSG_W 166                                 /* a message centred on x 120: 37..203 (after the REC mark) */
@@ -281,22 +280,6 @@ static void head_msg(int32_t x, int32_t maxw)
     if (lock)
         cv_icon_mid(x + 6, H_HEAD / 2, 16, ICON_X_LOCK, T_THEME, T_BG);
 }
-/* the slot letter after the track's cushion (1.2): the PROJECT slot of the pattern the selected track plays or edits:
- * the slot the working pattern came from
- * (ui.c pat_from: the last PROJECT load or save), with a mark ("A*") once it was edited since (its steps, LEN DIV SWING
- * GATE, QUANTIZE: ui.c pat_from_sig); none at power-on, after a PHRASES pattern or the editor's restore.
- * b: the letter (b[1] '*' or 0); 0 = none */
-static int head_slot(char *b)
-{
-    uint32_t k = song.sel % NTRK;
-    b[1] = b[2] = 0;
-    if (!pat_from[k] || pat_from[k] > 4u)
-        return 0;
-    b[0] = (char)('A' + pat_from[k] - 1u);
-    if (pat_from_sig(TSEL) != pat_from_h[k])
-        b[1] = '*';
-    return 1;
-}
 /* the octave, its right end at HEAD_GRP_R */
 static void head_group(void)
 {
@@ -318,13 +301,11 @@ static void draw_head(void)
     head_geo_t g;
     int32_t beat = -1;                                 /* the metronome stands still (its swing removed in 1.1.5) */
     uint32_t rec = (song.rec >> song.sel) & 1u ? 2u : song.rec != 0u;   /* 2 the selected track armed, 1 another */
-    char sl[3];
-    int slot = head_slot(sl);
     uint32_t sig = (uint32_t)song.playing * 3u + rec * 5u + (uint32_t)(song.octave + 8) * 11u + song.sel * 13131u +
                    (ui.msg_t ? str_hash(7u, ui.msg) : 0u) + (uint32_t)song.g[G_BPM] * 101u + (ui.bpm_t != 0) * 31u +
                    (uint32_t)seq_counting() * 7u +
                    (uint32_t)batt_shown() * 7777u +
-                   (slot ? str_hash(11u, sl) : 0u) + (uint32_t)midi_lit(song.sel) * 15485863u;   /* (1.5.5) */
+                   (uint32_t)midi_lit(song.sel) * 15485863u;   /* (1.5.5) */
     int msg = ui.msg_t;
     int centre = !msg || ui.bpm_t;   /* the BPM being changed: it stays, the message right */
     int32_t rx = HEAD_REC_X;
@@ -361,14 +342,6 @@ static void draw_head(void)
     cv_begin(240, H_HEAD, T_BG);
     cv_icon_mid(HEAD_TRK_X, H_HEAD / 2, 16, trk_icon(song.sel, 1), midi_lit(song.sel) ? T_TEXT : T_ACCENT, T_BG);   /* (1.5.5:
                                                        * a MIDI IN note into it, #208: lit) */
-    if (slot && (centre || !msg)) {                    /* the slot letter (not under a message centred: its room) */
-        char l[2] = {sl[0], 0};
-        GFX_HOOK_ALIGN(0, 0, 0, H_HEAD, AL_V, "header text on its middle");
-        rx = cv_text(HEAD_SLOT_X, HEAD_MY, &AF_M, l, sl[0] == '-' ? T_MID : T_THEME);
-        if (sl[1])                                     /* edited since: the mark, up by the letter's top */
-            rx = cv_text(rx, HEAD_MY, &AF_M, "*", T_MID);
-        rx += 1;                                       /* (the REC mark's cell after it, its ink 3 px on) */
-    }
     draw_rec_mark(rx, T_BG);
     if (centre) {
         int32_t ib[4], lx = g.bx + g.b[2];             /* lx: the right end of the BPM (and its lock) */
@@ -541,12 +514,6 @@ static void confirm_text(char *a, char *b)
         str_cpy(a, "CLEAR TRACK 1?", 24);
         a[12] = (char)('1' + k % NTRK);
         break;
-    case CF_OVR_PROJ:
-        str_cpy(a, "OVERWRITE PROJECT A?", 24);
-        a[18] = (char)('A' + (k & 3u));
-        if (!project_name(k & 3u, b) || !b[0])          /* the project's name, else what SONG plays from it */
-            str_cpy(b, "SONG PATTERN CHANGES", 24);
-        break;
     case CF_DEL_ROW:
         str_cpy(a, "DELETE SECTION?", 24);
         break;
@@ -562,23 +529,6 @@ static void confirm_text(char *a, char *b)
         break;
     case CF_CLEAR_MOTION:
         str_cpy(a, "CLEAR T1 AUTOMATION?", 24); a[7] = (char)('1' + k % NTRK);
-        break;
-    case CF_OVR_USER:
-        str_cpy(a, "OVERWRITE ", 24);
-        up_slot_label(a + str_len(a), k);
-        str_cpy(a + str_len(a), "?", 2);
-        up_name(k, b);                               /* the sound stored there */
-        break;
-    case CF_ERASE_PROJ:                              /* 1.5.5 (#199): the project's name under it */
-        str_cpy(a, "ERASE PROJECT A?", 24);
-        a[14] = (char)('A' + (k & 3u));
-        (void)project_name(k & 3u, b);
-        break;
-    case CF_ERASE_USER:
-        str_cpy(a, "ERASE ", 24);
-        up_slot_label(a + str_len(a), k);
-        str_cpy(a + str_len(a), "?", 2);
-        up_name(k, b);
         break;
     case CF_LOAD_PAT: {
         char tag[4];

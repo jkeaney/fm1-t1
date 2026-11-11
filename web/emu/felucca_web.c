@@ -202,7 +202,6 @@ static uint32_t fl_jedec_ram(void) { return 0x856014u; }             /* the FM-1
 static void fl_plain_window_init(void) {}
 #define FL_FAR(fn) (fn)
 #include "../../firmware/src/storage.c"
-#include "../../firmware/src/upreset.c"
 #include "../../firmware/src/project.c"
 
 /* ------------------------------------------------- main.c and its HAL --- */
@@ -475,8 +474,6 @@ EXPORT void web_test_heavy(void)
     }
     ui.force = 1;
 }
-
-EXPORT uint32_t web_test_user_preset(uint32_t i) { return (uint32_t)up_used(i); }
 
 EXPORT uint16_t *web_screen(void) { return web_fb; }
 EXPORT uint32_t web_screen_draws(void) { return web_draws; }

@@ -5,8 +5,7 @@
 //   node web/emu/emu_test.mjs build/emu/felucca.wasm [NATIVE.f32]
 // Checks: it boots (splash, then HOME on the screen, the HOME LED; the power-on LED sweep under the splash, over by
 // 1 s), a held key sounds and lights its LED, PLAY
-// starts the sequencer (PLAY's green LED), a user preset saved from the panel (SAVE, OCT+, OCT+) reaches the flash,
-// and the flash sectors kept as the page keeps them bring it back in a fresh instance; the same gestures twice
+// starts the sequencer (PLAY's green LED); the same gestures twice
 // give the same audio (deterministic), with NATIVE.f32 (web/emu/native_check.c) the native build's, bit for bit.
 // Then the cost: 1 s of a heavy song (FM6, PHYS, GRAIN chords, DRUM) against real time (BENCH_MAX, default 0.5:
 // fails above half of real time on this machine).
@@ -119,23 +118,6 @@ check("FX held: its button and the effects' keys breathe, none lit; let go: noth
         Math.abs(got[3] - lo) <= 0.06);
 }
 
-// ---- a user preset saved from the panel, kept across a fresh instance
-const w0 = a.ex.web_flash_writes_count();
-a.tap(B.SAVE);
-a.tap(B.OCTUP);
-a.tap(B.OCTUP);
-a.render(200);
-const saved = storeSectors(new Uint8Array(a.mem.buffer, a.ex.web_nor(), a.ex.web_nor_size()));
-check(`SAVE, OCT+, OCT+: user preset 1 written (${Object.keys(saved).length} sectors kept)`,
-      a.ex.web_test_user_preset(0) === 1 && a.ex.web_flash_writes_count() > w0 && Object.keys(saved).length > 0);
-const kept = JSON.parse(JSON.stringify(Object.fromEntries(     // as the page keeps them (base64 in localStorage)
-  Object.entries(saved).map(([k, v]) => [k, Buffer.from(v).toString("base64")]))));
-const b = await device(Object.fromEntries(Object.entries(kept).map(([k, v]) => [k, new Uint8Array(Buffer.from(v, "base64"))])));
-b.render(600);
-const c = await device(null);
-c.render(600);
-check("a fresh instance with the kept sectors has it; one without does not",
-      b.ex.web_test_user_preset(0) === 1 && c.ex.web_test_user_preset(0) === 0);
 
 // ---- the panel's knobs from a MIDI controller: the page turns them by midiKnob (worklet.js), as a drag does
 {

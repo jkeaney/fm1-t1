@@ -30,7 +30,7 @@
  * that saved it load as that engine (core.h drum_from_phys).
  *
  * DUST (resonant particles, value 2 before 1.0) was dropped: MODEL 2 is MEMB now. Projects and
- * user presets saved before say so (project.c, upreset.c) and load DUST as MODAL bowed, its nearest
+ * projects and user presets saved before say so (project.c; the user presets were removed, P3-011) and load DUST as MODAL bowed, its nearest
  * kin (random hits into resonators): phys_legacy.
  *
  * Polyphony 3 per part (engine_t.poly): each part's voices 0..2 own a state slot in the part's engine

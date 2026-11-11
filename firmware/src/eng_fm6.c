@@ -7,7 +7,7 @@
  * operators with their 4-rate / 4-level envelopes, keyboard level and rate scaling, velocity, ratio or
  * fixed frequency, detune; 32 algorithms, feedback, LFO, pitch envelope, transpose). It is edited in the
  * web editor (EDITOR_PROTOCOL.md FM6_*: a .syx voice sent to a track), loaded from the factory slots, and saved inside
- * projects (FUN8) and user presets (up_fm6.c). Whatever is loaded becomes the track's patch.
+ * projects and user presets (both formats removed, P3-011). Whatever is loaded becomes the track's patch.
  * On the device the eight EDIT values are macros on top of it:
  *   ALG   PAT = the patch's algorithm, 1..32 another one
  *   FB    added to the patch's feedback (0..7)
@@ -22,7 +22,7 @@
  *         without a voice is skipped by the knob (params.c enum_step) and refused anywhere else (fm6_poll).
  *         Turning SLOT from OWN to F n / B n keeps the own patch aside; back to OWN brings it back (fm6_poll).
  *         Before 1.0.3 the values 8..34 were F1..F8 then B1..B27, a flash bank (retired: its patches moved into
- *         the user presets, up_fm6.c). A stored value is never a bank slot: projects, user presets and motion
+ *         the user presets, removed P3-011). A stored value is never a bank slot: projects, user presets and motion
  *         load 9..40 as 8, OWN (params.c param_fit), and the patch comes with the project / the record. So a
  *         project or a preset made with a bank voice sounds the same after the bank is replaced
  * The operator envelopes are the voice's amplitude and end it (engine_t.ownenv / done): the track's ADSR,

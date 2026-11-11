@@ -154,7 +154,6 @@ static struct { uint32_t stage; } felucca_dbg;
 #include "../firmware/src/ui_menu.c"
 #include "../firmware/src/ui_input.c"
 #include "../firmware/src/ui_t1.c"
-#include "../firmware/src/upreset.c"
 #include "../firmware/src/project.c"
 
 static int check(const char *what, int ok)
@@ -177,14 +176,10 @@ static void ui_power_on(void)
     cin_left = cin_total = 0;                     /* (no count-in) */
     memset(&mom, 0, sizeof mom);                  /* MOMENTARY: no value held (the pool at power-on) */
     proj_name[0] = 0;
-    proj_cur = PROJ_NO_SLOT;
     memset(&favorites, 0, sizeof favorites);
     ml_off();                                     /* (MIDI LEARN off, nothing learned) */
     memset(&undo, 0, sizeof undo);
     memset(pat_last, 0, sizeof pat_last);
-    memset(pat_from, 0, sizeof pat_from);                /* (the header's slot letter: none) */
-    memset(proj_slot, 0, sizeof proj_slot);
-    memset(up_bank, 0, sizeof up_bank);
     for (i = 0; i < G_COUNT; i++)
         song.g[i] = GP[i].def;
     undo_depth++;
@@ -640,18 +635,6 @@ static int test_menu_project_rows(void)
     settings_export(&p1);
     ok = !memcmp(&p0, &p1, sizeof p0) && autosave_sig() != sig;
     bad += check("TUNE / MIDI IN: nothing in the settings record; the autosave sees the change (the music's)", ok);
-    project_save(2);                                     /* (PROJECT C) */
-    song.g[G_TUNE] = 0; song.g[G_ROUTE] = 0;
-    project_load(2);
-    ok = song.g[G_TUNE] == 19 && song.g[G_ROUTE] == 3 && menu_get(MI_TUNE) == 69u && menu_get(MI_MIDIIN) == 3u;
-    song.g[G_TUNE] = -7; song.g[G_ROUTE] = 4;            /* (another project's values: the rows follow the load) */
-    project_save(3);
-    project_load(2);
-    ok &= song.g[G_TUNE] == 19 && song.g[G_ROUTE] == 3;
-    project_load(3);
-    ok &= song.g[G_TUNE] == -7 && song.g[G_ROUTE] == 4 && str_eq(menu_vname(MI_TUNE, menu_get(MI_TUNE)), "-7") &&
-          str_eq(menu_vname(MI_MIDIIN, menu_get(MI_MIDIIN)), "CH13-16");
-    bad += check("TUNE / MIDI IN: saved with the project and loaded back (round trip; each project its own)", ok);
     ui_power_on();
     return bad;
 }

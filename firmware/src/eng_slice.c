@@ -76,7 +76,7 @@ enum { SLC_ONE, SLC_GATE, SLC_LOOP };
 #define SLC_DIV_MAN 5u               /* the slice starts set by hand (the SLICES page); none yet: the AUTO ones */
 #define SLC_MIN 64u                  /* MAN: the shortest slice (samples) */
 
-/* MAN slices (based on hugelton/Felucca#27 by andreahaku): per user slot, in RAM; slice_store.c keeps them in flash
+/* MAN slices (based on hugelton/Felucca#27 by andreahaku): per user slot, in RAM; the slice store (removed, P3-011) kept them in flash
  * with the sample. Two copies: the audio side reads slc_man[k][slc_man_cur[k]], the SLICES page (main loop) changes
  * the other one and then flips slc_man_cur (one byte), so a note-on never sees a half-edited table. n = 0: none */
 typedef struct {
@@ -86,8 +86,8 @@ typedef struct {
 } slc_man_t;
 static slc_man_t slc_man[SMP_USER_SLOTS][2];
 static volatile uint8_t slc_man_cur[SMP_USER_SLOTS];
-static void (*slc_man_load)(uint32_t k);        /* slice_store.c: a slot was read (smp_user_scan): its stored slices */
-static uint8_t slc_man_save;                     /* bit k: slot k's slices changed, to flash (slice_store.c) */
+static void (*slc_man_load)(uint32_t k);        /* hook of the removed slice store (P3-011): NULL, nothing sets it */
+static uint8_t slc_man_save;                     /* bit k: slot k's slices changed (the removed slice store, P3-011) */
 
 /* the SRC of a part's sound (0..4: a stored value out of range reads as the nearest) */
 static uint32_t slc_src_of(const int16_t *p) { return (uint32_t)clamp(p[P_E0], 0, SLC_NSRC - 1); }
@@ -265,7 +265,7 @@ static void slc_user_scan(uint32_t k, int valid)
     uint32_t i, j, at = 0;
     s->len = 0;
     RING_PUBLISH();
-    slc_man[k][0].n = slc_man[k][1].n = 0;          /* new material: its MAN slices are gone (slc_man_load: the stored) */
+    slc_man[k][0].n = slc_man[k][1].n = 0;          /* new material: its MAN slices are gone (slc_man_load: the stored, removed P3-011) */
     if (!valid)
         return;
     s->nseg = 0;

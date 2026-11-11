@@ -4,42 +4,7 @@
  * Flat: SURF cards and panels on the palette's background, no rules, one type family (Inter Tight, three sizes), tracks
  * named by their numbers 1..4 on a cushion (icons.c trk_icon). Four columns <-> KNOB 1..4. Rendering is lazy:
  * every element remembers what it last drew and is redrawn only on change. */
-static int project_save(uint32_t slot);
 static void panel_setup(void);
-static void project_load(uint32_t slot);
-static int project_used(uint32_t slot);
-static int up_used(uint32_t k);              /* user presets: upreset.c */
-static int up_load(uint32_t k);
-static uint32_t up_count(void);
-static uint32_t up_nth(uint32_t n);
-static uint32_t up_rank(uint32_t slot);
-static uint32_t up_engine(uint32_t k);
-static void up_name(uint32_t k, char *b);
-static void up_slot_label(char *b, uint32_t k);
-static void up_ui(uint32_t op, uint32_t k);
-static int up_has_pat(uint32_t k);               /* user presets that hold a pattern */
-static uint32_t up_pat_count(void);
-static uint32_t up_pat_nth(uint32_t n);
-static uint32_t up_pat_rank(uint32_t slot);
-static void up_pat_load(track_t *t, uint32_t k);
-static void up_auto_name(char *b, uint32_t e, uint32_t k);   /* naming (ui_name.c) */
-static void up_ui_named(uint32_t op, uint32_t k, const char *name, uint32_t cat);
-static uint32_t up_cat(uint32_t k);
-static int project_save_as(uint32_t slot, const char *name);
-static int project_name(uint32_t slot, char *b);
-static int project_info(uint32_t slot, char *b, uint16_t *len48, uint32_t *den, uint8_t *n);
-static int project_rename(uint32_t slot, const char *name);
-static int project_erase(uint32_t slot);
-static void project_cur_name(char *b);
-static uint32_t preset_cat(uint32_t e, uint32_t k);   /* (category.c, included by upreset.c) */
-/* the category of the sound track t plays: its user preset's, else its factory preset's (upreset.c up_put's default) */
-static uint32_t track_cat(const track_t *t)
-{
-    return t->user && up_used(t->user - 1u) ? up_cat(t->user - 1u) : preset_cat(t->eng_req % NENGINES, t->preset);
-}
-/* the SLICES page is gone (P3-006): slice_store.c still asks whether it is up; removed with the slice family (R6) */
-static int slice_page_on(void) { return 0; }
-static uint32_t up_gen;                      /* bumped on every user bank change (redraws) */
 #include "favorites.c"
 /* MENU's two-valued settings (ui_menu.c MENU_FLAGS), a bit each in a byte no engine uses (as ui_layer.c layer_seen):
  * saved with the settings; 0 in older ones = every setting's default (append-only: a new setting takes a new bit,
@@ -145,7 +110,7 @@ static void t1_draw(void);
 static struct {
     uint8_t home;
     uint8_t page;                /* (main.c debug record only) */
-    uint8_t ppick;               /* (upreset.c: the pattern picked; P3-007+) */
+    uint8_t ppick;               /* the pattern picked */
         uint8_t hot_col, hot_t;      /* column whose knob was just turned (drawn white) */
     uint8_t menu;                /* 0 off, 1 list, 2 about + credits, 3 info (1.2) (HOME held) */
     uint8_t menu_sel;            /* MENU: the row (menu_items.c MI_*; its tab MI_TAB), kept while the device runs */
@@ -445,21 +410,13 @@ static struct {
     step_t step[NSTEP];
     uint32_t after;              /* track_sig right after the last load */
     uint32_t pat;                /* pat_sig[] of the copy */
-    uint32_t from_h;             /* pat_from_h[], pat_from[] of the copy (the header's slot letter) */
-    uint8_t from;
     uint32_t t_ms;               /* time of the last load (the editor's SETs after it belong to it) */
 } undo __attribute__((section(".pool")));   /* (main loop only: off the audio code's .bss) */
 static uint8_t undo_depth;       /* loads nest (an engine jump loads its first preset): the outer one counts;
-                                  * felucca_init / project_load raise it to take no copy at all */
+                                  * felucca_init and the autosave restore raise it to take no copy at all */
 static uint32_t pat_sig[NTRK];   /* steps_sig of the pattern the last pattern load put into each track: such
                                   * steps, untouched, are replaced by the next pattern without asking */
 static uint8_t pat_last[NTRK];   /* that pattern's list index + 1, 0 = none */
-/* the header's slot letter (ui_draw.c head_slot): the PROJECT slot each track's working pattern came from (the last
- * PROJECT load or save: 1..4 = A..D; 0 none: power-on, a PHRASES pattern, the editor's restore) and pat_from_sig() of
- * it then: an edit since shows the letter with a mark */
-static uint8_t pat_from[NTRK];
-static uint32_t pat_from_h[NTRK];
-
 static uint32_t fnv(uint32_t h, const void *p, uint32_t n)
 {
     const uint8_t *b = (const uint8_t *)p;
@@ -475,21 +432,6 @@ static uint32_t track_sig(const track_t *t)      /* the sound (an FM6 track's pa
     h = fnv(h, fm6_patch[k], sizeof fm6_patch[k]); /* (a patch the editor sent between two loads) */
     return h;
 }
-/* the track's pattern as a project slot holds it: the steps, LEN DIV SWING GATE, QUANTIZE */
-static uint32_t pat_from_sig(const track_t *t)
-{
-    int16_t q = t->p[P_SQNT];
-    uint32_t h = fnv(fnv(steps_sig(t), &t->p[P_SLEN], 4u * sizeof t->p[0]), &q, sizeof q);
-    return h;
-}
-static void pat_from_set(uint32_t slot)             /* every track's pattern is slot's now (1..4), 0 none */
-{
-    for (uint32_t k = 0; k < NTRK; k++) {
-        pat_from[k] = (uint8_t)slot;
-        pat_from_h[k] = pat_from_sig(&trk[k]);
-    }
-}
-
 /* MOMENTARY (ui_input.c mom_turn: LFO held, the knobs' changes go back when it is let go): the values turned, where
  * they are (a track's p[], song.g[]) and what they were. In the main loop's pool (no .bss) */
 #define MOM_N 8u
@@ -533,8 +475,6 @@ static void load_begin(track_t *t, uint32_t what)
     memcpy(undo.fm6, fm6_patch[i], FP_SIZE);
     undo.fm6_slot = fm6_slot[i];
     undo.pat = pat_sig[i];
-    undo.from = pat_from[i];
-    undo.from_h = pat_from_h[i];
     undo.patn = pat_last[i];
 }
 
@@ -593,28 +533,18 @@ static void track_defaults_steps(track_t *t)
         step_clear(&t->step[i]);
 }
 
-/* SAVE > PHRASES: the factory patterns (PATTERNS[], "01".."13"), then the used user presets that hold
- * one ("U07"): list index n. Loading one replaces the track's steps 1..16 (the rest cleared) and LEN;
- * a user preset's pattern brings its stored LEN (at most 16), DIV, SWING and GATE too. The notes are
- * loaded as they are: the patterns are written for the register of their kind of sound, DRUM and
- * SLICE patterns are drum and slice numbers, and SCL TRANS / OCT transpose what plays */
-static uint32_t pat_count(void) { return NPATTERNS + up_pat_count(); }
+/* the factory patterns (PATTERNS[], "01".."13") */
+static uint32_t pat_count(void) { return NPATTERNS; }
 
-static void pat_label(uint32_t n, char *tag, char *name)   /* tag: 4 bytes ("01", "U07"), name: 13 */
+static void pat_label(uint32_t n, char *tag, char *name)   /* tag: 4 bytes ("01"), name: 13 */
 {
-    if (n < NPATTERNS) {
-        tag[0] = (char)('0' + (n + 1u) / 10u);
-        tag[1] = (char)('0' + (n + 1u) % 10u);
-        tag[2] = 0;
-        str_cpy(name, PATTERNS[n].name, 13);
-    } else {
-        uint32_t k = up_pat_nth(n - NPATTERNS);
-        up_slot_label(tag, k);
-        up_name(k, name);
-    }
+    tag[0] = (char)('0' + (n + 1u) / 10u);
+    tag[1] = (char)('0' + (n + 1u) % 10u);
+    tag[2] = 0;
+    str_cpy(name, PATTERNS[n % NPATTERNS].name, 13);
 }
 
-static uint32_t pat_pick(void)                   /* ui.ppick inside the list (user presets may be gone) */
+static uint32_t pat_pick(void)                   /* ui.ppick inside the list */
 {
     uint32_t n = pat_count();
     return ui.ppick < n ? ui.ppick : n - 1u;

@@ -55,7 +55,6 @@ static uint32_t fl_jedec_ram(void) { return 0; }
 static void fl_plain_window_init(void) {}
 #define FL_FAR(fn) (fn)
 #include "../firmware/src/storage.c"
-#include "../firmware/src/upreset.c"
 #include "../firmware/src/project.c"
 
 
@@ -70,8 +69,6 @@ static void reset(void)
     memset(nor, 0xFF, sizeof nor);
     memset(&song, 0, sizeof song);
     memset(trk, 0, sizeof trk);
-    memset(proj_slot, 0, sizeof proj_slot);
-    memset(up_bank, 0, sizeof up_bank);
     memset(&persist_saved, 0, sizeof persist_saved);
     memset(&settings, 0, sizeof settings);
     memset(&ui, 0, sizeof ui);
@@ -85,131 +82,8 @@ static void reset(void)
     flash_ok = 1;
     erase_error = 0;
     fail_after = -1;
-    up_gen = erases = 0;
+    erases = 0;
     irq_start_race = irq_races = 0;
-}
-
-/* ---- 1.0.3: the retired FM6 bank's patches move into the user presets on the first boot (up_fm6.c) ---- */
-static uint8_t mig_pre[0x100000];
-static fm6_bank_t mig_bank;
-
-static void mig_rec(up_bank_t *b, uint32_t i, uint32_t engine, int16_t slot, char tag)
-{
-    up_rec_t *r = &b->r[i];
-    uint32_t k;
-    memset(r, 0, sizeof *r);
-    r->used = UP_USED; r->ver = UP_VER; r->engine = (uint8_t)engine; r->np = P_COUNT;
-    r->name[0] = tag;
-    for (k = 0; k < P_COUNT; k++) up_set_value(r, k, param_desc_of(engine, k)->def);
-    up_set_value(r, P_E7, slot);
-    up_set_value(r, P_E0, (int16_t)(tag & 7));          /* (each record another sound) */
-}
-
-/* a 1.0.2 flash: user presets on B3 (slot 1), F2 (2), B5 empty (3), DRUM (4), B1 (18); the bank written twice */
-static void mig_setup(void)
-{
-    static up_bank_t b[2];
-    memset(nor, 0xFF, sizeof nor);
-    memset(b, 0, sizeof b);
-    for (uint32_t i = 0; i < 2u; i++) { b[i].magic = UP_BANK_MAGIC; b[i].rsize = sizeof(up_rec_t); b[i].nslot = UP_PER_BANK; }
-    mig_rec(&b[0], 0, ENGI_FM6, FM6_NFACTORY + 2, 'A');
-    mig_rec(&b[0], 1, ENGI_FM6, 1, 'B');
-    mig_rec(&b[0], 2, ENGI_FM6, FM6_NFACTORY + 4, 'C');
-    mig_rec(&b[0], 3, ENGI_DRUM, FM6_NFACTORY + 2, 'D');
-    mig_rec(&b[1], 1, ENGI_FM6, FM6_NFACTORY + 0, 'E');
-    st_save(OBJ_UPRESET0, &b[0], sizeof b[0]);
-    st_save(OBJ_UPRESET0 + 1, &b[1], sizeof b[1]);
-    memset(&mig_bank, 0, sizeof mig_bank);
-    mig_bank.magic = FM6_BANK_MAGIC; mig_bank.ver = 1; mig_bank.nslot = FM6_BANK_N; mig_bank.used = 1u | 1u << 2;
-    memcpy(mig_bank.v[2], FM6_FACTORY[4], FM6_PACKED); memcpy(mig_bank.v[2] + 118, "OLD BANK 1", 10);
-    st_save(OBJ_FM6BANK, &mig_bank, sizeof mig_bank);   /* A: an older bank */
-    memcpy(mig_bank.v[0], FM6_FACTORY[6], FM6_PACKED); memcpy(mig_bank.v[0] + 118, "NEW B1    ", 10);
-    memcpy(mig_bank.v[2] + 118, "NEW B3    ", 10);
-    st_save(OBJ_FM6BANK, &mig_bank, sizeof mig_bank);   /* B: the newest */
-}
-
-static void mig_boot(void)                               /* a power-on: RAM lost, the stores from flash */
-{
-    memset(up_bank, 0, sizeof up_bank);
-    memset(&upf, 0, sizeof upf);
-    up_boot();
-}
-
-/* the presets play what 1.0.2 played: slot 1 the newest B3, 18 B1, 2 F2, 3 init (an empty B5), DRUM none */
-static int mig_ok(void)
-{
-    uint8_t pk[FM6_PACKED];
-    return !upf_get(0, pk) && !memcmp(pk + 118, "NEW B3    ", 10) && !upf_get(17, pk) &&
-           !memcmp(pk + 118, "NEW B1    ", 10) && upf_get(1, pk) && upf_get(2, pk) && upf_get(3, pk);
-}
-
-static int mig_test(void)
-{
-    int bad = 0, ok = 1;
-    uint32_t cut, before, cuts = 0;
-    uint8_t pk[FM6_PACKED];
-    upf_t got;
-    reset();
-    mig_setup();
-    memcpy(mig_pre, nor, sizeof nor);
-    mig_boot();
-    bad += check("FM6 bank -> user presets: B slots get the bank's newest patches", mig_ok());
-    bad += check("  .. written into A (the bank's older copy); the bank's newest copy (B) still whole",
-                 st_load(OBJ_UPFM6, &got, sizeof got) == (int)sizeof got && !memcmp(&got, &upf, sizeof got) &&
-                     ((st_hdr_t *)(nor + 0x9F000))->type == OBJ_UPFM6 && st_load(OBJ_FM6BANK, &mig_bank, sizeof mig_bank) > 0 &&
-                     !memcmp(mig_bank.v[0] + 118, "NEW B1", 6));
-    up_load(0);
-    bad += check("  .. UP_LOAD 1 plays the bank's B3, SLOT OWN", !memcmp(fm6_patch[song.sel] + FP_NAME, "NEW B3    ", 10) &&
-                 TSEL->p[P_E7] == FM6_OWN);
-    up_load(1);
-    bad += check("  .. UP_LOAD 2 (F2) plays F2, SLOT F2", !memcmp(fm6_patch[song.sel] + FP_NAME, FM6_FACTORY[1] + 118, 10) &&
-                 TSEL->p[P_E7] == 1);
-    up_load(2);
-    bad += check("  .. UP_LOAD 3 (an empty B5) plays the init voice, as before",
-                 !memcmp(fm6_patch[song.sel] + FP_NAME, "INIT VOICE", 10) && TSEL->p[P_E7] == FM6_OWN);
-    before = erases;
-    mig_boot();
-    bad += check("  .. the next boot: done (no write), the same patches", mig_ok() && erases == before);
-    /* a power cut at every write step of the migration: the next boot ends with the same result */
-    for (cut = 0; cut < 64u && ok; cut++) {
-        memcpy(nor, mig_pre, sizeof nor);
-        fail_after = (int)cut;
-        mig_boot();                                      /* (writes stop at the cut: the rest fails) */
-        if (fail_after > 0) break;                       /* (this boot finished before the cut) */
-        fail_after = -1;
-        cuts++;
-        mig_boot();
-        ok &= mig_ok() && st_load(OBJ_UPFM6, &got, sizeof got) == (int)sizeof got;
-    }
-    memcpy(nor, mig_pre, sizeof nor);
-    erase_error = 1;
-    mig_boot();                                          /* a cut before the erase */
-    erase_error = 0;
-    mig_boot();
-    ok &= mig_ok();
-    bad += check("a power cut at any step of the migration loses nothing (the next boot redoes it)", ok && cuts >= 10u);
-    /* after it: a preset save writes the other sector (the bank's last copy); a cut there keeps the first copy */
-    memcpy(nor, mig_pre, sizeof nor);
-    fail_after = -1;
-    mig_boot();
-    trk[song.sel].eng_req = ENGI_FM6;
-    fm6_load_slot(song.sel, 3);
-    fail_after = (int)((sizeof(up_bank_t) + 255u) / 256u + 1u + 3u);   /* the preset bank's write passes, the patches' fails */
-    up_store(20, "CUT");
-    fail_after = -1;
-    mig_boot();
-    bad += check("a cut while a preset's patch is written: the others kept, that preset without one",
-                 mig_ok() && upf_get(20, pk));
-    up_store(20, "SAVED");
-    mig_boot();
-    bad += check("saved again: its patch, and the bank's sectors now both hold the patches object",
-                 mig_ok() && !upf_get(20, pk) && !memcmp(pk + 118, FM6_FACTORY[3] + 118, 10) &&
-                     ((st_hdr_t *)(nor + 0x9F000))->type == OBJ_UPFM6 && ((st_hdr_t *)(nor + 0xFE000))->type == OBJ_UPFM6);
-    memset(nor, 0xFF, sizeof nor);                        /* a device that never had a bank: nothing written */
-    before = erases;
-    mig_boot();
-    bad += check("no bank: nothing to move, nothing written", erases == before && upf_valid(&upf));
-    return bad;
 }
 
 /* ---- 1.2, Discussion #130: the autosave (project.c): written only when the music changed, stopped and idle 10 s, at
@@ -413,10 +287,6 @@ int main(void)
     int bad = 0, ok;
     uint32_t before;
     persist_t p;
-    project_store_t old, got;
-    project_v5_t v5;
-    up_bank_t bank;
-    up_rec_t r;
     reset();
     settings_init();
     reset();
@@ -460,116 +330,8 @@ int main(void)
     bad += check("settings retry succeeds after 1000 ms", !persist_pending && erases == before + 1u &&
                   st_load(OBJ_SETTINGS, &p, sizeof p) == (int)sizeof p && p.palette == palette_to_stored(1));
 
-    reset();
-    trk[0].step[0] = (step_t){{60}, 1, ST_NOTE, 0, 96, 0, 0};
-    project_save(0);
-    old = proj_slot[0];
-    trk[0].step[0].note[0] = 72;
-    fail_after = 1;
-    project_save(0);
-    fail_after = -1;
-    bad += check("failed project save keeps RAM and old flash", !strcmp(ui.msg, "SAVE ERROR") &&
-                  !memcmp(&proj_slot[0], &old, sizeof old) && st_load(OBJ_PROJECT0, &got, sizeof got) == (int)sizeof got &&
-                  !memcmp(&got, &old, sizeof got));
-    project_save(0);
-    bad += check("successful project save publishes new RAM", !strcmp(ui.msg, "SAVED") &&
-                  proj_import(&proj_scratch, &proj_slot[0], sizeof proj_slot[0]) &&
-                  proj_scratch.t[0].step[0].note[0] == 72u && proj_ok(&proj_scratch));
-    before = erases;
-    transport_req = 1;
-    project_save(1);
-    bad += check("pending PLAY: project save leaves slot and flash", !project_used(1) && erases == before &&
-                  !strcmp(ui.msg, "STOP TO SAVE"));
-    transport_req = 0;
-    erase_error = 1;
-    project_save(2);
-    bad += check("failed first project save leaves slot empty", !project_used(2));
-    erase_error = 0;
-    {   /* names: a project's through flash; a failed rename keeps the old one in RAM and flash */
-        char n[16];
-        project_store_t keep;
-        step_t st0 = trk[0].step[0];
-        project_save_as(0, "LOFI JAM");
-        memset(proj_slot[0].raw, 0, 8);                       /* (the RAM copy lost: read it back from flash) */
-        proj_fetch(0);
-        bad += check("a project's name goes to flash and comes back", project_name(0, n) && !strcmp(n, "LOFI JAM") &&
-                      !strcmp(proj_name, "LOFI JAM"));
-        keep = proj_slot[0];
-        fail_after = 1;
-        bad += check("failed project rename: SAVE ERROR, the slot and flash as they were",
-                      project_rename(0, "DUB") == 2 && !strcmp(ui.msg, "SAVE ERROR") && !memcmp(&proj_slot[0], &keep, sizeof keep) &&
-                      st_load(OBJ_PROJECT0, &got, sizeof got) == (int)sizeof got && !memcmp(&got, &keep, sizeof got));
-        fail_after = -1;
-        before = erases;
-        transport_req = 1;
-        bad += check("pending PLAY: no rename, no erase", project_rename(0, "DUB") == 1 && erases == before &&
-                      !strcmp(ui.msg, "STOP TO SAVE"));
-        transport_req = 0;
-        bad += check("project rename: flash has the new name, the music as it was", project_rename(0, "DUB") == 0 &&
-                      !strcmp(ui.msg, "RENAMED") && (memset(proj_slot[0].raw, 0, 8), proj_fetch(0), project_name(0, n)) &&
-                      !strcmp(n, "DUB") && proj_scratch.t[0].step[0].note[0] == st0.note[0]);
-    }
-    {   /* 1.5.5 (#199): SAVE > PROJECT ERASE: an empty record committed as a save is (A/B, the record last) */
-        project_store_t keep = proj_slot[0];
-        int ok2;
-        fail_after = 0;                                        /* (the commit record's write fails: a power cut) */
-        ok2 = project_erase(0) == 2 && !strcmp(ui.msg, "ERASE ERROR") && !memcmp(&proj_slot[0], &keep, sizeof keep) &&
-              st_load(OBJ_PROJECT0, &got, sizeof got) == (int)sizeof got && !memcmp(&got, &keep, sizeof got);
-        fail_after = -1;
-        bad += check("failed project erase (cut before its record): ERASE ERROR, the project in RAM and flash", ok2);
-        before = erases;
-        transport_req = 1;
-        ok2 = project_erase(0) == 1 && erases == before && !strcmp(ui.msg, "STOP TO ERASE") && project_used(0);
-        transport_req = 0;
-        ok2 &= project_erase(3) == 1 && erases == before && !strcmp(ui.msg, "EMPTY SLOT");
-        bad += check("project erase refused while playing and on an empty slot (no flash erase)", ok2);
-        (void)project_save(1);
-        before = erases;
-        proj_cur = 0;
-        pat_from[0] = 1; pat_from[1] = 2;
-        ok2 = project_erase(0) == 0 && !strcmp(ui.msg, "PROJECT A ERASED") && !project_used(0) && erases == before + 1u &&
-              st_load(OBJ_PROJECT0, &got, sizeof got) == 0 && proj_cur == PROJ_NO_SLOT && !pat_from[0] && pat_from[1] == 2u;
-        proj_fetch(0);
-        ok2 &= !project_used(0) && project_used(1);           /* (read back from flash: empty; the next slot kept) */
-        bad += check("project erase: the slot empty in RAM and flash (no older copy comes back), the others kept", ok2);
-        bad += check("an erased slot takes a new save", project_save(0) == 0 && project_used(0) &&
-                      (memset(proj_slot[0].raw, 0, 8), proj_fetch(0), project_used(0)));
-    }
-    {   /* FUN7 itself refuses a step outside its fields: a damaged slot is empty, the tracks stay */
-        step_t keep = trk[0].step[0];
-        old = proj_slot[0];
-        proj_slot[0].raw[68 + P_COUNT + 2 + 4] = 7;               /* track 1 step 1: n = 7 */
-        bad += check("damaged FUN7 slot (hash ok, n > 4) is refused", (memcpy(proj_slot[0].raw + PROJ_STORE_SIZE - 4,
-                      &(uint32_t){proj_hash(proj_slot[0].raw, PROJ_STORE_SIZE - 4)}, 4), !project_used(0)));
-        st_save(OBJ_PROJECT0, &proj_slot[0], sizeof proj_slot[0]);
-        ui.msg[0] = 0;
-        project_load(0);
-        bad += check("loading it says EMPTY SLOT and keeps the steps", !strcmp(ui.msg, "EMPTY SLOT") &&
-                      !memcmp(&trk[0].step[0], &keep, sizeof keep));
-        proj_slot[0] = old;
-        st_save(OBJ_PROJECT0, &proj_slot[0], sizeof proj_slot[0]);
-    }
-    {   /* an older format (FUN5) with values FUN7 cannot pack still loads, bounded */
+    {   /* every parameter of every engine fits the stored record's byte (FUN10: value + 64) */
         uint32_t i;
-        memset(&v5, 0, sizeof v5);
-        v5.magic = PROJ_MAGIC_V5;
-        v5.size = sizeof v5;
-        for (i = 0; i < G_COUNT; i++)
-            v5.g[i] = GP[i].def;
-        for (i = 0; i < NTRK; i++) {
-            v5.t[i].engine = trk[i].engine;
-            memcpy(v5.t[i].p, trk[i].p, sizeof v5.t[i].p);
-        }
-        v5.t[0].p[P_LEVEL] = 900;                                  /* out of range */
-        v5.t[0].step[0] = (step10_t){{255, 128, 160, 200}, 255, 255, 0, 96, 255, 5};
-        v5.sum = proj_hash(&v5, sizeof v5 - 4u);
-        st_save(OBJ_PROJECT0 + 3u, &v5, sizeof v5);
-        memset(proj_slot[3].raw, 0, 4);
-        project_load(3);
-        bad += check("FUN5 load bounds steps and masks lane accents", trk[0].step[0].n == 4u &&
-                      trk[0].step[0].time == ST_REST && trk[0].step[0].note[0] == 127u &&
-                      !trk[0].step[0].note[1] && trk[0].step[0].acc == 5u && project_used(3));
-        bad += check("FUN5 load clamps a parameter into its range", trk[0].p[P_LEVEL] == TP[P_LEVEL].max);
         for (i = 0; i < P_COUNT; i++) {
             uint32_t e;
             for (e = 0; e < NENGINES; e++)
@@ -580,60 +342,12 @@ int main(void)
                 }
         }
     }
-    seq_stop();
-    transport_req = 0;
-    memset(&r, 0, sizeof r);
-    r.used = UP_USED;
-    r.ver = UP_VER;
-    r.np = P_COUNT;
-    memcpy(r.name, "First", 6);
-    erase_error = 1;
-    bank = up_bank[1];
-    ok = up_put(17, &r) == 2;
-    erase_error = 0;
-    bad += check("failed first preset save restores empty bank", ok && !memcmp(&up_bank[1], &bank, sizeof bank));
-    bad += check("preset initial save", up_put(3, &r) == 0 && up_used(3));
-    bank = up_bank[0];
-    before = up_gen;
-    r.p[0] = 77;
-    fail_after = 1;
-    ok = up_put(3, &r) == 2;
-    fail_after = -1;
-    bad += check("failed preset save rolls back bank and generation", ok && up_gen == before &&
-                  !memcmp(&up_bank[0], &bank, sizeof bank));
-    favorite_set(NENGINES, 3, 1);
-    fail_after = 1;
-    ok = up_put(3, 0) == 2;
-    fail_after = -1;
-    bad += check("failed preset erasure retains both the sound and its favorite", ok && up_used(3) &&
-                  favorite_has(NENGINES, 3) && !memcmp(&up_bank[0], &bank, sizeof bank));
-    memset(&up_bank[0], 0, sizeof up_bank[0]);
-    up_boot();
-    bad += check("failed preset save keeps old flash", !memcmp(&up_bank[0], &bank, sizeof bank));
-    trk[0].user = 4;
-    erase_error = 1;
-    ok = up_put(3, 0) == 2;
-    erase_error = 0;
-    bad += check("failed preset erase keeps record and loaded label", ok && trk[0].user == 4u && up_gen == before &&
-                  !memcmp(&up_bank[0], &bank, sizeof bank));
-    bad += check("successful preset erase clears loaded label", up_put(3, 0) == 0 && !up_used(3) && !trk[0].user);
     before = erases;
-    transport_req = 1;
-    bad += check("pending PLAY: preset save blocked", up_put(3, &r) == 2 && erases == before && !up_used(3));
-    transport_req = 0;
-    bad += check("preset invalid slot blocked before access", up_put(UP_SLOTS, &r) == 1 && erases == before);
-    song.playing = 0; transport_req = 1; irq_start_race = 1;
-    bad += check("PLAY consumed before the save snapshot still blocks a project write",
-                  project_save(1) != 0 && irq_races == 1u && song.playing && !transport_req && erases == before);
-    song.playing = 0; transport_req = 1; irq_start_race = 1;
-    bad += check("PLAY consumed before the preset snapshot still blocks a bank write",
-                  up_put(3, &r) == 2 && irq_races == 2u && song.playing && !transport_req && erases == before);
     song.playing = 0; transport_req = 1; irq_start_race = 1;
     settings.palette = 4;
     settings_save();
     bad += check("PLAY consumed before the settings snapshot defers the write",
-                  irq_races == 3u && song.playing && !transport_req && persist_pending && erases == before);
-    bad += mig_test();
+                  irq_races == 1u && song.playing && !transport_req && persist_pending && erases == before);
     bad += autosave_test();
     printf("%s\n", bad ? "PERSISTENCE TEST FAILED" : "persistence test passed");
     return bad != 0;

@@ -10,7 +10,7 @@
  * uses (the map: storage.c). Like the autosave's sectors it lies in the margin the stock firmware's own update stages
  * into, only while the stock firmware runs: a later Felucca finds no valid bank there (commit record, CRC) and starts
  * with none. Sector: the commit record (storage.c st_hdr_t, type OBJ_FM6VB) at 0, the bank's header (fvb_info_t) at
- * 224, the 32 voices at 256..3839, 112 bytes each (the record's 7-bit bytes 8 to 7, up_fm6.c upf_pk_put); the record's
+ * 224, the 32 voices at 256..3839, 112 bytes each (the record's 7-bit bytes 8 to 7, the retired user-preset packer); the record's
  * CRC covers 224..3839. The tail from 0xF00 on stays erased: the record scans of the update loader and the SPL (a 4 KiB
  * boundary - 256) never find anything there.
  *
@@ -20,7 +20,8 @@
  * commit record, read back). A power cut anywhere leaves the old bank (nothing committed) or the new one (committed:
  * fvb_boot finishes the copy at the next power-on, before any autosave can take that sector): never half of one. A
  * wrong CRC commits nothing. An autosave between two requests (it waits 10 s after the last, project.c) takes the
- * sector: WRITE and END find its commit record there and answer 5 (start again). Included by upreset.c. */
+ * sector: WRITE and END find its commit record there and answer 5 (start again). Not included since P3-011; P3-009
+ * deletes the file with FM6. */
 #define FVB_HOME 0xE7000u
 #define FVB_INFO 224u                          /* the bank's header; the voices from FVB_VOICES */
 #define FVB_VOICES 256u
@@ -108,7 +109,7 @@ static int fvb_read(uint32_t k, uint8_t *pk)
     return 0;
 }
 
-/* up_boot, and after a bank was staged: a staged bank newer than 0xE7000's is copied there; then the voices of the
+/* the user presets' boot (removed P3-011), and after a bank was staged: a staged bank newer than 0xE7000's is copied there; then the voices of the
  * bank at 0xE7000 (none without one) */
 static void fvb_boot(void)
 {
