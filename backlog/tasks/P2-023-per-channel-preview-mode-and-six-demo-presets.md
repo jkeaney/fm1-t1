@@ -3,7 +3,7 @@ id: P2-023
 title: Per-channel preview mode and six demo presets (ACID LEAD BASS PAD STRINGS PIANO)
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: []
@@ -61,3 +61,6 @@ Verdict: PASS on the mechanical and design checks; gate is human-review, so the 
 - Labelling: [M] measured vs [E] estimate is declared up front and applied per figure (41.4 KB PIANO data [M], eng_sample ~5 KB [E], CPU [E], nothing [V]).
 - Superseded rules: ADR-0003 and SEQUENCER_UX 4.4 are named as superseded in section 0 and 6, not edited, and put to the owner (question 8).
 Awaiting owner: answer questions 1-8 in PREVIEW.md section 8 (chiefly Q1 PIANO: A/B/C, which unblocks P3-009/P3-010, and Q8 amending ADR-0003 / SEQUENCER_UX 4.4). Also confirm the hold-mute-key gesture.
+
+### 2026-11-11 orchestrator
+Approved with amendments: owner 2026-11-11 (decision 110). Amendments routed to P2-024.
