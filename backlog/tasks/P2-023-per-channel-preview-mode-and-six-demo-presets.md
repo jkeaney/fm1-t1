@@ -3,7 +3,7 @@ id: P2-023
 title: Per-channel preview mode and six demo presets (ACID LEAD BASS PAD STRINGS PIANO)
 phase: P2
 type: task
-status: todo
+status: review
 priority: 1
 executor: sonnet
 depends_on: []
@@ -28,10 +28,10 @@ Design docs only (no firmware), in docs/design/PREVIEW.md plus table/scenario ed
 5. Owner question sheet with lettered options and a recommendation.
 
 ## Acceptance criteria
-- [ ] All five deliverables present
-- [ ] The six presets each map to a concrete engine and parameters, or are flagged as not feasible with the reason
-- [ ] Design checkers pass: tests/design/check_scenarios.py, check_help.py, tools/check_sequencer_ux.py, tests/design/width_probe.sh, backlog.py check
-- [ ] Decisions 80, 98-109 honoured or explicitly reopened in the owner sheet
+- [x] All five deliverables present
+- [x] The six presets each map to a concrete engine and parameters, or are flagged as not feasible with the reason
+- [x] Design checkers pass: tests/design/check_scenarios.py, check_help.py, tools/check_sequencer_ux.py, tests/design/width_probe.sh, backlog.py check
+- [x] Decisions 80, 98-109 honoured or explicitly reopened in the owner sheet
 
 ## Verification
 ```sh
@@ -42,3 +42,13 @@ python3 tests/design/check_scenarios.py; python3 tests/design/check_help.py; pyt
 - Firmware changes. Do not run tools/check.sh or builds. Do not touch the P3-014/BUG-003 files (review in progress).
 
 ## Log
+
+### 2026-11-11 executor (sonnet)
+Deliverable: docs/design/PREVIEW.md (sections 1-8: preview model and gestures, six presets with engine and parameters, mod-layer interaction, task effects, owner sheet of 8 questions). No firmware, TSV or scenario rows edited; proposed rows are in PREVIEW.md section 7. Six toast strings measured with width_probe on a scratch file (all within 204 px), not added to widths.tsv.
+Key findings: ACID/LEAD/BASS/PAD/STRINGS fit ANALOG (PAD/STRINGS lose chorus/reverb to P3-014); PIANO does not (question 1: A ANALOG e-piano, B keep SAMPLE PIANO set ~41.4 KB data + ~5 KB code, C keep FM6). P3-009/P3-010 stay held on question 1. ADR-0003 and SEQUENCER_UX 4.4 preview rules are superseded (not edited; question 8).
+Verification:
+- check_scenarios.py -> scenarios: 23 files, 490 control-map rows, 0 with no scenario
+- check_help.py -> OK: 392 help rows, 2695 strings measured
+- check_sequencer_ux.py -> OK
+- width_probe.sh -> 286 strings, 0 over
+- backlog.py check -> 120 items, 0 errors
