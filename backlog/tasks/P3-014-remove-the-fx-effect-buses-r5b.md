@@ -3,7 +3,7 @@ id: P3-014
 title: Remove the fx effect buses (R5b, second per decision 80)
 phase: P3
 type: task
-status: review
+status: done
 priority: 2
 executor: haiku
 depends_on: [P3-002]
@@ -77,3 +77,6 @@ Result: task set blocked. Acceptance criterion `sh tools/check.sh ends CHECK PAS
 ### 2026-11-11 executor (sonnet) - unblocked
 BUG-003 fixed in its own commit (harness fault in drumfuzz setup, not firmware; see its log). Then `sh tools/check.sh` on this tree:
 `RAM .data+.bss 55248 B of 73728` ... `CHECK PASS`. All criteria ticked. The earlier "known" division by zero is gone; no P3-014 code was changed.
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS (gate none). Re-ran acceptance greps (word grep, hl/fx field grep, wet[): all empty. Kept symbols present in fx.c. insert_test.c and reverb_test.c deleted in commit. tools/check.sh: CHECK PASS; RAM .data+.bss 55248 of 73728 (headroom 18480 B >= 8192). Pool 342876 -> 192808 (150068 B drop >= 140000) per build line in log. Golden re-baseline is the intended effect of decision 80.

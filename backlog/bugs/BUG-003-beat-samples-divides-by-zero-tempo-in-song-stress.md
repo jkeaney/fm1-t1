@@ -3,7 +3,7 @@ id: BUG-003
 title: beat_samples divides by a zero song tempo in the DRUM stress run with a SONG playing
 phase: P2
 type: bug
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: []
@@ -58,3 +58,6 @@ deliver one signal there.
 - `/tmp/drumfuzz 101 3 1500 song` (guarded) -> seeds 101..103 ok, no UBSan report.
 - `sh tools/check.sh` -> CHECK PASS (RAM .data+.bss 55248 of 73728).
 Note: drumfuzz seed 102 can still HANG (5 s alarm, "ui max" ~1.5 s) on a loaded host under ASan; it is a timing fault seen before my change too.
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS. Root cause is sound: main.c runs felucca_init (l.175) before audio_init (l.179), so the half-initialised song window exists only in the host harness (ui_power_on memset then defaults, with the -DPREEMPT signal acting as ISR). Fix is tests-only (drumfuzz fz_boot guard plus FZ_BOOT_HOOK deterministic hook in ui_test.c); the "unguarded" mode reproduces the old failure, guarded passes. tools/check.sh: CHECK PASS, RAM .data+.bss 55248 of 73728 (headroom 18480 B). Note: drumfuzz seed 102 may hang on a loaded host (pre-existing timing fault, not this bug).
