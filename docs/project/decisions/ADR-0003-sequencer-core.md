@@ -527,7 +527,7 @@ NOTE_OFFs; a NOTE_OFF that cannot be sent stays in the queue and is retried next
 | PLAY | `sq_all_off()` first (the T-1 did the same in `t1_on_start`). |
 | USB host (re)connects or disconnects | PANIC on the 0->1 edge of `usb.config`. |
 | MIDI-channel change, algorithm switch, preset load, mute | **No cut.** Queued events keep their own MIDI channel, so the old note ends on the old channel. (This replaces the "cut on algorithm / channel change" line in sting 6.3a item 3; owner decision 47.) |
-| Mute | New hits stop at once; sounding notes end by their queued offs (no click, no hang). |
+| Mute | The MIDI gate in `sq_emit` closes at once (decision 111): the channel keeps computing its steps and feeds its preview; sounding MIDI notes end by their queued offs (no click, no hang). |
 
 ## 9. Step entry: pins on the 16 white keys, and `K1 = 0` (KEYS ONLY)
 

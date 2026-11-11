@@ -100,7 +100,7 @@ Fields of an edit, each independently AUTO or set:
 | `GATE` | 10..100 % of a step, or TIE | multiplied by the global GATE like the generated gate (50 % neutral); TIE holds into the next sounding step (after the last step, across the loop end into step 1, like SLIDE; 9.2) |
 | `VELO` | 1..127 | >= `ACC_THR` 100 is an accent on the TB-3 (shown `ACC`); threshold verified by ear 2026-11-11, decision 104 |
 | `RATCH` | 1x..4x | repeats inside the step (SP5 spacing); AUTO: the generated repeats |
-| `SLIDE` | ON, OFF | **this note glides into the next step** (step p+1; after the last step, step 1: TB-303 rule); if that step does not sound (OFF, chance drew silent, muted) there is no glide and the note plays its own gate; the core turns it into the slide pairing of ADR-0003 7.3 (9.2) |
+| `SLIDE` | ON, OFF | **this note glides into the next step** (step p+1; after the last step, step 1: TB-303 rule); if that step does not sound (OFF, chance drew silent) there is no glide and the note plays its own gate; the core turns it into the slide pairing of ADR-0003 7.3 (9.2) |
 | `PROB` | 100 %, 50 % (`PROB_LOW`) | at 50 % the step plays on a deterministic draw per pass (9.3) |
 
 `K1 = 0` (`KEYS ONLY`, decision 35) still works: the generator then has no hits and only steps whose `ON` is set play.
@@ -578,7 +578,7 @@ each channel whose PREVIEW is ON plays the same notes on its own preview part (a
 | U45 | GLO hold, K1 | SCALE, `sq_global_set()` | next step: every pitch re-snapped | `SCALE DORIAN`, scale tones lit |
 | U46 | GLO hold, any key | KEY = pitch class | next step; the new root sounds once | `KEY F` |
 | U47 | GLO hold, OCT- / OCT+ or K3 | OCTAVE | next step | `OCTAVE +1` |
-| U48 | black F#3..C#4 tap | `sq_set_mute` | new hits stop at once; sounding notes end by their offs | channel cell `m`, legend dim |
+| U48 | black F#3..C#4 tap | `sq_set_mute` | the MIDI gate in `sq_emit` closes at once (the channel keeps computing its steps and feeds its preview; PREVIEW.md 1.2); sounding MIDI notes end by their queued offs | channel cell `m`, legend dim |
 | U49 | hold F#4 | `sq_perf(SOLO)` | while held only ch sounds | SOL cell inverted, strip `SOLO CH1: let go` |
 | U50 | hold G#4 (+ pressure) | FILL: K1 morph raised by pressure, restored on release | next step | `FILL 80%` live |
 | U51 | hold A#4 (+ pressure) | `sq_perf(ROLL)`, repeats = pressure bin | next step: 2-4 triggers per step | `ROLL 3x` live |
@@ -1010,7 +1010,7 @@ gate = GATE(e) ? table[GATE(e)] : o.gate;  TIE -> hold until the next sounding s
 rep  = RATCH(e) ? RATCH(e) : o.rep;
 n    = (p + 1 >= len) ? 0 : p + 1;                       // THE next step: after the last step, step 1
 slideout(p) = (SLIDE(e) == AUTO ? (generated PO_SLIDE_IN of step n, read at g(n)) : SLIDE(e) == ON)
-              && hit(n)                                  // resolved hit of n (edits, mute, its chance draw with pass+1 at the wrap)
+              && hit(n)                                  // resolved hit of n (edits, its chance draw with pass+1 at the wrap); NOT mute: mute and SOLO act at the MIDI gate in sq_emit
               // allowed across the loop end; cancelled only by STOP (every note off) or a LENGTH change inside
               // step p (the off returns to p's own gate end, or is sent at once if that has passed)
 if PROB(e) && (sp1_hash(ch, p, pass) & 0xFF) >= PROB_LOW_256: hit = 0
