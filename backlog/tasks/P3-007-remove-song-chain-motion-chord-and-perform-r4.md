@@ -21,6 +21,9 @@ Remove the groovebox sequencing features after cutting their callers (SYSTEM_MAP
 - Delete: firmware/src/song_chain.c, motion.c, chord.c, perform.c
 - Edit callers: seq.c (`chain.running`, `chain_start/stop`, `chain_motion`, `motion_begin/end`, `perf_key` lines named in SYSTEM_MAP rows 15/19/22), main.c `chain_defaults`, midi_control.c `mchord_of` (row 21: adapt first), ui_input.c remnants, fx.c perform calls (`perf_begin`, `perf_pre`, `perf_master`, `perf_block`, `perf_mute*`, `perf_throw`, `pf.*`, the `send_d`/`send_r` scratch arrays P3-014 kept), seq.c `perf_key*`/`perf_start` (660-720, 772-817, 852), ui_input.c:411,1488,1533-1538, ui_layer.c remnants, project.c song/motion sections. perform.c also owns the 32768 B `pf_buf` pool buffer that P3-002 gave it: it goes with the file
 - Tests (perform_test was already deleted in P3-002): motion_test, chord_test, seq155_test, fun10_test, ratchet_test, the song/motion parts of project_test
+- tools/size_fns.py: remove "song_chain.c", "motion.c", "chord.c" from `SIZE_FILES`. **A deleted file still listed there crashes ./build.sh** (FileNotFoundError); found in FB-005.
+- tests/target_budget.py + target_budget.txt: delete the removed functions (perf_begin, perf_mute, perf_pre, perf_block, perf_master, perf_flanger, perf_phaser, perf_throw) from `FUNCS` and their rows from target_budget.txt; a function missing from the disassembly makes the budget step FAIL ("not found"). No BUDGET_UPDATE of other rows (FB-004 A).
+- tests/hostsim.c line ~40: delete `#include "../firmware/src/song_chain.c"` (every host test that includes hostsim.c depends on it); tests/ui_test.c names song_chain/chord; tests/run_tests.sh has the chord_test and motion_test runs (and header comments) to delete; tests/motion_test.c also names ui_events (P3-006 deletes that file first).
 - Log: before/after build line (image, RAM, pool) and the bytes freed vs SYSTEM_MAP §9
 
 ## Acceptance criteria

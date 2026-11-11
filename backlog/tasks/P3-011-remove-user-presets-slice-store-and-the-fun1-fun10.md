@@ -21,6 +21,8 @@ Remove the groovebox storage formats; project.c keeps only what the preset store
 - Delete: upreset.c, up_fm6.c, slice_store.c; FUN1..FUN10 loaders/savers, pattern/song/motion sections in project.c
 - Edit callers: ui.c `up_used`, storage object ids they used (leave the storage A/B core untouched)
 - Tests: upreset_test, fuzz_proj, the remaining backup_test and project_test parts; persistence_test and settings_test still pass unchanged
+- tools/size_fns.py: remove "upreset.c", "up_fm6.c", "slice_store.c" from `SIZE_FILES`. **A deleted file still listed there crashes ./build.sh** (FileNotFoundError); found in FB-005.
+- Correction to the Tests line: tests/persistence_test.c `#include`s upreset.c and uses `up_bank_t`/`up_*` in main(), so it does NOT pass unchanged: drop the include and the up_* cases, keep the rest. tests/slice_test.c includes slice_store.c (already deleted in P3-009 if slice_test went; check). web/emu/felucca_web.c includes upreset.c: delete. tests/run_tests.sh: upreset_test and slice_test runs. tests/ui_test.c names upreset. (backup_test and fuzz_proj were already deleted in P3-004: do not look for them.)
 - Log: before/after build line (image, RAM, pool) and the bytes freed vs SYSTEM_MAP §9
 
 ## Acceptance criteria

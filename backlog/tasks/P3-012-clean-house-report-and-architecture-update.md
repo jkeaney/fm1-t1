@@ -23,6 +23,8 @@ Record what P3 freed and leave CLAUDE.md describing the cleaned firmware, so P4 
 - CLAUDE.md Architecture and include-order text updated to the files that remain (no mention of removed engines, editor, layers, chain)
 - docs/project/HANDOFF.md 'Budget facts' updated with the measured headroom
 
+- Report one open item for the owner (FB-005): web/index_pkg.html + fm1backup.js still offer a SysEx backup before returning to official V15; the cleaned firmware no longer answers it. State the measured behaviour and a recommendation.
+
 ## Acceptance criteria
 - [ ] CLEAN_HOUSE_REPORT.md exists with one row per step R1-R7
 - [ ] `grep -nE 'ui_layer|song_chain|editor\.c|eng_drum' CLAUDE.md` returns nothing

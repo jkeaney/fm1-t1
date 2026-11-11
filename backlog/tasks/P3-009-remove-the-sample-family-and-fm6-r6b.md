@@ -20,7 +20,10 @@ Remove the sampler (126 KB of ADPCM data) and the 6-op FM engine.
 ## Deliverable
 - Delete: eng_sample.c, eng_grain.c, eng_slice.c, felucca_samples.h, eng_fm6.c, fm6_core.c, fm6_vbank.c, fm4_convert.c, felucca_fm6.h, slice data
 - Edit callers: engines.c, params.c, settings_persist.c/category remnants, project.c loaders that name them
-- Tests: sample_test, slice_test, fm6_test, fm6bank_test, fuzz_smp; regress lines
+- Tests: sample_test, slice_test, fm6_test; regress lines (fm6bank_test and fuzz_smp were already deleted in P3-004)
+- tools/size_fns.py: remove "fm4_convert.c" from `SIZE_FILES`. **A deleted file still listed there crashes ./build.sh** (FileNotFoundError); found in FB-005.
+- tests/target_budget.py + target_budget.txt: delete the removed functions (sample_render, grain_render, grain_block, slice_render, slc_rev, fm6_render, fm6_op_run, fm6_op_fb) from `FUNCS` and their rows from target_budget.txt; a function missing from the disassembly makes the budget step FAIL ("not found"). No BUDGET_UPDATE of other rows (FB-004 A).
+- tools/build.py lines ~104-105 generate `felucca_fm6.h` and `felucca_samples.h` (gen_fm6_patches.py, gen_samples.py): drop those two generator entries and delete the generators if nothing else uses them (tools/sampleio.py, tools/fm1_sample_upload.py, tests/pitch.py, slice_loop.py are the sample tools: grep and decide, list in the Log). tests/run_tests.sh lines ~373-388 read `build/gen/felucca_samples.h` and call gen_samples.py (PIANO HD, SLC_BREAK_BPM): delete those blocks. web/emu/felucca_web.c includes eng_sample/samples headers: edit by reading. tests/run_tests.sh fm6_test/sample_test/slice_test runs go with their files; tests/ui_test.c, project_test.c and descdump references to fm4_convert/eng_sample/eng_slice/fm6_core must be cut (grep).
 - Log: before/after build line (image, RAM, pool) and the bytes freed vs SYSTEM_MAP §9
 
 ## Acceptance criteria

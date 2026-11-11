@@ -21,6 +21,8 @@ Leave exactly one engine, ANALOG preset 0, as the fixed preview synth (SYSTEM_MA
 - Delete: eng_phase.c, eng_lofi.c, eng_trio.c, eng_wheel.c, eng_formant.c (VOICE), eng_noise.c; the `eng_mem` pool buffer
 - Edit callers: engines.c `ENGINES[]` = ANALOG only, `NENGINES` 1, `eng_idx()` still returns 0; params.c pruned to ANALOG pages; the factory sequence patterns (SAVE > PHRASES) in engines.c
 - Tests: noise_test, fold155_test, union_test go; sound14/sound15 keep ANALOG cases; `GOLDEN_UPDATE=1` and `BUDGET_UPDATE=1` re-baseline regress to ANALOG, Log lists the change
+- tests/target_budget.py + target_budget.txt: delete the removed functions (phase_render, phase_render_f, lofi_render, formant_render, trio_render, trio_pass, wheel_render, wheel_block, noise_render) from `FUNCS` and their rows from target_budget.txt; a function missing from the disassembly makes the budget step FAIL ("not found"). No BUDGET_UPDATE of other rows (FB-004 A).
+- tests/run_tests.sh: noise_test, fold155_test, union_test runs and comments; tests/regress.c names eng_formant; tests/fold155_test.c names eng_phase. Golden and budget re-baseline as already stated; list the count of removed golden lines.
 - Log: before/after build line (image, RAM, pool) and the bytes freed vs SYSTEM_MAP §9
 
 ## Acceptance criteria

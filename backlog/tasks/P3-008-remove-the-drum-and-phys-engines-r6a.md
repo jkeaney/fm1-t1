@@ -21,6 +21,8 @@ Remove the drum kit and physical models (sound design, not preview).
 - Delete: eng_drum.c, drum_voice.c, eng_phys.c, phys_dsp.c, phys_symp.c
 - Edit callers: voice.c `ENGI_DRUM` branch, seq.c `drum_track()`, ui_input.c DRUM lines, engines.c table rows, params.c pages for them
 - Tests: drum_test, phys_test, phys_ref; regress golden lines for these engines removed
+- tests/target_budget.py + target_budget.txt: delete the removed functions (phys_render, drum_render, px_modal_block, px_modal_run, px_memb_block, px_string_excite, px_string_run, px_symp_run, dv_metal_run, dv_kick_run, dv_snare_run, dv_clap_run, dv_hat_run, dv_tom_run, dv_rim_run, dv_bell_run, dv_cym_run, dv_out, dv_metal_mix) from `FUNCS` and their rows from target_budget.txt; a function missing from the disassembly makes the budget step FAIL ("not found"). No BUDGET_UPDATE of other rows (FB-004 A).
+- tests/run_tests.sh: the drum_test, drumfuzz (if still present) and phys_test runs and their header comments; tests/ui_test.c and tests/regress.c name eng_drum/drum_voice: grep and edit. Check LICENSING.md rows that list eng_drum/drum_voice/phys_* (licence of a removed file; update the table, do not leave a dead path).
 - Log: before/after build line (image, RAM, pool) and the bytes freed vs SYSTEM_MAP §9
 
 ## Acceptance criteria
