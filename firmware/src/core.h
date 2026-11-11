@@ -13,10 +13,9 @@
 #define NTRK NPART               /* tracks (the formats and the protocol count these): every track is a part */
 #define NSTEP 64
 #define HALF_FRAMES 128          /* I2S half buffer: 2.9 ms at 44.1 kHz (a key waits 0..1 half, then plays 1 half later) */
-#define NENGINES 13              /* the table keeps its indices until P3-010 (retired engines are placeholders) */
-#define ENGI_DIGITAL 1u          /* reserved (DIGITAL, retired): never selectable (eng_ok) */
-#define NENG_SHOWN 7   /* the engines one can pick: PRESETS, the EDIT layer, the editor,
-                                                * in the display order of engines.c ENGINE_ORDER */
+#define NENGINES 1               /* ANALOG only (P3-010) */
+#define NENG_SHOWN 1   /* the engines one can pick: PRESETS, the EDIT layer, the editor,
+                                                * in the display order of the engine table (the one engine, P3-010) */
 #define UP_SLOTS 32u             /* user preset slots (removed in P3-011: the constant stays for favorites.c) */
 #define NELEM(a) (sizeof(a) / sizeof((a)[0]))
 
@@ -176,9 +175,8 @@ typedef struct {                 /* an engine (engines.c ENGINES[]; the eng_*.c 
      * done() says so (once per control tick, before the render), not at the end of the ADSR's release */
     uint8_t ownenv;
     int (*done)(struct track *t, voice_t *v);
-    /* bytes of the part's engine memory (engines.c eng_mem, at most ENG_MEM_PART) the engine keeps its state
-     * in, 0 = none: a part plays one engine at a time, so they share one region; on a switch to the engine
-     * (after the old one's fade) the region is zeroed when another engine had it (eng_mem_claim) */
+    /* bytes of per-part engine state the engine keeps in the part (0 = none). The retired engines' shared
+     * region was removed in P3-010; ANALOG keeps no such state. */
     uint16_t mem;
 } engine_t;
 

@@ -25,15 +25,15 @@ int main(void)
     bad += check("FUN10 fits one flash object", sizeof(project_store_t) <= 4096u - 256u && sizeof(project_store_t) == 3840u);
     memset(&q, 0, sizeof q);
     q.magic = PROJ_MAGIC; q.size = sizeof q; q.parts = NPART; q.phys = PROJ_PHYS;
-    q.t[1].engine = 8;
+    q.t[1].engine = 0;
     q.t[2].p[P_M2SRC] = 6;
     q.t[2].p[P_M2DST] = 11;
     q.t[2].p[P_M2AMT] = -17;
     q.t[0].step[0] = (step_t){{36, 42, 0, 0}, 2, ST_NOTE, 0, 96, 0, 0};
     q.sum = proj_sum(&q);
     ok = proj_pack(&st, &q) && proj_import(&q2, &st, sizeof st);
-    bad += check("FUN10 round trip: a matrix slot, engine 8, a two-note step", ok && !memcmp(&q, &q2, sizeof q) &&
-                 q2.t[1].engine == 8 && q2.t[2].p[P_M2AMT] == -17 && q2.t[0].step[0].n == 2u);
+    bad += check("FUN10 round trip: a matrix slot, a two-note step", ok && !memcmp(&q, &q2, sizeof q) &&
+                 q2.t[2].p[P_M2AMT] == -17 && q2.t[0].step[0].n == 2u);
     st.raw[100] ^= 1u;
     bad += check("FUN10 with a changed byte: the hash refuses it", !proj_import(&q2, &st, sizeof st));
     st.raw[100] ^= 1u;

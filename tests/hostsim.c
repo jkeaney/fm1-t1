@@ -85,6 +85,7 @@ static void host_tracks_init(void)                /* as felucca_init: defaults, 
 /* the factory preset as ui.c apply_preset_to sets it (sound, sends; not the steps, not the track's own:
  * the mix, ARP, SCL, the pattern parameters, the SLICER);
  * the engine as the UI asks for it (eng_req: the audio side switches; host_preset: at once) */
+static int eng_ok(uint32_t e) { return e < NENGINES; }   /* (every engine in the table is selectable: P3-010) */
 static void host_preset_values(track_t *t, uint32_t e, uint32_t pi, const preset_t *p)
 {
     static const uint8_t FX_DEF[4] = {0, 24, 28, 36};
@@ -119,7 +120,6 @@ static void host_preset(track_t *t, uint32_t e, uint32_t pi)
 {
     host_preset_req(t, e, pi);
     t->engine = t->eng_req;                       /* (DIGITAL, retired: FM6) */
-    eng_mem_claim(t);                             /* (voice.c engine_block would at the next block) */
 }
 
 /* the drums of the render tests: DRUM's kit (the power-on track 4; until 1.0.2 these used SAMPLE PERC) */
@@ -194,7 +194,8 @@ static int tracks_demo(const char *dir, const char *name, uint32_t solo)
     song.g[G_BPM] = 120;
     host_preset(t1, 0, 4);
     host_preset(t2, TRK_DEF[1][0], TRK_DEF[1][1]);
-    host_preset(t3, 3, 0);
+    t2->p[P_VOICE] = V_POLY;                       /* (the pad takes chords; ANALOG preset 0 is mono, P3-010) */
+    host_preset(t3, 0, 0);                         /* (LOFI PULSE LD until P3-010) */
     host_drums(td);                                /* DRUM KIT (SAMPLE PERC until 1.0.2) */
     for (i = 0; i < 16u; i++) {
         uint8_t n = ACID[i];
@@ -739,18 +740,9 @@ static int tracks_test(const char *dir)
         waitpid(pid, &st, 0);
         if (!WIFEXITED(st) || WEXITSTATUS(st))
             fail++;
-        fflush(stdout);
-        pid = fork();
-        if (!pid) {
-            int rc = xfade_test(dir);
-            fflush(stdout);
-            _exit(rc);
-        }
-        waitpid(pid, &st, 0);
-        if (!WIFEXITED(st) || WEXITSTATUS(st))
-            fail++;
+        /* (xfade_test, the engine-switch crossfade, has nothing to switch between since P3-010: ANALOG is the only engine) */
     }
-    printf("tracks: WAVs in %s: %s (mix), %s, %s, %s, %s, steal.wav, engine_switch.wav\n", dir, SOLO[0], SOLO[1], SOLO[2], SOLO[3], SOLO[4]);
+    printf("tracks: WAVs in %s: %s (mix), %s, %s, %s, %s, steal.wav\n", dir, SOLO[0], SOLO[1], SOLO[2], SOLO[3], SOLO[4]);
     /* one part: every preset with 8 held notes (the engine's cap: VOICE 4); the worst one */
     for (e = 0; e < NENGINES; e++)
         for (pi = 0; pi < ENGINES[e]->npresets; pi++) {
@@ -771,14 +763,13 @@ static int tracks_test(const char *dir)
         if (eng_ok(e))
             printf(" %s %s %.1f%s", ENGINES[e]->name, ENGINES[e]->presets[heavy[e]].name, best_e[e],
                    e + 1u < NENGINES ? "," : "\n");
-    {   /* LOFI, PHASE, VOICE (their heaviest presets) and drums on part 4 at once:
+    {   /* ANALOG's heaviest preset on parts 1..3 and the hits on part 4 at once (ANALOG is the only engine, P3-010):
          * 3 + 3 + 2 notes and the hits in the budget of 8 */
-        const uint8_t fm = 3;
-        uint8_t parts[NPART][3] = {{fm, (uint8_t)heavy[fm], 3}, {2, (uint8_t)heavy[2], 3}, {5, (uint8_t)heavy[5], 2},
+        uint8_t parts[NPART][3] = {{0, (uint8_t)heavy[0], 3}, {0, (uint8_t)heavy[0], 3}, {0, (uint8_t)heavy[0], 2},
                                    {0, 0, DRUM_HITS}};
-        uint8_t full[NPART][3] = {{fm, (uint8_t)heavy[fm], 8}, {2, (uint8_t)heavy[2], 8}, {5, (uint8_t)heavy[5], 4},
+        uint8_t full[NPART][3] = {{0, (uint8_t)heavy[0], 8}, {0, (uint8_t)heavy[0], 8}, {0, (uint8_t)heavy[0], 4},
                                   {0, 0, DRUM_HITS}};
-        uint8_t vv[NPART][3] = {{5, (uint8_t)heavy[5], 4}, {5, (uint8_t)heavy[5], 4}, {0, 0, 0}, {0, 0, 0}};
+        uint8_t vv[NPART][3] = {{0, (uint8_t)heavy[0], 4}, {0, (uint8_t)heavy[0], 4}, {0, 0, 0}, {0, 0, 0}};
         uint8_t idle[NPART][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, DRUM_HITS}};
         uint32_t bm2 = 0, bm3 = 0;
         double two_voice, none;
@@ -787,11 +778,11 @@ static int tracks_test(const char *dir)
         two_voice = tracks_cost(vv, &bm3);
         none = tracks_cost(idle, 0);
         printf("tracks: worst single part: %s %s %.1f ns\n", ENGINES[worst_e]->name, ENGINES[worst_e]->presets[worst_p].name, worst);
-        printf("tracks: %s + PHASE + VOICE + drums, 3 + 3 + 2 notes: %.1f ns (%.2f x the worst single part), "
-               "%u voices\n", ENGINES[fm]->name, four, four / worst, bm);
+        printf("tracks: 3 ANALOG parts + hits, 3 + 3 + 2 notes: %.1f ns (%.2f x the worst single part), "
+               "%u voices\n", four, four / worst, bm);
         printf("tracks: the same, 8 + 8 + 4 notes asked for (budget keeps %u): %.1f ns (%.2f x)\n", bm2, four_full,
                four_full / worst);
-        printf("tracks: two VOICE parts, 4 + 4 voices (the heaviest 8 the budget allows): %.1f ns (%.2f x); "
+        printf("tracks: two ANALOG parts, 4 + 4 voices (the heaviest 8 the budget allows): %.1f ns (%.2f x); "
                "no notes but the drums (buses, 3 idle parts): %.1f ns\n", two_voice, two_voice / worst, none);
         if (bm > NVOICE || bm2 > NVOICE || bm3 > NVOICE)
             fail++;
@@ -815,7 +806,6 @@ int main(int argc, char **argv)
     for (i = 0; i < G_COUNT; i++) song.g[i] = GP[i].def;
     for (i = 0; i < P_E0; i++) inst.p[i] = TP[i].def;
     inst.eng_req = inst.engine = (uint8_t)eng;
-    eng_mem_claim(&inst);
     for (i = 0; i < 8; i++) inst.p[P_E0 + i] = ENGINES[eng]->edit[i].def;
     if (ENGINES[eng]->npresets) {
         const preset_t *p = &ENGINES[eng]->presets[preset % ENGINES[eng]->npresets];

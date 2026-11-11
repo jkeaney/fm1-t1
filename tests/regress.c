@@ -10,7 +10,7 @@
  *    64-bit FNV-1a hash of its output samples, compared with GOLDEN_FILE (tests/golden.txt).
  *    Every render runs in its own fork()ed child of a process that never touched the DSP state, so
  *    all state starts as at boot: the noise / RAND / unison-phase / arp seeds (libc.c rng_state,
- *    eng_formant.c formant_nz, voice.c's unison seed), the FX buffers, the limiter.
+ *    the noise generator's seed, voice.c's unison seed), the FX buffers, the limiter.
  * 2. health checks on every render: no sample beyond 16 bits, none near full scale, DC offset, the
  *    peak level, every voice free after the release, silence at the end. Fails with the numbers.
  * 3. CPU budget: per engine x preset (8 notes held; VOICE: its 4) and a few mixes, the instructions
@@ -413,7 +413,7 @@ static void midi_pkt(uint32_t st, uint32_t d1, uint32_t d2)   /* as usb.c: the q
  * fades within its one block), the VOICE part at most 4; then all off: every voice free */
 static int chk_budget(char *msg, uint32_t n)
 {
-    static const uint8_t E[NPART][2] = {{0, 1}, {1, 1}, {5, 1}, {4, 0}};   /* (SAMPLE PERC until 1.0.2) */
+    static const uint8_t E[NPART][2] = {{0, 1}, {0, 2}, {0, 3}, {0, 0}};   /* (ANALOG presets; the other engines are gone: P3-010) */
     uint8_t held[NPART][128] = {{0}};
     uint32_t p, k, worst = 0, vworst = 0, fading = 0, kills0 = voice_kills;
     host_tracks_init();
@@ -440,7 +440,7 @@ static int chk_budget(char *msg, uint32_t n)
         for (p = 0; p < NPART; p++)
             for (i = 0; i < NVOICE; i++) {
                 a += trk[p].v[i].active;
-                va += p == 2u && trk[p].v[i].active;
+                va += 0;
                 fading += trk[p].v[i].active && trk[p].v[i].stage == 4u;
             }
         worst = a > worst ? a : worst;
@@ -750,35 +750,6 @@ static int chk_keep_legato(char *m, uint32_t n) { return chk_keep(m, n, V_LEGATO
 static int chk_keep_unison(char *m, uint32_t n) { return chk_keep(m, n, V_UNISON); }
 
 /* the VOICE engine's cap: 8 keys in POLY and in UNISON (alone: the budget does not limit it) */
-static int chk_voice_cap(char *msg, uint32_t n)
-{
-    uint32_t mode, k, i, most[2] = {0, 0};
-    for (mode = 0; mode < 2u; mode++) {
-        track_t *t = &trk[0];
-        host_tracks_init();
-        host_preset(t, 5, 0);
-        t->p[P_VOICE] = mode ? V_UNISON : V_POLY;
-        t->p[P_AMODE] = 0;
-        for (k = 0; k < 8u; k++)
-            trk_note_on(t, 60u + 2u * k, 100);
-        for (k = 0; k < FS / 2u / CTL; k++) {
-            uint32_t a = 0;
-            blk();
-            for (i = 0; i < NVOICE; i++)
-                a += t->v[i].active;
-            most[mode] = a > most[mode] ? a : most[mode];
-        }
-        for (k = 0; k < 8u; k++)
-            trk_note_off(t, 60u + 2u * k);
-        for (k = 0; k < 4u * FS / CTL && !parts_free(); k++)
-            blk();
-        if (!parts_free())
-            most[mode] = 99;
-    }
-    snprintf(msg, n, "VOICE engine, 8 keys: at most %u voices in POLY, %u in UNISON (cap 4); freed after release",
-             most[0], most[1]);
-    return most[0] == 4u && most[1] == 4u;
-}
 
 /* no hanging notes: 6 s of random MIDI note-ons / offs on channels 1..4 (the parts), 5, 10 and 16 (ignored
  * with ROUT CH1-4, the selected track with SEL), and keys, while the selected track changes; round 1 with ROUT
@@ -975,7 +946,6 @@ int main(int argc, char **argv)
     add(J_CHECK, "voices: MONO keeps its note")->check = chk_keep_mono;
     add(J_CHECK, "voices: LEGATO keeps its note")->check = chk_keep_legato;
     add(J_CHECK, "voices: UNISON keeps its note")->check = chk_keep_unison;
-    add(J_CHECK, "voices: VOICE engine cap")->check = chk_voice_cap;
     add(J_CHECK, "routing: no hanging notes")->check = chk_hang;
     run_jobs(J, nj, jobs_at_once);
 

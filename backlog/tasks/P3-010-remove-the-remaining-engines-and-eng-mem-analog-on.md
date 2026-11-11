@@ -3,7 +3,7 @@ id: P3-010
 title: Remove the remaining engines and eng_mem; ANALOG only (R6c)
 phase: P3
 type: task
-status: todo
+status: review
 priority: 2
 executor: haiku
 depends_on: [P3-009]
@@ -44,12 +44,12 @@ of 007 + 011 + 008 + 009; the change exists as a verified patch (regenerated on 
    157 vs 163): not failures.
 
 ## Acceptance criteria
-- [ ] The eight files in P3-010.deletes.txt are gone; no `#include` of them remains in engines.c or tests
-- [ ] `grep -rnEI 'eng_(phase|lofi|trio|wheel|formant|noise)|ENG_(PHASE|LOFI|TRIO|WHEEL|FORMANT|NOISE|MEM|FM4_GONE)|ENG_MEM|eng_mem|phase_render|lofi_render|trio_render|wheel_render|formant_render|noise_render|eng_vis|eng_rank|eng_step|ENGINE_ORDER|ENGI_DIGITAL' firmware/src tests tools web LICENSING.md` prints nothing (comment hits: reword them, the rehearsal left some in core.h 18/178-180 and tests/regress.c 13)
-- [ ] `grep -c ENG_MEM firmware/src/*.c` prints 0 for every file
-- [ ] Pool used drops by about 51552 B (rehearsal: 144052 to 92500)
-- [ ] Build line `image 169084 B; RAM .data+.bss 23060 B of 73728; pool 92500 B of 368640` (on top of 007 + 011 + 008 + 009)
-- [ ] `sh tools/check.sh` ends CHECK PASS; RAM headroom at least 8192 B (rehearsal: 50668); the Log names the two golden lines
+- [x] The eight files in P3-010.deletes.txt are gone; no `#include` of them remains in engines.c or tests
+- [x] `grep -rnEI 'eng_(phase|lofi|trio|wheel|formant|noise)|ENG_(PHASE|LOFI|TRIO|WHEEL|FORMANT|NOISE|MEM|FM4_GONE)|ENG_MEM|eng_mem|phase_render|lofi_render|trio_render|wheel_render|formant_render|noise_render|eng_vis|eng_rank|eng_step|ENGINE_ORDER|ENGI_DIGITAL' firmware/src tests tools web LICENSING.md` prints nothing (comment hits: reword them, the rehearsal left some in core.h 18/178-180 and tests/regress.c 13)
+- [x] `grep -c ENG_MEM firmware/src/*.c` prints 0 for every file
+- [x] Pool used drops by about 51552 B (rehearsal: 144052 to 92500)
+- [x] Build line `image 169084 B; RAM .data+.bss 23060 B of 73728; pool 92500 B of 368640` (on top of 007 + 011 + 008 + 009)
+- [x] `sh tools/check.sh` ends CHECK PASS; RAM headroom at least 8192 B (rehearsal: 50668); the Log names the two golden lines
 
 ## Verification
 ```sh
@@ -66,3 +66,42 @@ sh tools/check.sh
 - Patch fallback: if `git apply --check` fails only on comment or context-only hunks (no code line differs), you may apply with `git apply --3way` (or `patch` with fuzz) and must list in the Log which hunks differed. Any failing code hunk is still a stop: file a BUG (as BUG-004, BUG-005).
 
 ## Log
+
+### 2026-11-11 executor (claude-haiku-5-5)
+
+**Patch fallback used.** `git apply --check docs/design/rehearsal/P3-010.patch` failed on two deleted comment lines in
+`firmware/src/engines.c` (hunk @4 and @145). The patch's `-` lines read `... convert to FM6, fm4_convert.c)` and
+`/* SLICE (eng_slice.c): note = C4 + slice */`, but HEAD says `... converted to FM6 until P3-009)` and
+`/* SLICE (removed in P3-009): note = C4 + slice */`. Both are removed comments, so no code line differs. I applied a copy
+with those two `-` lines set to the HEAD text (`/tmp/P3-010-fixed.patch`, not committed). `--3way` failed (blob missing).
+Every other file in the patch matched the old side exactly.
+
+Deletes: `git rm` of the eight files in P3-010.deletes.txt (`D` in `git status`).
+
+Comment rewording (acceptance grep): `firmware/src/core.h` lines 18 and 178-180 (the `ENGINE_ORDER` and `eng_mem` comments)
+and `tests/regress.c` line 13 (`eng_formant.c formant_nz`).
+
+Verification:
+```
+$ git apply --check docs/design/rehearsal/P3-010.patch        -> fails on engines.c comment lines (see above)
+$ grep -rnEI '<acceptance pattern>' firmware/src tests tools web LICENSING.md   -> no output (exit 1)
+$ grep -c ENG_MEM firmware/src/*.c                            -> 0 for every file
+$ sh tools/check.sh                                            -> CHECK PASS (exit 0)
+  build/check/build.log: ok    image 169084 B; RAM .data+.bss 23060 B of 73728; pool 92500 B of 368640
+  RAM headroom: 73728 - 23060 = 50668 B (criterion: at least 8192)
+  pool: 144052 -> 92500 = -51552 B
+  tests/tests.log: regress: 24 golden renders (0 changed, 0 gone), 0 health failures, 0 voice / routing checks failed,
+                   0 CPU entries over budget
+  tests/tests.log: target: fm1_alnk0_irq ... cost 14373 (budget 17319) note: -17 % (not a failure)
+  tests/tests.log: ALL HOST TESTS PASSED
+$ sh tools/check.sh also: backlog stage passed
+```
+Golden lines named by the patch's accepted hashes: `song/4track_mix a5f5f88872a0cfa4` (tests/golden.txt line 25) and
+`song/4track_swing20 81316d9df95fddf4` (line 26). Their change was accepted in the patch and both render unchanged on this run.
+
+Notes for the reviewer:
+- `engine_t.mem` (`firmware/src/core.h` line 180) is now unused. The patch did not remove the field, and the task's scope
+  does not include removing struct fields, so I left it.
+- `./build.sh | grep RAM` was run through `sh tools/check.sh`, which builds the same image; the RAM line is above.
+
+Acceptance: all six criteria verified above and ticked.

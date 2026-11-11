@@ -308,28 +308,6 @@ static void test_math(void)
     mod_end(t);
     check("every per-block value restored", t->p[P_DIST] == 64 && t->p[P_CHOR] == 64 && t->p[P_LRATE] == 100 && t->p[P_LD_PIT] == 0);
 
-    /* an engine parameter: its descriptor's range */
-    e_trio = eng_by_name("TRIO");
-    k_pw = edit_by_label(e_trio, "PW", 7);
-    fresh(e_trio, 0);
-    lfo_at(t, 32767);
-    t->p[P_E0 + k_pw] = 100;
-    slot(t, 0, MS_LFO, MD_E1 + (int32_t)k_pw, 40);
-    mod_begin(t);
-    check("LFO -> TRIO PW: clamped to its range (0..127)", t->p[P_E0 + k_pw] == 127);
-    mod_end(t);
-    t->p[P_E0 + 1] = 0;                            /* INT2: -24..24 */
-    slot(t, 0, MS_MODW, MD_E1 + 1, -32);
-    t->mw = 127;
-    mod_begin(t);
-    check("MODW -> E2 -32: half its range down (TRIO INT2 -24..24: -24)",
-          t->p[P_E0 + 1] == (((((127 * 258) * -32) >> 6) * (ENGINES[e_trio]->edit[1].max - ENGINES[e_trio]->edit[1].min)) >> 15) &&
-          t->p[P_E0 + 1] < -10);
-    mod_end(t);
-    check("the engine parameters restored", t->p[P_E0 + k_pw] == 100 && t->p[P_E0 + 1] == 0);
-    check("DST names: E1..E8 by the engine's labels", str_eq(mod_dst_name(t, MD_E1 + (int32_t)k_pw), "PW") &&
-                                                          str_eq(mod_dst_name(t, MD_CUT), "CUT"));
-
     /* per-voice sources on a per-block destination: the latest note-on */
     fresh(0, 0);
     slot(t, 0, MS_VEL, MD_PAN, 63);
