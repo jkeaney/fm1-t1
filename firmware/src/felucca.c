@@ -5,7 +5,7 @@
 
 /* ---------------------------------------------------- build options --- */
 /* build.py: FELUCCA_<NAME>=0 / 1 in the environment overrides these. Elsewhere: FELUCCA_SLICE
- * (core.h: the SLICE engine), FELUCCA_ICONS (icons.c, the parameter icons; on by default),
+ * (core.h: the SLICE engine),
  * FELUCCA_OTA_RAMONLY (ota.c). */
 #ifndef FELUCCA_FLASH
 #define FELUCCA_FLASH 1          /* flash driver + storage.c: settings, projects, user presets */
@@ -88,12 +88,10 @@
 #include "ui.c"
 #include "menu_items.c"          /* MENU's rows and settings (ui_menu.c, editor_menu.c) */
 #include "icons.c"               /* parameter icons (FELUCCA_ICONS), used by ui_draw.c */
-#include "ui_graph.c"
 #include "ui_draw.c"
 #include "ui_menu.c"
 #include "ui_input.c"
-#include "ui_t1.c"               /* the Torso T-1 mode: screen and controls (SYSTEM > T1 SEQ) */
-#include "ui_layer.c"              /* the quick layers (FX GLO SCL EDIT REC held; SEQ TOOLS: ui_tools.c) */
+#include "ui_t1.c"               /* the Torso T-1 screen and controls: the only page besides the menu (P3-006) */
 
 /* --------------------------------------------- storage, update, editor --- */
 #if FELUCCA_FLASH

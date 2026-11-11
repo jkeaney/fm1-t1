@@ -38,7 +38,7 @@ static volatile uint8_t kb_boot_hold;    /* #137: set from power-on to the end o
                                           * and one held across its end stays silent until it is let go and pressed again */
 static uint8_t kb_note[27], kb_trk[27];  /* per key: the note it started and on which track */
 static uint8_t in_key;                   /* the key (+ 1) whose notes go into input_on now (key_on), 0: none (MIDI IN) */
-static uint8_t kb_vel = 100;             /* 1.5.6 (#84): the keys' velocity (MENU > SELECT VEL, ui_input.c sel_play) */
+static uint8_t kb_vel = 100;             /* 1.5.6 (#84): the keys' velocity (the SELECT VEL row is gone: P3-005) */
 /* #191: where each track's held[i] came from, so the arp maps it again as it plays (arp_list: TRN, ROOT, SCALE, QNT as
  * they are now). held_key: the key + 1 (bits 0..4) and the octave buttons then + 3 (bits 5..7); 0: not a key's own
  * mapping (MIDI IN, the DRUM grid, an engine's own key map), held[i] plays as it is. held_dt: held[i] above the key's

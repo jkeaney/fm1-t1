@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-only
- * Torso T-1 on the FM-1: the UI side (main loop). The T-1 mode is always on on the device (P3-005: the MENU row is gone);
- * this screen and these controls replace Felucca's pages (HOME held still opens the MENU). The host tests build it off (t1u_always).
+ * Torso T-1 on the FM-1: the UI side (main loop). The T-1 mode is always on (P3-005: the MENU row is gone; P3-006: on the host too);
+ * this screen and these controls replace Felucca's pages (HOME held still opens the MENU).
  *
  *   KNOB 1..4      the page's four parameters (torso_t1_ui.c t1_ui_on_encoder_turn); OCT+ held: the second row
  *   SEQ / OCT-     next / previous page: RHYTHM, RATCHET, HARMONY, MOD/CC
@@ -13,13 +13,6 @@
  * The keys play nothing in this mode (song.grid 2, as NAME). */
 
 static uint8_t t1u_was_on;
-/* P3-005 (R3a): the mode's boot rule. On the device it is on from the first main-loop frame; on the host the tests
- * (host_t1_hooks.h) start with Felucca's own pages, and ui_test sets this to 1 where it checks the T-1 screen */
-#ifdef T1_DEVICE
-static uint8_t t1u_always = 1u;
-#else
-static uint8_t t1u_always = 0u;
-#endif
 static uint8_t t1u_temp_btn, t1u_glo_btn;
 
 static void t1u_temp(int on)                       /* the [TEMP] copy (4.6 KB): no tick between its halves */
@@ -33,7 +26,7 @@ static void t1u_temp(int on)                       /* the [TEMP] copy (4.6 KB): 
 /* every frame, from ui_input (before Felucca's own handling): the mode follows the setting */
 static void t1_poll(void)
 {
-    uint32_t on = t1u_always != 0u;
+    uint32_t on = 1u;                               /* P3-006: always on, on the host too */
     if (on != t1u_was_on) {
         t1u_was_on = (uint8_t)on;
         panic_req = (uint8_t)((1u << NTRK) - 1u);   /* the pattern tracks' notes end (and T-1's track 1 starts clean) */
@@ -56,7 +49,6 @@ static void t1_input(uint32_t pressed, uint32_t notes)
     int32_t s;
     int temp, glo;
     song.grid = 2;                                  /* the keys are T-1's: silent */
-    ui.pg_down = 0;
     if (t1u_hit(pressed, B_PLAY))
         transport_req = song.playing || seq_counting() ? 2u : 1u;
     /* TEMP: SAVE or LFO held */

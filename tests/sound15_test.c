@@ -194,15 +194,6 @@ static void test_filter(void)
     check("TYPE: a track parameter LP BP HP, default LP (as before), not recordable (a setting)",
           d->fmt == F_ENUM && d->min == 0 && d->max == 2 && d->def == 0 && str_eq(d->label, "TYPE") &&
           str_eq(d->names[0], "LP") && str_eq(d->names[1], "BP") && str_eq(d->names[2], "HP") && !motion_param(P_FTYPE));
-    {
-        uint32_t i, k = 0;
-        for (i = 0; i < NPAGES; i++)
-            if (str_eq(PAGES[i].title, "FILTER"))
-                k = i + 1u;
-        check("EDIT > FILTER: TYPE CUT RES KTR (ANALOG's), after EDIT 2",
-              k && PAGES[k - 1u].fam == FAM_EDIT && PAGES[k - 1u].id[0] == P_FTYPE && PAGES[k - 1u].id[1] == P_E4 &&
-              PAGES[k - 1u].id[2] == P_E5 && PAGES[k - 1u].id[3] == P_E7 && str_eq(PAGES[k - 2u].title, "EDIT 2"));
-    }
     /* every engine but ANALOG ignores TYPE; ANALOG's LP is the golden renders' (regress.c) */
     for (e = 1; e < NENGINES; e++) {
         if (ENGINES[e] == ENGINES[0] || !ENGINES[e]->npresets)
@@ -395,14 +386,6 @@ static void test_esync(void)
     check("ESYNC: a track parameter OFF / ON, default OFF (as before), not recordable (a setting)",
           d->fmt == F_ENUM && d->min == 0 && d->max == 1 && d->def == 0 && str_eq(d->label, "ESYNC") &&
           !motion_param(P_ESYNC));
-    {
-        uint32_t i, pg = 0;
-        for (i = 0; i < NPAGES; i++)
-            if (str_eq(PAGES[i].title, "ENV DEST"))
-                pg = i + 1u;
-        check("ENV DEST: FLT PIT SHP and ESYNC (KNOB 4, the free one)", pg && PAGES[pg - 1u].id[3] == P_ESYNC &&
-              PAGES[pg - 1u].id[0] == P_ED_FLT);
-    }
     check("ESYNC OFF: the tables, whatever esync_k holds (a phrase bit for bit)",
           phrase_child(0, 0, 0) == phrase_child(0, 0, esync_garbage));
     /* the display and the knob */

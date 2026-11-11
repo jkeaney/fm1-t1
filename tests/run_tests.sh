@@ -15,27 +15,19 @@
 #                   no hanging notes on any MIDI / key routing.
 # ENGINE MEMORY (tests/union_test.c, 1.5): engine switches on a part (every pair and A -> B -> A of the engines that
 #                   share the part's state region, with others), hashed against 1.4's (tests/union_golden.txt).
-# UI renders (tests/ui_render.c): every screen in every palette from the real drawing code: the layout lint (no text
+# UI renders (tests/ui_render.c, P3-006): the screens that are left, every palette, from the real drawing code: the T-1 screen
+#                   (pages, SHIFT / GLOBAL / TEMP, mute, track, a lit card), the menu (every row, ABOUT, INFO, CALIBRATION), UPDATE
+#                   MODE, the splash, the dialog, the count-in, the header's states and batteries. The layout lint (no text
 #                   off the screen, cut, hidden, overlapping or spilling out of its cell / card; only free text
 #                   ellipsised), GREY gray, MONO neutral, the draw cost, the text audit (build/ui_new/text_audit.tsv);
-#                   PNGs of GREY MONO GREEN PAPER NIGHT in build/ui_new (tests/ui_render.py), the findings in build/ui_new/report.txt;
-#                   FM6's 32 algorithm charts as drawn (no box overlapping, no route through a box or crossing another), again
-#                   on OPERATOR with each operator picked and its frequency text at its widest (1.2, #76);
-#                   every frame of the rolling digits (lint, GREY, MONO), their filmstrips in build/ui_slot;
+#                   PNGs of GREY MONO GREEN PAPER NIGHT in build/ui_new (tests/ui_render.py), the findings in build/ui_new/report.txt
+#                   (the T-1 screen's own findings are listed there and do not fail: FB-007);
 #                   the alignment: every text / icon / keycap meant to be centred, or on its neighbours' line, by its
-#                   ink against its box (cells, chips, buttons, rows, knobs, the roll's strip, the keycaps' pills), every
-#                   screen in FLAT and LINE and every palette, over every value it can show; 1 px off or more fails
-#                   (build/ui_new/align.txt). MENU > LARGE: every screen again (FLAT, LINE, every palette) and the page / value
-#                   sweep with the tall cards, the same lint and alignment; sheet_LARGE_GREY.png, sheet_LARGE_MONO.png.
-# UI (tests/ui_test.c): the UI sources against stub display / buttons / knobs: sound loads keep the steps and
-#                   the track's ARP / SCL, the SAVE > PHRASES loader and its REPLACE? dialog, the
-#                   one-step undo of both (SAVE held), REC on TRACKS / SEQ / ARP, STEP and ARP while recording,
-#                   MIDI IN ROUT, saves refused while playing and the OVERWRITE? dialog, MUTE on TRACKS KNOB 1, FM6's operator
-#                   pages (each byte alone, SLOT OWN, the sound, undo, the macros, projects / user presets),
-#                   the DRUM grid (keys, knobs, LEDs, pages, live recording into it, BEAT from PATTERNS).
-# DRUM STRESS (tests/drumfuzz_test.c, #211): ASan / UBSan, a synth sequence playing while the DRUM grid is edited at random
-#                   (keys, locks, lanes, HIT / ACC, EDIT, undo, SEQ TOOLS, engines, kits, the MENU), the audio ISR emulated
-#                   anywhere in the main loop; also with a SONG playing; a step over 5 s is a hang.
+#                   ink against its box (cells, chips, buttons, rows, the keycaps' pills), every screen in FLAT and LINE and
+#                   every palette, over every value it can show; 1 px off or more fails (build/ui_new/align.txt).
+# UI (tests/ui_test.c): the UI sources against stub display / buttons / knobs: the T-1 screen is the page (HOME held opens the
+#                   MENU, a dialog takes the screen), the menu's tabs and rows, SCREEN OFF / WAKE, the LEDs (idle, scale), the
+#                   header, STYLE, KNOB ACCEL, CLICK / USB / retired settings, GREY gray, MONO neutral.
 # Audio / persistence: the real C paths against simulated DMA and NOR flash: bounded overload
 #                   fades, shared-voice limits, deferred settings and retries, failed-save rollback, the autosave
 #                   (1.2: when it writes, the power-on restore, damaged copies, a write cut short, wear over a session),
@@ -43,48 +35,6 @@
 # CHORD (tests/chord_test.c): the chord keys (src/chord.c): diatonic triads / sevenths of several scales and roots,
 #                   the fixed shapes and voicings (at most 4 notes), names, MONO plays the root, a release ends
 #                   exactly what its key / MIDI note started, recording, the ARP, MIDI IN, kits ignore CHRD.
-# FUN10 (tests/fun10_test.c, 1.2): LFO 2 (SYNC one cycle per note value at several tempi and on the external clock, OFF bit
-#                   for bit as before; TRIG NOTE / FREE; POL UNI 0..+1, the matrix's AMP), NUDGE (live recording keeps a
-#                   note's time, QUANTIZE ON plays as before, OFF plays the nudges late and early once a pass, never twice
-#                   with live notes, RATCH on its start, nudges 0 play the same either way, a tempo change of the external
-#                   clock, SEQ > AUTOMATION's QUANTIZE and NUDGE rows, STEP steps held + PRESETS), 128 motion records, FUN10 round trip, FUN9 /
-#                   FUN8 / FUN7 as 1.1 / 1.0 wrote them (tests/old_pack.h) loading exactly, user presets of 99 / 103.
-# RATCH (tests/ratchet_test.c): a step's ratchet (x1..x4): its parts in the sequencer (equal, gated, chords and drum
-#                   hits whole, one chance roll, swing, no slide or tie out, STOP), FUN8 round trip and older projects x1,
-#                   user preset patterns, SEQ > AUTOMATION's RATCH rows and the roll / grid drawing.
-# STEP 1.5 (tests/step15_test.c, #178 #173): SEQ > STEP's KNOB 3 LEN on a note (clean TIEs written after it and taken
-#                   back, stopping at the next note and at LEN, chords, undo, TIME elsewhere, the DRUM grid untouched,
-#                   the longer note played), a step's VEL as it plays (96 by default, ACC 127, drum hits) and
-#                   SEQ > AUTOMATION's VEL rows (SHOW / HIDE, KNOB 4, EDIT, undo).
-# DETAIL 1.5.1 (tests/detail_test.c, #199): SEQ > DETAIL (STEP -> DETAIL -> AUTOMATION), KNOB 1..4 the cursor step's
-#                   CHANCE RATCH NUDGE VEL walked with PRESETS (NO NOTE on a REST / empty step), the same values as
-#                   AUTOMATION's rows (gone at their default; EDIT there deletes one), EDIT resets, undo per gesture, the
-#                   DRUM grid's keys picking steps (several held), a chord's ratchet, playback, STEP's marks.
-# SEQ 1.5.5 (tests/seq155_test.c, #209 #186 #85): CONDITIONS (1:2 .. 4:4 by each track's loops from PLAY / a SONG
-#                   section, FILL / !FILL with GLO + E4, a NUDGE early step 1, no lock on a failed one, the chance draws
-#                   as before), DETAIL's KNOB 1 past 100 % and AUTOMATION's COND rows, FUN10 round trip and what 1.5 /
-#                   1.5.1 do with them; SEQ TOOLS' EUCLID (hits / steps / rotation, DRUM lane or notes, OCT+ / OCT-,
-#                   undo) and DOUBLE / HALF (ties, locks, the steps' own fields, 64 steps, undo).
-# 1.5.5 (tests/ui155_test.c): PAN reads -100..+100 % (#199, the stored range as before); SEQ > AUTOMATION: KNOB 3 keeps
-#                   its row in place (a step's records in the order they were added, #199); MENU > CONTROL > SELECT (#188):
-#                   BPM by default, PAGE steps the family's pages (round, HOME MIXER CLOCK one round), GLO + SELECT the tempo;
-#                   OCT- (1.5.6: #205's "OCT- held + a knob = default" taken out): the octave on the press as in 1.5.1, a
-#                   knob with OCT- held an ordinary turn, the menu's OCT- back; SAVE > PROJECT ERASE (#199): KNOB 2, the dialog,
-#                   refused playing / empty (tests/persistence_test.c: the flash side, a cut before the record keeps it);
-#                   CLEAN INIT (#190): every engine's basic sound (no sends, LFO / ENV / MOD amounts; neutral ENV; FM6
-#                   the init voice), heard and ending; TOOLS' KNOB 2 on, EDIT + F5; one undo; INIT as before. OCT- next to
-#                   EUCLID (OCT- cancels, OCT+ applies, no octave) and FILL (GLO + E4).
-# 1.5.6 (tests/v156_test.c): HUMANIZE (#213): the matrix's VEL (a note-on's velocity, RAND per note, clamped 1..127) and
-#                   TIME (a sequencer step late, 0..30 ms, at most 7/16 of the step, with NUDGE, a ratchet on time),
-#                   appended after DEPTH; nothing changes without such a slot (RAND draws, mod_begin, timing); saved.
-#                   KITS (#216): DRUM KIT DEEP TIGHT PERC (9..11) from the five kits' pieces and their three presets after
-#                   DRUM KIT, the lanes' names, the 8 lanes play, saved, an older range reads them as 77.
-#                   LEDS (#212): INV LO / INV HI after INV (INV's lit LEDs at the mid level), saved as INV + a level byte.
-#                   SELECT (#84): MODW (the track's mod wheel, CC1 out) and VEL (the keys' velocity) after BPM / PAGE.
-# 1.6 (tests/v16_test.c): SEQ's piano roll follows the play position (#242, Discussion #238): a melodic pattern over 16 steps,
-#                   the transport playing: the roll's bank is the playhead's (STEP and DETAIL), the cursor and the pattern
-#                   untouched; not for 16 steps, stopped, DRUM's grid, AUTOMATION, HOME; held from a knob's move of the
-#                   cursor, an edit of its step or step entry, free again after 3 s or one pass round; reset by stop / track.
 # MOD (tests/mod_test.c): the modulation matrix: slots that do nothing are bit-identical, every source on each
 #                   kind of destination, clamping, MIDI CC1 / CC11 / aftertouch routing, the cost of 4 active
 #                   slots (at most +6 %), demos in build/mod_demo/.
@@ -245,24 +195,6 @@ if [ -f build/gen/felucca_tables.h ]; then
     run "TRACKS: 4-track pattern, live recording (lengths, swing), voice budget, engine switch, cost" env TRACKS=build/tracks_demo "$OUT/hostsim" 0 0 1 "$OUT/tracks.wav"
     $CC -w -Ibuild/gen -Ifirmware/src -o "$OUT/project_test" tests/project_test.c -lm
     run "project formats (FUN1..FUN5 -> FUN6, the grid and song chain; DIGITAL tracks -> FM6, SAMPLE PERC -> DRUM)" "$OUT/project_test"
-    $CC -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/motion_test" tests/motion_test.c -lm
-    run "motion, whole-step chance, FUN7 migration, song restore, ARP repeat and the 1.2 ARP modes" "$OUT/motion_test"
-    $CC -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/ratchet_test" tests/ratchet_test.c -lm
-    run "RATCH: x1..x4 in a step (notes, chords, drum hits), gates, chance, swing, projects, user presets, AUTOMATION RATCH rows" "$OUT/ratchet_test"
-    $CC -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/step15_test" tests/step15_test.c -lm
-    run "1.5 STEP: a note's LEN (TIEs on KNOB 3), a step's VEL (playback, AUTOMATION's VEL rows)" "$OUT/step15_test"
-    $CC -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/detail_test" tests/detail_test.c -lm
-    run "1.5.1 SEQ > DETAIL: a step's CHANCE RATCH NUDGE VEL on KNOB 1..4 (walk, entries, undo, DRUM, chords, playback, marks)" "$OUT/detail_test"
-    $CC -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/seq155_test" tests/seq155_test.c -lm
-    run "1.5.5 SEQ: conditions and FILL, SONG, storage; SEQ TOOLS EUCLID, DOUBLE, HALF" "$OUT/seq155_test"
-    $CC -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/ui155_test" tests/ui155_test.c -lm
-    run "1.5.5 fixes and UI: PAN +-100, AUTOMATION KNOB 3, SELECT PAGE, OCT- on the press (1.5.6), PROJECT ERASE, CLEAN INIT" "$OUT/ui155_test"
-    $CC -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/v156_test" tests/v156_test.c -lm
-    run "1.5.6: the matrix's VEL / TIME (#213), DRUM kits DEEP TIGHT PERC (#216), LEDS INV LO / HI (#212), SELECT MODW / VEL (#84)" "$OUT/v156_test"
-    $CC -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/v16_test" tests/v16_test.c -lm
-    run "1.6: SEQ's piano roll follows the play position (#242: STEP, DETAIL; held by the knobs, 3 s or one pass)" "$OUT/v16_test"
-    $CC -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/fun10_test" tests/fun10_test.c -lm
-    run "1.2 (FUN10): LFO 2 SYNC / TRIG / POL, NUDGE (record, QUANTIZE, play, controls), 128 motion records, FUN10 / FUN9 / FUN8 / FUN7, user presets" "$OUT/fun10_test"
     $CC -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/midi_control_test" tests/midi_control_test.c -lm
     run "USB/TRS clock, bend, sustain, ownership and panic recovery" "$OUT/midi_control_test"
     $CC -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/theme_test" tests/theme_test.c -lm
@@ -276,14 +208,9 @@ if [ -f build/gen/felucca_tables.h ]; then
     $CC -O1 -w -Ibuild/gen -o "$OUT/settings_test" tests/settings_test.c
     run "settings: PER1..PER4 migration, palette ids and preference preservation" "$OUT/settings_test"
     $CC -w -Ibuild/gen -Ifirmware/src -o "$OUT/ui_test" tests/ui_test.c -lm
-    run "UI: sounds keep steps, undo, recording, MIDI overflow, pending saves, panel recovery, drum grid, song chain, GREY gray, MONO neutral" "$OUT/ui_test"
+    run "UI (P3-006): the T-1 screen and the menu: tabs, rows, SCREEN OFF / WAKE, LEDS, header, STYLE, GREY gray, MONO neutral" "$OUT/ui_test"
     $CC -w -Ibuild/gen -Ifirmware/src -o "$OUT/t1_link_test" tests/t1_link_test.c -lm
     run "T-1 link (P3-001): the real seq.c + torso_t1*.c + t1_glue.c + ui_t1.c: 2 bars on MIDI channel 2, STOP sends CC123" "$OUT/t1_link_test"
-    $CC -DPREEMPT -g -fwrapv -fsanitize=address,undefined -fno-sanitize=shift -fno-sanitize-recover=all -w \
-        -Ibuild/gen -Ifirmware/src -o "$OUT/drumfuzz" tests/drumfuzz_test.c -lm
-    run "DRUM grid stress (#211, ASan / UBSan): random grid editing, locks, undo, engines over a playing synth, the ISR anywhere" \
-        "$OUT/drumfuzz" 1 6 1500
-    run "DRUM grid stress (#211) with a SONG playing" "$OUT/drumfuzz" 101 3 1500 song
     FV=$(sed -n 's/^#define FELUCCA_VERSION "\([^"]*\)".*/\1/p' firmware/src/felucca.c)   # (the splash, ABOUT: the real version)
     $CC -O1 -w "-DFELUCCA_VERSION=\"$FV\"" -Ibuild/gen -Ifirmware/src -Itests -o "$OUT/ui_render" tests/ui_render.c -lm
     mkdir -p build/ui_new/ppm build/ui_slot
@@ -392,7 +319,7 @@ else
     fi
     $SCC -DOWN_PKG=1 -o "$A/ota_test" tests/ota_test.c
     run "ASan/UBSan: M-UPGRADE entry (own loader)" "$A/ota_test" build/felucca.fwsc
-    for t in project_test fun10_test; do
+    for t in project_test; do
         $SCC -o "$A/$t" tests/$t.c -lm
         run "ASan/UBSan: $t" "$A/$t"
     done

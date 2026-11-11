@@ -473,110 +473,6 @@ static int route_track_test(void)
     return bad;
 }
 
-/* 1.5.5 (#208): MIDI IN notes light their track's cushion (always); MENU > MIDI > AUTO SELECT ON selects the track they
- * play, held off while the selected track has notes (MF_HOLD_MS) and after a switch; OFF by default; not with SEL */
-static int follow_test(void)
-{
-    int bad = 0, ok;
-    midi_test_reset(); fm1_ms = 1000; frame();
-    ok = menu_get(MI_MFOLLOW) == 0u && !(ui_rec_prefs & 0x80u) && str_eq(MI_NAME[MI_MFOLLOW], "AUTO SELECT") &&
-         MI_TAB[MI_MFOLLOW] == MTAB_MIDI && !MI_PROJECT(MI_MFOLLOW) && PREF_MIDI_FOLLOW == (0x80u << 8);
-    queued(0x91, 60, 100, 1);
-    ok &= midi_seen == 2u;
-    frame();
-    ok &= !midi_seen && song.sel == 0u && midi_lit(1) && !midi_lit(0) && msg_is("MIDI IN -> T2");
-    frames(160);
-    ok &= !midi_lit(1);
-    bad += check("AUTO SELECT OFF (the default): a note into T2 lights its cushion ~90 ms, says MIDI IN -> T2, T1 stays", ok);
-
-    menu_put(MI_MFOLLOW, 1);
-    ok = (ui_rec_prefs & 0x80u) && menu_get(MI_MFOLLOW) == 1u && click_mode == CLICK_OFF;   /* (its own bit) */
-    queued(0x81, 60, 0, 1); queued(0x92, 61, 100, 1); frame();
-    ok &= song.sel == 2u && midi_lit(2) && !msg_is("MIDI IN -> T3");
-    queued(0x91, 62, 100, 1); frame();
-    ok &= song.sel == 2u;                                /* (T3 just played: held off) */
-    frames(300);
-    queued(0x91, 63, 100, 1); frame();
-    ok &= song.sel == 1u;
-    bad += check("AUTO SELECT ON: a note into T3 selects it; T2 right after does not (hold-off), 300 ms later it does", ok);
-
-    frames(300);                                         /* a chord across T1 and T4, T2 selected and quiet */
-    queued(0x93, 36, 100, 1); queued(0x90, 64, 100, 1); frame();
-    ok = song.sel == 0u && midi_lit(0) && midi_lit(3);
-    queued(0x93, 38, 100, 1); queued(0x90, 65, 100, 1); frame();
-    frames(48);
-    queued(0x93, 40, 100, 1); queued(0x90, 67, 100, 1); frame();
-    ok &= song.sel == 0u;
-    frames(300);                                         /* T1 (selected) and T3 in one frame: the selection stays */
-    queued(0x90, 69, 100, 1); queued(0x92, 69, 100, 1); frame();
-    ok &= song.sel == 0u;
-    bad += check("  a chord across T1 and T4: the lower selected once, no flicker; the selected track with another: stays", ok);
-
-    frames(300);
-    song.g[G_ROUTE] = ROUTE_SEL; events_block(CTL);
-    queued(0x92, 50, 100, 1); frame();
-    ok = song.sel == 0u && midi_lit(0);
-    song.g[G_ROUTE] = ROUTE_TRACK; events_block(CTL);
-    tch(3, 9);
-    frames(300);
-    queued(0x99, 36, 100, 1); frame();
-    ok &= song.sel == 3u;
-    frames(300);
-    hold(B_HOME);                                        /* (the menu up: no switch) */
-    queued(0x90, 48, 100, 1); frame();
-    ok &= ui.menu && song.sel == 3u;
-    press(B_HOME);
-    menu_put(MI_MFOLLOW, 0);
-    bad += check("  SEL: every note is the selected track's (no switch); TRACK: T4 on 10 selected; not with the menu up", ok);
-
-    menu_put(MI_MFOLLOW, 1);                             /* a note in the menu or NAME: lit there, then gone */
-    frames(300);
-    hold(B_HOME);
-    queued(0x90, 50, 100, 1); frame();
-    ok = ui.menu && !midi_seen && midi_lit(0) && song.sel == 3u;
-    frames(300);
-    press(B_HOME);
-    frames(48);
-    ok &= !ui.menu && song.sel == 3u;
-    name_open(NK_USER_SAVE, 5);
-    queued(0x91, 50, 100, 1); frame();
-    ok &= name_on() && !midi_seen && midi_lit(1) && song.sel == 3u;
-    frames(300);
-    name_close();
-    frames(48);
-    ok &= song.sel == 3u;
-    menu_put(MI_MFOLLOW, 0);
-    bad += check("  a note in the menu or NAME: its light there, the flag taken; no AUTO SELECT from it later", ok);
-
-    {   /* a step held for a lock (the DRUM grid on SEQ > STEP): the selection stays until it is let go */
-        track_t *t4 = &trk[3];
-        uint32_t k4;
-        menu_put(MI_MFOLLOW, 1);
-        song.sel = 3;
-        track_defaults_steps(t4);
-        t4->p[P_SLEN] = 16;
-        go_home();
-        open_family(FAM_SEQ);
-        frames(300);
-        k4 = key_at(0, 4);
-        fm1_in.notes |= 1u << k4; host_notes |= 1u << k4; frame();
-        ok = grid_on() && lock_held() == (1u << 4);
-        queued(0x90, 60, 100, 1); frame();               /* T1's channel */
-        ok &= song.sel == 3u && lock_held() == (1u << 4) && midi_lit(0);
-        turn(EN_K1, 3);
-        ok &= motion_lock_count(t4) == 1u && !motion_lock_count(&trk[0]);
-        fm1_in.notes &= ~(1u << k4); frame();
-        frames(48);
-        ok &= song.sel == 3u;                            /* (the note during the lock: gone) */
-        frames(300);
-        queued(0x90, 62, 100, 1); frame();
-        ok &= song.sel == 0u;
-        menu_put(MI_MFOLLOW, 0);
-        bad += check("  a step held for a lock (DRUM grid): no switch while held (the lock on its own track), the next note after", ok);
-    }
-    midi_test_reset();
-    return bad;
-}
 
 /* #103: the standard CC map, on the track the channel plays, as a knob turn (and as AUTOMATION records one) */
 static int cc_map_test(void)
@@ -652,157 +548,6 @@ static int cc_map_test(void)
 }
 /* 1.5 (Discussion #170): MIDI LEARN. GLO + D4 on, a knob picks, a CC is learned; the map in favorites.factory[14] */
 static int ml_entry(uint32_t cc, uint32_t k, uint32_t id) { return ml_cc_of(k, id) == cc + 1u; }
-static int learn_test(void)
-{
-    int bad = 0, ok;
-    uint32_t i;
-    int16_t before[P_COUNT], cut, lvl;
-    midi_test_reset();
-    bad += check("MIDI LEARN: nothing learned at power-on (every older setting: all 0)", !ui.ml.on && !ml_count() &&
-                 !ml_tab[0] && !memcmp(ml_tab, ml_tab + 1, 31));
-    memcpy(before, trk[0].p, sizeof before);
-    queued(0xB0, 20, 99, 1);
-    bad += check("  an unlearned CC changes nothing (as before)", !memcmp(before, trk[0].p, sizeof before));
-
-    /* on: GLO + D4 */
-    lay_combo(B_GLO, white(5)); key_up(white(5)); frame();
-    ok = ui.ml.on && msg_is("MIDI LEARN ON") && ui.layer == LAYER_GLO;
-    ok &= ((leds_at(0) | leds_at(250)) >> white(5)) & 1u;          /* (lit: on) */
-    btn_up(B_GLO); frame();
-    bad += check("GLO + D4: MIDI LEARN on (the D4 cell / LED lit), the map closes with GLO", ok && ui.ml.on && !ui.layer);
-    queued(0xB0, 20, 99, 1); frame();
-    bad += check("  no parameter picked yet: a CC learns nothing, sets nothing", !ml_count() &&
-                 !memcmp(before, trk[0].p, sizeof before));
-
-    /* a knob picks (as it edits), a CC is learned */
-    frames(300);                                                     /* (#39: the knobs quiet after a layer) */
-    go_title("EDIT 2");
-    cut = trk[0].p[P_E4];
-    turn(EN_K1, -3);
-    ok = ui.ml.pick && ui.ml.trk == 0u && ui.ml.id == P_E4 && trk[0].p[P_E4] == cut - 3 && ml_arm;
-    { char b[24]; ml_line(b); ok &= str_eq(b, "T1 CUT: SEND A CC"); }
-    queued(0xB0, 1, 99, 1); queued(0xB0, 64, 127, 1); queued(0xB0, 64, 0, 1); queued(0xB0, 0, 5, 1);
-    frame();
-    ok &= !ml_count() && ui.ml.pick;                                   /* (CC1, CC64, CC0: never learned) */
-    queued(0xB0, 20, 100, 1); frame();
-    ok &= ml_count() == 1u && ml_entry(20, 0, P_E4) && msg_is("CC20 -> T1 CUT") && !ui.ml.pick && !ml_arm;
-    ok &= trk[0].p[P_E4] == cut - 3;                                /* (the learning CC sets nothing itself) */
-    { char b[24]; ml_line(b); ok &= str_eq(b, "LEARN: TURN A KNOB"); }
-    bad += check("  EDIT 2 KNOB 1 picks T1 CUT; CC1 / CC64 / CC0 are passed over; CC20 is learned", ok);
-    queued(0xB0, 20, 127, 1);
-    ok = trk[0].p[P_E4] == 127;
-    queued(0xB2, 20, 0, 1);                                          /* (channel 3: track 3's, still T1 CUT) */
-    ok &= trk[0].p[P_E4] == 0;
-    turn(EN_K1, 1);
-    { char b[24]; ml_line(b); ok &= str_eq(b, "T1 CUT = CC20"); }
-    bad += check("  CC20 sets T1 CUT on any channel ROUT hears; the knob again shows its CC", ok);
-    song.g[G_ROUTE] = 0; queued(0xB9, 20, 64, 1);
-    bad += check("  ROUT CH1-4: CC20 on channel 10 is ignored as before", trk[0].p[P_E4] == 1);
-
-    /* the standard map: a learned CC no longer reaches it; GLO's knobs pick a track's LEVEL */
-    btn_down(B_GLO); frame();
-    turn(EN_K2, 2);
-    ok = ui.ml.pick && ui.ml.trk == 1u && ui.ml.id == P_LEVEL;
-    btn_up(B_GLO); frames(300);
-    queued(0xB0, 74, 10, 1); frame();
-    ok &= ml_entry(74, 1, P_LEVEL) && msg_is("CC74 -> T2 LVL");
-    cut = trk[0].p[P_E4];
-    queued(0xB0, 74, 127, 1);
-    ok &= trk[1].p[P_LEVEL] == TP[P_LEVEL].max && trk[0].p[P_E4] == cut;
-    bad += check("  GLO + KNOB 2 picks T2 LEVEL; CC74 learned: T2 LEVEL, no more T1 CUT (the standard map)", ok);
-
-    /* one CC one parameter, a parameter one CC */
-    go_title("EDIT 2");
-    turn(EN_K1, 1);
-    queued(0xB0, 21, 0, 1); frame();
-    ok = ml_count() == 2u && ml_entry(21, 0, P_E4) && !ml_entry(20, 0, P_E4);
-    queued(0xB0, 20, 99, 1);
-    ok &= trk[0].p[P_E4] != 99;
-    turn(EN_K2, 1);                                                  /* T1 RES */
-    queued(0xB0, 21, 0, 1); frame();
-    ok &= ml_count() == 2u && ml_entry(21, 0, P_E5) && !ml_cc_of(0, P_E4);
-    bad += check("  learning again replaces: CUT on CC21 drops CC20; CC21 on RES drops CUT's", ok);
-
-    /* OCT- clears the picked parameter's CC; no octave */
-    turn(EN_K2, -1);
-    press(B_OCTDN);
-    ok = !ml_cc_of(0, P_E5) && msg_is("T1 RES CC CLEARED") && song.octave == 0 && ui.ml.on;
-    press(B_OCTDN);
-    ok &= msg_is("NO CC TO CLEAR") && song.octave == 0;
-    memcpy(before, trk[0].p, sizeof before);
-    queued(0xB0, 21, 50, 1);
-    ok &= !memcmp(before, trk[0].p, sizeof before) && ml_count() == 1u;
-    bad += check("  OCT- clears the picked parameter's CC (OCT- again: none), no octave", ok);
-
-    /* review 1.5: OCT- on one parameter keeps CC16 learned elsewhere (16 = ML_N was the "no CC" mark) */
-    ml_learn(16, 2, P_LEVEL);
-    ml_learn(30, 0, P_E5);
-    turn(EN_K2, -1);                                                   /* T1 RES picked again */
-    press(B_OCTDN);                                                    /* T1 RES picked: drops CC30 only */
-    ok = ml_entry(16, 2, P_LEVEL) && !ml_cc_of(0, P_E5) && msg_is("T1 RES CC CLEARED");
-    press(B_OCTDN);
-    ok &= ml_entry(16, 2, P_LEVEL) && msg_is("NO CC TO CLEAR");
-    ml_drop(16, NTRK, P_COUNT);
-    bad += check("  OCT- keeps CC16 learned on another parameter", ok);
-
-    /* full: ML_N; a CC never learned */
-    for (i = 0; i < ML_N - 1u; i++)
-        ml_learn(40u + i, 2, P_ATK + i);
-    turn(EN_K1, 1);
-    queued(0xB0, 90, 5, 1); frame();
-    ok = msg_is("LEARN FULL") && ml_count() == ML_N && !ml_cc_of(0, P_E4);
-    ok &= ml_learn(64, 0, P_E4) == 2u && ml_learn(1, 0, P_E4) == 2u && ml_learn(123, 0, P_E4) == 2u;
-    bad += check("  16 learned: the 17th says LEARN FULL, nothing replaced; CC1 / 64 / 123 are never learned", ok);
-
-    /* OCT+: done; a CC is no longer taken */
-    press(B_OCTUP);
-    ok = !ui.ml.on && msg_is("LEARN DONE") && song.octave == 0 && !ml_arm;
-    queued(0xB0, 74, 0, 1);
-    ok &= trk[1].p[P_LEVEL] == TP[P_LEVEL].min;
-    press(B_OCTUP);
-    ok &= song.octave == 1;
-    song.octave = 0;
-    bad += check("OCT+: LEARN DONE (the map stays, OCT± shift the octave again)", ok);
-    lay_combo(B_GLO, white(5)); key_up(white(5)); btn_up(B_GLO); frame();
-    lay_combo(B_GLO, white(5)); key_up(white(5)); btn_up(B_GLO); frame();
-    bad += check("GLO + D4 twice: on, then LEARN DONE", !ui.ml.on && msg_is("LEARN DONE"));
-
-    /* MENU > MIDI > LEARN CLEAR (1.5): OCT+ clears every learned CC */
-    hold(B_HOME);
-    turn(EN_ALGO, 1); turn(EN_ALGO, 1); turn(EN_ALGO, 1); for (i = MI_MIDIIN; i < MI_LCLEAR; i++) turn(EN_PRESET, 1);   /* (1.5.5: past T1..T4 CHANNEL) */
-    ok = ui.menu == 1 && ui.menu_sel == MI_LCLEAR && menu_tab() == MTAB_MIDI && str_eq(MI_NAME[MI_LCLEAR], "LEARN CLEAR") &&
-         ml_count() == ML_N && oct_leds() == OCT_BREATH && !menu_valued(MI_LCLEAR) && menu_valued(MI_MIDIIN);
-    turn(EN_K1, 3); press(B_OCTDN);
-    ok &= ml_count() == ML_N && ui.menu == 1;                           /* (knobs, OCT-: nothing) */
-    press(B_OCTUP);
-    ok &= !ml_count() && msg_is("LEARN CLEARED") && ui.menu == 1 && song.octave == 0 && oct_leds() == 0u;
-    memcpy(before, trk[1].p, sizeof before);
-    press(B_HOME);
-    queued(0xB0, 74, 3, 1);
-    ok &= !memcmp(before, trk[1].p, sizeof before) && trk[0].p[P_E4] == 3;   /* (CC74: the standard map again) */
-    hold(B_HOME); press(B_OCTUP);
-    ok &= msg_is("NOTHING LEARNED") && ui.menu_sel == MI_LCLEAR;
-    press(B_HOME);
-    bad += check("MENU > MIDI > LEARN CLEAR: OCT+ clears every CC (LEARN CLEARED; none: NOTHING LEARNED)", ok);
-
-    /* the stored codes with 1.5's parameters (the INSERT 96..100, TYPE 101, ESYNC 102, P_E0 103): a common parameter
-     * id + 1, below ML_E0; an engine one ML_E0 + k whatever P_E0 is; every id back as it went in */
-    ok = P_E0 == 103u && P_COUNT == 111u && P_E0 < ML_E0;
-    for (i = 0; i < P_COUNT; i++)
-        ok &= ml_id(ml_code(i)) == i && (i < P_E0 ? ml_code(i) == i + 1u && ml_code(i) < ML_E0 : ml_code(i) == ML_E0 + i - P_E0);
-    ok &= ml_id(0) == P_COUNT && ml_id(P_E0 + 1u) == P_COUNT && ml_id(ML_E0 - 1u) == P_COUNT;   /* (no such parameter) */
-    memset(favorites.factory[14], 0, 32);
-    ok &= ml_learn(30, 1, P_IMIX) == 1u && ml_learn(31, 2, P_ESYNC) == 1u && ml_learn(33, 3, P_E0 + 3u) == 1u;
-    ok &= ml_get(0) == (30u | 1u << 7 | (P_IMIX + 1u) << 9) && ml_get(1) == (31u | 2u << 7 | (P_ESYNC + 1u) << 9) &&
-          ml_get(2) == (33u | 3u << 7 | (ML_E0 + 3u) << 9);
-    queued(0xB0, 30, 0, 1);
-    queued(0xB0, 31, 127, 1);
-    queued(0xB0, 33, 127, 1);
-    ok &= trk[1].p[P_IMIX] == 0 && trk[2].p[P_ESYNC] == 1 && trk[3].p[P_E0 + 3u] == param_desc_of(eng_idx(trk[3].eng_req), P_E0 + 3u)->max;
-    bad += check("MIDI LEARN codes with 1.5's P_E0 103: common ids + 1 (INSERT MIX, ESYNC), engine ML_E0 + k; all ids round trip", ok);
-    memset(favorites.factory[14], 0, 32);
-    return bad;
-}
 /* 1.5.1 (#179): MIDI Program Change. The audio side only notes it (ui.mpc); the main loop loads it, as PRESETS
  * numbers the engine's sounds (aliases skipped), DRUM's kits (retired variants skipped), FM6's presets then its
  * voice bank; past the last: ignored */
@@ -848,9 +593,7 @@ static int pc_test(void)
     ok = t->preset == 5;
     pc(0, 1); frame();
     ok &= t->preset == 1;
-    hold(B_SAVE);
-    ok &= same_sound(t, &was) && msg_is("UNDO/REDO T1");
-    bad += check("  two before a frame: the last loads; a run of PCs is one undo (SAVE held: the sound before)", ok);
+    bad += check("  two before a frame: the last loads", ok);
 
     /* the editor: a RELOAD for the selected track only */
     set_engine_of(&trk[1], 0);
@@ -979,6 +722,6 @@ static int pc_test(void)
 int main(void)
 {
     int bad = controls_test() + sustain_test() + ownership_test() + clock_test(1) + clock_test(2) + clock_arp_and_boundaries() +
-              arp_ext_stop_test() + usb_burst_test() + route_test() + route_block_test() + route_track_test() + follow_test() + cc_map_test() + learn_test() + pc_test();
+              arp_ext_stop_test() + usb_burst_test() + route_test() + route_block_test() + route_track_test() + cc_map_test() + pc_test();
     printf("%s\n", bad ? "MIDI CONTROL/CLOCK TEST FAILED" : "MIDI control/clock integration tests passed"); return bad != 0;
 }

@@ -162,12 +162,10 @@ static void lcd_init(void) {}
 #include "../../firmware/src/ui.c"
 #include "../../firmware/src/menu_items.c"
 #include "../../firmware/src/icons.c"
-#include "../../firmware/src/ui_graph.c"
 #include "../../firmware/src/ui_draw.c"
 #include "../../firmware/src/ui_menu.c"
 #include "../../firmware/src/ui_input.c"
 #include "../../firmware/src/ui_t1.c"
-#include "../../firmware/src/ui_layer.c"
 
 /* ------------------------------------------------------------ the flash --- */
 static uint32_t web_flash_writes;
