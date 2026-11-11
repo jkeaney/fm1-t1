@@ -3,7 +3,7 @@ id: P3-011
 title: Remove user presets, slice_store and the FUN1-FUN10 project formats (R7)
 phase: P3
 type: task
-status: review
+status: done
 priority: 2
 executor: haiku
 depends_on: [P3-007]
@@ -131,3 +131,12 @@ Image is 16 B off the rehearsal's 371232 (well under 2 KB); RAM and pool match e
 Not ticked: "persistence_test passes with the settings and autosave assertions unchanged". It passes, but I did not verify line
 by line that the 289 removed lines are only preset/migration cases. The diff also adds a FUN10 byte-fit check and an `erases`
 counter. Reviewer: please compare the persistence_test.c diff against that criterion.
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS (gate none).
+- `sh tools/check.sh` -> CHECK PASS (first run; no rerun needed). `./build.sh`: `image 371232 B; RAM .data+.bss 34356 B of 73728; pool 144720 B of 368640` (headroom 39372 B, over 8192). Matches the rehearsal exactly.
+- Acceptance grep: no match (exit 1). golden.txt, target_budget.txt and cpu_baseline.txt untouched in HEAD.
+- persistence_test.c diff checked hunk by hunk: removed lines are only the `mig_*` FM6-bank migration, project save/rename/erase/FUN7/FUN5 cases, and the up_put preset cases, plus the proj_slot/up_bank resets. Every settings case and autosave_test is untouched. The "PLAY consumed before the settings snapshot" case is kept, with `irq_races == 3u` changed to `1u` as the task specified (two earlier race cases deleted).
+- The "FUN10 byte-fit check" is not new: it is the existing P_COUNT x NENGINES loop that sat in the FUN5 block, kept in its own block. The `erases` counter is pre-existing (reset() only drops `up_gen`). No scope creep. Criterion ticked.
+- project.c settings persistence and autosave were kept and are covered by the passing persistence_test and settings_test.
+- Not verifiable here: web emulator (no emcc); eng_slice.c slc_man_load/save are now never set (left deliberately, noted).
