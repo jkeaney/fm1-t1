@@ -20,7 +20,7 @@
  * 6. the key map of the DRUM engine: key 7 (the first C) = KICK, one lane per key, KICK's variants. The retired KIT
  *    values 1..3 (HAND CYM H+CYM until 1.0.4): every note plays what 66 10 77 play, a beat through the engine
  *    renders the same samples; the knob never lands on them, DESC names them as those kits, a stored value (project,
- *    user preset: param_fit) and a motion event land on the kit they play (the editor's SET: editor_test.c).
+ *    user preset: param_fit) and a motion event land on the kit they play (the editor's SET: the removed web editor, P3-004).
  * 7. the kit through the engine: the 8 lanes struck at once all sound together (8 voices), a lane struck again
  *    by another note cuts its last hit (one voice), a released key does not end a hit and the voice frees
  *    itself when the drum has rung out, VOICE MONO still plays the kit.

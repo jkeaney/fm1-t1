@@ -3,7 +3,7 @@
 /* 1.6, on the real UI sources (with the stubs of tests/ui_test.c):
  * CUSTOM (#244, Discussion #239): the palette of the user's as COLOR's 11th value (the menu steps it, a built-in palette leaves
  *   it stored, none stored = 10 values), every screen drawn in a light, a dark and an edge-of-the-rule palette, nothing else
- *   of the settings touched (the built-in palette stays settings.palette). The editor's side: editor_test.c custom_palette
+ *   of the settings touched (the built-in palette stays settings.palette). The editor's side (removed, P3-004): custom_palette
  * Discussion #238 (#242): SEQ's piano roll follows the play position:
  *   follows    a melodic pattern longer than 16 steps, the transport playing: the roll's bank is the playhead's;
  *              STEP and DETAIL alike; the cursor, the steps and the pattern length are not touched

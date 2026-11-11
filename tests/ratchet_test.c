@@ -11,7 +11,7 @@
  *   UI         SEQ > AUTOMATION RATCH rows, KNOB 4 (x1..x4, clamped, the row's step; dimmed on a REST, a TIE, an empty
  *              step); the piano roll and the DRUM grid draw a ratcheted step in its parts, the roll no slide line
  *              out of one.
- * The editor protocol (STEP_SET / TRACK_STEP, INFO 52 01 04) is in tests/editor_test.c. Built and run by
+ * The editor protocol (STEP_SET / TRACK_STEP, INFO 52 01 04) is in the removed web editor's test (P3-004). Built and run by
  * tests/run_tests.sh. */
 #define UI_TEST_NO_MAIN 1
 #include "ui_test.c"

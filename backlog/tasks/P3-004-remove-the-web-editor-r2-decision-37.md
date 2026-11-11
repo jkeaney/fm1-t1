@@ -3,7 +3,7 @@ id: P3-004
 title: Remove the web editor (R2, decision 37)
 phase: P3
 type: task
-status: todo
+status: review
 priority: 2
 executor: haiku
 depends_on: [P3-003]
@@ -118,3 +118,14 @@ Findings:
 - tests/run_tests.sh:257 label "editor" is a stale label for seq155_test; optional.
 
 Next executor: edit the 3 test comments and BUILDING.md:89, re-run the acceptance grep, `sh tools/check.sh`.
+
+### 2026-11-11 executor (claude-haiku-5-5), run 3 (coordinator fix)
+
+Coordinator review failed on comments and docs only. Fixed:
+- tests/ratchet_test.c:14, tests/drum_test.c:23, tests/v16_test.c:6: `editor_test.c` file name removed from the comments.
+- BUILDING.md:89: ", the editor" removed from the not-emulated list.
+- tests/run_tests.sh:257: label "editor" removed.
+- web/index_pkg.html:101 left as is (FB-005).
+
+`sh tools/check.sh` -> `CHECK PASS` (run after the edits). `grep -rn editor_test tests/*.c tests/*.sh BUILDING.md` is empty.
+

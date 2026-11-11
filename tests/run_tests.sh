@@ -254,7 +254,7 @@ if [ -f build/gen/felucca_tables.h ]; then
     $CC -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/detail_test" tests/detail_test.c -lm
     run "1.5.1 SEQ > DETAIL: a step's CHANCE RATCH NUDGE VEL on KNOB 1..4 (walk, entries, undo, DRUM, chords, playback, marks)" "$OUT/detail_test"
     $CC -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/seq155_test" tests/seq155_test.c -lm
-    run "1.5.5 SEQ: conditions and FILL, SONG, storage, editor; SEQ TOOLS EUCLID, DOUBLE, HALF" "$OUT/seq155_test"
+    run "1.5.5 SEQ: conditions and FILL, SONG, storage; SEQ TOOLS EUCLID, DOUBLE, HALF" "$OUT/seq155_test"
     $CC -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/ui155_test" tests/ui155_test.c -lm
     run "1.5.5 fixes and UI: PAN +-100, AUTOMATION KNOB 3, SELECT PAGE, OCT- on the press (1.5.6), PROJECT ERASE, CLEAN INIT" "$OUT/ui155_test"
     $CC -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/v156_test" tests/v156_test.c -lm
