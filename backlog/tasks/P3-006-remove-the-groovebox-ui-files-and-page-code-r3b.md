@@ -3,7 +3,7 @@ id: P3-006
 title: Remove the groovebox UI files and page code (R3b)
 phase: P3
 type: task
-status: review
+status: done
 priority: 2
 executor: sonnet
 depends_on: [P3-005]
@@ -61,3 +61,10 @@ What was done:
 - tests/target_budget.txt rebaselined (BUDGET_UPDATE=1): perf_begin 28->34, ISR roots +2.4/+3.1 % (no ISR source changed; compile differences from the smaller UI), wheel_block 86->102.
 - FB-007 filed: the T-1 screen fails the layout lint (hint line 242 px wide, two card labels). ui_render lists those findings and does not fail on them.
 Reviewer notes: HELP and AUTO SELECT, SCOPE, HOME and a few other menu rows now have no reader (rows kept, per scope). In STYLE LINE no screen draws rules any more.
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS. `sh tools/check.sh` ran once: CHECK PASS. `./build.sh`: `image 392280 B; RAM .data+.bss 51472 B of 73728; pool 187780 B of 368640` (headroom 22256 B >= 8192).
+- Deleted files gone, none in felucca.c; ui_graph.c and ui_help.c were unused after the pages went (build and tests pass without them). Greps for public symbols clean; only stale comments name ui_layer/ui_name/ui_events (motion.c:313, core.h:401, eng_drum.c:66, category.c:6, midi_learn.c:4, settings_persist.c:17, perform.c:6,42,46,87): harmless, can go with R4/R6.
+- Budget re-baseline: seq.c changed only a comment, ui_t1.c is UI-side; perform.c (perf_begin, noinline) is unchanged. The static estimate moves with .bss/address layout after the removals, so the rise (perf_begin 28->34, wheel_block 86->102, ISR roots +2.4/+3.1 %) is layout noise, not new work; perf_block fell 853->846. Only 10 rows changed. Accepted; the 10 % tolerance means the ISR roots did not strictly need it.
+- Extra deleted tests (motion, fun10, ratchet, seq155) need the removed pages and the features R4 removes; learn/follow drops logged in the executor entry. Accepted.
+- FB-007 is correctly filed (T-1 screen never linted before; ui_t1.c out of scope), not an acceptance failure.
