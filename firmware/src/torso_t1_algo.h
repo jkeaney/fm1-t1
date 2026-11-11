@@ -72,7 +72,6 @@ uint16_t t1_pace_curve_q15(uint16_t normalized_x_q15, int8_t pace);
 
 /* Scale Interval Definitions (bitmasks across 12 chromatic semitones) */
 extern const uint16_t T1_SCALE_MASKS[T1_NUM_SCALES];
-extern const char * const T1_SCALE_NAMES[T1_NUM_SCALES];
 
 /**
  * Quantize a raw chromatic note to the selected musical scale and root.
@@ -96,7 +95,7 @@ uint8_t t1_harmony_eval_voicing(uint8_t base_note, uint8_t voicing, uint8_t voic
 /**
  * Compute melodic contour wave shape offset for a given step.
  * @param phrase_shape  Melodic contour shape (0: flat, 1: sine, 2: tri, 3: ramp up, 4: ramp dn, 5: arch, 6: u-arch, 7: s&h)
- * @param range         Melodic excursion span in octaves (0 to 7)
+ * @param range         Melodic excursion span in semitones
  * @param step_idx      Current step index (0 to steps - 1)
  * @param total_steps   Total steps in cycle
  * @return Signed semitone excursion offset

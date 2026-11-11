@@ -3,7 +3,7 @@ id: BUG-002
 title: F2 - stale T1_SCALE_NAMES array mislabels the scale masks
 phase: P3
 type: bug
-status: todo
+status: review
 priority: 3
 executor: haiku
 depends_on: [P3-001]
@@ -32,8 +32,8 @@ No second, disagreeing names table exists.
 `T1_SCALE_NAMES` is declared and defined but unused, and its order is wrong.
 
 ## Acceptance criteria
-- [ ] `grep -rn T1_SCALE_NAMES firmware tests` finds nothing.
-- [ ] `tools/check.sh` passes.
+- [x] `grep -rn T1_SCALE_NAMES firmware tests` finds nothing.
+- [x] `tools/check.sh` passes.
 
 ## Verification
 ```sh
@@ -43,3 +43,23 @@ sh tools/check.sh
 
 ## Log
 Created by P2-006 (triage of F2: `T1_SCALE_MASKS` and its file survive, so the residue is tracked). May be done inside ADR-0003 prerequisite 3.
+
+### 2026-11-11 executor (claude-haiku-5-5)
+Changes: removed the `T1_SCALE_NAMES` definition from `firmware/src/torso_t1_algo.c` and its declaration from
+`firmware/src/torso_t1_algo.h`. Changed the header `range` comment from "in octaves (0 to 7)" to "in semitones".
+No new names table was added here, as ADR-0003 section 13 requires.
+
+Commands and output:
+```
+$ grep -rn T1_SCALE_NAMES firmware tests
+(no output, exit 1)
+$ sh tools/check.sh
+== build (log: build/check/build.log)
+== ram headroom
+RAM .data+.bss 23060 B of 73728
+== tests (log: build/check/tests.log)
+== backlog (log: build/check/backlog.log)
+CHECK PASS
+```
+Decisive lines: `ALL HOST TESTS PASSED` (tests.log), `131 items, 0 errors` (backlog.log). The word "fail" in tests.log
+only matches test names such as "erase failure keeps old data".

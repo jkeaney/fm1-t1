@@ -239,12 +239,6 @@ const uint16_t T1_SCALE_MASKS[T1_NUM_SCALES] = {
     0x06DBu, /* 15: Diminished (Half-Whole) {0,1,3,4,6,7,9,10} */
 };
 
-const char * const T1_SCALE_NAMES[T1_NUM_SCALES] = {
-    "Chromatic", "Major", "Minor", "Dorian", "Mixolydian",
-    "Maj Pent", "Min Pent", "Harm Minor", "Phrygian", "Lydian",
-    "Locrian", "Mel Minor", "Blues", "Whole Tone", "Dim H-W", "Dim W-H"
-};
-
 uint8_t t1_harmony_quantize(int16_t raw_note, uint8_t root_note, uint8_t scale_id)
 {
     if (scale_id >= T1_NUM_SCALES) scale_id = 0;
