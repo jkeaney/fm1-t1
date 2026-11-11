@@ -3,7 +3,7 @@ id: P3-004
 title: Remove the web editor (R2, decision 37)
 phase: P3
 type: task
-status: review
+status: done
 priority: 2
 executor: haiku
 depends_on: [P3-003]
@@ -129,3 +129,7 @@ Coordinator review failed on comments and docs only. Fixed:
 
 `sh tools/check.sh` -> `CHECK PASS` (run after the edits). `grep -rn editor_test tests/*.c tests/*.sh BUILDING.md` is empty.
 
+
+### 2026-11-11 review (sonnet), re-review of 992096f
+
+Verdict: PASS. The acceptance grep returns only tests/ui_test.c:3807 (allowed); BUILDING.md has no "editor"; `sh tools/check.sh` = CHECK PASS; build line `image 500212 B; RAM .data+.bss 54064 B of 73728; pool 191048 B of 368640` (headroom 19664 B, above 8192). The index_pkg.html:101 "use the editor" text stays under FB-005 as the owner follow-up.
