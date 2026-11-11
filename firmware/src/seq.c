@@ -11,8 +11,7 @@
  * A note into an armed track (song.rec) while
  * the transport runs is recorded into its pattern, quantised to its (swung) steps, with its
  * held length as TIE steps (rec_note, rec_hold, rec_release). With the ARP on, the notes the arp
- * plays are recorded, not the keys held (what plays back is what was heard). A key or MIDI note plays a
- * chord when the track's CHRD is on (chord.c): its notes go through the same input as so many keys. */
+ * plays are recorded, not the keys held (what plays back is what was heard). */
 static const uint16_t SCALE_MASK[] = {
     0xFFF,                                   /* CHR */
     (1 << 0) | (1 << 2) | (1 << 4) | (1 << 5) | (1 << 7) | (1 << 9) | (1 << 11),   /* MAJ */
@@ -36,7 +35,8 @@ static const uint16_t SCALE_MASK[] = {
 static uint32_t kb_prev;
 static volatile uint8_t kb_boot_hold;    /* #137: set from power-on to the end of the splash (main.c): the keys sound nothing,
                                           * and one held across its end stays silent until it is let go and pressed again */
-static uint8_t kb_note[27], kb_trk[27];  /* per key: the note it started and on which track */
+static uint8_t kb_note[27], kb_trk[27], kb_chn[27];   /* kb_chn: 1 while the key's note sounds */
+static int midi_local_held(const track_t *t, uint32_t note);  /* per key: the note it started and on which track */
 static uint8_t in_key;                   /* the key (+ 1) whose notes go into input_on now (key_on), 0: none (MIDI IN) */
 static uint8_t kb_vel = 100;             /* 1.5.6 (#84): the keys' velocity (the SELECT VEL row is gone: P3-005) */
 /* #191: where each track's held[i] came from, so the arp maps it again as it plays (arp_list: TRN, ROOT, SCALE, QNT as
@@ -176,7 +176,6 @@ static uint32_t kb_map(const track_t *t, uint32_t k)
     return n >= 0 ? (uint32_t)n : kb_pitch(t, k, song.octave);
 }
 
-#include "chord.c"
 
 /* ------------------------------------------------------------- arp --- */
 static void arp_add(track_t *t, uint32_t note)
@@ -222,12 +221,32 @@ static void arp_remove(track_t *t, uint32_t note)
     t->nheld = (uint8_t)k;
 }
 
+/* the main loop swaps a multi-byte state under the audio ISR: isr_guard() masks the interrupts and returns what to restore */
+static uint32_t isr_guard(void)
+{
+#if defined(FM1_IRQ_TARGET)
+    uint32_t f = fm1_icfg();
+    fm1_irq_off();
+    return f;
+#else
+    return 0;
+#endif
+}
+static void isr_unguard(uint32_t f)
+{
+#if defined(FM1_IRQ_TARGET)
+    fm1_icfg_set(f);
+#else
+    (void)f;
+#endif
+}
+
+static const step_t *seq_steps(const track_t *t) { return t->step; }   /* (a song's slot steps could stand in: removed in P3-007) */
+
 #define ND_NONE 0u                      /* track_t nd_late / nd_early: nothing latched (seq_tick; else its seq_pos + 1) */
 static void rec_note(track_t *t, uint32_t note, uint32_t vel);
 static void rec_release(track_t *t, uint32_t note);
-static int rec_on(const track_t *t) { return ((song.rec >> trk_index(t)) & 1u) && song.playing && !chain.running; }
-
-#include "motion.c"
+static int rec_on(const track_t *t) { return ((song.rec >> trk_index(t)) & 1u) && song.playing; }
 
 /* the ARP's modes (P_AMODE). Append-only: a stored value keeps its meaning. ORD (1.2, it played as UP before) plays
  * the held notes in the order they were pressed, whatever ARP 2's ORD switch says (that switch orders the list of the
@@ -364,7 +383,7 @@ static int seq_counting(void) { return cin_left != 0u; }
 static uint32_t click_beat_len(void) { return 4u * div_samples(2); }   /* DIV 2: 1/16 */
 static int click_wanted(void)                  /* CLICK REC: while a track is armed (not in a song: no recording) */
 {
-    return click_mode == CLICK_ON || (click_mode == CLICK_REC && song.rec && !chain.running);
+    return click_mode == CLICK_ON || (click_mode == CLICK_REC && song.rec);
 }
 /* the arp's note list (list, its length returned; 0: nothing to play): the held notes (sorted or as played) over OCT
  * octaves, *cnt of them. #191: the notes as they play now, a key's mapped again through kb_pitch (TRN, ROOT, SCALE,
@@ -657,93 +676,31 @@ static void input_off(track_t *t, uint32_t note)
     trk_note_off(t, note);                          /* other mode (ARP switched while held) */
 }
 
-/* the effect of key k in the FX layer (PF_N none): the white keys F3 .. G5 the map's (perf_map: the settings,
- * ui_layer.c; by default 1.1.5's ten, FLANGER, PHASER, REV / ECHO THROW), black keys 1..4 the track mutes */
-static uint32_t perf_key(uint32_t k)
-{
-    uint32_t p = key_place(k);
-    return !key_black(k) ? (p < PF_KEYS ? perf_map[p] : PF_N) : p < NTRK ? PF_M1 + p : PF_N;
-}
-
-/* a key of the FX layer down (FX held) / up: the effect it holds. kb_fx: the one it took (+ 1, 0 none), so a key
- * remapped while held lets go of what it holds; an effect two keys hold ends with the last of them. noinline: out
- * of keyboard_block's loop (the audio ISR) */
-static uint8_t kb_fx[27];
-static __attribute__((noinline)) void perf_key_press(uint32_t k, int down)
-{
-    uint32_t e, j;
-    if (down) {
-        e = perf_key(k);
-        kb_fx[k] = (uint8_t)(e + 1u);
-        perf_press(e, 1);
-        return;
-    }
-    if (!kb_fx[k])
-        return;
-    e = kb_fx[k] - 1u;
-    kb_fx[k] = 0;
-    for (j = 0; j < 27u; j++)
-        if (kb_fx[j] == e + 1u)
-            return;
-    perf_press(e, 0);
-}
-
-/* the map changed (ui_layer.c: PRESETS with a key held, EDIT, a settings load): a white key held takes its new
- * effect at once (the old one let go); FX LATCH: a latched effect of the key's becomes the new one */
-static __attribute__((noinline)) void perf_key_remap(void)
-{
-    uint32_t k, e, o;
-    perf_remap = 0;
-    for (k = 0; k < 27u; k++) {
-        if (!kb_fx[k] || key_black(k) || (o = kb_fx[k] - 1u) == (e = perf_key(k)))
-            continue;
-        if (!perf_latch_on) {
-            perf_key_press(k, 0);
-            perf_key_press(k, 1);
-            continue;
-        }
-        kb_fx[k] = (uint8_t)(e + 1u);
-        if (o < PF_N && ((perf_latched >> o) & 1u)) {
-            perf_latched &= ~PF_BIT(o);
-            if (e < PF_N) {
-                perf_latched |= PF_BIT(e);
-                perf_ord[e] = ++perf_seq;
-            }
-        }
-    }
-}
-
-/* key k plays kb_note[k] on track t: its chord (chord.c; the note alone with CHRD OFF). A note another key
- * holds already sounds: it is not started again (nor sent to MIDI OUT); the key keeps its notes */
+/* key k plays kb_note[k] on track t. A note another key holds already sounds: it is not started again (nor
+ * sent to MIDI OUT) */
 static void key_on(uint32_t k, track_t *t)
 {
-    uint32_t n = chord_build(t, kb_note[k], kb_chord[k]), i, mc = trk_midi_ch(trk_index(t)), vel = kb_vel;
+    uint32_t x = kb_note[k], mc = trk_midi_ch(trk_index(t)), vel = kb_vel;
     kb_chn[k] = 0;
     in_key = (uint8_t)(k + 1u);                     /* (the arp keeps the key: arp_add) */
-    for (i = 0; i < n; i++) {
-        uint32_t x = kb_chord[k][i];
-        if (midi_local_held(t, x))
-            continue;
+    if (!midi_local_held(t, x)) {
         input_on(t, x, vel);
         midi_out_event(0x09u | (0x90u | mc) << 8 | x << 16 | vel << 24);
     }
     in_key = 0;
-    kb_chn[k] = (uint8_t)n;
+    kb_chn[k] = 1;
     last_note = kb_note[k];                         /* (step entry, the SAMPLE zone: the key's note) */
 }
 
-/* key k is up: the notes it started end, but those another key still holds */
+/* key k is up: its note ends, unless another key still holds it */
 static void key_off(uint32_t k, track_t *t)
 {
-    uint32_t n = kb_chn[k], i, mc = trk_midi_ch(trk_index(t));
+    uint32_t x = kb_note[k], mc = trk_midi_ch(trk_index(t));
     kb_chn[k] = 0;
-    for (i = 0; i < n; i++) {
-        uint32_t x = kb_chord[k][i];
-        if (midi_local_held(t, x))
-            continue;
-        input_off(t, x);
-        midi_out_event(0x08u | (0x80u | mc) << 8 | x << 16);
-    }
+    if (midi_local_held(t, x))
+        return;
+    input_off(t, x);
+    midi_out_event(0x08u | (0x80u | mc) << 8 | x << 16);
 }
 
 #ifdef FM1_INPUT_LAT
@@ -767,10 +724,8 @@ static __attribute__((noinline)) void kb_lat(uint32_t k)
 static void keyboard_block(void)
 {
     uint32_t cur = fm1_in.notes, ch, k;
-    uint32_t lay, fx, mute;
+    uint32_t mute;
     ch = cur ^ kb_prev;                          /* keys also sound while entering steps */
-    if (perf_remap)
-        perf_key_remap();
     if (!ch)
         return;
     if (kb_boot_hold) {                           /* #137: under the splash; their release is silent too */
@@ -780,8 +735,6 @@ static void keyboard_block(void)
         kb_prev = cur;
         return;
     }
-    lay = (fm1_in.buttons & kb_mask) || kb_lock;  /* (#83: kb_lock, a layer locked open with no button held) */
-    fx = (fm1_in.buttons & perf_mask) || (kb_lock & 2u);
     mute = song.grid == 2u ? ~0u : song.grid == 3u ? SONG_KEYS : 0u;   /* the keys that never sound here */
     for (k = 0; k < 27u; k++) {
         if (!((ch >> k) & 1u))
@@ -790,13 +743,6 @@ static void keyboard_block(void)
             kb_trk[k] = song.sel;
             if (kb_asleep) {                      /* (SCREEN OFF: the wake press is swallowed) */
                 kb_note[k] = KB_SILENT;
-                continue;
-            }
-            if (lay) {                            /* a layer's button held (or locked): the key is the layer's */
-                kb_note[k] = KB_SILENT;           /* (ui_layer.c), with FX an effect (perform.c) */
-                kb_layer |= 1u << k;
-                if (fx)
-                    perf_key_press(k, 1);
                 continue;
             }
             if ((mute >> k) & 1u)                 /* NAME (ui_name.c): every key types, none sounds; SONG: A..D */
@@ -812,11 +758,6 @@ static void keyboard_block(void)
             kb_lat(k);
 #endif
         } else {
-            if ((kb_layer >> k) & 1u) {
-                kb_layer &= ~(1u << k);
-                perf_key_press(k, 0);
-                continue;
-            }
             if (kb_note[k] == KB_SILENT)
                 continue;
             key_off(k, &trk[kb_trk[k] % NTRK]);
@@ -829,8 +770,6 @@ static void keyboard_block(void)
 static void seq_start(void)
 {
     uint32_t i;
-    motion_begin();
-    chain_start();
     for (i = 0; i < NTRK; i++) {                   /* every track from its step 0, together */
         track_t *t = &trk[i];
         t->seq_idx = (uint16_t)(t->p[P_SLEN] - 1);
@@ -848,7 +787,6 @@ static void seq_start(void)
     clk_pos = CLK_START;                           /* the metronome's first beat with step 0 */
     song.playing = 1;
     t1_on_start();                                 /* t1_glue.c: the T-1 from its tick 0 too */
-    perf_start();                                  /* perform.c: its 1/16 grid too */
 }
 
 static void seq_release(track_t *t)
@@ -879,8 +817,6 @@ static void seq_stop(void)
         trk[i].nd_late = trk[i].nd_early = ND_NONE;   /* (a nudged step not played yet: not after the stop) */
         trk[i].nd_fired = 0;
     }
-    chain_stop();
-    motion_end();
     t1_on_stop();                                  /* t1_glue.c: every T-1 note off (MIDI OUT too) */
 }
 
@@ -1064,25 +1000,15 @@ static __attribute__((noinline)) uint32_t seq_time(track_t *t, uint32_t idx, uin
     return mod_time(t, s->n ? s->note[0] : DRUM_LANE_NOTE[__builtin_ctz(s->hit) & (NLANE - 1u)], vel, period);
 }
 
-/* the automation a track plays: its slot's while a song plays (song_chain.c lanes; 0: a silent lane, none) */
-static const motion_store_t *chain_motion(const track_t *t)
-{
-    uint32_t s = chain.lane[trk_index(t)];
-    return !chain.running ? &motion : s < 4u ? &chain.source[s].motion : 0;
-}
-
 /* step idx plays: its chance (the one roll, as seq_step made it: a step that does not play applies no lock), the
  * automation and the locks before the notes (so a note-on reads them: eng_drum's KIT, ..), the notes live recording
  * already sounds left out (rskip), then its notes. On its start, or (NUDGE) at its start + its nudge */
 static __attribute__((noinline)) void seq_play(track_t *t, uint32_t idx, uint32_t period)
 {
     const step_t *s = &seq_steps(t)[idx];
-    const motion_store_t *m = chain_motion(t);
     uint32_t skip = SEQ_ROLLED, i, k;
     if (seq_miss(t, s, idx))
         skip = SEQ_MISS;
-    if (m)
-        motion_step(t, idx, m, skip == SEQ_ROLLED);
     if (t->rskip_n && t->rskip_idx == idx) {
         for (k = 0; k < t->rskip_n; k++) {
             for (i = 0; i < s->n; i++)
@@ -1147,7 +1073,7 @@ static __attribute__((noinline)) void seq_nd_start(track_t *t, uint32_t period, 
             seq_play(t, t->seq_idx, period);
     }
     t->nd_fired = 0;
-    if ((!chain.running || nx) && (d = seq_nudge(t, &seq_steps(t)[nx])) < 0) {
+    if ((d = seq_nudge(t, &seq_steps(t)[nx])) < 0) {
         uint32_t at = step_samples(t, period, t->seq_idx), back = (uint32_t)-d * period / NUDGE_DIV;
         at = (at > back ? at - back : 0u) + 1u;
         t->nd_early = at < t->nd_late ? t->nd_late : at;   /* (never before this step's own late play) */
@@ -1185,7 +1111,7 @@ static void seq_tick(track_t *t, uint32_t n)
         if (t->seq_pos < cur_len && t->seq_pos != 0x7FFFFFFFu + n)
             break;
         top = t->seq_pos >= 0x7FFFFFFFu;            /* (PLAY, a SONG section: its first step) */
-        t->seq_pos = top ? (chain.running ? chain.carry : 0u) : t->seq_pos - cur_len;
+        t->seq_pos = top ? 0u : t->seq_pos - cur_len;
         t->seq_idx = (uint16_t)((t->seq_idx + 1u) % len);
         seq_enter(t, top, len);
         if (t->p[P_SQNT] && !t->nd_fired)
@@ -1319,7 +1245,7 @@ static void events_block(uint32_t n)
             midi_clock_transport(0xFAu, fm1_ms);
         else if (cin_left)
             ;                                       /* counting in already (the UI's PLAY stops it: seq_counting) */
-        else if (cin_bars && song.rec && !song.playing && !chain.armed)
+        else if (cin_bars && song.rec && !song.playing)
             cin_begin();                            /* recording from stop: the count-in first */
         else
             seq_start();
@@ -1346,7 +1272,6 @@ static void events_block(uint32_t n)
         memset(midi_sel_on, 0, sizeof midi_sel_on);
         memset(midi_ch, 0, sizeof midi_ch);
         memset(midi_owners, 0, sizeof midi_owners);
-        memset(mchord, 0, sizeof mchord);
         midi_hint = 0;
         for (i = 0; i < NTRK; i++) {
             trk[i].rh_n = trk[i].rskip_n = 0;
@@ -1407,7 +1332,6 @@ static void events_block(uint32_t n)
     }
     if (aud_req)
         seq_audition();                               /* (STEP PREVIEW: a step sounds, stopped) */
-    chain_tick(seq_n);
     if (t1_off_req) {                               /* T1 mode turned off: its notes end */
         t1_off_req = 0;
         t1_all_off();

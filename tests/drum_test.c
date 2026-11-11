@@ -20,7 +20,7 @@
  * 6. the key map of the DRUM engine: key 7 (the first C) = KICK, one lane per key, KICK's variants. The retired KIT
  *    values 1..3 (HAND CYM H+CYM until 1.0.4): every note plays what 66 10 77 play, a beat through the engine
  *    renders the same samples; the knob never lands on them, DESC names them as those kits, a stored value (project,
- *    user preset: param_fit) and a motion event land on the kit they play (the editor's SET: the removed web editor, P3-004).
+ *    user preset: param_fit) land on the kit they play (the editor's SET: the removed web editor, P3-004).
  * 7. the kit through the engine: the 8 lanes struck at once all sound together (8 voices), a lane struck again
  *    by another note cuts its last hit (one voice), a released key does not end a hit and the voice frees
  *    itself when the drum has rung out, VOICE MONO still plays the kit.
@@ -1258,7 +1258,7 @@ static uint64_t seq_hash(const uint8_t (*ev)[3], uint32_t nev, uint32_t frames, 
 
 /* KIT 1..3 (HAND CYM H+CYM until 1.0.4) play 66 10 77: every note the same piece, the same lane names, a beat through
  * the engine the same samples (either KICK); the knob steps STD 80 10 66 55 77 and never lands on 1..3; DESC names
- * them as the kit they play; a stored value (param_fit: projects, user presets) and a motion event land on that kit;
+ * them as the kit they play; a stored value (param_fit: projects, user presets) lands on that kit;
  * KIT moved by the matrix over its whole range plays only the six kits */
 static void retired(void)
 {
@@ -1315,17 +1315,6 @@ static void retired(void)
                param_fit(d, (int32_t)r) != MAP[r];
     bad += param_fit(d, 99) != DK_PERC || param_fit(d, -5) != DK_STD || enum_orig(d, DK_55) != DK_55;
     bad += param_fit(&TP[P_LEVEL], 77) != 77;
-    {   /* a motion event of KIT 2 (CYM): stored and played as 10 */
-        host_tracks_init();
-        host_preset(&trk[0], ENGI_DRUM, 0);
-        motion_clear(&trk[0]);
-        bad += motion_set_event(&trk[0], 0, P_E0, DK_CYM) != 0;
-        for (k = n = 0; k < motion.count; k++)
-            if (motion.event[k].param == P_E0)
-                n++, bad += motion.event[k].value != DK_10;
-        bad += n != 1u;
-        motion_clear(&trk[0]);
-    }
     {   /* KIT anywhere in its range (the matrix moves it per block): a crash plays a model kit's BELL on 1..3 */
         int16_t p[P_COUNT];
         host_tracks_init();
@@ -1338,7 +1327,7 @@ static void retired(void)
         }
     }
     printf("drum_test: KIT 1..3 (HAND CYM H+CYM until 1.0.4) play 66 10 77 (the same samples), the knob skips them, "
-           "a stored value and motion land on the kit: %s\n", bad ? "FAIL" : "ok");
+           "a stored value lands on the kit: %s\n", bad ? "FAIL" : "ok");
     fails += bad != 0;
 }
 

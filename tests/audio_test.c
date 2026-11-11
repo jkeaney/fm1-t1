@@ -41,7 +41,6 @@ static void fresh(void)
     uint32_t p;
     memset(trk, 0, sizeof trk);
     memset(&song, 0, sizeof song);
-    memset(&chain, 0, sizeof chain);
     host_tracks_init();
     for (p = 0; p < NPART; p++) host_preset(&trk[p], 0, 0);
     memset(&felucca_dbg, 0, sizeof felucca_dbg);
@@ -201,7 +200,7 @@ static void boot_fresh(void)
 {
     fresh();
     lim_env = LIM_T; dc_l = dc_r = dce_l = dce_r = 0;
-    memset(kb_note, 0, sizeof kb_note); kb_prev = 0; kb_layer = 0;
+    memset(kb_note, 0, sizeof kb_note); kb_prev = 0;
     trk[0].p[P_VOICE] = V_POLY;
     trk[0].p[P_DIST] = trk[0].p[P_CHOR] = trk[0].p[P_DLY] = trk[0].p[P_REV] = 0;
 }

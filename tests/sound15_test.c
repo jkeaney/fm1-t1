@@ -64,10 +64,6 @@ static uint32_t preset_by_name(uint32_t e, const char *n)
 static void fresh(uint32_t e, uint32_t pi)        /* the boot state (no FX tails), track 1 = engine e preset pi */
 {
     uint32_t k;
-    memset(&pf, 0, sizeof pf);
-    for (k = 0; k < NTRK; k++)
-        pf.mg[k] = 32768;
-    perf_held = perf_latched = 0;
     lim_env = LIM_T;
     dc_l = dc_r = dce_l = dce_r = 0;
     vage = 0;
@@ -193,7 +189,7 @@ static void test_filter(void)
 
     check("TYPE: a track parameter LP BP HP, default LP (as before), not recordable (a setting)",
           d->fmt == F_ENUM && d->min == 0 && d->max == 2 && d->def == 0 && str_eq(d->label, "TYPE") &&
-          str_eq(d->names[0], "LP") && str_eq(d->names[1], "BP") && str_eq(d->names[2], "HP") && !motion_param(P_FTYPE));
+          str_eq(d->names[0], "LP") && str_eq(d->names[1], "BP") && str_eq(d->names[2], "HP"));
     /* every engine but ANALOG ignores TYPE; ANALOG's LP is the golden renders' (regress.c) */
     for (e = 1; e < NENGINES; e++) {
         if (ENGINES[e] == ENGINES[0] || !ENGINES[e]->npresets)
@@ -384,8 +380,7 @@ static void test_esync(void)
     int32_t v, k, ok;
 
     check("ESYNC: a track parameter OFF / ON, default OFF (as before), not recordable (a setting)",
-          d->fmt == F_ENUM && d->min == 0 && d->max == 1 && d->def == 0 && str_eq(d->label, "ESYNC") &&
-          !motion_param(P_ESYNC));
+          d->fmt == F_ENUM && d->min == 0 && d->max == 1 && d->def == 0 && str_eq(d->label, "ESYNC"));
     check("ESYNC OFF: the tables, whatever esync_k holds (a phrase bit for bit)",
           phrase_child(0, 0, 0) == phrase_child(0, 0, esync_garbage));
     /* the display and the knob */

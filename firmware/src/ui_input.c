@@ -57,7 +57,7 @@ static uint32_t oct_leds(void)
 /* Discussion #81: the keys of the notes MIDI IN (USB and TRS, routed by ROUT) holds on track t, bit k = key k: as
  * play_leds, where the keys play that note at the octave now, the lowest key that gives it; a note no key plays is
  * not shown. Read from midi_control.c's own state (midi_note_held: the notes each channel holds for the track, the
- * pedal's too, and the tones of MIDI chords): no state here; nothing to do while MIDI holds none of the track's */
+ * pedal's too): no state here; nothing to do while MIDI holds none of the track's */
 static uint32_t midi_leds(const track_t *t)
 {
     uint32_t k, note, m = 0, seen[4] = {0, 0, 0, 0};
@@ -135,7 +135,7 @@ static uint32_t scale_leds(uint32_t *root)
 #define IDLE_LEDS_MS 60000u
 static int idle_leds(void)
 {
-    int due = (ui_idle & 1u) && !(ui_prefs & PREF_ANIM_OFF) && !song.playing && !seq_counting() && !chain_busy() &&
+    int due = (ui_idle & 1u) && !(ui_prefs & PREF_ANIM_OFF) && !song.playing && !seq_counting() &&
               !song.rec && !transport_req && !ui.menu && !ui.confirm && !ui.uboot &&
               !(fm1_in.notes | fm1_in.buttons) && !panel_moved && !play_leds() && fm1_ms - scrn.idle >= IDLE_LEDS_MS;
     if (!due) {

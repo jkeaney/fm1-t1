@@ -3,7 +3,7 @@ id: P3-007
 title: Remove song chain, motion, chord and perform (R4)
 phase: P3
 type: task
-status: todo
+status: review
 priority: 2
 executor: haiku
 depends_on: [P3-006]
@@ -82,19 +82,19 @@ the whole record layout later, so nothing else is kept for them.
    FUN10 layout (record it in P3-011's Log if you touch any of them here).
 
 ## Acceptance criteria
-- [ ] `git apply --check` passed before and the six files in P3-007.deletes.txt show `D` in `git status`; no `#include` of
+- [x] `git apply --check` passed before and the six files in P3-007.deletes.txt show `D` in `git status`; no `#include` of
   song_chain.c / chord.c / motion.c / perform.c remains
-- [ ] `bash docs/design/rehearsal/P3-007.acceptance-grep.sh` prints nothing (run from the repo root; it greps firmware/src,
+- [x] `bash docs/design/rehearsal/P3-007.acceptance-grep.sh` prints nothing (run from the repo root; it greps firmware/src,
   tests, tools, web, BUILDING.md, LICENSING.md; tests/design is excluded: those are Python prototypes)
-- [ ] The build line after the change is `image 377856 B; RAM .data+.bss 34372 B of 73728; pool 154624 B of 368640`
+- [x] The build line after the change is `image 377856 B; RAM .data+.bss 34372 B of 73728; pool 154624 B of 368640`
   (before: `image 392280 B; RAM 51472; pool 187780`); a deviation over 2 KB in any number means the patch was altered:
   explain it in the Log
-- [ ] Pool used drops by at least 32000 B (measured 33156 B: pf_buf)
-- [ ] `sh tests/run_tests.sh` ends `ALL HOST TESTS PASSED` with **no change to tests/golden.txt** (the rehearsal run
+- [x] Pool used drops by at least 32000 B (measured 33156 B: pf_buf)
+- [x] `sh tests/run_tests.sh` ends `ALL HOST TESTS PASSED` with **no change to tests/golden.txt** (the rehearsal run
   changed none) and tests/t1_link_test.c still passing. The "web pages" step fails only if the repo path has spaces
   (CLAUDE.md known failure); the T-1 phase 3/4 timing benchmarks may fail on a busy host
-- [ ] `sh tools/check.sh` ends `CHECK PASS`; RAM headroom 73728 - N is at least 8192 B
-- [ ] The Log holds the build line and, for the budget step, the one `note` line it prints (below)
+- [x] `sh tools/check.sh` ends `CHECK PASS`; RAM headroom 73728 - N is at least 8192 B
+- [x] The Log holds the build line and, for the budget step, the one `note` line it prints (below)
 
 ## Verification
 ```sh
@@ -139,3 +139,18 @@ Status: **blocked**, no kept code change. Filed `backlog/feedback/FB-008-p3-007-
 
 ### 2026-11-11 orchestrator
 FB-008 answered; the task was rehearsed in a scratch copy and rewritten around the verified patch. Rehearsal result: device build `image 377856 B; RAM .data+.bss 34372 B of 73728; pool 154624 B of 368640`; one full `tests/run_tests.sh`: ALL HOST TESTS PASSED, golden and cpu_baseline unchanged, target budget only the `fm1_alnk0_irq -15 %` note. Status set to todo.
+
+### 2026-11-11 executor (claude-haiku-5-5)
+Status: **review**. Patch applied as written: `git apply --check` passed on HEAD 06d0a96 plus the backlog files; `git apply` then `git rm` of the six files in P3-007.deletes.txt. No hunk was altered and nothing was added beyond the patch.
+
+Commands and decisive output:
+- `git apply --check docs/design/rehearsal/P3-007.patch` → exit 0.
+- `bash docs/design/rehearsal/P3-007.acceptance-grep.sh` → no output (exit 1 from grep, no matches).
+- `sh tools/check.sh` → `CHECK PASS` (exit 0); `RAM .data+.bss 34372 B of 73728`.
+- `./build.sh` → `ok    image 377872 B; RAM .data+.bss 34372 B of 73728; pool 154624 B of 368640`. Expected 377856 B; the 16 B difference is well inside the 2 KB tolerance. Before: `image 392280 B; RAM 51472; pool 187780`. Pool drop 33156 B (≥ 32000).
+- `sh tests/run_tests.sh` → `regress: 97 golden renders (0 changed, 0 gone), 0 health failures, 0 voice / routing checks failed, 0 CPU entries over budget (0 notes), 0 crashes`; `ALL HOST TESTS PASSED`. The "web pages" step passed (no space-in-path failure this run).
+- Budget note printed by the step: `target: fm1_alnk0_irq ... cost 14720 (budget 17319) note: -15 % (BUDGET_UPDATE=1 to keep it)`. BUDGET_UPDATE was not used. tests/target_budget.txt was changed only by the patch (eight perf_* rows removed).
+- `git status tests/golden.txt tests/cpu_baseline.txt` → unchanged. GOLDEN_UPDATE was not run.
+- `git status` shows `D` for firmware/src/chord.c, motion.c, perform.c, song_chain.c, tests/chord_test.c, tests/song_probe.h.
+
+Acceptance criteria ticked after verification above. All are verified.

@@ -72,7 +72,6 @@
 #if FELUCCA_UART
 #include "midi_uart.c"
 #endif
-#include "song_chain.c"
 #include "seq.c"
 #include "torso_t1_port.c"
 #include "torso_t1.c"

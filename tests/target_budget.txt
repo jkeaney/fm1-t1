@@ -44,11 +44,3 @@ click_render 30
 mod_begin 163
 mod_voice 30
 mod_end 7
-perf_begin 34
-perf_mute 19
-perf_pre 26
-perf_block 846
-perf_master 29
-perf_flanger 368
-perf_phaser 448
-perf_throw 52

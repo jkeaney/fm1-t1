@@ -51,25 +51,23 @@ static void midi_expression_channel(uint32_t ch)
             midi_expression(&trk[i], midi_channel(ch));
 }
 
-/* a MIDI note of track t sounds note: one played as itself, or a tone of one played as a chord (chord.c) */
+/* a MIDI note of track t sounds note */
 static int midi_note_held(const track_t *t, uint32_t note)
 {
     uint32_t ch, id = trk_index(t) + 1u;
     for (ch = 0; ch < 16u; ch++)
-        if ((midi_notes[ch][note] & 0x7Fu) == id && !mchord_of(ch, note, id))
+        if ((midi_notes[ch][note] & 0x7Fu) == id)
             return 1;
-    return mchord_held(id, note);
+    return 0;
 }
 
-/* a key held on track t sounds note (the key's own note, or a tone of its chord) */
+/* a key held on track t sounds note */
 static int midi_local_held(const track_t *t, uint32_t note)
 {
-    uint32_t k, i;
+    uint32_t k;
     for (k = 0; k < 27u; k++)
-        if (kb_chn[k] && kb_trk[k] == trk_index(t))
-            for (i = 0; i < kb_chn[k]; i++)
-                if (kb_chord[k][i] == note)
-                    return 1;
+        if (kb_chn[k] && kb_trk[k] == trk_index(t) && kb_note[k] == note)
+            return 1;
     return 0;
 }
 
@@ -82,48 +80,16 @@ static void midi_release(uint32_t ch, uint32_t note)
         if (!--midi_ch[ch].owned[id - 1u])
             midi_ch[ch].targets &= (uint8_t)~(1u << (id - 1u));
     }
-    if (id) {
-        mchord_t *m = mchord_of(ch, note, id);
-        uint8_t nn[CHORD_MAX];
-        uint32_t n = 1, i;
-        nn[0] = (uint8_t)note;
-        if (m) {                                  /* a chord: exactly the notes it started */
-            n = m->n;
-            for (i = 0; i < n; i++)
-                nn[i] = m->note[i];
-            m->id = 0;
-        }
-        for (i = 0; i < n; i++)
-            if (!midi_local_held(&trk[id - 1u], nn[i]))
-                input_off(&trk[id - 1u], nn[i]);  /* input_off also checks other MIDI owners */
-    }
+    if (id && !midi_local_held(&trk[id - 1u], note))
+        input_off(&trk[id - 1u], note);           /* input_off also checks other MIDI owners */
 }
 
-/* a MIDI note-on (ch, note) of track t: its chord (chord.c) or the note alone. A note another key or MIDI
- * note holds already sounds: not started again */
+/* a MIDI note-on (ch, note) of track t. A note another key or MIDI note holds already sounds: not started again */
 static void midi_play(track_t *t, uint32_t ch, uint32_t note, uint32_t vel)
 {
-    uint8_t nn[CHORD_MAX];
-    uint32_t n = chord_build(t, note, nn), i, f = 0;
-    if (n > 1u || nn[0] != note)
-        for (f = 0; f < MCHORD_N && mchord[f].id; f++)
-            ;
-    if (f == MCHORD_N) {                          /* no room to keep a chord: the note alone */
-        n = 1;
-        nn[0] = (uint8_t)note;
-    }
-    for (i = 0; i < n; i++)
-        if (!midi_note_held(t, nn[i]) && !midi_local_held(t, nn[i]))
-            input_on(t, nn[i], vel);
-    if (n > 1u || nn[0] != note) {
-        mchord_t *m = &mchord[f];
-        m->ch = (uint8_t)ch;
-        m->src = (uint8_t)note;
-        m->n = (uint8_t)n;
-        for (i = 0; i < n; i++)
-            m->note[i] = nn[i];
-        m->id = (uint8_t)(trk_index(t) + 1u);
-    }
+    (void)ch;
+    if (!midi_note_held(t, note) && !midi_local_held(t, note))
+        input_on(t, note, vel);
 }
 
 static void midi_note_event(uint32_t ch, uint32_t note, uint32_t vel)
@@ -176,7 +142,6 @@ static void __attribute__((noinline)) midi_forget_track(uint32_t track)
         midi_ch[ch].owned[track] = 0;
     }
     midi_owners[track] = 0;
-    mchord_forget(track);
     midi_bend_q8[track] = midi_bend_target[track] = 0;
 }
 
@@ -206,8 +171,7 @@ static int midi_track_held(uint32_t track)
 }
 
 /* The standard CC map (#103): always on, these CCs only, on the track the channel plays (ROUT as notes). A CC
- * sets its parameter as a knob would, 0..127 over the parameter's range (64: the middle of a bipolar one), and
- * AUTOMATION records it as a knob move (motion_capture: the selected track, armed and playing). CC74 / CC71 are
+ * sets its parameter as a knob would, 0..127 over the parameter's range (64: the middle of a bipolar one). CC74 / CC71 are
  * the engine's own brightness / resonance (MIDI_CC_ENG); an engine without one ignores them. CC121 resets none
  * of them (RP-015: they are the sound's) */
 #define MCC_CUT 0xFEu
@@ -233,7 +197,6 @@ static void midi_cc_set(track_t *t, uint32_t id, uint32_t value)
     if (d->max <= d->min || t->p[id] == v)
         return;
     t->p[id] = (int16_t)v;
-    (void)motion_capture(t, id, (int16_t)v);
 }
 /* MIDI LEARN (1.5, Discussion #170): up to ML_N CCs, each set to one parameter of one track, whatever channel it
  * comes on (a channel ROUT ignores stays ignored) and whichever track that channel plays. Kept with the settings in

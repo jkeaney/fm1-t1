@@ -130,12 +130,6 @@ static int clock_test(uint32_t source)
     bad += check("lost clock times out and releases transport notes", !song.playing && !trk[0].seq_n);
     clock_packet(source, 0xFA, 700); clock_to(source, 700, 7);
     bad += check("Start after timeout restarts cleanly at the master's phase", song.playing && trk[0].seq_idx == 1u);
-    /* Original base values remain after MIDI Stop even while motion sounds. */
-    trk[0].p[P_REV] = 23; motion_clear(&trk[0]); motion_set_event(&trk[0], 0, P_REV, 100);
-    clock_packet(source, 0xFA, 1000); clock_packet(source, 0xF8, 1000);
-    bad += check("external-clock playback applies recorded motion", trk[0].p[P_REV] == 100);
-    clock_packet(source, 0xFC, 1010);
-    bad += check("external Stop restores the musical parameter base", trk[0].p[P_REV] == 23);
     return bad;
 }
 static int clock_arp_and_boundaries(void)
@@ -531,19 +525,15 @@ static int cc_map_test(void)
     bad += check("ROUT SEL: channel 10's CC7 sets the selected track's LEVEL", trk[2].p[P_LEVEL] == 5 && trk[0].p[P_LEVEL] != 5);
     song.g[G_ROUTE] = 0; song.sel = 0; events_block(CTL);
 
-    /* AUTOMATION: the selected track armed and playing records the CC as a knob move; else it is the new base */
+    /* the CC is the new value, armed and playing or not (the automation that recorded it was removed in P3-007) */
     midi_test_reset();
     song.rec = 1; seq_start(); events_block(CTL);
     queued(0xB0, 74, 20, 1);
-    bad += check("armed and playing: CC74 records a motion event of CUT on the selected track", motion.count == 1u &&
-                 motion.event[0].param == P_E4 && motion.event[0].value == 20 && (motion.event[0].place >> 6) == 0u);
-    queued(0xB1, 74, 20, 1);
-    bad += check("  another track (channel 2, not selected): not recorded", motion.count == 1u && trk[1].p[P_E2] != 0);
+    bad += check("armed and playing: CC74 sets CUT as a knob move", trk[0].p[P_E4] == 20);
     seq_stop(); events_block(CTL);
-    bad += check("  stopped: the patch's own CUT comes back", trk[0].p[P_E4] == ANALOG_PRESETS[trk[0].preset].e[4]);
     song.rec = 0;
     queued(0xB0, 74, 77, 1);
-    bad += check("not armed: the CC is the new value, no event", trk[0].p[P_E4] == 77 && motion.count == 1u);
+    bad += check("not armed: the CC is the new value", trk[0].p[P_E4] == 77);
     return bad;
 }
 /* 1.5 (Discussion #170): MIDI LEARN. GLO + D4 on, a knob picks, a CC is learned; the map in favorites.factory[14] */

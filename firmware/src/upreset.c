@@ -407,7 +407,7 @@ static int up_store_cat(uint32_t k, const char *name, uint32_t cat)
     r.np = P_COUNT;
     up_set_name(&r, k, name);
     for (i = 0; i < P_COUNT; i++)
-        up_set_value(&r, i, motion_base_value(TSEL, i));
+        up_set_value(&r, i, TSEL->p[i]);
     up_pat_from(&r, TSEL->step);
     up_set_cat(&r, cat ? cat : track_cat(TSEL));
     if (drum_track(TSEL)) {                             /* a DRUM track that strikes a lane: its grid */
@@ -574,7 +574,7 @@ static void up_ui_named(uint32_t op, uint32_t k, const char *name, uint32_t cat)
         ui_message("EMPTY SLOT");
         return;
     }
-    if (op && (song.playing || chain_busy() || transport_req == 1u)) {    /* (up_put refuses too) */
+    if (op && (song.playing || transport_req == 1u)) {    /* (up_put refuses too) */
         ui_message("STOP TO SAVE");
         return;
     }

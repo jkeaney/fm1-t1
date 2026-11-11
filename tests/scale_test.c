@@ -362,23 +362,6 @@ static void arp_follow_test(void)
     t->p[P_SCALE] = 1;
     assert(arp_is(t, 61, 66));
 
-    /* CHRD: a key's chord moves with it (its notes as far above the key's note) */
-    arp_reset(t);
-    t->p[P_QUANT] = QN_OFF;
-    t->p[P_AHOLD] = 1;
-    t->p[P_CHRD] = CH_POW;                         /* C G C' */
-    fm1_in.notes = 1u << 7;
-    keyboard_block();
-    fm1_in.notes = 0;
-    keyboard_block();
-    assert(t->nheld == 3);
-    arp_run(t, 3);
-    assert(arp_seen[0] == 60 && arp_seen[1] == 67 && arp_seen[2] == 72);
-    t->p[P_TRANS] = 2;
-    arp_run(t, 3);
-    assert(arp_seen[0] == 62 && arp_seen[1] == 69 && arp_seen[2] == 74);
-    t->p[P_CHRD] = 0;
-
     /* QNT WHITE after the keys: a black key latched is silent now (left out); all of them: the arp rests */
     arp_reset(t);
     t->p[P_QUANT] = QN_OFF;

@@ -281,20 +281,15 @@ static void head_msg(int32_t x, int32_t maxw)
     if (lock)
         cv_icon_mid(x + 6, H_HEAD / 2, 16, ICON_X_LOCK, T_THEME, T_BG);
 }
-/* the slot letter after the track's cushion (1.2): the PROJECT slot of the pattern the selected track plays or edits.
- * A song playing: its section's slot for the track ("-" silent there); else the slot the working pattern came from
+/* the slot letter after the track's cushion (1.2): the PROJECT slot of the pattern the selected track plays or edits:
+ * the slot the working pattern came from
  * (ui.c pat_from: the last PROJECT load or save), with a mark ("A*") once it was edited since (its steps, LEN DIV SWING
- * GATE, QUANTIZE or automation: ui.c pat_from_sig); none at power-on, after a PHRASES pattern or the editor's restore.
+ * GATE, QUANTIZE: ui.c pat_from_sig); none at power-on, after a PHRASES pattern or the editor's restore.
  * b: the letter (b[1] '*' or 0); 0 = none */
 static int head_slot(char *b)
 {
-    uint32_t k = song.sel % NTRK, s;
+    uint32_t k = song.sel % NTRK;
     b[1] = b[2] = 0;
-    if (chain.running) {
-        s = chain.lane[k];
-        b[0] = s < 4u ? (char)('A' + s) : '-';
-        return 1;
-    }
     if (!pat_from[k] || pat_from[k] > 4u)
         return 0;
     b[0] = (char)('A' + pat_from[k] - 1u);
@@ -302,22 +297,16 @@ static int head_slot(char *b)
         b[1] = '*';
     return 1;
 }
-/* the octave, or the song row while a song plays, its right end at HEAD_GRP_R */
+/* the octave, its right end at HEAD_GRP_R */
 static void head_group(void)
 {
     char b[8];
     int32_t x;
-    if (chain.running) {
-        fmt_int(b, (int32_t)chain.row + 1);
-        x = HEAD_GRP_R - (16 + 4 + text_w(&AF_M, b));
-        x += cv_icon_mid(x, H_HEAD / 2, 16, ICON_X_SONG, T_MID, T_BG);   /* SONG: the disc */
-    } else {
-        str_cpy(b, song.octave > 0 ? "+" : "", sizeof b);
-        fmt_int(b + str_len(b), song.octave);
-        x = HEAD_GRP_R - (text_w(&AF_S, "OCT") + 4 + text_w(&AF_M, b));
-        GFX_HOOK_ALIGN(0, 0, 0, H_HEAD, AL_V, "header text on its middle");
-        x = cv_text(x, HEAD_SY, &AF_S, "OCT", T_MID);
-    }
+    str_cpy(b, song.octave > 0 ? "+" : "", sizeof b);
+    fmt_int(b + str_len(b), song.octave);
+    x = HEAD_GRP_R - (text_w(&AF_S, "OCT") + 4 + text_w(&AF_M, b));
+    GFX_HOOK_ALIGN(0, 0, 0, H_HEAD, AL_V, "header text on its middle");
+    x = cv_text(x, HEAD_SY, &AF_S, "OCT", T_MID);
     GFX_HOOK_ALIGN(0, 0, 0, H_HEAD, AL_V, "header text on its middle");
     cv_text(x + 4, HEAD_MY, &AF_M, b, T_THEME);
 }
@@ -334,7 +323,7 @@ static void draw_head(void)
     uint32_t sig = (uint32_t)song.playing * 3u + rec * 5u + (uint32_t)(song.octave + 8) * 11u + song.sel * 13131u +
                    (ui.msg_t ? str_hash(7u, ui.msg) : 0u) + (uint32_t)song.g[G_BPM] * 101u + (ui.bpm_t != 0) * 31u +
                    (uint32_t)seq_counting() * 7u +
-                   (uint32_t)batt_shown() * 7777u + (chain.running ? (chain.row + 1u) * 104729u : 0u) +
+                   (uint32_t)batt_shown() * 7777u +
                    (slot ? str_hash(11u, sl) : 0u) + (uint32_t)midi_lit(song.sel) * 15485863u;   /* (1.5.5) */
     int msg = ui.msg_t;
     int centre = !msg || ui.bpm_t;   /* the BPM being changed: it stays, the message right */
@@ -383,8 +372,8 @@ static void draw_head(void)
     draw_rec_mark(rx, T_BG);
     if (centre) {
         int32_t ib[4], lx = g.bx + g.b[2];             /* lx: the right end of the BPM (and its lock) */
-        uint32_t id = song.playing ? (chain.running ? ICON_X_SONG : ICON_X_PLAY) : seq_counting() ? ICON_X_PLAY : ICON_X_STOP;
-        icon_ink(16, id, ib);                          /* the play state: the song's disc, play (counting in: the
+        uint32_t id = song.playing ? ICON_X_PLAY : seq_counting() ? ICON_X_PLAY : ICON_X_STOP;
+        icon_ink(16, id, ib);                          /* the play state: play (counting in: the
                                                         * accent's, about to play), stop */
         cv_icon_mid(g.px1 - ib[2], H_HEAD / 2, 16, id, /* (right-aligned in its slot) */
                     song.playing ? T_THEME : seq_counting() ? T_ACCENT : T_MID, T_BG);
@@ -401,7 +390,7 @@ static void draw_head(void)
     } else {
         head_msg(-1, HEAD_MSG_W);
     }
-    if (!msg && (chain.running || song.octave))
+    if (!msg && song.octave)
         head_group();
     if (!(msg && centre))
         draw_battery(HEAD_BAT_X);
@@ -415,12 +404,6 @@ static void draw_head(void)
 #ifndef CARD_HOOK
 #define CARD_HOOK(v, u) ((void)0)                       /* host: a card value set in S (M too wide with its unit) */
 #endif
-/* MOTION on the cards (#63: values that move on their own): the selected track's motion-driven parameters
- * (motion.c motion_mask: PLAY ON and an event for the id), once per draw_columns; card_mot_next is set just
- * before a draw_column of a track parameter (card_mot_of) and taken by it; card_mot: the cards drawn with it. */
-static uint32_t card_mot_mask[(P_COUNT + 31u) / 32u];
-static uint8_t card_mot_next, card_mot;
-
 /* MENU > LARGE, a tall card (ui.c LK_TALL; 57 x LG_CARD_H): which knob it is (a "K1" pill in M, the keycap's colours,
  * the accent while it turns, DIM when the knob does nothing here) and the icon at the right of it; the label in M
  * centred (S when M is too wide); the value centred in L, its figures twice the height of M (M, then S, when L is too

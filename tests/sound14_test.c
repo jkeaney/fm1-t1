@@ -71,10 +71,6 @@ static uint32_t preset_by_name(uint32_t e, const char *n)
 static void fresh(uint32_t e, uint32_t pi)        /* the boot state (no FX tails), track 1 = engine e preset pi */
 {
     uint32_t k;
-    memset(&pf, 0, sizeof pf);
-    for (k = 0; k < NTRK; k++)
-        pf.mg[k] = 32768;
-    perf_held = perf_latched = 0;
     lim_env = LIM_T;
     dc_l = dc_r = dce_l = dce_r = 0;                      /* (the master's DC blockers: no residue of a run before) */
     vage = 0;                                             /* the seeds: every run the same (ANALOG's noise by age) */
@@ -506,7 +502,7 @@ static void test_spread(void)
 
     check("SPRD: a track parameter 0..127, default 0 (as before), id 95 (1.5: the INSERT, TYPE and ESYNC after it, P_E0 103, P_COUNT 111)",
           TP[P_SPRD].min == 0 && TP[P_SPRD].max == 127 && TP[P_SPRD].def == 0 && P_SPRD == 95 && P_SPRD + 8 == P_E0 &&
-          P_E0 == 103 && P_COUNT == 111 && str_eq(TP[P_SPRD].label, "SPRD") && motion_param(P_SPRD));
+          P_E0 == 103 && P_COUNT == 111 && str_eq(TP[P_SPRD].label, "SPRD"));
     h1 = phrase_child(0, 1, sp_mono0);
     h2 = phrase_child(0, 1, sp_mono127);
     check("MONO: SPRD 127 plays bit for bit as SPRD 0 (one voice: on PAN)", h1 && h1 == h2);
@@ -562,70 +558,6 @@ static void test_spread(void)
     b = spread_run(100, 0, V_UNISON, ONE, 1, NREND);
     snprintf(msg, sizeof msg, "UNISON: the detuned voices alternate L / R (side/mid %.3f at SPRD 100, 0 at 0)", sqrt(b.lr / b.m));
     check(msg, a.lr == 0 && b.lr > b.m * 0.01);
-}
-
-/* the mute key closes the side too; the sends stay mono */
-static void test_spread_fx(void)
-{
-    static const uint8_t CHORD[4] = {48, 55, 60, 64};
-    track_t *t = &trk[0];
-    uint32_t k, i;
-    char msg[160];
-    /* the mute key (FX layer, black key 1): both sides ramp to silence. What is left after it is the master's DC
-     * blockers settling: as much at SPRD 127 as at 0, and L - R no more than that (the side muted with the mid) */
-    {
-        double side[2][2] = {{0}}, all[2][2] = {{0}};
-        uint32_t ph, r;
-        for (r = 0; r < 2u; r++) {
-            fresh(0, preset_by_name(0, "SOFT PAD"));
-            dry(t);
-            t->p[P_ATK] = 0;
-            t->p[P_SPRD] = (int16_t)(r ? 127 : 0);
-            for (i = 0; i < 4u; i++)
-                trk_note_on(t, CHORD[i], 100);
-            for (ph = 0; ph < 2u; ph++) {
-                if (ph)
-                    perf_held |= 1u << PF_M1;
-                blocks(FS / 8u / CTL);
-                for (k = 0; k < 8u; k++) {
-                    blocks(1);
-                    for (i = 0; i < CTL; i++) {
-                        side[r][ph] += fabs((double)out_buf[2u * i] - out_buf[2u * i + 1u]);
-                        all[r][ph] += fabs((double)out_buf[2u * i]) + fabs((double)out_buf[2u * i + 1u]);
-                    }
-                }
-            }
-            perf_held = 0;
-        }
-        snprintf(msg, sizeof msg, "the mute key: L and R both go (SPRD 127: left %.1e, L - R %.1e of before; SPRD 0: %.1e)",
-                 all[1][1] / all[1][0], side[1][1] / side[1][0], all[0][1] / all[0][0]);
-        check(msg, side[1][0] > 0 && all[1][1] / all[1][0] < 2 * all[0][1] / all[0][0] + 1e-3 &&
-              side[1][1] <= all[1][1] && all[0][1] < all[0][0] * 0.05);
-    }
-    /* the sends: mono (a chord with SPRD 127: the sends are mono, as before) */
-    {
-        uint64_t hw[2];
-        uint32_t r;
-        for (r = 0; r < 2u; r++) {
-            fresh(0, preset_by_name(0, "SOFT PAD"));
-            dry(t);
-            t->p[P_REV] = 100;
-            t->p[P_SPRD] = (int16_t)(r ? 127 : 0);
-            for (i = 0; i < 4u; i++)
-                trk_note_on(t, CHORD[i], 100);
-            blocks(FS / 4u / CTL);
-            uint64_t hs = 0xCBF29CE484222325ull;   /* (blocks() hashes the output into hash: its own) */
-            for (k = 0; k < FS / 4u / CTL; k++) {
-                blocks(1);
-                for (i = 0; i < CTL; i++) {
-                    hs ^= (uint32_t)send_r[i];
-                    hs *= 0x100000001B3ull;
-                }
-            }
-            hw[r] = hs;
-        }
-        check("the sends take the mono mix: REV's send the same at SPRD 127 as at 0", hw[0] == hw[1]);
-    }
 }
 
 /* ------------------------------------------------------------------ cost --- */
@@ -876,7 +808,6 @@ int main(int argc, char **argv)
     test_matrix_sound();
     test_analog();
     test_spread();
-    test_spread_fx();
     test_cost();
     if (argc > 1)
         check("demos written", demos(argv[1]));

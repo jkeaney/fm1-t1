@@ -59,7 +59,7 @@ enum {                          /* per-track parameters */
     P_FM2_ATK, P_FM2_DEC, P_FM2_SUS, P_FM2_REL, P_FM2_LEVEL,
     P_FM3_ATK, P_FM3_DEC, P_FM3_SUS, P_FM3_REL, P_FM3_LEVEL,
     P_FM4_ATK, P_FM4_DEC, P_FM4_SUS, P_FM4_REL, P_FM4_LEVEL,
-    P_CHRD, P_VOIC,                            /* chord keys (chord.c): one key plays a chord; its voicing */
+    P_CHRD, P_VOIC,                            /* retired chord keys (removed in P3-007): dead slots, kept for the table layout */
     P_LN0, P_LN1, P_LN2, P_LN3, P_LN4, P_LN5, P_LN6, P_LN7,   /* DRUM lane levels (eng_drum.c, #97): KICK .. BELL */
     P_LSYNC, P_LTRIG, P_LPOL,                  /* 1.2 (#154): LFO SYNC (OFF, a note value), TRIG (NOTE, FREE), POL (BI, UNI) */
     P_SQNT,                                    /* 1.2 (#162): QUANTIZE, the steps' recorded / nudged timing (ON: none) */
@@ -293,32 +293,6 @@ static void step_set_nudge(step_t *s, int32_t v)
     uint32_t u = (uint32_t)(v < -8 ? -8 : v > 7 ? 7 : v) & 15u;
     s->flags = (uint8_t)((s->flags & ~SF_NUDGE) | (u & 7u) << 5 | (u >> 1 & 4u));
 }
-#define MOTION_MAX 128u          /* 1.2 (FUN10): 64 before */
-/* Four tracks x64 steps fit one byte. Values retain their signed parameter range (-64..127: an int8_t, 1.2).
- * param: the P_* id (< 128: P_COUNT is at most 127, project.c), bit 7 (MOTION_LOCK, 1.1) a parameter lock: the value
- * sounds on that step only and goes back after it (motion.c motion_step); without it an automation event, the
- * value holds until another one changes it. One record per (track, step, id), of either kind */
-#define MOTION_LOCK 0x80u
-#define MOTION_ID(e) ((uint32_t)(e)->param & 0x7Fu)
-typedef struct { uint8_t place, param; int8_t value; } motion_event_t;
-typedef struct { uint8_t count, on, rsv[2]; motion_event_t event[MOTION_MAX]; } motion_store_t;
-_Static_assert(sizeof(motion_store_t) == 388u, "motion disk layout (FUN10)");
-#define CHAIN_ROWS 16u
-/* A song section (1.2, FUN10): the PROJECT slot each track plays (0..3, A..D; CHAIN_SILENT "-": that track plays
- * nothing there) and its repeats (1..16). Up to 1.1 a row was {slot, repeat}, all four tracks on that slot
- * (chain_v9_t, FUN6..FUN9): it loads as a section with the four on it (song_chain.c chain_from_v9) */
-#define CHAIN_SILENT 4u
-typedef struct { uint8_t slot[NTRK], repeat; } chain_row_t;
-typedef struct {
-    uint8_t count, rsv[3];
-    chain_row_t row[CHAIN_ROWS];
-} chain_config_t;
-typedef struct { uint8_t slot, repeat; } chain_row_v9_t;   /* frozen: the rows of FUN6..FUN9 */
-typedef struct {
-    uint8_t count, rsv[3];
-    chain_row_v9_t row[CHAIN_ROWS];
-} chain_v9_t;
-_Static_assert(sizeof(chain_config_t) == 84u && sizeof(chain_v9_t) == 36u, "song chain layouts (FUN10 / FUN6..FUN9)");
 
 typedef struct track {
     int16_t p[P_COUNT];

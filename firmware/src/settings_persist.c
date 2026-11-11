@@ -14,7 +14,7 @@
  * [15][11]: PRESETS > LIST's category (1.2, Discussion #90, ui.c ui_lcat: 0 none = ALL / FAV as favorites.filter says);
  * [15][0..9], [12] (1.6, #244: CUSTOM, a palette of the user's: five RGB565 colours little endian, flags: ui.c ui_cpal); older
  * firmware keeps the bytes as saved and shows the built-in palette in persist_t.palette.
- * [15][14..23]: the FX layer's key map (1.2, ui_layer.c fx_keys: 16 white keys x 5 bits, perform.c perf_map_of; 0 = the
+ * [15][14..23]: the FX layer's key map (1.2; the layer was removed in P3, the bytes are kept as saved: 16 white keys x 5 bits; 0 = the
  * key's default, an unknown code too: kept as saved, a later firmware's effect survives a round trip here).
  * MENU's flags (ui.c PREF_*) are append-only bits whose 0 is the default: BPM LOCK (16) is clear in every older setting
  * = unlocked, LARGE (32) = OFF, RESTORE LAST OFF (128, 1.2) = ON, read as saved (nothing to migrate, so importing twice changes nothing). */

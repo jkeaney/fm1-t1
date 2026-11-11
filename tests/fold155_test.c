@@ -393,10 +393,6 @@ static uint64_t instr_now(void)
 static void fresh(uint32_t pi)                         /* the boot state, track 1 = PHASE preset pi */
 {
     uint32_t k;
-    memset(&pf, 0, sizeof pf);
-    for (k = 0; k < NTRK; k++)
-        pf.mg[k] = 32768;
-    perf_held = perf_latched = 0;
     lim_env = LIM_T;
     dc_l = dc_r = dce_l = dce_r = 0;
     vage = 0;

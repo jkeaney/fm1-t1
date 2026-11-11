@@ -173,8 +173,6 @@ static void ui_power_on(void)
     FZ_BOOT_HOOK();                               /* (drumfuzz: an audio block arrives here, song zeroed, BUG-003) */
 #endif
     memset(midi_lit_ms, 0, sizeof midi_lit_ms); midi_seen = 0;   /* (1.5.5: no MIDI IN light) */
-    memset(&chain, 0, sizeof chain);
-    chain_defaults(&chain_config);
     memset(&ui, 0, sizeof ui);
     cin_left = cin_total = 0;                     /* (no count-in) */
     memset(&mom, 0, sizeof mom);                  /* MOMENTARY: no value held (the pool at power-on) */
@@ -217,32 +215,15 @@ static void ui_power_on(void)
     memset(midi_owners, 0, sizeof midi_owners);
     memset(midi_bend_q8, 0, sizeof midi_bend_q8);
     memset(midi_bend_target, 0, sizeof midi_bend_target);
-    memset(kb_chn, 0, sizeof kb_chn);                   /* chord.c: no key, MIDI chord or last chord */
-    memset(mchord, 0, sizeof mchord);
-    memset(chord_last, 0, sizeof chord_last);
-    perf_held = perf_act = kb_layer = perf_mask = 0;      /* the FX layer: nothing held */
-    perf_latched = 0;
-    memcpy((void *)perf_map, PF_DEF, sizeof PF_DEF);    /* .. its default key map (the settings' 0), no key's effect */
-    perf_remap = 0;
-    memset(kb_fx, 0, sizeof kb_fx);
-    perf_kill = 0;
-    perf_mask = 1u << panel.btn[B_FX];                  /* (ui_input sets them every frame) */
-    perf_solo = 0;
-    perf_k[0] = perf_k[1] = perf_k[2] = perf_k[3] = 0;
+    memset(kb_chn, 0, sizeof kb_chn);                   /* no key sounds */
     settings_hold = HOLD_DEF;
     fm1_in.buttons = fm1_in.notes = 0;
-    memset(&motion, 0, sizeof motion);                  /* (main.c: no motion at power-on) */
-    memset(motion_active, 0, sizeof motion_active);
-    memset(motion_locked, 0, sizeof motion_locked);
-    motion_base_valid = motion_full = 0;
     memset(snd_said, 0, sizeof snd_said);               /* (.bss at power-on: nothing said yet) */
     memset(&scrn, 0, sizeof scrn);                        /* MENU > SCREEN OFF: on, idle from now (main.c) */
     scrn.idle = fm1_ms;
     kb_asleep = 0;
     panel_moved = 0;
 }
-/* card slot drawn with MOTION's mark (ui_draw.c card_mot: its icon, or a long label in the theme colour) */
-static int card_motion(uint32_t slot) { return (card_mot >> slot) & 1u; }
 
 /* one UI frame (input, then the drawing on the stub display) */
 static void frame(void)
@@ -2024,18 +2005,17 @@ static int32_t head_span2(int32_t a, int32_t b, int32_t *x0, int32_t *x1)
         }
     return *x1 < 0 ? 0 : *x0 + *x1 + 1;
 }
-enum { HS_STOPPED, HS_PLAY_REC, HS_SONG, HS_MSG, HS_OCT, HS_USB, HS_KEYCAP, HS_REC_OTHER, HS_BPM_TURN,
+enum { HS_STOPPED, HS_PLAY_REC, HS_MSG, HS_OCT, HS_USB, HS_KEYCAP, HS_REC_OTHER, HS_BPM_TURN,
        HS_NOFILE, HS_MSG2, HS_BEAT2, HS_COUNTIN, HS_BATT1, HS_BATT0, HS_BPM90,
        HS_N };
-static const char *const HS_NAME[HS_N] = {"stopped", "play+REC", "song", "message", "OCT", "USB", "keycap", "REC other",
+static const char *const HS_NAME[HS_N] = {"stopped", "play+REC", "message", "OCT", "USB", "keycap", "REC other",
     "BPM turn", "NO SAMPLE", "msg2", "beat 2", "count-in", "battery 1",
     "battery 0", "BPM 90"};
 static void head_state(uint32_t s)
 {
-    song.playing = s == HS_PLAY_REC || s == HS_SONG || s == HS_BEAT2 || s == HS_OCT;
+    song.playing = s == HS_PLAY_REC || s == HS_BEAT2 || s == HS_OCT;
     song.rec = s == HS_PLAY_REC || s == HS_COUNTIN ? 1u << song.sel : s == HS_REC_OTHER ? 1u << ((song.sel + 1u) % NTRK) : 0u;
     clk_pos = 0; clk_step = s == HS_BEAT2 ? 4u : 8u;    /* (the 2nd beat: the metronome mirrored; else the 3rd) */
-    if (s == HS_SONG) { chain.running = 1; chain.row = 2; }
     if (s == HS_MSG) ui_message("SAVED 03 BASS");
     if (s == HS_MSG2) ui_say("LOADED ", "07 A VERY LONG PATTERN NAME");
     if (s == HS_OCT) song.octave = 2;
@@ -2050,7 +2030,7 @@ static void head_state(uint32_t s)
 }
 static void head_clear(void)
 {
-    chain.running = 0; ui.msg_t = 0; song.octave = 0; usb.config = 0; song.playing = 0; song.rec = 0; ui.bpm_t = 0;
+    ui.msg_t = 0; song.octave = 0; usb.config = 0; song.playing = 0; song.rec = 0; ui.bpm_t = 0;
     cin_total = cin_left = 0; song.batt_raw = 600;
 }
 static int test_head_centres(void)
@@ -2079,7 +2059,7 @@ static int test_head_centres(void)
                     head_geo_t g;
                     head_geo(&g, s == HS_BPM90 ? "90" : "124");
                     c2 = head_span2(g.gx0 - 6, g.gx1 - 1, &a, &b);
-                    okp &= s == HS_SONG ? c2 >= 234 && c2 <= 242 : c2 >= 238 && c2 <= 242;
+                    okp &= c2 >= 238 && c2 <= 242;
                     okp &= a >= 40 && b < (s == HS_OCT ? 160 : 180);   /* (clear of the REC mark, the octave) */
                 } else {                               /* the message centred on x 120 */
                     c2 = head_span2(40, 205, &a, &b);
