@@ -3,7 +3,7 @@ id: FB-007
 title: The T-1 screen (ui_t1.c) fails the layout lint: its hint line runs off the screen and two card labels spill
 phase: P3
 type: feedback
-status: todo
+status: done
 priority: 3
 executor: human
 depends_on: []
@@ -41,3 +41,6 @@ python3 tools/backlog.py check
 ```
 
 ## Log
+
+### 2026-11-11 orchestrator (triage)
+Dropped as a defect to fix: ui_t1.c is the interim T-1 screen and is replaced by the new main screen in P4 (layout lint then applies to the new screens via ui_render). Keeping the report.txt findings visible. If the owner sees the clipped hint line at HW-0 and wants it fixed sooner, file a BUG then.
