@@ -28,32 +28,49 @@ static void fm1_irq_off(void) { host_irq_mask = 1; }
 static void fm1_irq_on(void) { host_irq_mask = 0; if (host_irq_pend) { host_irq_pend = 0; host_isr(); } }
 static void fm1_icfg_set(uint32_t f) { if (f) host_irq_mask = 1; else fm1_irq_on(); }
 #endif
-#include "ui_test.c"
 #ifdef PREEMPT
+static void fz_boot_hook(void);
+#define FZ_BOOT_HOOK() fz_boot_hook()
+#endif
+#include "ui_test.c"
+static uint32_t fz_seed, fz_i;
+#ifdef PREEMPT
+static volatile int fz_boot;
+static volatile uint32_t fz_boot_miss;
 static volatile int host_in_isr;
 static uint32_t host_isr_n;
 static void host_isr(void)
 {
     int32_t o[2u * CTL];
     host_in_isr = 1;
+    if (fz_boot) { fprintf(stderr, "FAIL: audio block rendered during the power-on re-initialisation\n"); _exit(4); }
     mix_block(o, CTL);
     host_isr_n++;
     host_in_isr = 0;
 }
 static uint32_t host_sig_n;
+/* BUG-003: ui_power_on re-initialises song/trk (memset, then defaults) and calls fm1_irq_on itself. On the device it runs
+ * in felucca_init, before audio_init, so no block can see it half done (song.g[G_BPM] still 0 -> beat_samples divides by
+ * zero). setup() holds the emulated ISR off for the whole of it: the signal only counts (fz_boot_miss), and a block that
+ * was rendered inside the window is a harness fault, reported by name. */
 static void on_vt(int s)
 {
     (void)s;
     host_sig_n++;
+    if (fz_boot) { fz_boot_miss++; return; }
     if (host_irq_mask || host_in_isr) { host_irq_pend = 1; return; }
     host_isr();
 }
+/* the deterministic form of the race: ui_power_on delivers one CPU-time signal right after it zeroes `song`, the worst
+ * moment. Held off (fz_boot) it is only counted; with argv[5] "unguarded" it renders a block there, which is how BUG-003
+ * failed (division by zero in beat_samples) */
+static int fz_unguarded;
+static void fz_boot_hook(void) { on_vt(0); }
 #endif
 
 static uint32_t rs;
 static uint32_t rnd(uint32_t n) { rs ^= rs << 13; rs ^= rs >> 17; rs ^= rs << 5; return n ? rs % n : 0; }
 static const char *fz_what = "";
-static uint32_t fz_seed, fz_i;
 static void on_alarm(int s) { (void)s; fprintf(stderr, "HANG seed %u step %u in %s\n", fz_seed, fz_i, fz_what); _exit(3); }
 
 static void fz_audio(uint32_t blocks)
@@ -232,11 +249,18 @@ static void fz_play(void)
 static void setup(uint32_t synth)
 {
     uint32_t i;
+#ifdef PREEMPT
+    host_irq_pend = 0;
+    fz_boot = !fz_unguarded;                                          /* power-on is before audio_init on the device (main.c) */
+#endif
     ui_power_on();
     for (i = 0; i < MI_VALUES; i++)                       /* the MENU at random (HELP, LARGE, PREVIEW, ACCEL ..) */
         if (menu_valued(i) && i != MI_SERIAL && rnd(2))
             menu_put(i, rnd(menu_n(i)));
     ui_power_on();
+#ifdef PREEMPT
+    fz_boot = 0;
+#endif
     for (i = 0; i < NTRK; i++)
         eng_mem_claim(&trk[i]);
     set_engine_of(&trk[0], synth);
@@ -269,6 +293,9 @@ int main(int argc, char **argv)
     uint32_t s0 = argc > 1 ? (uint32_t)atoi(argv[1]) : 1, ns = argc > 2 ? (uint32_t)atoi(argv[2]) : 20,
              steps = argc > 3 ? (uint32_t)atoi(argv[3]) : 2000, s;
     fz_song = argc > 4 && !strcmp(argv[4], "song");
+#ifdef PREEMPT
+    fz_unguarded = argc > 5 && !strcmp(argv[5], "unguarded");
+#endif
     setvbuf(stdout, NULL, _IONBF, 0);
     signal(SIGALRM, on_alarm);
 #ifdef PREEMPT
