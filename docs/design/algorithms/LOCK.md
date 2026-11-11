@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # LOCK: the six v1 algorithms, ready for the owner's design lock (P2-017, ADR-0004)
 
-Status: **awaiting the owner's lock**. Everything below is generated from the prototypes by `sh tests/design/run_protos.sh` (`PROTOS PASS`, six algorithms).
+Status: **owner answers recorded 2026-11-12 (section 6); the final `Approved:` line is the orchestrator's**. Everything below is generated from the prototypes by `sh tests/design/run_protos.sh` (`PROTOS PASS`, six algorithms).
 After the lock every algorithm dev task (P4-012..P4-017) is a copy-and-wire job: `proto.c` is the firmware file, `golden.txt` its expected output.
 
 ## 1. The six algorithms (what the owner is approving)
@@ -56,7 +56,7 @@ No resource goes over its floor. The one figure the owner may want to see change
 | 4 | EUCLID's cache is 38 B (the hit ordinals for lane A) | euclid/SPEC.md |
 | 5 | ARP: `step()` has no `SeqGlobal`, so the cache keeps `base`; `hi` is 60; SPEC 6.8 "any shape" was wrong for OCTV | arp/SPEC.md 6.13 |
 | 6 | PATT: name `PATT`; `PO_TIE` added; a 22 B cache; the C and the Python prototype agree on 126 cases | patterns/SPEC.md 4.9 |
-| 7 | ARP THUMB with a drone: the walking tones skip pool index 0 (the root) whatever the home note is, so at VOICE 0 + drone THUMB plays the drone on every step (a quirk of SPEC 6.4, not a bug of the code) | arp golden `same, THUMB`; owner question O-5 |
+| 7 | ARP THUMB with a drone played the drone on every step (the walking tones skipped pool index 0). **Fixed by owner O-5**: they skip the home note's pool index; at VOICE 0 + drone THUMB now plays `7 0 7 0` | arp/SPEC.md 6.13 item 7, arp golden `same, THUMB` |
 
 ## 5. Contract changes for ADR-0003 (P2-029 writes them; this task does not edit the ADR)
 
@@ -64,19 +64,19 @@ No resource goes over its floor. The one figure the owner may want to see change
 `ChanSave` 344 to **384 B** (`st[SQ_NALGO]`), `SeqPreset` 1396 to **1556 B**, `UndoRec` 92 to **94 B**, `PO_TIE` 0x80 in `PulseOut.flags`, the new `ModIdx` (8 B) and `AlgoDesc.mod`, `SQ_SEED_MOD` and `SQ_SMOD_DEFAULT`;
 AM-1 to AM-4 of arp/SPEC.md 6.10 (`hc` argument, `sub_note`, `AF_CHORD`, six algorithms); `hi(m)` of section 20: EUCLID `SPAN+3`, SNAKE and STAGE `RANGE+1` (P2-016), ARP and PATT **60**; the preset version becomes 4.
 
-## 6. Awaiting owner: what to check to lock all six
+## 6. Owner decisions (2026-11-12) -- decided
 
-Tick these in the task log (one line `Approved: owner <date>` closes the gate). Everything is read from files; nothing needs the device for the *design* lock (the sound on a TB-3 is the later HW-ARP / H-MOD / hardware-test gates).
+Answers received from the owner through the coordinator; the lock line `Approved: owner <date>` is written by the orchestrator after verifying.
 
-1. **The six, one by one.** Open each `docs/design/algorithms/<name>/SPEC.md` section 1 (knob table) and the first lines of its `golden.txt`; the table in section 1 above is the summary. Confirm the knob and dice assignments are the ones you want on the panel.
-2. **ARP.** The default (`golden.txt`, `## ARP DEFAULT`): a seeded 12-of-16 line of the key's triad, `36 - 43 48 51 55 36 39 - 48 51 55 36 39 - -`. Confirm: the DIR names `ASPL` / `CHORD` and their meanings (arp/SPEC.md 6.4); default DENS 12; the figure restarts with the loop, not with the chord (risk 2); the chord chip always on for ARP (7.1). **Decide O-5**: should THUMB's walking tones skip the *home* note's pool index instead of index 0 (so a drone pedal and a walking root work together)? Recommendation: yes, a table-free one-line change with new goldens.
-3. **PATTERNS.** Skim `patterns/patterns.tsv` (120 lines) for the six style names and the feel of the steps; confirm the category list and 20 each (O2), that the 13 "famous idiom" patterns are idiom-faithful and not note-exact (O1, decision 90 asked for exact notes), and that a picked pattern stays generated, never baked into steps (O3).
-4. **The SHAPE button also re-rolls the mod seed.** Sub-labels in the tables are the *primary* names (`OCTAVE DRIFT LONG PHASE UP/DN`) and `MOD` for EUCLID; MODULATION 3.4 proposed `OCT+MOD`, `DRIFT+MOD` and so on, which are 7 to 9 characters against the 6-character rule and 42 px cell. (A) keep the primary names, the toast says `+ MOD` (recommended); (B) shorten to `OCT+MD` ...; (C) widen the cell.
-5. **The contract changes of section 5** (preset 1556 B, `PO_TIE`, the `mod` hook instead of `PulseOut.mod_a/b`). Confirm, so P2-029 can write them into the ADR.
-6. **The cost table of section 2.** Confirm the PATTERNS CPU figure is acceptable to measure on the device later rather than optimise now.
-7. **Gate A of the use case** (`docs/design/features/P2-017-arp-and-patterns-prototypes-with-golden.md`): the predicted scores and the stale rows listed in its section 5 (ALGORITHM_SET 4.4, SCREEN_SPEC and UX_REVIEW still say "NO SHAPE IN EUCLID").
+1. **The six, and the held ROW 2 form (score 10):** accepted as written.
+2. **ARP:** DIR names `ASPL` / `CHORD`, default DENS 12, figure restarts with the loop, chord chip always on: accepted. **O-5 decided YES**: THUMB's walking tones skip the home note's pool index (a drone pedal and a walking root work together). Done in `arp/proto.c`, `arp/SPEC.md`, `arp_ref.py`; only the ARP THUMB lines (non-UP directions and the drone case) of the ARP golden changed, every other golden is byte-identical.
+3. **PATTERNS:** categories and 20 each (O2), idiom-faithful not note-exact (O1), no bake into steps (O3): settled.
+4. **SHAPE sub-labels: option A decided.** Keep the primary names (`OCTAVE DRIFT LONG PHASE UP/DN`, `MOD` for EUCLID); the toast adds `+ MOD` when the mod seed moves too. Written into every SPEC and MODULATION.md 3.4.
+5. **Contract changes of section 5** (preset 1556 B, `PO_TIE`, the `AlgoDesc.mod` hook instead of `PulseOut.mod_a/b`): confirmed.
+6. **Cost table:** confirmed; the PATTERNS CPU is measured on the device later, not optimised now.
+7. **Gate A of the use case and its stale-row list:** stale rows stay for P2-029 / P4-031.
 
 ## 7. Evidence
 
 `sh tests/design/run_protos.sh` -> `PROTOS PASS`: header hygiene; primitives; HARMONY C == Python (3566 table lines); per algorithm: table equals SPEC, matrix, 40 random purity cases (incl. the mod lanes), table rules, two byte-identical runs, golden equal;
-ACID `acid_ref.py` (53 cases), EUCLID `euclid_ref.py` (53), **ARP `arp_ref.py` (1728 grid cases, independent Python)**, **PATTERNS `patterns_ref.py` (126 cases against `patterns_proto.py`)**; the PATTERNS library sweep (287424 step checks) and `gen_patterns.py --check`.
+ACID `acid_ref.py` (53 cases), EUCLID `euclid_ref.py` (53), **ARP `arp_ref.py` (1728 grid cases, independent Python, includes the O-5 THUMB rule)**, **PATTERNS `patterns_ref.py` (126 cases against `patterns_proto.py`)**; the PATTERNS library sweep (287424 step checks) and `gen_patterns.py --check`.

@@ -190,6 +190,8 @@ const AlgoDesc ALGO_PATTERNS = {
 /* ALGODESC-END */
 ```
 
+**Decided (owner 2026-11-12, option A):** the SHAPE sub-label stays the primary name (`UP/DN`); the dice toast adds `+ MOD` when the mod seed moves too (an active device slot). MODULATION.md 3.4's `OCT+MOD` style labels are not used.
+
 ### 4.9 What the prototype fixed (P2-017)
 
 | # | Finding | Resolution |

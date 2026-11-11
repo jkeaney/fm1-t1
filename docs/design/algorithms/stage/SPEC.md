@@ -51,6 +51,8 @@ All five layers are present.
 The mod gen adds **no morph and no button**. Its one input is `s_mod` (`SQ_SEED_MOD`, seed id 6): it is stored in `ModSave` (not in `AlgoState`), handed to the harness as a seventh seed, and **re-rolled by the SHAPE layer together with the seed the layer already had** (LONG + `s_mod`). `build()` and `step()` never read it, so dicing it cannot move a note (checked by the purity test (g) and visible in the golden: the `dice SHAPE` cases keep the notes of the base case).
 `AlgoDesc.mod(cache, g, hc, out_pulse, ModIdx*)` reports **which index each lane is read at** (a pure function like `step()`); the shared SP18..SP20 turn it into the value of each of the 4 slots (`sq_mod_lane`). Lane A (slots 1, 3) is the cell of the **stage number** (one value per stage, held for the stage's whole duration: a long stage is one CC, not one per pulse). Lane B (slots 2, 4) is an LFO of period TOTAL pulses read at the loop pulse `p` (one sweep per loop). The golden shows the four slot values after `hold` on every row, for `s_mod` = the channel's default (`SQ_SMOD_DEFAULT`) and a channel LENGTH of 16.
 
+**Decided (owner 2026-11-12, option A):** the SHAPE sub-label stays the primary name (`LONG`); the dice toast adds `+ MOD` when the mod seed moves too (an active device slot). MODULATION.md 3.4's `OCT+MOD` style labels are not used.
+
 ## 3. Build (A3 4; pure; reads only `m`, `seed`, `g->s.key`, `g->s.octave`, `g->snap[]`)
 
 1. **NOTES.** `note[k] = sq_note(g, sq_span(raw[k], RANGE))` per stage: SP7 span, then the late quantise (SP6).

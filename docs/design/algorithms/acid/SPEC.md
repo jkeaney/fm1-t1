@@ -53,6 +53,8 @@ Default seed k of channel ch: `(0x3A5D * (ch * 6 + seed_k)) & 0xFFFF` (A3 3.1). 
 The mod gen adds **no morph and no button**. Its one input is `s_mod` (`SQ_SEED_MOD`, seed id 6): it is stored in `ModSave` (not in `AlgoState`), handed to the harness as a seventh seed, and **re-rolled by the SHAPE layer together with the seed the layer already had** (OCTAVE + `s_mod`). `build()` and `step()` never read it, so dicing it cannot move a note (checked by the purity test (g) and visible in the golden: the `dice SHAPE` cases keep the notes of the base case).
 `AlgoDesc.mod(cache, g, hc, out_pulse, ModIdx*)` reports **which index each lane is read at** (a pure function like `step()`); the shared SP18..SP20 turn it into the value of each of the 4 slots (`sq_mod_lane`). Lane A (slots 1, 3) is the cell of the gate position `i` (the index that the accent and slide flags use), leaning on the step's velocity so that accents open the filter. Lane B (slots 2, 4) is an LFO of period 16 read at the same `i`, so OFFSET and DIR move the filter with the notes. The golden shows the four slot values after `hold` on every row, for `s_mod` = the channel's default (`SQ_SMOD_DEFAULT`) and a channel LENGTH of 16.
 
+**Decided (owner 2026-11-12, option A):** the SHAPE sub-label stays the primary name (`OCTAVE`); the dice toast adds `+ MOD` when the mod seed moves too (an active device slot). MODULATION.md 3.4's `OCT+MOD` style labels are not used.
+
 ## 3. Build (A3 4; pure; reads only `m`, `seed`, `g->s.key`, `g->s.octave`, `g->snap[]`)
 
 1. **NOTES**: as the table above, then `pitch[i] = tile[i]`, and `pitch[ord_type[r]] = 0` for `r < PEDAL`.

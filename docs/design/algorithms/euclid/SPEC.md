@@ -57,6 +57,8 @@ The default ROT seed is 0 (no rotation); a dice never lands on 0 (A3 3.1). The o
 The mod gen adds **no morph and no button**. Its one input is `s_mod` (`SQ_SEED_MOD`, seed id 6): it is stored in `ModSave` (not in `AlgoState`), handed to the harness as a seventh seed, and **re-rolled by the SHAPE layer together with the seed the layer already had** (`s_mod` alone). `build()` and `step()` never read it, so dicing it cannot move a note (checked by the purity test (g) and visible in the golden: the `dice SHAPE` cases keep the notes of the base case).
 `AlgoDesc.mod(cache, g, hc, out_pulse, ModIdx*)` reports **which index each lane is read at** (a pure function like `step()`); the shared SP18..SP20 turn it into the value of each of the 4 slots (`sq_mod_lane`). Lane A (slots 1, 3) is the cell of the **hit ordinal** (the k-th hit gets the k-th cell, so the value stays with the note when OFFSET rotates; a rest reads the ordinal of the hit before it, like its contour pitch; 4 bits per step in the cache, `ho[8]`). Lane B (slots 2, 4) is an LFO of period LEN read at the step position. The golden shows the four slot values after `hold` on every row, for `s_mod` = the channel's default (`SQ_SMOD_DEFAULT`) and a channel LENGTH of 16.
 
+**Decided (owner 2026-11-12, option A):** the SHAPE sub-label stays the primary name (`MOD`); the dice toast adds `+ MOD` when the mod seed moves too (an active device slot). MODULATION.md 3.4's `OCT+MOD` style labels are not used.
+
 ## 3. Build (A3 4; pure; reads only `m`, `seed`, `g->s.key`, `g->s.octave`, `g->snap[]`)
 
 1. **Hits.** `n = LEN`, `p = min(HITS, n)`, `m0 = eu_bjorklund(n, p)`, `H = popcount(m0)`.

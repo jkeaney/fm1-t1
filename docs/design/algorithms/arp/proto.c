@@ -120,21 +120,25 @@ static int16_t arp_note_n(const ArpCache *c, const HarmChord *hc, uint32_t n, ui
     uint32_t ntot = n + (c->s_rot % f), m = ntot % f, y = ntot / f;
     uint8_t home = 0, octv = 0;
     int16_t s;
+    uint8_t perm[24] = { 0 };
+    uint16_t jh = 0, bh = 0, k;
+    int16_t homep = hc->drone >= 0 ? hc->drone : hc->vt[0];
+    if (c->dir == D_RAND) sq_seeded_perm(perm, (uint8_t)p, sq_mix(((uint32_t)c->s_notes * 0x9E3779B1u) ^ (y * 0x85EBCA6Bu)) | 0u);
+#define JMAP(bb) (c->dir == D_DOWN ? (uint16_t)(p - 1 - (bb)) : c->dir == D_UPDN ? ((bb) < p ? (uint16_t)(bb) : (uint16_t)(2 * p - 2 - (bb))) : c->dir == D_RAND ? (uint16_t)perm[(bb) % p] : (uint16_t)(bb))
+    for (k = 0; k < nt; k++) if (arp_tone(hc, c->dir, (uint8_t)k) == homep) { jh = k; break; }   /* the home note's pool index (octave 0) */
+    for (k = 0; k < lb; k++) if (JMAP(k) == jh) { bh = k; break; }                              /* ... and the figure position that reads it */
     switch (c->shp) {
     case SH_SKIP: b = (uint16_t)((m & 1u) ? (m / 2 + 2) % lb : (m / 2) % lb); break;
-    case SH_THUMB: if (!(m & 1u)) { home = 1; b = 0; } else b = lb > 1 ? (uint16_t)(1 + (m / 2) % (lb - 1u)) : 0; break;
+    case SH_THUMB: if (!(m & 1u)) { home = 1; b = 0; }
+        else if (lb > 1) { b = (uint16_t)((m / 2) % (lb - 1u)); if (b >= bh) b++; }                  /* the walking tones skip the HOME note's position (owner O-5) */
+        else b = 0;
+        break;
     case SH_OCTV: b = (uint16_t)(m / 2); octv = (uint8_t)(m & 1u); break;
     case SH_REPT: b = (uint16_t)(m / 2); break;
     case SH_WAVE: b = (uint16_t)((m / 3 + m % 3) % lb); break;
     default: b = (uint16_t)m; break; }
-    switch (c->dir) {
-    case D_DOWN: j = (uint16_t)(p - 1 - b); break;
-    case D_UPDN: j = b < p ? b : (uint16_t)(2 * p - 2 - b); break;
-    case D_RAND: { uint8_t perm[24];
-        uint32_t x = sq_mix(((uint32_t)c->s_notes * 0x9E3779B1u) ^ (y * 0x85EBCA6Bu));
-        sq_seeded_perm(perm, (uint8_t)p, x ? x : 1u);
-        j = perm[b % p]; break; }
-    default: j = b; break; }
+    j = JMAP(b);
+#undef JMAP
     s = (int16_t)(arp_tone(hc, c->dir, (uint8_t)(j % nt)) + 12 * (j / nt));
     if (octv) s = (int16_t)(s + 12);
     if (home) s = hc->drone >= 0 ? hc->drone : hc->vt[0];

@@ -173,7 +173,7 @@ m6 `DYN 0,10,10,1,1`; m7 `DIR 0,5,0,1,1`.
    | --- | --- | --- |
    | LINE | `m` | |
    | SKIP | `m` even: `(m/2) mod LB`; `m` odd: `(m div 2 + 2) mod LB` | |
-   | THUMB | `m` even: home; `m` odd: `1 + ((m div 2) mod (LB-1))` (`0` if `LB = 1`) | home tone = `hc.drone` if `hc.drone >= 0`, else `hc.vt[0]` (the drone replaces the root as the home note) |
+   | THUMB | `m` even: home; `m` odd: `w = (m div 2) mod (LB-1)`, `b = w` if `w < bh` else `w + 1` (`0` if `LB = 1`), where `bh` is the first figure position whose pool index is the **home note's** (owner O-5, 2026-11-12: the walking tones skip the home note, not blindly position 0; with the root as home and DIR UP `bh = 0` and this is the earlier `1 + w`) | home tone = `hc.drone` if `hc.drone >= 0`, else `hc.vt[0]` (the drone replaces the root as the home note) |
    | OCTV | `m div 2` | octave bit `m mod 2` (that note +12) |
    | REPT | `m div 2` | |
    | WAVE | `(m div 3 + m mod 3) mod LB` | |
@@ -301,7 +301,7 @@ With **VOICE 0** the chord is one note (the root, or the root plus the drone), w
 | VOICE 0, OCTV, SPAN 3 | `0 12 12 24 24 36` (octave bounce) |
 | VOICE 0, THUMB, SPAN 3 | `0 12 0 24` (root against the octaves) |
 | VOICE 0, UPDN, SPAN 3 | `0 12 24 12` (cycle 4) |
-| VOICE 0 with a drone (pool = root and drone) | the two tones alternate in the chosen order; with THUMB the drone is the home |
+| VOICE 0 with a drone (pool = root and drone) | the two tones alternate in the chosen order; with THUMB the drone is the home and the root walks: `7 0 7 0 ...` (golden `same, THUMB`; owner O-5) |
 
 With a **chord** held (VOICE 2 or more) the same shapes apply to the chord's tones. Because HARMONY is inert at `1---` with VOICE 2 and no drone, ARP then plays the key's own triad; the H-INERT rule of HARMONY.md 10 concerns the other four algorithms and is unaffected.
 
@@ -369,6 +369,8 @@ A new shape or direction is a new case of the `switch` plus new goldens (one own
 `AlgoDesc.mod` is `arp_mod`: lane A (slots 1 and 3) is the cell of the **figure position** `m` of the step's first note (0..F-1, up to 137, so `sp18_cell` takes the whole `uint8_t`, not `i & 15`), leaning on the step's velocity; lane B (slots 2 and 4)
 is an LFO over the channel LENGTH (`ModIdx.period = 0`: the core fills it), read at `g`. Both are pure functions of `(cache, g, hc, step)`. The golden shows lanes for LENGTH 16.
 
+**Decided (owner 2026-11-12, option A):** the SHAPE sub-label stays the primary name (`PHASE`); the dice toast adds `+ MOD` when the mod seed moves too (an active device slot). MODULATION.md 3.4's `OCT+MOD` style labels are not used.
+
 ### 6.13 What the prototype changed in this design (found while writing it; each is a table or text edit, none moves a control)
 
 | # | Finding | Resolution |
@@ -378,6 +380,7 @@ is an LFO over the channel LENGTH (`ModIdx.period = 0`: the core fills it), read
 | 3 | SPEC 6.8 said "any shape" gives a plain pedal at VOICE 0, SPAN 1 | OCTV alternates the root and its octave; fixed in 6.8 and tested |
 | 4 | The brief's cost bounds (section 9) | Structural, asserted: cache 48 B; the RAND shuffle is at most 24 draws; the CHORD sort at most 6 values; no loop is longer. The golden has an `## ARP COST` line |
 | 5 | ROLE (6.4) is the core's job (AM-3) | The driver's `role_chords()` is the reference of what the core hands `step()`: AUTO and FULL the voiced chord, OFF the reference chord (degree 1, VOICE 2, no drone), ROOT the root (the drone if set) only. The golden `HARM` sections are those four runs |
+| 7 | THUMB with a drone played the drone on every step (the walking tones skipped pool index 0 = the root) | Owner O-5 (2026-11-12): skip the **home** note's pool index. `proto.c` finds the home's index in the tone list and the figure position that reads it; `arp_ref.py` re-implements it. Only the THUMB lines of the grids (non-UP directions) and the drone case changed in the golden |
 | 6 | The chord run of the driver is a test approximation | ARP is `AF_CHORD`, so the core bypasses `harm_apply` and there is no strong-step rule for ARP at all; the approximation of the other four SPECs (velocity >= 100 and holds) does not apply |
 
 ## 7. UX: roles, labels and gestures

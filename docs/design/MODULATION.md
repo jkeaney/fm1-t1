@@ -106,6 +106,8 @@ And one **new performance morph, DEPTH**, on page 3: hold OCT+ and turn K (secti
 
 ### 3.4 Dice semantics
 
+> Decided by the owner 2026-11-12 (P2-017, option A): the sub-labels in the table below are NOT used. The SHAPE sub-label stays the algorithm's primary name (`OCTAVE`, `DRIFT`, `LONG`, `PHASE`, `UP/DN`; `MOD` for EUCLID) and the dice toast adds `+ MOD` when the mod seed moves too.
+
 No sixth dice layer and no new button (ALGORITHM_SET 4: exactly 5 layers). **`s_mod` is a second seed of the SHAPE layer**, exactly as ACID's ARTIC press already re-rolls GATE and SLIDE with two counter reads (ALGORITHM_SET 4.3). The button printed `LFO` re-rolls SHAPE and the mod seed together; dice-all (FX) includes it; EDIT (undo) restores both.
 
 | Algorithm | SHAPE button re-rolls | Sub-label (the button's second line) |

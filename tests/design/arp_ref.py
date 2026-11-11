@@ -52,20 +52,29 @@ def note_n(ch, n, span, d, sh):
     LB = max(1, 2 * P - 2) if d == "UPDN" else P
     F = {"LINE": LB, "SKIP": 2 * LB, "THUMB": 2 * max(1, LB - 1), "OCTV": 2 * LB, "REPT": 2 * LB, "WAVE": 3 * LB}[sh]
     m, y = n % F, n // F
+    T = tones(ch, d)
+    pm = perm(P, mix(0 * 0x9E3779B1 ^ y * 0x85EBCA6B)) if d == "RAND" else None
+    def jmap(b):
+        if d == "DOWN": return P - 1 - b
+        if d == "UPDN": return b if b < P else 2 * P - 2 - b
+        if d == "RAND": return pm[b % P]
+        return b
+    homep = ch["drone"] if ch["drone"] >= 0 else ch["vt"][0]
+    jh = next((k for k in range(nt) if T[k] == homep), 0)      # the home note's pool index
+    bh = next((k for k in range(LB) if jmap(k) == jh), 0)      # the figure position that reads it
     home = octv = False
     if sh == "LINE": b = m
     elif sh == "SKIP": b = (m // 2) % LB if m % 2 == 0 else (m // 2 + 2) % LB
     elif sh == "THUMB":
         if m % 2 == 0: home, b = True, 0
-        else: b = 1 + ((m // 2) % (LB - 1)) if LB > 1 else 0
+        elif LB > 1:
+            b = (m // 2) % (LB - 1)
+            if b >= bh: b += 1                                  # the walking tones skip the HOME note's position (owner O-5)
+        else: b = 0
     elif sh == "OCTV": b, octv = m // 2, m % 2 == 1
     elif sh == "REPT": b = m // 2
     else: b = (m // 3 + m % 3) % LB
-    if d == "DOWN": j = P - 1 - b
-    elif d == "UPDN": j = b if b < P else 2 * P - 2 - b
-    elif d == "RAND": j = perm(P, mix(0 * 0x9E3779B1 ^ y * 0x85EBCA6B))[b % P]
-    else: j = b
-    T = tones(ch, d)
+    j = jmap(b)
     s = T[j % nt] + 12 * (j // nt) + (12 if octv else 0)
     if home: s = ch["drone"] if ch["drone"] >= 0 else ch["vt"][0]
     while s > 60: s -= 12

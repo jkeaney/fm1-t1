@@ -108,7 +108,8 @@ static void arp_single(void)
             if (hc->n == 2) for (uint32_t t = 0; t < 16; t++) { PulseOut o; A.step(&cache, t, hcfor(0, t), &o); CHECK(o.note == 36 + hc->vt[t % 2], "drone alternation at %u: %u", (unsigned)t, o.note); }
             c.m[AM_SHAPE] = 2; arp_setup(&c, &g, &hh);
             printf("same, THUMB |"); arp_line(&cache, 0, 16);
-            for (uint32_t t = 0; t < 16; t += 2) { PulseOut o; A.step(&cache, t, hcfor(0, t), &o); CHECK(o.note == 36 + (HCS[0].drone >= 0 ? HCS[0].drone : HCS[0].vt[0]), "THUMB home is not the drone at %u", (unsigned)t); } } } }
+            for (uint32_t t = 0; t < 16; t++) { PulseOut o; A.step(&cache, t, hcfor(0, t), &o);       /* owner O-5: the drone is the pedal, the root walks */
+                CHECK(o.note == 36 + ((t & 1u) ? HCS[0].vt[0] : HCS[0].drone), "THUMB with a drone: note %u at %u", o.note, (unsigned)t); } } } }
 
 /* RAND (SPEC 6.3 step 4): a permutation of 0..P-1 for every P and cycle, and at step level one figure cycle of LINE / 1X plays every pool tone once */
 static void arp_rand(void)
