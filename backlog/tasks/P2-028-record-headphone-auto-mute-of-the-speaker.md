@@ -3,7 +3,7 @@ id: P2-028
 title: Record that headphones auto-mute the speaker (decision 113)
 phase: P2
 type: task
-status: review
+status: done
 priority: 3
 executor: haiku
 depends_on: [P2-027]
@@ -23,7 +23,7 @@ Decision 113: on the owner's FM-1, plugging in headphones switches the speaker o
 
 ## Acceptance criteria
 - [x] grep -rn "speaker mutes when headphones" docs backlog CLAUDE.md shows only answered/historical text
-- [x] python3 tools/backlog.py check passes; python3 tools/check_sequencer_ux.py passes (tests/design/check_sequencer_ux.py does not exist; the Verification path is used)
+- [x] python3 tools/backlog.py check passes; python3 tools/check_sequencer_ux.py passes
 
 ## Verification
 ```sh
@@ -56,3 +56,11 @@ $ python3 tests/design/check_help.py
 OK: 392 help rows, 2695 strings measured
 ```
 Not run: `sh tools/check.sh` (docs only, no code changed). No firmware touched.
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS (gate none). Docs only, no firmware changed, so no build and no RAM line (P3-003 executor active).
+- Re-ran: backlog.py check -> "125 items, 0 errors"; tools/check_sequencer_ux.py -> OK (scored=79, exceptions=3); tests/design/check_help.py -> OK (392 help rows).
+- PREVIEW.md 1.2 (line 63-69) and section 9 row (line 335) state decision 113 correctly (speaker off when headphones plugged in, never both, verified 2026-11-11); no open HW-1 check remains. CLAUDE.md line 58 correct. OWNER_QUESTIONS.md 113 consistent.
+- Grep of docs, backlog and CLAUDE.md: remaining "whether the speaker mutes" wording is only historical (P2-027 task and log). P2-025 log line 58 is historical.
+- Fixed the acceptance line's wrong checker path text in this task.
+- Note (non-blocking): PREVIEW.md line 9 says nothing is [V] on hardware; it concerns the numbers, and decision 113 is a separate hardware fact.
