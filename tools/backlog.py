@@ -97,6 +97,8 @@ def check(items):
             for s in SECTIONS:
                 if s not in t["_body"]:
                     errors.append(f"{tid}: missing section '{s}'")
+            if t.get("status") not in ("done", "dropped") and "## UX gate" not in t["_body"]:
+                errors.append(f"{tid}: open task needs a '## UX gate' section (docs/project/UX_GATE.md; 'n/a, <reason>' is allowed)")
             if "- [" not in t["_body"].split("## Acceptance criteria", 1)[-1]:
                 errors.append(f"{tid}: acceptance criteria need '- [ ]' checklist items")
     for t in items:

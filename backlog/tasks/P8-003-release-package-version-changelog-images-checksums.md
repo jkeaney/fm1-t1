@@ -37,6 +37,9 @@ sh tools/check.sh            # last line: CHECK PASS
 (cd release/v1 && shasum -a 256 -c SHA256SUMS)
 ```
 
+## UX gate
+n/a, internal work (tooling, plumbing, docs, process); no producer-visible control, screen or sound change.
+
 ## Out of scope
 - Pushing or tagging (owner does that)
 - Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).

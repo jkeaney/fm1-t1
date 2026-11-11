@@ -33,6 +33,9 @@ sh tools/check.sh            # last line: CHECK PASS
 ./build.sh | grep 'RAM'      # paste into the Log
 ```
 
+## UX gate
+n/a, internal work (tooling, plumbing, docs, process); no producer-visible control, screen or sound change.
+
 ## Out of scope
 - Timestamps and TIMER5 release (P4-007)
 - Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).

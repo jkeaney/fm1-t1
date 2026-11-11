@@ -31,6 +31,9 @@ Measure the timing on hardware and decide the M3 release mode, against the TIMIN
 .venv/bin/python tools/fm1_timing.py --sweep --minutes 5
 ```
 
+## UX gate
+Gate B on real hardware: the owner walks the cited use cases on the FM-1 and TB-3; actual ease scores and live checklists are recorded in each use case (docs/project/UX_GATE.md).
+
 ## Out of scope
 - Code changes
 

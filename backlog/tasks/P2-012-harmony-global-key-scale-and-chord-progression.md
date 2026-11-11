@@ -109,3 +109,7 @@ Review findings 1-5 fixed: page_states CHAN opener, CONTROL_MAP workflow row 6, 
 HARMONY dial renamed DRONE across HARMONY.md, SCREEN_SPEC, SEQUENCER_UX, TSVs, widths.tsv, S07/S18, harmony_proto.py, regenerated sweeps/help/COVERAGE. Remaining PEDAL hits are ACID ROW 2 morph or history. HARMONY.md section 11 now records the decisions. Checks re-run and passing. Task files P2-013, P5-005, P5-006 still say PEDAL for the HARMONY dial (not touched: another session edits backlog/tasks).
 
 - Approved: owner 2026-11-10 (85A 86A 87B 88A 89A 91A; HARMONY dial renamed DRONE)
+
+### 2026-11-10 review 2 (Sonnet 5.5)
+
+PASS. Findings 1-5 verified fixed in fd8d817 (stale D#4/any-key text removed or marked superseded, section 8 rows 16 added, Q86 notes partial reversal of decision 69, Q91 added for decision 46, undo toasts specified). All seven check scripts pass. Gate human-review: Awaiting owner: review HARMONY.md and answer questions 85-91; no Approved line written.

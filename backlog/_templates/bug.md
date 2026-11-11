@@ -35,4 +35,7 @@ Fix: <behaviour> so that <expected>.
 ```sh
 ```
 
+## UX gate
+n/a, or the use case this bug breaks (docs/design/features/); a fix that changes a control or screen needs Gate A.
+
 ## Log

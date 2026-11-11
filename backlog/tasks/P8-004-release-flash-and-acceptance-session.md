@@ -32,6 +32,9 @@ The finish line: the release image flashed on the owner's FM-1 and accepted on t
 .venv/bin/python tools/fm1_install.py --info --port "JIANT"
 ```
 
+## UX gate
+Gate B on real hardware: the owner walks the cited use cases on the FM-1 and TB-3; actual ease scores and live checklists are recorded in each use case (docs/project/UX_GATE.md).
+
 ## Out of scope
 - Code changes
 

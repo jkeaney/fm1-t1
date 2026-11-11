@@ -30,6 +30,9 @@ Hear every algorithm and the chord stage on the target synth before the performa
 .venv/bin/python tools/fm1_midi_listen.py --seconds 600 --out /tmp/hw2.log
 ```
 
+## UX gate
+Gate B on real hardware: the owner walks the cited use cases on the FM-1 and TB-3; actual ease scores and live checklists are recorded in each use case (docs/project/UX_GATE.md).
+
 ## Out of scope
 - Code changes
 

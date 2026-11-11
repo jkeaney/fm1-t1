@@ -1,48 +1,50 @@
 # Handoff: current state of the project (read this first after a context reset)
 
-Last updated 2026-11-10 by the orchestrator (Opus planning session). If anything here disagrees with a task file, the task file and
-`python3 tools/backlog.py list` win. Decisions live in `docs/project/OWNER_QUESTIONS.md` (the decision tables at the end).
+Last updated 2026-11-12 by the Sonnet orchestrator. If anything here disagrees with a task file, the task file and
+`python3 tools/backlog.py list` win. Decisions: `docs/project/OWNER_QUESTIONS.md`. The previous long handoff (all the
+2026-11-10/11 update blocks) is archived in `docs/project/sessions/HANDOFF-2026-11-11-archive.md`.
 
 ## What we are building
 A UX-first **sequencer firmware** for the M-VAVE FM-1 (fork of Felucca 1.6 via tensor-programming/fm1-t1). Rules in
-`docs/project/VISION.md` (rule 3 amended: a channel has a MIDI channel, an algorithm and a pattern length). The
-device boots straight into the new sequencer UI and works immediately. The groovebox is out of the v1 UI (decision 32b).
-Branch: `t1-hardware-bringup`, remote `origin` = jkeaney/fm1-t1. Pushed through `6bdf675`; see PAUSED below.
+`docs/project/VISION.md`. The device boots straight into the sequencer UI. Branch `t1-hardware-bringup`, remote
+`origin` = jkeaney/fm1-t1, **ahead of origin by ~35 commits: nothing has been pushed since f68d3df. Ask before any push.**
 
-## UPDATE 2026-11-11 (night): newest state; read this first
+## State (2026-11-12)
+- **Done:** P0, P1, P2-001..015, 018..028, P2-008 (prototype harness + ACID), P3-001..014, BUG-001..005.
+- **P3-013 HW-0 passed on the real FM-1 + TB-3** (2026-11-12): the cleaned build (SHA-1 fb0a4da8..., `FM-1_900`, port
+  "JIANT FM") boots to the old T-1 screen, plays the TB-3 on MIDI channel 2 through `tools/fm1_bridge.py`, STOP sends
+  CC123 on channels 1-5, the HOME-hold menu opens. The new UX (morph, dice, labels) is NOT in firmware yet: it arrives in
+  P4-P6. Not exercised: knobs/mute, preview synth on the speaker, Ableton Sync check (decision 83).
+- **The FM-1 is flashed with that build.** Ableton is open only to monitor TB-3 audio; the Python bridge does the
+  FM-1 -> TB-3 routing (start it, stop it afterwards).
+- Final cleaned build line: `image 168876 B; RAM .data+.bss 23060 B of 73728 (50668 free); pool 92500 B of 368640`.
 
-- **The clean-up chain is complete and reviewed:** P3-001..P3-012, P3-014, BUG-001..BUG-005 are done. Firmware is ANALOG-only. Final build: `image 168876 B; RAM .data+.bss 23060 B of 73728 (50668 free); pool 92500 B of 368640`. `docs/design/CLEAN_HOUSE_REPORT.md` has the table (its BUG-001/002 figure should read -192 B, not -208 B; minor).
-- **Design is owner-approved:** modulation layer (docs/design/MODULATION.md, decisions 107-108), per-channel PREVIEW and CUE (docs/design/PREVIEW.md, decisions 109-113), decision 114 (pushed; drop the installer page's SysEx backup flow, keep plain restore to V15). Last push f68d3df; many local commits since. Ask before any push.
-- **Next step, tomorrow morning: P3-013 (HW-0).** The owner said "1A" (flash the cleaned build) and "lets pick it up in the morning". So the flash is approved in principle: confirm the FM-1 and TB-3 are powered and on USB (TB-3 receive ch 2, its sequencer stopped), then run `.venv/bin/python tools/fm1_install.py build/felucca.fwsc --port "JIANT" --yes` (rebuild first if the tree changed), then `--info --port "JIANT"` (expect FM-1_9xx), the HARDWARE_TEST.md smoke checklist, and `fm1_midi_listen.py --seconds 120 --out /tmp/hw0.log`. Fold in the Ableton Sync check on JIANT FM (decision 83). Recovery: `fm1_install.py restore/FM-1-official-V15.fwsc --port "JIANT"`, then power-cycle. Log needs an "Approved:" line with date and firmware SHA.
-- **After HW-0:** P2-008 (prototype harness, Sonnet), then P2-016/P2-017 (carry the mod-lane hooks and the MIDI/PREVIEW gates; P2-017 needs owner human-review), then P4. P4-004/P4-012/P6-003 apply mute and SOLO at the MIDI gate. By-ear tests later: H-MOD1..H-MOD4.
-- **Not yet scheduled:** ADR-0003 amendment for the four ARP core additions; P4 task updates for MODULATION.md and PREVIEW.md effects.
-- **Open caveats:** web emulator edits unverifiable (no Emscripten); `eng_slice.c` slc_man_load/save never set; `engine_t.mem` unused; RAVE preset says PAT(13) but the table has 9 entries (harmless).
-- **Lessons:** never run two `tools/check.sh` at once (shared build/); a Haiku task blocked on missing callers is a spec gap, so route it to a Sonnet planner; removal patches can go stale when an earlier task changes comments (the `--3way` fallback is in the tasks); hardware facts are tested live and logged as decisions.
+## New process (2026-11-12): the UX gate
+`docs/project/UX_GATE.md`. Every task a producer can touch has a feature use case in `docs/design/features/`
+(`_TEMPLATE.md`): Gate A before the build (steps a producer takes, predicted ease score, five-surface sync, live-
+performance checklist), Gate B after (walk it, actual score, re-check). Every open task has a `## UX gate` section and
+`tools/backlog.py check` enforces it; internal work writes `n/a, <reason>`. The reviewer agent runs Gate B.
 
-## UPDATE 2026-11-11 (end of the Sonnet orchestrator's first session; read this before the older text below)
-- **Done this session:** P0-005 (TB-3 listening test, owner signed off), P2-013 ARP, P2-014 PATTERNS, P2-015 keybed (UC5 parked to v2), P3-001, P4-008, and the whole hardware-support design: P2-018 (high level, Option B), P2-019 (low level), P2-020 (TB-3 profile). Decisions 92-106 are in OWNER_QUESTIONS.md.
-- **Measured on the owner's TB-3 (ch2, USB, via tools/fm1_bridge.py or direct rtmidi):** velocity >= 100 accents (flat velocity is now 90, decision 104); slide = overlap, accent on a slide destination is inaudible (105); all 11 CCs work incl. 68 scatter type (a mode SELECT, linked to 69 depth) (106). FM-1 runs `FM-1_900`, port "JIANT FM", no reflash was needed.
-- **In flight when this was written:** (a) planner agent `af7b6636e49f19387` fixing P3-002/P3-014 scope (FB-002 done; FB-003 open; it runs scratch host tests; uncommitted: backlog/feedback/FB-003-*.md and P3-002 log). If it is gone, re-dispatch a Sonnet planner on FB-003 with a compile-driven audit (see FB-003 and its FB-002 log). (b) designer `a025a0b5f0ad4886f` writing P2-021 (TB-3 profile v2: select kinds, linked params, which-of-11 alignment UX); then review it and bring the owner a sheet.
-- **Next:** P3-002 (slicer) -> P3-014 (fx buses) -> P3-003.. (removal chain, one task at a time), P2-008 prototype harness + ACID, P2-016/017 prototypes (ARP/PATTERNS and the hardware lanes need hooks, see P2-019 section 6), P4 timing tools. Ask the owner before every push (nothing pushed this session; branch is ahead of origin).
-- **Lessons:** never let two `tools/check.sh` run at once (shared build/); a Haiku task blocked on missing callers is a spec gap, route to a Sonnet planner not an escalation; hardware facts are tested live with rtmidi + `say` announcements and logged as decisions.
+## Next
+1. **P2-016** EUCLID/SNAKE/STAGE prototypes (Sonnet; first producer-facing design task: fill its use case), then
+   **P2-017** ARP/PATTERNS (owner human-review locks all six prototypes).
+2. **P2-029** (new): amend ADR-0003 / HARMONY.md for the P2-008 findings (ACID range -12..+36, HarmChord 14 B,
+   drone_pitch). P4-001 and P4-002 now wait for it.
+3. **P3-015** remove the installer page's SysEx backup flow (Sonnet, ready). P4-003 and P4-010 are also ready.
+4. Not yet scheduled: ADR-0003 amendment for the four ARP core additions; P4 task updates for MODULATION.md and
+   PREVIEW.md effects. By-ear tests later: H-MOD1..H-MOD4.
 
-## START HERE (2026-11-10): a Sonnet orchestrator runs the plan
-- **Runbook:** docs/project/ORCHESTRATOR.md (loop, parallelism, Haiku-to-Sonnet escalation, gates, cost rules). **Map:**
-  docs/project/PROGRAM_PLAN.md (every phase P2-P8, the critical path, budgets, risks). Every task to the release flash
-  (P8-004) exists in backlog/ with Definition-of-Ready content; `python3 tools/backlog.py next` is always the next step.
-- Model routing: the orchestrator session runs on Sonnet; executors follow each task's `executor` field (mostly Haiku);
-  reviewers are always Sonnet. Opus only when the owner asks.
-- Gotchas: macOS BSD sed (use python for edits); quote shell patterns containing arrows or `>`; no foreground `sleep`;
-  downloaded code is read-only; parallel agents `git add` only their own files.
+## Known issues / caveats
+- Web emulator edits unverifiable (no Emscripten); `eng_slice.c` slc_man_load/save never set; `engine_t.mem` unused.
+- CLEAN_HOUSE_REPORT's BUG-001/002 figure should read -192 B, not -208 B (minor).
+- **Stray-file trap:** writing to a shell glob like `backlog/tasks/P3-013-*.md` with `>>` creates a literal file named
+  with the `*`, and `git rm`/`git checkout` treat `*` as a wildcard. Resolve the real path first. Two such strays from
+  earlier sessions were merged into P2-002 and P2-012 on 2026-11-12.
 
-## Where we are (2026-11-10, end of the Opus planning session)
-- Done: P0-001..004, P1 (all), P2-001..004, P2-006, P2-007, P2-009, P2-010, P2-011. E3-E8 broken down (closed). FB-001 closed.
-- P2-012 HARMONY approved and done (85A 86A 87B 88A 89A 91A; the HARMONY dial is named `DRONE`). P2-005 program plan approved and done.
-- **Ready now:** P2-013 ARP, P2-014 PATTERNS, P2-015 keybed (Sonnet, run in parallel); P2-008 prototype harness + ACID (Sonnet);
-  P3-001 host tests link the T-1 (Sonnet, the first dev task: run it alone); P4-008 timing tool (Haiku, may run alongside).
-  Suggested first wave: P2-013 + P2-014 + P2-015 in parallel, then P3-001 + P4-008, then P2-008.
-- Owner, 2026-11-11: Ableton Sync check on the JIANT FM port plus P0-005 TB-3 listening test on the current build.
-- Last push: 6f91357 (2026-11-10). Ask before every push.
+## Lessons
+Never run two `tools/check.sh` at once (shared build/). A Haiku task blocked on missing callers is a spec gap: route it
+to a Sonnet planner. Removal patches can go stale when an earlier task changes comments (use the `--3way` fallback).
+Hardware facts are tested live and logged as decisions. Sonnet orchestrator runs the loop: docs/project/ORCHESTRATOR.md.
 
 ## Owner decisions to remember (full list: OWNER_QUESTIONS.md)
 4 channels; 4 v1 algorithms ACID/EUCLID/SNAKE/STAGE (ARP, RHYTHM, MELODY deferred, specs complete); each algorithm has up to

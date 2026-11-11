@@ -36,6 +36,9 @@ sh tools/check.sh            # last line: CHECK PASS
 ./build.sh | grep 'RAM'      # paste into the Log
 ```
 
+## UX gate
+Producer-facing. Use case: `docs/design/features/P4-014-note-edit-page.md` from `_TEMPLATE.md` (docs/project/UX_GATE.md). Gate A (steps, predicted ease score, five-surface sync, live checklist) is filled before the build or cited from the locked design; Gate B is filled by the reviewer.
+
 ## Out of scope
 - Other pages
 - ISR code

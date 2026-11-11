@@ -34,6 +34,9 @@ sh tools/check.sh            # last line: CHECK PASS
 ./build.sh | grep 'RAM'      # paste into the Log
 ```
 
+## UX gate
+Producer-facing. Use case: `docs/design/features/P4-011-ui-sq-c-framework-screen-zones-toasts-la.md` from `_TEMPLATE.md` (docs/project/UX_GATE.md). Gate A (steps, predicted ease score, five-surface sync, live checklist) is filled before the build or cited from the locked design; Gate B is filled by the reviewer.
+
 ## Out of scope
 - Page behaviour (P4-013..P4-018)
 - Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).

@@ -6,7 +6,7 @@ type: task
 status: todo
 priority: 2
 executor: haiku
-depends_on: [P4-001, BUG-002]
+depends_on: [P4-001, BUG-002, P2-029]
 gate: none
 ---
 ## Goal
@@ -32,6 +32,9 @@ Land the shared primitives (SP1-SP9, SP11 wrappers) exactly as prototyped.
 sh tools/check.sh            # last line: CHECK PASS
 ./build.sh | grep 'RAM'      # paste into the Log
 ```
+
+## UX gate
+n/a, internal work (tooling, plumbing, docs, process); no producer-visible control, screen or sound change.
 
 ## Out of scope
 - The scheduler

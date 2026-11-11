@@ -39,6 +39,9 @@ sh tests/design/width_probe.sh
 python3 tools/backlog.py check
 ```
 
+## UX gate
+Producer-facing. Use case: `docs/design/features/P2-017-arp-and-patterns-prototypes-with-golden.md` from `_TEMPLATE.md` (docs/project/UX_GATE.md). Gate A (steps, predicted ease score, five-surface sync, live checklist) is filled before the build or cited from the locked design; Gate B is filled by the reviewer.
+
 ## Out of scope
 - firmware/
 

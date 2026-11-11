@@ -33,6 +33,9 @@ grep -n 'T1 SEQ' docs/project/HARDWARE_TEST.md   # no output
 python3 tools/backlog.py check
 ```
 
+## UX gate
+n/a, internal work (tooling, plumbing, docs, process); no producer-visible control, screen or sound change.
+
 ## Out of scope
 - Code
 - Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).

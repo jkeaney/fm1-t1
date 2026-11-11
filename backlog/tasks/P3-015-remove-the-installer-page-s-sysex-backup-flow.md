@@ -31,6 +31,9 @@ sh tools/check.sh
 grep -rni "backup\|use the editor" web/ | head
 ```
 
+## UX gate
+n/a, internal work (tooling, plumbing, docs, process); no producer-visible control, screen or sound change.
+
 ## Out of scope
 - Firmware changes; the web emulator.
 

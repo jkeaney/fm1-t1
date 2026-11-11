@@ -35,6 +35,9 @@ sh tools/check.sh            # last line: CHECK PASS
 ./build.sh | grep 'RAM'      # paste into the Log
 ```
 
+## UX gate
+n/a, internal work (tooling, plumbing, docs, process); no producer-visible control, screen or sound change.
+
 ## Out of scope
 - Channel state API (P4-005)
 - Timing release (P4-007)

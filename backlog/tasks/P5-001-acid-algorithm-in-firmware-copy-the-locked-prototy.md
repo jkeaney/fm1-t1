@@ -35,6 +35,9 @@ sh tools/check.sh            # last line: CHECK PASS
 ./build.sh | grep 'RAM'      # paste into the Log
 ```
 
+## UX gate
+Producer-facing. Use case: `docs/design/features/P5-001-acid-algorithm-in-firmware-copy-the-lock.md` from `_TEMPLATE.md` (docs/project/UX_GATE.md). Gate A (steps, predicted ease score, five-surface sync, live checklist) is filled before the build or cited from the locked design; Gate B is filled by the reviewer.
+
 ## Out of scope
 - Other algorithms
 - UI

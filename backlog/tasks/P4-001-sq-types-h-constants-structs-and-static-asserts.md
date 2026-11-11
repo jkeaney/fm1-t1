@@ -6,7 +6,7 @@ type: task
 status: todo
 priority: 2
 executor: haiku
-depends_on: [P3-012, P2-017]
+depends_on: [P3-012, P2-017, P2-029]
 gate: none
 ---
 ## Goal
@@ -33,6 +33,9 @@ Land the locked data model in firmware, unchanged from the locked prototype head
 sh tools/check.sh            # last line: CHECK PASS
 ./build.sh | grep 'RAM'      # paste into the Log
 ```
+
+## UX gate
+n/a, internal work (tooling, plumbing, docs, process); no producer-visible control, screen or sound change.
 
 ## Out of scope
 - Any .c behaviour

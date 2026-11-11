@@ -36,6 +36,7 @@ All work goes through the backlog. Don't patch firmware outside a task.
 - **Roadmap:** docs/project/ROADMAP.md (phases P0–P8)
 - **Decisions:** docs/project/decisions/ (ADRs)
 - **Design outputs:** docs/design/
+- **UX gate:** docs/project/UX_GATE.md (Gate A before, Gate B after, use cases in docs/design/features/). Every open task has a `## UX gate` section.
 - **Tasks:** `backlog/` (one file per task, bug or feedback item). Use `python3 tools/backlog.py next|list|show|set|check|index`.
 - **`/next-task`** runs one cycle: the `fm1-task-executor` agent (model per the task's `executor` field) does it,
   then `fm1-task-reviewer` checks it.
