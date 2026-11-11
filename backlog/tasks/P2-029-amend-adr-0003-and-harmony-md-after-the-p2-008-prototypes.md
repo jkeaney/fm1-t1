@@ -3,7 +3,7 @@ id: P2-029
 title: Amend ADR-0003 and HARMONY.md after the P2-008 prototypes (ACID range, HarmChord size, drone_pitch)
 phase: P2
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P2-008]
@@ -56,3 +56,12 @@ sh tests/design/run_protos.sh        -> ... golden.txt equal ... algorithms: 6 /
 python3 tests/design/harmony_proto.py --check -> CHECK OK
 python3 tools/backlog.py check       -> 134 items, 0 errors
 ```
+
+### 2026-11-12 review (sonnet)
+Verdict: PASS (gate none; UX gate n/a). Firmware not touched, so no build (and the orchestrator barred ./build.sh while P4-003 runs).
+- Re-ran: `run_protos.sh` -> PROTOS PASS (six algorithms, golden.txt equal); `harmony_proto.py --check` -> CHECK OK; `backlog.py check` -> 134 items, 0 errors.
+- ACID -12..+36, `lo` floor, HarmChord 14 B, hi(m) bounds: ADR-0003 s20 rows 3-4 and HARMONY.md 4.1/4.2/7.2/5 agree; no remaining "16 B" or "0..24" that contradicts (the 0..24 left is the golden test window, labelled).
+- drone_pitch: now n'=min(7,size), clamp 2n', matches HARMONY.md 3.3; harm_test.c dump range grown in step.
+- Knob order in ALGORITHM_SET 5.2/5.2b and FULL_CONTROL 3.2/3.4 matches docs/design/knob_map.tsv (EUCLID, STAGE).
+- Widened scope: ADR-0003 s22 verified against sq_types.h (ChanSave 384, UndoRec 94, SeqPreset 1556, PO_TIE 0x80, SQ_NALGO 6, SQ_SEED_MOD, SQ_SMOD_DEFAULT, AF_CHORD, hc arg, sub_note, mod hook) and sq_prims.h (sq_mix, sq_seeded_perm); LOCK.md s2/s4 cache sizes (38/54/55/43/48/22) and 29808 B pool figure match; decision 115 one-pace-bit comment matches sq_types.h:55.
+- Nit (no action): ADR s20 row 3 still lists ChanSave 344 / UndoRec 92; s22 supersedes explicitly.
