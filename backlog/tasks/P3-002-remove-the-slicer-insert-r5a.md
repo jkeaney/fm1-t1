@@ -3,7 +3,7 @@ id: P3-002
 title: Remove the slicer insert (R5a, first per decision 80)
 phase: P3
 type: task
-status: review
+status: done
 priority: 2
 executor: haiku
 depends_on: [P3-001]
@@ -39,16 +39,16 @@ Found by applying the removal in a scratch copy and running the device build, `s
 - Log: before/after build line (image, RAM, pool). Scratch result for reference: pool 342876 -> 342876, RAM .data+.bss 55744 -> 55584.
 
 ## Acceptance criteria
-- [ ] slicer.c, tests/slicer_test.c and tests/perform_test.c show `D` in `git status`, and felucca.c has no `#include "slicer.c"`
-- [ ] `grep -rnwE 'slicer_start|slicer_busy|slicer_track|slicer_track_sd|slicer_test|sl_pattern|sl_enter|sl_buf|sl_lent|sl_t|SL_LEN|SL_NPAT|SL_PAT|SL_DEN|SL_OFF|SL_GATE|SL_STUT|graph_slicer|perf_drop_slicer|job_slicer|J_SLICER|test_slicer' firmware tests tools BUILDING.md` returns nothing
-- [ ] `grep -rnE '(^|[^A-Za-z0-9_])sl\[' firmware tests --exclude=ui_draw.c` returns nothing (ui_draw.c has unrelated local `char sl[..]` buffers; they stay)
-- [ ] `grep -rn 'slicer\.c' firmware tests tools BUILDING.md` returns nothing
-- [ ] `grep -n 'SL_RAMP_LOG2\|SL_SLOPE' firmware/src/fx.c` shows the three defines at the top of fx.c; `grep -n 'pf_buf' firmware/src/perform.c` shows the `.pool` declaration
-- [ ] `beat_samples` and `mix_part` still exist in fx.c
-- [ ] Pool used does not rise against the pre-task build line (32768 B moves from sl_buf to pf_buf); RAM .data+.bss drops
+- [x] slicer.c, tests/slicer_test.c and tests/perform_test.c show `D` in `git status`, and felucca.c has no `#include "slicer.c"`
+- [x] `grep -rnwE 'slicer_start|slicer_busy|slicer_track|slicer_track_sd|slicer_test|sl_pattern|sl_enter|sl_buf|sl_lent|sl_t|SL_LEN|SL_NPAT|SL_PAT|SL_DEN|SL_OFF|SL_GATE|SL_STUT|graph_slicer|perf_drop_slicer|job_slicer|J_SLICER|test_slicer' firmware tests tools BUILDING.md` returns nothing
+- [x] `grep -rnE '(^|[^A-Za-z0-9_])sl\[' firmware tests --exclude=ui_draw.c` returns nothing (ui_draw.c has unrelated local `char sl[..]` buffers; they stay)
+- [x] `grep -rn 'slicer\.c' firmware tests tools BUILDING.md` returns nothing
+- [x] `grep -n 'SL_RAMP_LOG2\|SL_SLOPE' firmware/src/fx.c` shows the three defines at the top of fx.c; `grep -n 'pf_buf' firmware/src/perform.c` shows the `.pool` declaration
+- [x] `beat_samples` and `mix_part` still exist in fx.c
+- [x] Pool used does not rise against the pre-task build line (32768 B moves from sl_buf to pf_buf); RAM .data+.bss drops
 - [x] The golden/budget result is exactly as stated in the Deliverable (golden as stated; budget = HEAD minus the slicer_track row, per FB-004 A)
 - [x] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
-- [ ] The build line `image ... RAM .data+.bss N of 73728; pool ...` is pasted into the Log; RAM headroom (73728 - N) is at least 8192 B, else stop and file an FB (E9 trigger)
+- [x] The build line `image ... RAM .data+.bss N of 73728; pool ...` is pasted into the Log; RAM headroom (73728 - N) is at least 8192 B, else stop and file an FB (E9 trigger)
 
 ## Verification
 ```sh
@@ -97,3 +97,10 @@ Not ticked: the golden/budget criterion, `sh tools/check.sh` (not run; blocked b
 
 ### 2026-11-11 orchestrator (FB-004)
 FB-004 A-C answered (see its log): budget file kept at HEAD minus `slicer_track` (moved rows are a real, shrinking ISR cost; the check gates growth only); insert_test MIX 0 limit 0.5 % -> 1 % (host noise); mod_test cost passes in P3-002 alone (+4.3 %). `sh tools/check.sh` ended CHECK PASS (second run; the first run hit the INSERT noise, then the one-off drumfuzz UBSan division by zero at fx.c:224 reappeared once and cleared on rerun). Build: `ok image 520904 B; RAM .data+.bss 55584 B of 73728; pool 342876 B of 368640`. Set to review.
+
+### 2026-11-11 review (sonnet)
+Verdict: PASS (gate none).
+- Re-ran all acceptance greps: symbol, `sl[`, `slicer\.c` all empty. slicer.c, slicer_test.c, perform_test.c deleted in HEAD. SL_RAMP_LOG2/SL_RAMP/SL_SLOPE at fx.c:5-7; pf_buf `.pool` at perform.c:60; beat_samples and mix_part present.
+- Golden diff exactly -slicer/gate/ANALOG_ACID, -slicer/song_gate_stut, +song/4track_swing20; target_budget.txt only loses the slicer_track row.
+- `sh tools/check.sh` ran once: CHECK PASS.
+- Build: `ok image 520904 B; RAM .data+.bss 55584 B of 73728; pool 342876 B of 368640`. Headroom 18144 B (at least 8192): pass. Pool unchanged, RAM down 160 B.
