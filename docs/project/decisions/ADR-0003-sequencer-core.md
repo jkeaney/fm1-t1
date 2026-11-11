@@ -58,8 +58,8 @@ express this (it has no layers, no per-layer seeds, no pins, no slide), and its 
 4. **Seeds are 16-bit, per channel x per algorithm x per layer-seed**, stored in full for all four algorithms so
    switching back restores (S7). Undo is one record per channel (last dice / dice-all / pin-clear), swap = redo.
    (Sections 3, 6.)
-5. **Events leave through one function** (`sq_emit`) to `midi_out_event` and, for the selected channel, to the preview
-   synth (ANALOG on `trk[0]`). Note-offs are never dropped; stop/panic/disconnect silence everything. (Section 8.)
+5. **Events leave through one function** (`sq_emit`) to `midi_out_event` and, for every channel with PREVIEW on (decision 110, addendum 21), to that channel's preview
+   part (ANALOG on `trk[ch-1]`). Note-offs are never dropped; stop/panic/disconnect silence everything. (Section 8.)
 6. **Always on, boots working.** No mode switch, no T-1 flag. (Section 12.)
 7. **RAM: +2.3 KB `.bss` for the core (2257 B)**, ~7.6 KB pool (7560 B); fits today and after the E3 removals. (Section 11.)
 
@@ -117,7 +117,7 @@ _Static_assert(sizeof(AlgoState) == 20, "AlgoState");
 
 /* One channel as saved in a preset and read by the UI. The channel's only settings are midi_ch and algo (VISION 3). 102 B */
 typedef struct {
-    uint8_t  midi_ch;              /* 0..15 = MIDI channel 1..16; 16 = OFF (no MIDI out, still previews) */
+    uint8_t  midi_ch;              /* 0..15 = MIDI channel 1..16; 16 = OFF (no MIDI out and so no preview: the preview plays the MIDI stream, addendum 21) */
     uint8_t  algo;                 /* 0..3 */
     uint8_t  muted;                /* 0/1 latched */
     uint8_t  pad;
@@ -128,8 +128,8 @@ typedef struct {
 _Static_assert(sizeof(ChanSave) == 102, "ChanSave");
 
 /* Owner ruling 2026-11-10 (MIDI channels unique): assigning a taken MIDI channel sets the other channel to OFF. The OFF channel keeps
- * running (its lane, playhead, pattern and mute are untouched) but sq_emit sends nothing for it; the preview synth still plays the
- * selected, unmuted channel (midi_ch == SQ_MIDI_OFF means "no MIDI out", ChanSave comment above). The reassignment is ONE undo step
+ * running (its lane, playhead, pattern and mute are untouched) but sq_emit sends nothing for it; the preview is silent too (it plays exactly what the channel sends as MIDI, addendum 21;
+ * midi_ch == SQ_MIDI_OFF means "no MIDI out", ChanSave comment above). The reassignment is ONE undo step
  * for both channels, so it has its own 4 B record beside the per-channel UndoRec; it stays the latest undoable action until the next
  * one. +4 B .bss (SEQUENCER_UX 4.4, 9.4 headroom unchanged). */
 typedef struct { uint8_t ch, old_midi, other, other_old; } UndoMidi;      /* other = 0xFF when no channel was displaced */
@@ -483,7 +483,7 @@ free-running and `step()` reduces it.
 main loop (UI)                         audio ISR (events_block -> sq_block -> sq_tick)             USB / synth
 sq_* API, sq_rebuild --cache flip--->  sq_step_start: step() + pins -> sq_sched() into EvQ[96]
                                        sq_dispatch(now): due events -> sq_emit() ---------------> midi_out_event(pkt)  [usb.c ring]
-                                                                       \-------(chan == sq_sel)--> trk_note_on/off(&trk[0], ...)  [ANALOG]
+                                                                       \-------(prv_on[chan], MIDI not OFF)--> trk_note_on/off(&trk[chan-1], ...)  [ANALOG]
 keyboard_block (white keys) --> sq_live_on/off: sq_emit(now), no queue
 ```
 
@@ -492,10 +492,10 @@ keyboard_block (white keys) --> sq_live_on/off: sq_emit(now), no queue
 - MIDI: unless `chan_byte & 0x10` (MIDI OFF), build the packet exactly as T-1 did:
   NOTE_ON `0x09 | (0x90 | m) << 8 | note << 16 | vel << 24`; NOTE_OFF `0x08 | (0x80 | m) << 8 | note << 16`;
   CC123 `0x0B | (0xB0 | m) << 8 | 123 << 16`; call `midi_out_event(pkt)`.
-- Preview: if the sequencer channel in the byte equals `sq_sel`, `trk_note_on(&trk[0], note, vel)` /
-  `trk_note_off(&trk[0], note)`. The preview synth is ANALOG preset 0 (owner decision 40) and plays only the selected
-  channel. When `sq_sel` changes, the ISR first releases the previous channel's `snd[]` notes on `trk[0]` (tracked by
-  `ChanRT.snd`).
+- Preview (amended by P2-024, decision 110): if the channel's `prv_on` is set and its MIDI is not OFF (the same condition that
+  builds the MIDI packet), `trk_note_on(&trk[chan-1], note, vel)` / `trk_note_off(&trk[chan-1], note)`. Each channel has its own
+  part with one of six ANALOG patches (PREVIEW.md); all four are OFF at boot. Changing `prv_snd` or `prv_on` first releases that
+  channel's `snd[]` notes on its part (tracked by `ChanRT.snd`); selecting another channel releases nothing.
 - A NOTE_OFF is sent only if its note is in `rt.snd[]` (otherwise its NOTE_ON was dropped by the reserve rule of 8.3 and the off is discarded), so the stream never carries an off without an on.
 - Bookkeeping: NOTE_ON stores `note + 1` in a free `rt.snd[]` slot (if both are full, the older note gets a NOTE_OFF first);
   NOTE_OFF clears the matching slot. `rt.act` is bumped on every NOTE_ON.
@@ -560,7 +560,7 @@ applied after `step()`), so morphs and dice never disturb them.
   forces `PO_HIT`. No fifth algorithm (owner decision 35). Because `step()` still fills `vel`/`gate`, pins sound at the
   right dynamics.
 - **Live keys** (PERF): `keyboard_block` calls `sq_live_on(note, vel)`; the note is snapped by `sq_snap_abs`, sent on the
-  **selected** channel's MIDI channel (unless OFF) and the preview synth. It bypasses the queue; the key-up sends the
+  **selected** channel's MIDI channel (unless OFF) and, when that channel's PREVIEW is on, its preview part. It bypasses the queue; the key-up sends the
   paired NOTE_OFF (the key table remembers the exact `chan_byte` and note sent). MIDI IN notes use the same two calls.
 
 ## 10. Presets, queued loads, undo of a load
@@ -668,7 +668,7 @@ The device boots straight into the sequencer: no mode, no `PREF_T1`, no `MODE` r
 `fm1_main()`, in this order (changes marked):
 
 1. `persist_boot`, `settings_init`, `usb_serial_apply`, `lcd_init`, `draw_splash`, input/ADC/`panel_init` (unchanged).
-2. `felucca_init()` **reduced**: only the preview voice, `trk[0]` = ANALOG preset 0 (decision 40). Groovebox track defaults
+2. `felucca_init()` **reduced**: only the four preview parts, `trk[0..3]` = the six-patch table of PREVIEW.md (all PREVIEW OFF; CH1 ACID, CH2 BASS, CH3 LEAD, CH4 PAD). Groovebox track defaults
    and `load_pat16` are gone (E3).
 3. `master_boot()` (unchanged).
 4. **`sq_boot()` replaces `t1_glue_init()`**: fill `sq_ch[]`, `sq_g` from `SQ_DEFAULTS` (below); `sq_gbuild()`;
@@ -689,7 +689,7 @@ The device boots straight into the sequencer: no mode, no `PREF_T1`, no `MODE` r
 | pins | none (P1-017: every `StepEdit` AUTO, every `pg_src` 0, `len` 16) |
 | Global | KEY C (0), SCALE MINPEN (10), OCTAVE 0, GATE 50, DIV 1/16 (2), SWING 50, BPM 120 |
 | UI state | selected channel CH1, preset P01 label, keyboard OCT 0 |
-| Preview | ANALOG preset 0 |
+| Preview | all four channels OFF; sounds CH1 ACID, CH2 BASS, CH3 LEAD, CH4 PAD (decision 110) |
 | Transport | stopped; `sq_ready` set before the audio ISR matters |
 
 Autosave writing, the throttle and the preset store are E7; this ADR requires only that the load path above is the same
@@ -711,7 +711,7 @@ Autosave writing, the throttle and the preset store are E7; this ADR requires on
 | `t1_block` (t1_glue.c) | **Rewrite** as `sq_block`; keep its accumulator idea | |
 | `t1_all_off`, `t1_on_start`, `t1_on_stop` | **Rewrite** as `sq_all_off`, `sq_on_start`, `sq_on_stop`; keep the order note-offs then CC123 | model for 8.4 |
 | `t1_default_pattern`, `t1_glue_init`, `t1_set_mode` | **Drop / replace** by `SQ_DEFAULTS` and `sq_boot` | decision 32b: always on |
-| `synth_note_on/off` (voice allocator callbacks) | **Drop**; preview calls `trk_note_on/off(&trk[0],...)` directly | |
+| `synth_note_on/off` (voice allocator callbacks) | **Drop**; preview calls `trk_note_on/off(&trk[chan-1],...)` directly | |
 | `torso_t1_state.c` (TEMP, GLOBAL, flash banks), `torso_t1_ui.c`, `ui_t1.c` | **Drop** at R8; screens are P2-003 | |
 | `t1_mode`/`t1_off_req` stubs in seq.c/ui.c | **Drop** (the sequencer is permanent); until prerequisite task 1 lands, the same `#ifndef T1_DEVICE` stub pattern guards `sq_block` etc. | |
 
@@ -891,3 +891,15 @@ Additive; for owner review. Full spec: [HARMONY.md](../../design/HARMONY.md). Th
 The chord position is a pure function of `sq_bar` (ticks since PLAY / restart, section 10) and `HarmonySave`, so PLAY resets it with no extra state, a preset load
 that lands on a bar boundary swaps the progression and the position together, and RESTRT (F#5) does not touch it. With the default progression, `VOICE 2`,
 no pedal, `harm_apply()` returns its input unchanged for every role except an explicit ROOT / FULL (HARMONY.md 1). Hand-off interface for ARP and PATTERNS: HARMONY.md 9.
+
+## 21. Addendum (P2-024): preview per channel (owner decision 110)
+
+Additive and superseding where it says so. Full design: [PREVIEW.md](../../design/PREVIEW.md). Replaces "the preview synth plays the selected channel on `trk[0]`" (sections 1, 8.1, 9, 12, 13).
+
+| # | Change | Cost |
+| --- | --- | --- |
+| 1 | **Each channel has `prv_on` and `prv_snd` (ACID LEAD BASS PAD STRINGS PIANO)** in `ChanSave` (1 B, `SeqPreset` +4 B). All channels boot OFF. The part is `trk[ch-1]`. | flash tables only |
+| 2 | **Preview and MIDI are one output.** `sq_emit` plays the preview part iff the channel's `prv_on` is set and its MIDI is not OFF; MIDI OFF therefore silences the preview. No speaker-only mode. | one condition shared with the MIDI packet |
+| 3 | **Slot CCs also drive the part** (`prv_cc`, a (device, CC) map from the profile column `prv`); the override parks with the slot. | about 40 B flash, a few bytes of override state |
+| 4 | Gestures: hold a mute key 0.4 s = PREVIEW on/off; hold it and turn ALGO = sound (PREVIEW.md 1.4). | UI only |
+| 5 | `sq_all_off` releases all four parts; selecting a channel releases nothing. | none |

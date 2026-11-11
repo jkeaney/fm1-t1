@@ -524,7 +524,7 @@ No two of the four sequencer channels ever send on the same MIDI channel, so a c
 | Displacement | if another channel `o` already uses the settled value `m`, `o` is set to **OFF** (`SQ_MIDI_OFF`, ADR-0003): it keeps its algorithm, pattern, mute state and edits and **keeps running and showing its lane**, but sends no MIDI. Its notes already sounding end by their queued offs. OFF itself may be shared by any number of channels and is never displaced |
 | Showing it | the displaced channel's Z1 cell line 2 reads `MIDI OFF` (`MUTE -` if it is also muted) and its header slot H4 reads `n ALGO MOFF`; the selected channel shows `OFF` in the K2 cell. The toast is `CH2 IS MIDI OFF: CH1 TAKES 2` (names the displaced channel, the taker and the number; 163 px; `CH4 IS MIDI OFF: CH3 TAKES 16` 170 px). When the user sets a channel to OFF themselves there is no toast |
 | Undo | EDIT tap undoes the reassignment as ONE record (`UndoMidi`: the channel, its old MIDI channel, the displaced channel, its old MIDI channel, 4 B, ADR-0003); again = redo. It is the latest record until the next undoable action. Toast `UNDO: MIDI 2 BACK ON CH2` |
-| Preview synth | OFF means no MIDI out only. The selected channel is still heard on the preview synth (the synth's job is to preview), muted channels stay silent on both, and SOLO ignores OFF |
+| Preview synth | amended by P2-024 (decision 110): OFF means no MIDI out **and no preview**. The preview plays exactly what the channel sends as MIDI, and only if that channel's PREVIEW is ON (all four are OFF at power-on; hold a mute key 0.4 s to switch it, PREVIEW.md 1.4). A MIDI OFF channel is silent on both, muted channels stay silent on both, and SOLO ignores OFF. The toast `CH2 MIDI OFF: PREVIEW SILENT` explains a silent preview |
 | Presets, autosave | `sq_preset_load` validates uniqueness: if a stored preset has two channels on one MIDI channel the lower-numbered channel keeps it and the others load as OFF. Defaults CH1..CH4 = 1..4 are distinct |
 | Gestures and scores | unchanged: U40 stays 2 gestures (D#4, K2) and scores 10; the displacement is a side effect of the same turn, and its undo is the existing EDIT tap (1 gesture). No other function's gesture count changes, so no score is re-computed |
 
@@ -533,7 +533,7 @@ No two of the four sequencer channels ever send on the same MIDI channel, so a c
 Every function of the score table (section 8) has one row. `ch` = selected channel; "next step" = the change is heard
 when the channel's next step starts (ADR-0003 7.3; at most one step, 125 ms at 120 BPM and 1/16); "frame" = the
 screen redraws within one main-loop frame (about 16 ms). MIDI is on the channel's MIDI channel unless OFF; the
-preview synth plays CH1 (ADR-0003). API names are ADR-0003 section 6 plus the additions of section 9.
+each channel whose PREVIEW is ON plays the same notes on its own preview part (all OFF at power-on; ADR-0003 addendum 21). API names are ADR-0003 section 6 plus the additions of section 9.
 
 | Id | Input | Processing | Output: MIDI and timing | Output: screen |
 | --- | --- | --- | --- | --- |

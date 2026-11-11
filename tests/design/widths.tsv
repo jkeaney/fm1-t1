@@ -288,3 +288,10 @@ S	204	DEPTH 0: THE KNOB IS YOURS	MOD page toast, depth reaches 0
 S	204	LFO: SHAPE + MOD DICED	dice toast on the LFO button
 S	38	D127	MOD page cell value line (DEPTH)
 S	38	L127	MOD page cell value line (LEVEL)
+# P2-024 (decision 110): per-channel PREVIEW toasts and strips (PREVIEW.md 1.5)
+S	204	CH1 PREVIEW ON: STRINGS	Z6 toast, hold a mute key 0.4 s (preview turned on)
+S	204	CH4 PREVIEW OFF	Z6 toast, hold a mute key 0.4 s (preview turned off)
+S	204	CH3 PREVIEW: PIANO	Z6 toast, mute key held + ALGO turned (sound change)
+S	204	HOLD KEY + ALGO = SOUND	Z6 strip, a mute key held past 0.25 s
+S	204	PREVIEW: MUTED CHANNEL	Z6 toast, preview turned on for a muted channel
+S	204	CH2 MIDI OFF: PREVIEW SILENT	Z6 toast, preview on or key audition on a MIDI OFF channel

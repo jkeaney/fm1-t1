@@ -20,7 +20,7 @@ muted on MIDI channels OFF, 3, 4 (CH2's default 2 was taken by CH1 in S01: MIDI 
 | 13 | Tap black key F#3 (M1) | CHB cell 1 reads `MUTE 2`; LEG cell M1 dim | no new `ch2 ON`; pending `ch2 OFF` still goes out | KEY_B01_F#3/PERF |
 | 14 | Tap black key F#3 (M1) again | mute cleared; phase kept running | `ch2 ON/OFF` resume on the running step grid | KEY_B01_F#3/PERF |
 | 15 | Hold black key F#4 (SOL) for one bar and release | only CH1 sounds while held; CUE `SOLO CH1: let go`; on release the mutes are restored (CH2 stays unmuted) | `ch5` notes stop for the held bar, then resume | KEY_B06_F#4/PERF |
-| 16 | Tap black key A#3 (M3) and C#4 (M4) | CHB cells 3 and 4 lose `MUTE` | `ch3` SNAKE and `ch4` STAGE notes start at the next step; the preview synth stays on CH1 | KEY_B03_A#3/PERF, KEY_B04_C#4/PERF |
+| 16 | Tap black key A#3 (M3) and C#4 (M4) | CHB cells 3 and 4 lose `MUTE` | `ch3` SNAKE and `ch4` STAGE notes start at the next step; no preview part starts (PREVIEW is OFF on CH3 and CH4) | KEY_B03_A#3/PERF, KEY_B04_C#4/PERF |
 | 17 | Turn SELECT three detents clockwise | CHB cell 4 inverted; HD `4 STAG M4`; K1R `DENS 6` `TOTAL 16` `DIR FWD` `RATCH 2` | none | EN_SELECT/PERF |
 | 18 | Turn K2 (TOTAL) four detents clockwise | K1R `TOTAL` value `20 (16)`: the bracket is the heard count (`20 (16 heard)` was 71 px against 51; F-04 fixed); toast `17-32 NOT HEARD: D#4 K3 = OWN` | from the next step: pulses 17 to 20 are not read by any page | EN_K2/PERF |
 | 19 | Tap black key C#4 (M4) | CH4 muted again | `ch4` stops | KEY_B04_C#4/PERF |

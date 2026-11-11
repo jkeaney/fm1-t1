@@ -149,12 +149,12 @@ EN_SELECT	RESET	turn: select channel CH1..CH4 (clamped, no wrap)	CH n	page	see S
 EN_SELECT	RIG	turn: select channel CH1..CH4 (clamped, no wrap); the page shows that channel's device and wires; the selected wire index is kept	CH n	page	see SEQUENCER_UX 8
 EN_SELECT	HELP	turn: explain SELECT	?	page	see SEQUENCER_UX 8
 EN_SELECT	MENU	turn: select channel CH1..CH4	CH n	page	see SEQUENCER_UX 8
-EN_ALGO	PERF	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	owns	see SEQUENCER_UX 8
-EN_ALGO	NOTE_EDIT	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	page	see SEQUENCER_UX 8
-EN_ALGO	CHAN	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	page	see SEQUENCER_UX 8
-EN_ALGO	SET	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	page	see SEQUENCER_UX 8
-EN_ALGO	SCALE	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	page	see SEQUENCER_UX 8
-EN_ALGO	REC	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	ALGO	page	see SEQUENCER_UX 8
+EN_ALGO	PERF	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept // while a mute key is held: that channel's preview sound ACID LEAD BASS PAD STRINGS PIANO	ALGO	owns	see SEQUENCER_UX 8
+EN_ALGO	NOTE_EDIT	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept // while a mute key is held: that channel's preview sound ACID LEAD BASS PAD STRINGS PIANO	ALGO	page	see SEQUENCER_UX 8
+EN_ALGO	CHAN	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept // while a mute key is held: that channel's preview sound ACID LEAD BASS PAD STRINGS PIANO	ALGO	page	see SEQUENCER_UX 8
+EN_ALGO	SET	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept // while a mute key is held: that channel's preview sound ACID LEAD BASS PAD STRINGS PIANO	ALGO	page	see SEQUENCER_UX 8
+EN_ALGO	SCALE	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept // while a mute key is held: that channel's preview sound ACID LEAD BASS PAD STRINGS PIANO	ALGO	page	see SEQUENCER_UX 8
+EN_ALGO	REC	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept // while a mute key is held: that channel's preview sound ACID LEAD BASS PAD STRINGS PIANO	ALGO	page	see SEQUENCER_UX 8
 EN_ALGO	RESET	turn: inert (toast NOTHING TO RESET)	-	page	see SEQUENCER_UX 8
 EN_ALGO	RIG	turn: device and wire set of the selected channel from the built-in list NONE GENERIC TB-3 BITE WET PADS PUSH (the cue strip lists them while ALGO moves, the current one in brackets); the choice applies 0.6 s after the last detent: the four wires take the set's parameters with their own lanes, all in HAND at their neutral LEVEL, nothing is sent; changing or clearing it first parks the old SEQ wires at their LEVEL	DEVICE	page	see SEQUENCER_UX 8
 EN_ALGO	HELP	turn: explain ALGORITHM	?	page	see SEQUENCER_UX 8
@@ -379,44 +379,44 @@ KEY_W16_G5	RESET	tap: clear every edit of step 16 of the viewed page (back to th
 KEY_W16_G5	RIG	tap: inert on the RIG page (the lane is not shown); no toast	-	page	see SEQUENCER_UX 8
 KEY_W16_G5	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_W16_G5	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
-KEY_B01_F#3	PERF	tap: tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1	owns	see SEQUENCER_UX 8
-KEY_B01_F#3	NOTE_EDIT	tap: tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1	page	see SEQUENCER_UX 8
-KEY_B01_F#3	CHAN	tap: tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1	page	see SEQUENCER_UX 8
-KEY_B01_F#3	SET	tap: tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1	page	see SEQUENCER_UX 8
+KEY_B01_F#3	PERF	tap: tap: mute / unmute CH1 (latched; phase keeps running) // hold 0.4 s: PREVIEW on/off of CH1; with ALGO turned: its preview sound	MUTE1	owns	see SEQUENCER_UX 8
+KEY_B01_F#3	NOTE_EDIT	tap: tap: mute / unmute CH1 (latched; phase keeps running) // hold 0.4 s: PREVIEW on/off of CH1; with ALGO turned: its preview sound	MUTE1	page	see SEQUENCER_UX 8
+KEY_B01_F#3	CHAN	tap: tap: mute / unmute CH1 (latched; phase keeps running) // hold 0.4 s: PREVIEW on/off of CH1; with ALGO turned: its preview sound	MUTE1	page	see SEQUENCER_UX 8
+KEY_B01_F#3	SET	tap: tap: mute / unmute CH1 (latched; phase keeps running) // hold 0.4 s: PREVIEW on/off of CH1; with ALGO turned: its preview sound	MUTE1	page	see SEQUENCER_UX 8
 KEY_B01_F#3	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_B01_F#3	REC	tap: play F#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_B01_F#3	RESET	tap: inert in RESET (toast NOTHING TO RESET)	-	page	see SEQUENCER_UX 8
-KEY_B01_F#3	RIG	tap: tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1	page	see SEQUENCER_UX 8
+KEY_B01_F#3	RIG	tap: tap: mute / unmute CH1 (latched; phase keeps running) // hold 0.4 s: PREVIEW on/off of CH1; with ALGO turned: its preview sound	MUTE1	page	see SEQUENCER_UX 8
 KEY_B01_F#3	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_B01_F#3	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
-KEY_B02_G#3	PERF	tap: tap: mute / unmute CH2	MUTE2	owns	see SEQUENCER_UX 8
-KEY_B02_G#3	NOTE_EDIT	tap: tap: mute / unmute CH2	MUTE2	page	see SEQUENCER_UX 8
-KEY_B02_G#3	CHAN	tap: tap: mute / unmute CH2	MUTE2	page	see SEQUENCER_UX 8
-KEY_B02_G#3	SET	tap: tap: mute / unmute CH2	MUTE2	page	see SEQUENCER_UX 8
+KEY_B02_G#3	PERF	tap: tap: mute / unmute CH2 // hold 0.4 s: PREVIEW on/off of CH2; with ALGO turned: its preview sound	MUTE2	owns	see SEQUENCER_UX 8
+KEY_B02_G#3	NOTE_EDIT	tap: tap: mute / unmute CH2 // hold 0.4 s: PREVIEW on/off of CH2; with ALGO turned: its preview sound	MUTE2	page	see SEQUENCER_UX 8
+KEY_B02_G#3	CHAN	tap: tap: mute / unmute CH2 // hold 0.4 s: PREVIEW on/off of CH2; with ALGO turned: its preview sound	MUTE2	page	see SEQUENCER_UX 8
+KEY_B02_G#3	SET	tap: tap: mute / unmute CH2 // hold 0.4 s: PREVIEW on/off of CH2; with ALGO turned: its preview sound	MUTE2	page	see SEQUENCER_UX 8
 KEY_B02_G#3	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_B02_G#3	REC	tap: play G#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_B02_G#3	RESET	tap: inert in RESET (toast NOTHING TO RESET)	-	page	see SEQUENCER_UX 8
-KEY_B02_G#3	RIG	tap: tap: mute / unmute CH2	MUTE2	page	see SEQUENCER_UX 8
+KEY_B02_G#3	RIG	tap: tap: mute / unmute CH2 // hold 0.4 s: PREVIEW on/off of CH2; with ALGO turned: its preview sound	MUTE2	page	see SEQUENCER_UX 8
 KEY_B02_G#3	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_B02_G#3	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
-KEY_B03_A#3	PERF	tap: tap: mute / unmute CH3	MUTE3	owns	see SEQUENCER_UX 8
-KEY_B03_A#3	NOTE_EDIT	tap: tap: mute / unmute CH3	MUTE3	page	see SEQUENCER_UX 8
-KEY_B03_A#3	CHAN	tap: tap: mute / unmute CH3	MUTE3	page	see SEQUENCER_UX 8
-KEY_B03_A#3	SET	tap: tap: mute / unmute CH3	MUTE3	page	see SEQUENCER_UX 8
+KEY_B03_A#3	PERF	tap: tap: mute / unmute CH3 // hold 0.4 s: PREVIEW on/off of CH3; with ALGO turned: its preview sound	MUTE3	owns	see SEQUENCER_UX 8
+KEY_B03_A#3	NOTE_EDIT	tap: tap: mute / unmute CH3 // hold 0.4 s: PREVIEW on/off of CH3; with ALGO turned: its preview sound	MUTE3	page	see SEQUENCER_UX 8
+KEY_B03_A#3	CHAN	tap: tap: mute / unmute CH3 // hold 0.4 s: PREVIEW on/off of CH3; with ALGO turned: its preview sound	MUTE3	page	see SEQUENCER_UX 8
+KEY_B03_A#3	SET	tap: tap: mute / unmute CH3 // hold 0.4 s: PREVIEW on/off of CH3; with ALGO turned: its preview sound	MUTE3	page	see SEQUENCER_UX 8
 KEY_B03_A#3	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_B03_A#3	REC	tap: play A#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_B03_A#3	RESET	tap: inert in RESET (toast NOTHING TO RESET)	-	page	see SEQUENCER_UX 8
-KEY_B03_A#3	RIG	tap: tap: mute / unmute CH3	MUTE3	page	see SEQUENCER_UX 8
+KEY_B03_A#3	RIG	tap: tap: mute / unmute CH3 // hold 0.4 s: PREVIEW on/off of CH3; with ALGO turned: its preview sound	MUTE3	page	see SEQUENCER_UX 8
 KEY_B03_A#3	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_B03_A#3	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
-KEY_B04_C#4	PERF	tap: tap: mute / unmute CH4	MUTE4	owns	see SEQUENCER_UX 8
-KEY_B04_C#4	NOTE_EDIT	tap: tap: mute / unmute CH4	MUTE4	page	see SEQUENCER_UX 8
-KEY_B04_C#4	CHAN	tap: tap: mute / unmute CH4	MUTE4	page	see SEQUENCER_UX 8
-KEY_B04_C#4	SET	tap: tap: mute / unmute CH4	MUTE4	page	see SEQUENCER_UX 8
+KEY_B04_C#4	PERF	tap: tap: mute / unmute CH4 // hold 0.4 s: PREVIEW on/off of CH4; with ALGO turned: its preview sound	MUTE4	owns	see SEQUENCER_UX 8
+KEY_B04_C#4	NOTE_EDIT	tap: tap: mute / unmute CH4 // hold 0.4 s: PREVIEW on/off of CH4; with ALGO turned: its preview sound	MUTE4	page	see SEQUENCER_UX 8
+KEY_B04_C#4	CHAN	tap: tap: mute / unmute CH4 // hold 0.4 s: PREVIEW on/off of CH4; with ALGO turned: its preview sound	MUTE4	page	see SEQUENCER_UX 8
+KEY_B04_C#4	SET	tap: tap: mute / unmute CH4 // hold 0.4 s: PREVIEW on/off of CH4; with ALGO turned: its preview sound	MUTE4	page	see SEQUENCER_UX 8
 KEY_B04_C#4	SCALE	tap: not used on HARMONY (the KEY is K2)	-	page	see SEQUENCER_UX 8
 KEY_B04_C#4	REC	tap: play C#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON	NOTE	page	see SEQUENCER_UX 8
 KEY_B04_C#4	RESET	tap: inert in RESET (toast NOTHING TO RESET)	-	page	see SEQUENCER_UX 8
-KEY_B04_C#4	RIG	tap: tap: mute / unmute CH4	MUTE4	page	see SEQUENCER_UX 8
+KEY_B04_C#4	RIG	tap: tap: mute / unmute CH4 // hold 0.4 s: PREVIEW on/off of CH4; with ALGO turned: its preview sound	MUTE4	page	see SEQUENCER_UX 8
 KEY_B04_C#4	HELP	tap/hold: explain this key on the page beneath (HOME held); nothing happens	?	page	see SEQUENCER_UX 8
 KEY_B04_C#4	MENU	tap/hold: inert while the menu is open	-	page	see SEQUENCER_UX 8
 KEY_B05_D#4	PERF	tap: tap: open the CHAN page of the selected channel (LENGTH MIDI SOURCE FOLLOW) // hold: 0.4 s: open the RIG page of the selected channel (device, wires, who is in control); latched, stays open when the key is released; named h:CHN=RIG in the lane header	CHAN	owns	see SEQUENCER_UX 8

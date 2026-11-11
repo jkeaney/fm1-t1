@@ -1,9 +1,9 @@
 # PREVIEW: per-channel preview and six demo presets (ACID LEAD BASS PAD STRINGS PIANO)
 
-Task P2-023 (owner decision 109). Design only: no firmware, no table rows are changed here (the proposed rows are listed in section 7, for
-the P4 table task, as MODULATION.md did). **Status: proposed, awaiting owner review.** Inputs: VISION rule 2 (the synth stays a
-preview tool), decisions 80, 98-109, SYSTEM_MAP section 2 and rows 4-12, SEQUENCER_UX 4.4 (MIDI OFF), ADR-0003 (preview = selected
-channel on `trk[0]`), MODULATION.md, `firmware/src/eng_analog.c`, `core.h`, `voice.c`, the generated `build/gen/felucca_samples.h`.
+Task P2-023 (owner decision 109), **amended by P2-024 (owner decision 110, 2026-11-11)**. Design only: no firmware. The table rows this design
+needs are now added (section 7). **Status: owner decision 110 applied; awaiting human review of P2-024.** Inputs: VISION rule 2 (the synth stays a
+preview tool), decisions 80, 98-110, SYSTEM_MAP section 2 and rows 4-12, SEQUENCER_UX 4.4, ADR-0003, MODULATION.md, `firmware/src/eng_analog.c`,
+`core.h`, `voice.c`, `mod.c`.
 
 Numbers marked **[M]** are measured from the source or the generated headers; **[E]** are estimates that a P3/P4 task must measure;
 nothing here is [V] on hardware (a hearing test is part of HW-1, section 7).
@@ -11,14 +11,16 @@ nothing here is [V] on hardware (a hearing test is part of HW-1, section 7).
 ## 0. In one paragraph
 
 Each of the four channels owns one **preview voice part** (`trk[ch-1]`, the four parts the core already has: no new RAM). A channel's
-PREVIEW is **ON or OFF** and has one of **six sounds**. When ON, the channel's notes go to the speaker and USB audio **and** to MIDI out
-(unless the channel's MIDI is OFF, which gives "speaker only"). When OFF the channel is MIDI only, which is today's reference workflow.
-ON/OFF is one gesture (hold the channel's mute key 0.4 s); choosing the sound is one more (hold the same key and turn ALGO). The six
-sounds are tiny ANALOG patches, except PIANO, which is honest: ANALOG alone cannot play a piano, and the owner chooses between an
-analogue electric-piano approximation and keeping a trimmed copy of the SAMPLE engine with the PIANO set (section 2.7, question 1).
+PREVIEW is **ON or OFF** (all four are **OFF** at power-on, decision 110/2) and has one of **six sounds**. **Preview and MIDI are always the same
+output** (decision 110/7): every note, velocity, gate and slide the channel sends as MIDI, and every mod-slot value it sends as a CC, is
+what the preview part plays; there is no speaker-only or MIDI-only behaviour of the notes themselves (a channel's PREVIEW switch decides
+only whether its part is heard). A channel whose MIDI is OFF sends nothing, so its preview is silent too. Turning PREVIEW on or off is **one
+gesture** (hold the channel's mute key 0.4 s); choosing the sound is **one held gesture** (hold the same key and turn ALGO). The level is the MASTER
+pot only. All six sounds are ANALOG patches; PIANO is an **ANALOG e-piano approximation** (decision 110/1A), and section 2.7 says plainly what
+that cannot do. The internal synth maps everything the channel is set up to send, best effort (section 3).
 
-This **supersedes** ADR-0003's rule "the preview synth plays the selected channel on `trk[0]`" and SEQUENCER_UX 4.4's "OFF means no MIDI
-out only; the selected channel is still heard". Section 6 lists the consequences.
+This **supersedes** ADR-0003's rule "the preview synth plays the selected channel on `trk[0]`" and SEQUENCER_UX 4.4's "OFF means no MIDI out only; the
+selected channel is still heard". Both are amended (section 6, decision 8A, done in this task).
 
 ## 1. The preview model (deliverable 1)
 
@@ -26,56 +28,68 @@ out only; the selected channel is still heard". Section 6 lists the consequences
 
 | Item | Rule |
 | --- | --- |
-| Per channel | `prv_on` (1 bit) and `prv_snd` (0..5: ACID LEAD BASS PAD STRINGS PIANO). One byte in `ChanSave` (`prv = on << 7 | snd`), stored in the 16 presets (+4 B per `SeqPreset`) and restored by autosave. Not part of undo (it is a set-and-forget choice, like MIDI assignment's sibling, but nothing else depends on it) |
-| Runtime | the part `trk[ch-1]` is loaded from a **patch** (section 2) when `prv_snd` changes or a preset loads; no other runtime state. Voices are the existing 8, shared by all four parts (`NVOICE` 8, voice.c steals the oldest) |
-| Global | **the MASTER pot** is the one global preview level (CONTROL_MAP: it already sets "preview-synth and USB-audio volume"). Nothing else is global: no engine, no effects, no menu row in v1 |
-| Defaults at power-on | CH1 ON ACID; CH2 OFF BASS; CH3 OFF LEAD; CH4 OFF PAD (the sounds are assigned so that switching a channel ON already sounds suitable; question 2 asks whether all four should default ON) |
+| Per channel | `prv_on` (1 bit) and `prv_snd` (0..5: ACID LEAD BASS PAD STRINGS PIANO). One byte in `ChanSave` (`prv = on << 7 | snd`), stored in the 16 presets (+4 B per `SeqPreset`) and restored by autosave. Not part of undo (set-and-forget choice) |
+| Runtime | the part `trk[ch-1]` is loaded from a **patch** (section 2) when `prv_snd` changes or a preset loads; the slot-CC overrides of section 3 are the only other runtime state (a few bytes per part). Voices are the existing 8, shared by all four parts (`NVOICE` 8, voice.c steals the oldest) |
+| Global | **the MASTER pot is the preview level** (decision 110/4A; CONTROL_MAP: it already sets "preview-synth and USB-audio volume"). Nothing else is global: no engine, no effects, no menu row |
+| Defaults at power-on | **all four channels OFF** (decision 110/2). The sounds are pre-assigned so that switching a channel on already sounds suitable: CH1 ACID, CH2 BASS, CH3 LEAD, CH4 PAD. A fresh PLAY is silent on the speaker and sends MIDI to the TB-3 as in the reference workflow; the first-run guide (S01) shows how to switch it on |
 
-### 1.2 Output routing: three modes, no new setting
+### 1.2 Output routing: one output, one switch
 
-| Mode | State | Result |
-| --- | --- | --- |
-| Both | `prv_on` and MIDI 1..16 | notes to MIDI out and to the speaker (default for CH1) |
-| Speaker only | `prv_on` and MIDI OFF | notes to the speaker only. Removes the ADR-0003 rule that OFF "still previews the selected channel": now it previews only if that channel's PREVIEW is ON |
-| MIDI only | not `prv_on` and MIDI 1..16 | the reference workflow with the TB-3: nothing from the speaker |
-| (silent) | not `prv_on` and MIDI OFF | the channel runs and shows its lane but is inaudible (as today's OFF) |
+Preview is not a second behaviour. The channel produces one event stream; `sq_emit` hands every event to MIDI out **and** to the channel's
+preview part when `prv_on`. There are only these cases:
 
-A **muted** channel is silent in both (MUTE is unchanged: the preview part gets note-offs, lane keeps running). SOLO behaves as for MIDI.
+| State | Result |
+| --- | --- |
+| `prv_on`, MIDI 1..16 | the notes go to MIDI out and to the speaker and USB audio, identical events |
+| not `prv_on`, MIDI 1..16 | MIDI only: nothing from the speaker (the reference workflow with the TB-3) |
+| MIDI OFF (`prv_on` or not) | **the channel sends nothing, so the preview plays nothing**: it keeps running and showing its lane, silent on both. The old "speaker only" mode and ADR-0003's "OFF still previews" are removed (decision 110/7). Turning PREVIEW on for such a channel works and is remembered; the toast says why nothing sounds (`CH2 MIDI OFF: PREVIEW SILENT`, 169 px), and the Z1 icon is drawn dim |
+
+A **muted** channel is silent in both (MUTE is unchanged: the preview part gets note-offs, the lane keeps running). SOLO behaves as for MIDI.
 Stop, panic and MIDI disconnect release the preview notes with the same `sq_all_off()` call (a note-off per sounding `snd[]` entry on the
-part it started on).
+part it started on). Because the preview plays exactly the MIDI event stream, there is no preview-only logic to test apart from the
+patch table and the CC map (section 3).
 
 ### 1.3 Keys and audition
 
-The 27 keys (REC, step audition, the playing keyboard) sound on the **selected channel's** MIDI channel as before, and on that channel's
-preview part **only when its PREVIEW is ON**. (Before: always on `trk[0]`.) Selecting an OFF channel makes the keys MIDI-only, which is the
-point of the TB-3 workflow; when an audition would be completely silent (PREVIEW OFF and MIDI OFF) the toast reads `CH3: MIDI OFF + PREVIEW OFF` (not in the measured set; P4-011 measures it).
+The 27 keys (REC, step audition, the playing keyboard) send on the **selected channel's** MIDI channel as before and sound on that channel's
+preview part **only when its PREVIEW is ON** (same events, same rule). Selecting a channel whose PREVIEW is OFF makes the keys MIDI-only, which is
+the point of the TB-3 workflow. A key on a channel with MIDI OFF sends and plays nothing; the same toast `CH2 MIDI OFF: PREVIEW SILENT` explains it
+(once per second at most). The keyboard's own velocity and force reach the preview as the MIDI velocity, so a hard press accents the ACID patch
+exactly as it accents the TB-3.
 
-### 1.4 Gestures (at most 2, none in the menu)
+### 1.4 Gestures: at most 2 each, none in the menu, with on-screen role labels
 
 | Function | Gesture | Count | Why this control |
 | --- | --- | ---: | --- |
-| PREVIEW on/off of channel n | **hold the black mute key of channel n for 0.4 s** (F#3 G#3 A#3 C#4); fires at 0.4 s; toast `CH1 PREVIEW ON: STRINGS` / `CH1 PREVIEW OFF` | 1 | the mute keys are already the per-channel keys on every page; a tap (under 0.4 s, acts on release) stays MUTE. No other function owns the hold of those keys (checked in `key_map.tsv`: rows for F#3..C#4 are tap only) |
-| Choose the sound of channel n | **hold the same key and turn ALGO**; each detent steps ACID, LEAD, BASS, PAD, STRINGS, PIANO (no wrap) and **turns PREVIEW ON** if it was OFF; releasing the key after a turn does not toggle MUTE or PREVIEW | 2 | ALGO is the "what is this channel" encoder; held modifier roles are shown on screen (VISION 1). Works for any channel, selected or not |
+| PREVIEW on/off of channel n | **hold the black mute key of channel n for 0.4 s** (F#3 G#3 A#3 C#4); fires at 0.4 s; toast `CH1 PREVIEW ON: STRINGS` / `CH4 PREVIEW OFF` | **1** | the mute keys are the per-channel keys on every page that has them; a tap (under 0.4 s, acts on release) stays MUTE. Works on PERF, NOTE EDIT, CHAN and SET, for any channel, selected or not. (On REC and SCALE the black keys are notes or the KEY; press HOME first.) |
+| Choose the sound of channel n | **hold the same key and turn ALGO**; each detent steps ACID, LEAD, BASS, PAD, STRINGS, PIANO (no wrap) and **turns PREVIEW ON** if it was OFF; releasing the key after a turn does not toggle MUTE or PREVIEW | **2** (a hold, then a turn of one encoder, with the thumb on the key) | ALGO is the "what is this channel" encoder; held-modifier roles are shown on screen (VISION 1). One held key, one encoder: no menu, no page |
 
-Neither needs the menu, both are within the setup budget (two gestures; on/off is one). While a mute key is held past 0.25 s the strip (Z6)
-reads `HOLD KEY + ALGO = SOUND` (152 of 204 px); the ALGO cell shows the preview sound name instead of the algorithm while the key is
-down, and the 6 names are the cell's values. The held key does not change the channel's algorithm: the ALGO encoder is a modifier here,
-like OCT+ held (MODULATION 5.2). HELP (HOME held, touch the key) explains it.
+**Re-examination against decision 110/a ("really easy to switch preview on and off per channel and to change the preset per channel").** The
+alternatives were: a tap on a mute key (rejected: the tap is MUTE, performance-critical, and a mute is not a preview switch), a CHAN page cell
+(rejected: adds a page visit, steals a knob; it is a setup route, not "easy" mid-performance), a button (all 14 are owned, SYSTEM_MAP rows), the
+menu (breaks rule 1). Hold-the-mute-key is the only control that is **per channel, always one reach away, and already mentally "this channel's
+switch"**, so 6A stands (also the owner's answer 6A). It meets the target: on/off = 1 gesture, sound = 2 (hold + turn, below the setup budget of
+VISION 1), and both work **while the sequence plays**, with no page change.
+
+**On-screen role labels (VISION 1).** While a mute key is held past 0.25 s: the strip (Z6) reads `HOLD KEY + ALGO = SOUND` (152 of 204 px) and
+the ALGO cell shows that channel's **preview sound name** in place of the algorithm (the six names are the cell's values), so the encoder's
+changed role is on screen while it is changed. The held key does not change the channel's algorithm. At 0.4 s the toast confirms the
+on/off. The speaker icon of the channel cell (1.5) shows the state before and after, so a user never has to remember it. HELP (HOME held,
+touch the key) explains it (`help_text.tsv`, section 7).
 
 ### 1.5 What is shown
 
 | Where | What |
 | --- | --- |
-| Z1 channel cell (60x28) | a **6x6 speaker pictogram** (two `cv_rect`s and a wedge, no font glyph needed) at the right end of line 1 while PREVIEW is ON: T_ACCENT while a preview note sounds, T_TEXT otherwise, dim in a muted cell. Line 2 is unchanged (`MIDI 2`, `MIDI OFF`, `MUTE 2`). Absent = MIDI only. A text fallback was tried and rejected: `PRV STRINGS` is 72 px against a 56 px limit (measured) |
-| Toasts (Z6, 204 px limit, all measured) | `CH1 PREVIEW ON: STRINGS` 148, `CH4 PREVIEW OFF: MIDI ONLY` 162 (MIDI on), `CH2 SPEAKER ONLY: MIDI OFF` 162 (MIDI OFF, PREVIEW ON), `CH3 PREVIEW: PIANO` 114 (a sound change), `HOLD KEY + ALGO = SOUND` 152, `PREVIEW: MUTED CHANNEL` 151 (an ON toggle on a muted channel, so the silence is explained) |
-| CHAN page | no new knob (K1..K4 are full). The sound name is shown in the page's channel line `CH2 MIDI 3 +SPK BASS`-style only if the P4-015 layout has room; otherwise the Z1 icon and the toasts are the whole display (P4-015 decides, question 3) |
-| HELP | `help_text.tsv` gets one row per new gesture (P4 table task) |
+| Z1 channel cell (60x28) | a **6x6 speaker pictogram** (two `cv_rect`s and a wedge, no font glyph needed) at the right end of line 1 while PREVIEW is ON: T_ACCENT while a preview note sounds, T_TEXT otherwise, dim in a muted cell or when MIDI is OFF. Line 2 is unchanged (`MIDI 2`, `MIDI OFF`, `MUTE 2`). Absent = MIDI only. A text fallback was tried and rejected: `PRV STRINGS` is 72 px against a 56 px limit (measured) |
+| Toasts and strip (Z6, 204 px limit; all measured in `widths.tsv`) | `CH1 PREVIEW ON: STRINGS` 148, `CH4 PREVIEW OFF` 99, `CH3 PREVIEW: PIANO` 114 (a sound change), `HOLD KEY + ALGO = SOUND` 152, `PREVIEW: MUTED CHANNEL` 151 (an ON toggle on a muted channel), `CH2 MIDI OFF: PREVIEW SILENT` 169 (ON toggle or audition on a MIDI OFF channel) |
+| CHAN page | no new knob (K1..K4 are full); the icon and toasts are the whole display (decision 110/3A) |
+| HELP | `help_text.tsv` rows for the four mute keys carry the hold; EN_ALGO rows carry the held-key role (section 7) |
 
 ### 1.6 Global versus channel settings
 
-Channel: ON/OFF, sound. Global: MASTER pot level only. The menu stays for set-and-forget settings and gets **no** PREVIEW row in v1
-(SPEAKER EQ and USB LEVEL, already in AUDIO, apply to the preview as the only audio source). Question 4 asks about an AUDIO row
-`PREVIEW LEVEL` (a trim against the MASTER pot) if the six patches turn out uneven in loudness.
+Channel: ON/OFF, sound. Global: the MASTER pot is the level (decision 110/4A). The menu stays for set-and-forget settings and gets **no** PREVIEW row
+(SPEAKER EQ and USB LEVEL, already in AUDIO, apply to the preview as the only audio source).
 
 ## 2. The six presets (deliverable 2)
 
@@ -85,7 +99,7 @@ Channel: ON/OFF, sound. Global: MASTER pot level only. The menu stays for set-an
 | --- | --- | --- |
 | Voices | `NVOICE` 8 shared by all parts [M] (voice.c steals; with NPART 4 one voice per part is protected) | PAD and STRINGS are **POLY with at most 4 notes**, never UNISON (UNISON spends every voice of the part on one note [M, voice.c:307]). With four channels previewing, chord sounds can steal from lines; MONO sounds cost one voice each |
 | ANALOG voice | 2 band-limited oscillators (SAW SQR TRI SIN PWM, SYNC, SUB), noise, drive, trapezoidal SVF LP/BP/HP, ADSR, per-part LFO and 4-slot mod matrix [M] | all five synth sounds fit |
-| Effects | the chorus, delay and reverb buses are **removed by P3-014** [M, decision 80]: the old STRINGS / SOFT PAD presets carry 60-70 % chorus and reverb sends and **lose them** | PAD and STRINGS get their width from OSC 2 detune (DTN), PWM width LFO and the stereo SPREAD (`P_SPRD`, kept [M, fx.c:146]); they sound drier than the old presets (stated, question 5) |
+| Effects | the chorus, delay and reverb buses are **removed by P3-014** [M, decision 80]: the old STRINGS / SOFT PAD presets carry 60-70 % chorus and reverb sends and **lose them** | PAD and STRINGS get their width from OSC 2 detune (DTN), PWM width LFO and the stereo SPREAD (`P_SPRD`, kept [M, fx.c:146]); they sound drier than the old presets (stated; accepted by decision 110/5A) |
 | RAM | `trk[]` 7296 B already holds the four parts [M, SYSTEM_MAP row 4]; headroom after P3-014 is about 18.5 KB of `.bss`, about 46 KB after the whole removal chain [M, SYSTEM_MAP section 9] | the patches are **flash tables, 0 B RAM** |
 | CPU | not measured for 4 parts previewing 8 voices [E] | the regress budget (`BUDGET_UPDATE`) must be re-baselined in the dev task; ADR-0003's +5 % ISR rule applies. The worst case is 8 PWM or SUB voices through the SVF with the LFO on |
 
@@ -111,7 +125,7 @@ GLIDE 20 (glide on legato notes); a 5 Hz LFO to pitch, depth 5, faded in (`P_LFA
 ### 2.5 BASS
 
 ANALOG, WAVE **SUB** (saw plus an octave-down square, MIX = the sub level 64), CUT 45, RES 20, DRV 30, KTR 40; ATK 0 DEC 60 SUS 60 REL 20; ENV->FILTER +30;
-MONO, no glide (the `SQR BASS` and `SUB BASS` rows give the range). 1 voice. Feasible; it is what a TB-3 user previews first.
+**LEGATO with GLIDE about 12**, so that an overlapping note-on/off pair (the slide, decision 105) glides in the preview as on the TB-3 and a gap is two notes (the `SQR BASS` and `SUB BASS` rows give the range). 1 voice. Feasible; it is what a TB-3 user previews first.
 
 ### 2.6 PAD and STRINGS (ANALOG, no effects)
 
@@ -128,100 +142,163 @@ Feasible with a **caveat**: both lose the chorus and reverb sends the old rows c
 "pad" and "string ensemble" in a demo, not as a recording. 4 voices each when a chord plays; with CH3 and CH4 both previewing chords the
 8-voice cap steals (voice.c steals the oldest, one voice per part protected).
 
-### 2.7 PIANO: the one that does not fit ANALOG
 
-ANALOG has no inharmonic partials, no hammer noise and no per-note decay that tracks pitch. Options (question 1):
+### 2.7 PIANO: an ANALOG e-piano approximation (decision 110/1A)
 
-| Option | What | Cost | Honest result |
-| --- | --- | --- | --- |
-| **A. ANALOG E-piano** | SIN WAVE, DTN +1 cent pair, a second partial via PWM or SYNC at low depth, fast ATK 0, DEC 88, SUS 0, REL 60 (the `PLUCK` / `SINE KEY` shape), cutoff following the key (KTR 64) and velocity | 0 B | a tine/e-piano pluck; not a piano. Renamed in the UI would be `E.PNO`; the owner asked for PIANO, so this is a downgrade to say aloud |
-| **B. Keep SAMPLE with the PIANO set only (recommended)** | engine SAMPLE on that part, SET PIANO: 5 zones across the keyboard, IMA ADPCM at 22 kHz, the real piano of Felucca 1.0 to 1.5 | flash: PIANO data about **41.4 KB** [M, `SMP_ZONES` offsets 0..41350 + the last zone]; plus `eng_sample.c` (263 lines) about 5 KB [E]; RAM about 0.5 KB [E] once the three user slots go (`usr_zone` 3x16 zones); pool 0 (the file never uses `ENG_MEM` [M]); CPU: ADPCM decode per voice, one voice per note [E, measure] | a real piano; the other sets (FLUTE, SAX, BREAK, 3 user slots, GRAIN, SLICE) still go |
-| C. Keep FM6 with a DX-style E-piano voice | 6-operator FM, patch of 155 B | flash 11.5 KB, RAM 1.5 KB, pool 0.5 KB [M, SYSTEM_MAP rows 7]; CPU heaviest of the three [E] | a good electric piano, not an acoustic one; the editor that loads patches goes |
+The owner chose option A: no sample or FM6 engine is kept, so the ANALOG-only removal chain (P3-008..P3-010) proceeds. PIANO is the name in the UI
+and in the six-sound list, as asked; this section is the plain statement of what it is.
 
-Option B costs about 47 KB of the 234 KB the removal chain frees (20 %); the flash image after the chain would be about 335 KB instead of 288 KB [E]
-and RAM headroom stays above 45 KB. A and B are not exclusive: A is the fallback if B's CPU does not fit.
+Starting values (from the `SINE KEY` and `PLUCK` rows of `ANALOG_PRESETS[]`, `eng_analog.c` 202-215 [M]; tuned by ear in HW-1, **not [V]**): WAVE SIN
+with a second oscillator as the second partial: DTN +6 cents (MIX 50), CUT 70 with KTR 64 so the tone brightens up the keyboard, RES 0, DRV 0;
+ATK 0 DEC 88 SUS 0 REL 60 (a struck tone that dies away whether or not the key is held); ENV->FILTER +30 (a bright attack that mellows, the main piano cue
+the voice has); voice POLY 4 notes; velocity to LEVEL (voice default) and the kept mod matrix velocity->cutoff slot so hard keys are brighter; a very slow
+tremolo (LFO 0.5 Hz to amplitude, depth 6) for the electric-piano shimmer.
 
-## 3. Interaction with the mod layer (deliverable 3)
+**What ANALOG cannot do for a piano** (stated, not hidden): no inharmonic string partials and no hammer noise (the NOISE source shares the amplitude envelope, so
+it cannot be a click only); no per-note decay time that follows pitch (the envelope is the same for all notes; KTR moves only the filter); no sympathetic
+resonance, damper or release noise; no pedal; 4 notes at once. It reads as a tine or Wurlitzer-style electric piano, not as an acoustic grand. If the owner later
+wants a real piano on the device, that is a new decision (it was option B: +47 KB flash for SAMPLE with the PIANO set, rejected by decision 110).
 
-The mod layer (MODULATION.md) drives an **external device** through four slots per channel: each slot is a device parameter, its
-value goes out as a CC (TB-3 CC74 cutoff, CC71 resonance, CC12 env mod, ...). **Preview responds to the same slots, for the parameters the
-preview patch has**, because the slot value is already computed in the ISR and `sq_emit` already sends it:
+## 3. Mapping the channel's setup to the internal synth (deliverable 2 of P2-024)
 
-| Slot CC (device profile) | Preview target on the channel's part | Behaviour |
+Principle (decision 110/b): **the preview plays the channel's MIDI stream.** The internal synth takes what the channel sends and maps every
+event to a synth parameter if one exists, and says "no equivalent" if not. Nothing is added to the pattern for the preview.
+
+### 3.1 Notes and the note-level events
+
+| Channel event | Synth action | Per preset |
 | --- | --- | --- |
-| 74 (cutoff, filter) | `P_E4` CUT | the slot's 0..127 value sets the filter live (the preview patch value is the base; the slot replaces it while active) |
-| 71 (resonance) | `P_E5` RES | as above |
-| 12 (env mod X / env amount) | ENV->FILTER | as above |
-| any other CC (accent 16, tuning 104, scatter 68/69, pad 11/1, effect 17) | none | the preview ignores it, and the slot's toast/ride dot is unchanged |
+| Note on/off, pitch | `trk_note_on/off(&trk[ch-1], note, vel)` | all six |
+| Gate / length (note-off time) | the note-off starts REL of the amplitude envelope; a gate shorter than ATK+DEC cuts the note in the attack/decay | all six; PIANO's SUS 0 means a long gate adds nothing after the decay (a piano does the same) |
+| Velocity | voice amplitude (the voice's velocity scaling, `voice.c`) and the kept mod matrix slot `VEL -> cutoff` (`mod.c`, AMT in the patch) | all six; the cutoff amount is strongest in ACID, medium in LEAD, BASS and PIANO, 0 in PAD and STRINGS (a pad should not wah with velocity) |
+| **Accent** (velocity >= 100, flat velocity 90, decision 104) | the same velocity: the preview has **no threshold at 100**; accent is the *continuous* VEL->cutoff and amplitude step from 90 to 120. The hardware's threshold-and-bite is **approximated, not reproduced** | ACID: the patch is tuned so 120 opens the filter clearly (the 303 gesture); BASS, LEAD: audible; PIANO: a harder key; PAD, STRINGS: louder only |
+| **Slide** (next note-on before the previous note-off, decision 105) | on a MONO or LEGATO part an overlapping note-on glides from the held pitch (`P_GLIDE`, no new envelope trigger) and a gap is two notes | **ACID, LEAD, BASS: yes** (LEGATO or MONO with GLIDE 12 to 20). **PAD, STRINGS, PIANO: no equivalent**: they are POLY, so the overlap plays two notes together |
+| Ratchet, retrigger | extra note-on/off pairs in the stream | all six |
+| Mute, MIDI OFF, stop, panic | notes released through `sq_all_off()`; a muted or MIDI OFF channel produces no events | all six |
+| Program change, pitch bend, pressure | not sent by the sequencer (nothing to map) | n/a |
 
-Rules: a table of 3 CCs in the preview module (about 12 B flash), applied only when the channel's `prv_on`; the base value returns when the slot
-parks (STOP, mute: MODULATION decision 100/101), when the device or slot changes, and when the sound changes. The slot values are
-channel-local (each channel has its own part), so CH1's CUT slot never moves CH2's filter. No new gesture and no screen change: the user
-sees the same MOD page and hears the same movement on the speaker, which is the point of the preview. Cost: one compare and an index in
-the CC emit path, no new RAM. A GENERIC device that uses CC74 / 71 also moves the preview; a device with other numbers is silent in the preview.
+### 3.2 Device CCs from the four mod slots (MODULATION.md)
+
+The slot value is computed in the ISR and sent by `sq_emit` as a CC. The preview applies the same value to the channel's part through a **map
+keyed by (device, CC)**: a new column `prv` in the device profile (`tools/hwprof/<dev>.tsv`, P4-024) naming a target code (CUT, RES, ENVF, DEC, ACCB,
+LFOP, LEV, PAN, ATK, REL, GLD or `-`). The override lives while the slot is active and the base (patch) value returns when the slot parks (STOP,
+mute: MODULATION decision 100/101), when the device or slot changes, and when the sound changes. Slot values are channel-local (each channel has
+its own part), so CH1's CUT slot never moves CH2's filter. The map is a flash table of about 3 B per entry (about 40 B for both devices), no RAM beyond
+one override byte per target per part. Nothing changes on the screen: the user sees the same MOD page and hears the same movement.
+
+**TB-3 profile (the 11 CCs of MODULATION.md section 1):**
+
+| CC | TB-3 name | Synth target (`prv`) | What it does on the preview | Per preset |
+| ---: | --- | --- | --- | --- |
+| 74 | CUTOFF | CUT = `P_E4` | filter cutoff, slot value 0..127 replaces the patch base | all six |
+| 71 | RESONANCE | RES = `P_E5` | filter resonance; the range is capped at about 110 on the POLY sounds so a chord cannot self-oscillate [E] | all six |
+| 12 | ENV MOD X | ENVF = `P_ED_FLT` | envelope-to-filter amount | all six (PAD, STRINGS and PIANO base is low, so it adds a bloom or bite) |
+| 13 | ENV MOD Y | DEC = `P_DEC` | the shared envelope's decay time (ANALOG has one ADSR for amplitude and filter) | all six |
+| 16 | ACCENT | ACCB = `P_M1AMT` | the amount of the velocity-to-cutoff slot, i.e. how much an accent bites | ACID, LEAD, BASS, PIANO; PAD, STRINGS: **no equivalent** (slot AMT is 0) |
+| 11 | PAD Y | none | **no equivalent**: the TB-3's touch pad is an assignable effects controller the preview cannot imitate | none |
+| 1 | PAD Z | none | **no equivalent**, as PAD Y | none |
+| 17 | EFFECT | none | **no equivalent**: the effects buses are removed (P3-014); there is nothing to send to | none |
+| 104 | TUNING | none | **no equivalent in v1**: the part has no fine tune (only integer `P_TRANS` and the global `G_TUNE`, which would move all four channels) | none |
+| 68 | SCATTER TYPE | none | **no equivalent** (no scatter effect) | none |
+| 69 | SCATTER DEPTH | none | **no equivalent** | none |
+
+**GENERIC device (standard General MIDI / XG controller meanings; a CC the player sets by number):**
+
+| CC | Meaning | Synth target | CC | Meaning | Synth target |
+| ---: | --- | --- | ---: | --- | --- |
+| 1 | mod wheel | LFOP = `P_LD_PIT` (vibrato depth) | 72 | release time | REL = `P_REL` |
+| 5 | portamento time | GLD = `P_GLIDE` | 73 | attack time | ATK = `P_ATK` |
+| 7 | channel volume | LEV = `P_LEVEL` | 74 | brightness | CUT = `P_E4` |
+| 10 | pan | PAN = `P_PAN` | 75 | decay time | DEC = `P_DEC` |
+| 11 | expression | LEV = `P_LEVEL` | 71 | resonance | RES = `P_E5` |
+| 91, 93, 94 | reverb, chorus, detune sends | none (effects removed) | any other | | none |
+
+LFOP, LEV, PAN, ATK, REL and GLD apply to all six sounds. For GLD on the POLY sounds the value is accepted but has no audible effect.
+
+### 3.3 What ANALOG cannot do (summary)
+
+- **No threshold accent.** Accent is a continuous velocity response, not the TB-3's switch at 100.
+- **No slide on PAD, STRINGS, PIANO** (POLY parts); an overlap is two notes.
+- **No effects:** TB-3 EFFECT, scatter type and depth, and the GENERIC sends 91/93/94 have nothing to drive.
+- **No fine tune** (TB-3 TUNING), no touch-pad axes.
+- **One envelope** for amplitude and filter, so ENV MOD X and Y share the amplitude ADSR.
+- **No sample-accurate pitch glide curve match:** the glide is the voice's exponential portamento, tuned by ear to sound like the 303 (HW-1).
+- **PIANO limits:** section 2.7.
+- 8 voices shared by all four previews: a chord on CH3 and CH4 together steals the oldest note.
 
 ## 4. Effects on tasks (deliverable 4)
 
+**P3-008, P3-009, P3-010 may proceed** exactly as written, **ANALOG only**: option A of the old question 1 is the owner's decision (110/1A), so the
+branches for keeping SAMPLE or FM6 do not apply. Their `depends_on: [P2-023]` may be cleared by the reviewer/orchestrator when P2-024 passes
+review. No sample, FM6, DRUM or PHYS engine is needed by any preset (the PIANO decision above); `NENGINES` can reach 1. The held status in
+SYSTEM_MAP rows 5-9 ("depends on P2-023") is lifted.
+
 | Task | Change |
 | --- | --- |
-| **P3-008** (DRUM, PHYS) | none: neither is needed by any preset. Its `depends_on: [P2-023]` can be cleared once the owner answers question 1 |
-| **P3-009** (sample family, FM6) | **depends on question 1.** A: unchanged. B: keep `eng_sample.c` and the PIANO set; delete FLUTE, SAX, BREAK, user slots, `eng_grain.c`, `eng_slice.c`, `slice data`, `fm6*`; `tools/gen_samples.py` emits PIANO only; the criterion "flash image shrinks by at least 140000 B" becomes "at least 90000 B" [E]; the grep list drops `eng_sample.c` and its public symbols; sample_test is kept cut to PIANO. C: keep `eng_fm6.c`, `fm6_core.c` and a built-in patch table; delete the vbank, `fm4_convert.c` and the editor hooks |
-| **P3-010** (remaining engines, ANALOG only) | A: unchanged. B: the goal becomes "ANALOG plus SAMPLE (PIANO)": `NENGINES` 2 (ANALOG 0, SAMPLE 1; indices need not stay stable because the project formats that stored them go in R7), `eng_idx()` still returns 0 for a bad index; the `grep -c ENG_MEM` criterion still 0; the pool drop stays about 51552 B. Re-baselined regress renders cover ANALOG and the PIANO part. P3-010's title and the P3-008 / P3-009 / P3-010 chain note in SYSTEM_MAP rows 5-9 change accordingly |
-| **P3-014** (fx buses, in review) | none, but its Log should note that the chorus and reverb sends of the STRINGS / SOFT PAD presets are gone (section 2.1); the preview patches here do not use the `fx[]` fields, which become dead |
-| **P4-001 / P4-005** (types, channel state API) | `ChanSave` gains `prv` (1 B, padded: re-check the 344 B assert and the 1496 B `SeqPreset`, +4 B for 4 channels); API `sq_prv_set(ch, on, snd)`, `sq_prv_get(ch)`; default table CH1 ON ACID, CH2 BASS, CH3 LEAD, CH4 PAD |
-| **P4-004 / P4-012** (core, cut-over) | `sq_emit`: replace "if `chan == sq_sel` play `trk[0]`" by "if `prv_on[chan]` play `trk[chan-1]`"; `sq_all_off` releases all four parts; the t1_glue single-part path goes; ADR-0003 4.x text amended (ADR addendum, owner sign-off) |
-| **P4-010** (UI tables) | rows for the new gestures (section 7) and the toasts in `widths.tsv`; HELP rows |
-| **P4-011** (UI framework) | the Z1 speaker icon and the held-key ALGO cell role; strip text `HOLD KEY + ALGO = SOUND` |
+| **P3-014** (fx buses) | none, but note that the chorus and reverb sends of the STRINGS / SOFT PAD presets are gone (2.1) and the `fx[]` fields become dead |
+| **P4-001 / P4-005** (types, channel state API) | `ChanSave` gains `prv` (1 B; re-check the 344 B assert and the `SeqPreset` size, +4 B for 4 channels); API `sq_prv_set(ch, on, snd)`, `sq_prv_get(ch)`; default table **all OFF**; sounds CH1 ACID, CH2 BASS, CH3 LEAD, CH4 PAD |
+| **P4-004 / P4-012** (core, cut-over) | `sq_emit`: replace "if `chan == sq_sel` play `trk[0]`" by "if `prv_on[chan]` and MIDI is not OFF, play `trk[chan-1]`" (the MIDI OFF test is the same test that gates the MIDI packet: **one condition for both**); the CC emit path calls `prv_cc(ch, target, value)` from the profile's `prv` column; `sq_all_off` releases all four parts; the t1_glue single-part path goes. ADR-0003 text already amended (section 6) |
+| **P4-024** (hwprof tools) | `tools/hwprof/<dev>.tsv` gets the column `prv` (target code or `-`); `tb3.tsv` as in 3.2, plus a built-in GENERIC table; `gen_hwprof.py` emits the 3 B entries |
+| **P4-010** (UI tables) | the rows are **already added** (section 7); the task only has to keep the checkers green when it renames contexts |
+| **P4-011** (UI framework) | the Z1 speaker icon (dim for MIDI OFF) and the held-key ALGO cell role; strip text `HOLD KEY + ALGO = SOUND` |
 | **P4-013** (PERF page) | mute-key hold (0.4 s) and the ALGO-while-held modifier |
-| **P4-015** (CHAN page) | optionally shows the sound name (question 3); no knob change |
-| **P4-021** (HW-1 first flash) | add: PREVIEW ON on CH1 plays ACID through the speaker and MIDI at once; tune the six patches by ear; check the voice cap with 4 channels |
-| **New task** (proposed id P4-0xx, before P4-021) | `preview.c`: the patch table, `prv_load(part, snd)` (all-notes-off, then set the part's parameters; PIANO switches the engine through the existing `eng_req` fade), the 3-CC mod map, host tests: determinism (same state, same events), no note leaked on a sound change, goldens for the six patches, the ISR cost (`BUDGET_UPDATE`) |
-| **P5 algorithm tasks** | none (a preview patch is independent of the algorithm; the channel keeps its sound when ALGO changes) |
+| **P4-015** (CHAN page) | none (3A: no sound name there) |
+| **P4-021** (HW-1 first flash) | add: all channels OFF at boot; hold F#3 switches CH1 PREVIEW ON and ACID plays through the speaker and MIDI at once; slide and accent audible on ACID; tune the six patches by ear; check the voice cap with 4 channels |
+| **New task** (proposed P4-0xx, before P4-021) | `preview.c`: the patch table, `prv_load(part, snd)` (all-notes-off, then set the part's parameters), `prv_cc` and the (device, CC) map, host tests: **T-PRV1** with PREVIEW on, the preview note events equal the MIDI note events (same notes, velocities, order, same off times) and a MIDI OFF channel makes neither; T-PRV2 no note leaked on a sound change; T-PRV3 slot CC overrides apply and park; goldens for the six patches; the ISR cost (`BUDGET_UPDATE`) |
+| **P5 algorithm tasks** | **no change**: the algorithms already emit velocity (90/120), gate and overlap; the preview follows the stream. ACID's accent and slide layers are the ones the preview must show, so P5 acceptance tests need not add a preview check, but P5-001 (ACID) should list "audible on ACID preview" in its HW checklist |
 | **P6-003** (mute keys, solo, fill) | the hold on a mute key is now PREVIEW, not a second mute role: 0.4 s threshold shared with the HOLD menu setting |
 | **P7-001..P7-002** (flash map, preset store) | `SeqPreset` +4 B; load restores `prv` and loads the parts at the bar-queued load |
-| **P8-002** (user guide) | one paragraph: preview on/off, six sounds, speaker only |
-| `SEQUENCER_UX.md` 4.4 row "Preview synth", ADR-0003 preview text, `SCREEN_SPEC.md` 2.2, `knob_map`/`control_map`/`key_map.tsv`, scenarios S04/S01 | superseded or extended as in section 7; **not edited here** (the owner has not approved this design) |
+| **P8-002** (user guide) | one paragraph: preview on/off (hold the mute key), six sounds (hold + ALGO), preview is the same output as MIDI |
 
-## 5. Decisions honoured (deliverable 5 check)
+## 5. Decisions honoured, point by point (decision 110)
 
-| Decision | How |
+| Decision 110 point | How |
 | --- | --- |
-| 80 (16 slots; fx-bus removal first) | patches are flash tables; `SeqPreset` +4 B only. The removal of the buses is the premise of the PAD / STRINGS caveat |
-| 98, 108 (device with 4 mod slots) | preview reads the same slots (section 3), inert with no device |
-| 99-101, 103-106 (profiles, TB-3 facts) | untouched: ACID uses decision 104/105 (accent >= 100, slide by overlap) only inside the preview |
-| 102 (fx removal precedes preset storage) | unchanged |
-| 107 (modulation layer as one design) | preview is a consumer, not a bolt-on |
-| 109 (this task) | per-channel PREVIEW, six presets, MIDI as well; the PIANO limit is stated, not hidden, and the engine-removal tasks stay held on question 1 |
-| VISION 2 (synth is a preview tool) | the six patches are preview voices; no synth editing UI, no engine browsing, no per-patch menu |
+| 1A: PIANO = ANALOG e-piano approximation; no sample / FM6 engine kept; ANALOG-only chain proceeds | 2.7 (starting values and the stated limits); section 4 lifts the hold on P3-008..P3-010 |
+| 2: all channels preview OFF by default | 0, 1.1 (defaults row), section 4 P4-001 and P4-021 |
+| 3A: speaker icon plus toasts only | 1.5 |
+| 4A: the MASTER pot is the preview level | 0, 1.1, 1.6 (no menu row, no per-channel trim) |
+| 5A: PAD and STRINGS drier without chorus and reverb | 2.1 and 2.6 |
+| 6A: hold the mute key, hold + ALGO for the sound | 1.4, re-examined against "really easy" with the alternatives listed |
+| 7: preview and MIDI always the same output; whatever the channel sends as MIDI the preview plays; no separate preview behaviour | 0, 1.2 (one condition, the MIDI OFF case stated), 1.3, 3 (the preview takes the MIDI stream), T-PRV1 |
+| 8A: amend ADR-0003 and SEQUENCER_UX 4.4 | section 6 (done in this task) |
+| (a) easy per-channel on/off and preset change | 1.4: on/off one gesture, sound a hold + turn, no menu, no page change, on-screen labels |
+| (b) the internal synth maps everything the channel sends: notes, accents, slides, gates, filter and the other device CCs, best effort | section 3: tables per event and per (device, CC), a "no equivalent" entry where there is none, 3.3 lists what ANALOG cannot do |
+| 98, 108 (device with 4 mod slots) | the preview reads the same slots (3.2), inert with no device |
+| 104, 105 (accent >= 100, slide by overlap) | 3.1 |
+| 80, 102, 107, 109 | patches are flash tables; fx removal is the premise of 5A; the preview is a consumer of the mod layer |
+| VISION 2 | no synth editing, no engine browsing, no per-patch menu |
 | VISION gesture budget | on/off 1, sound 2, none in the menu |
 
-## 6. Consequences for existing rules (to be amended after the owner answers)
+## 6. Amendments made (decision 8A)
 
-1. ADR-0003: preview = selected channel on `trk[0]` becomes preview = each channel with `prv_on` on `trk[ch-1]`.
-2. SEQUENCER_UX 4.4 "Preview synth" row: "OFF means no MIDI out only. The selected channel is still heard" becomes "OFF means no MIDI out; the channel is heard only if its PREVIEW is ON".
-3. SYSTEM_MAP section 2 ("one fixed bass-suited ANALOG patch", question 40) becomes six patches; row 5 (ANALOG only) depends on question 1.
-4. The reference workflow in VISION is unchanged: a TB-3 user sets CH1 PREVIEW OFF once, or leaves it on to hear the line.
+Done in this task (not "to be amended"):
 
-## 7. Proposed table rows (for the P4 table task; not added here)
+1. **ADR-0003**: addendum section 21 "Preview per channel (P2-024)" and the contradicted lines (the event-path diagram, 8.1 preview bullet, the key
+   path in 9, `ChanSave.midi_ch` comment, boot and defaults rows, the `synth_note_on/off` row) now say: preview = each channel with `prv_on` on `trk[ch-1]`,
+   the same event stream as MIDI out, silent on MIDI OFF.
+2. **SEQUENCER_UX 4.4** "Preview synth" row: "OFF means no MIDI out and no preview. A channel is heard only if its PREVIEW is ON, and then it plays exactly what it sends
+   as MIDI; muted channels stay silent on both, SOLO ignores OFF".
+3. Not edited (they follow at P4): SYSTEM_MAP section 2 wording ("one fixed bass-suited ANALOG patch", question 40: six patches now), `SCREEN_SPEC.md` 2.2 (the icon).
 
-- `key_map.tsv`: `KEY_B01_F#3 .. KEY_B04_C#4`, every page, gesture `hold`: `0.4 s: PREVIEW on/off of CH n (toast)`; and `hold+turn ALGO`: choose the sound.
-- `control_map.tsv` `EN_ALGO` (every page): while a mute key is held, the encoder chooses that channel's preview sound.
-- `widths.tsv`: the six toast strings of 1.5 (measured with `tests/design/width_probe.sh`).
-- Scenario: S01 (first run) gains "CH1 PREVIEW ON plays ACID on the speaker"; S04 (channels) gains hold-mute and sound change.
+The reference workflow in VISION is unchanged: a TB-3 user leaves PREVIEW OFF (the default), or holds F#3 once to hear the line.
 
-## 8. Owner questions (lettered options, a recommendation each)
+## 7. Table rows added
 
-1. **PIANO.** A: ANALOG e-piano approximation, zero cost, not a real piano. B: keep SAMPLE with the PIANO set only, +47 KB flash, +0.5 KB RAM, a real piano. C: keep FM6 with an E-piano patch, +13 KB flash, +2 KB RAM, a DX-style electric piano. **Recommend B**, with A as the fallback if its CPU does not fit. Until you answer, P3-009 and P3-010 stay held.
-2. **Defaults.** A: CH1 ON, others OFF (recommended: a TB-3 user hears one preview, PLAY is audible with no setup). B: all four ON. C: all OFF (silent first run; contradicts SYSTEM_MAP section 3).
-3. **Show the sound name where?** A: speaker icon in the channel cell plus toasts only (recommended: no layout change). B: also a name on the CHAN page (P4-015 decides). C: a fifth cell label in the channel cell (does not fit 56 px: `PRV STRINGS` is 72 px).
-4. **Preview level.** A: only the MASTER pot (recommended). B: also an AUDIO menu row `PREVIEW LEVEL` (a trim, set and forget).
-5. **PAD and STRINGS without chorus and reverb.** A: accept the drier sound (recommended; it is a preview). B: ask for a small chorus kept inside the voice code for these two (a separate task, costs a delay line of about 4 KB RAM or pool, against the decision to remove the chorus).
-6. **Gesture.** A: hold the mute key 0.4 s, and hold + ALGO for the sound (recommended). B: a CHAN page cell (adds one gesture, steals a knob). C: a menu row (breaks "no menu diving" for a performance-adjacent function).
-7. **Keys and audition while PREVIEW is OFF.** A: MIDI only (recommended: consistent). B: the keys always preview on the selected channel's part even if OFF (louder surprise, more code).
-8. **Amend ADR-0003 and SEQUENCER_UX 4.4** as in section 6 now (A, recommended once you accept this design) or leave them until the P4 task.
+- `key_map.tsv`: the four mute keys (F#3 G#3 A#3 C#4) on PERF, NOTE_EDIT, CHAN, SET and RIG gain a `hold` row (`0.4 s: PREVIEW on/off of CH n`; with ALGO turned: the sound); `control_map.tsv` and `help_text.tsv` carry the same text for those keys.
+- `control_map.tsv` / `help_text.tsv` `EN_ALGO` on PERF, NOTE_EDIT, CHAN, SET, SCALE, REC: while a mute key is held, the encoder chooses that channel's preview sound.
+- `page_states.tsv` PERF: the Z1 speaker icon, the held-key strip and the ALGO cell role.
+- `tests/design/widths.tsv`: the six toast and strip strings of 1.5 (measured, 0 over).
+- Scenarios not edited here: S01 (first run) and S04 (channels) should gain "hold F#3: CH1 PREVIEW ON, ACID plays on the speaker" and "hold + ALGO: sound change"; their coverage lines are in the P4 table task. The checkers pass without them (every control row already has a scenario).
+
+## 8. Owner sheet
+
+**No real choice remains.** Decision 110 settled every question. Two small design consequences for the owner's information (no answer needed unless you disagree):
+
+1. A channel with MIDI OFF is silent on the preview too (the direct reading of 110/7). The earlier "speaker only" mode is gone.
+2. The preview has no threshold accent and no fine tune, no pad or effect equivalent (3.3). They are stated limits of best-effort mapping on the ANALOG engine.
 
 ## 9. Checks run for this document
 
-`tests/design/check_scenarios.py`, `tests/design/check_help.py`, `tools/check_sequencer_ux.py`, `sh tests/design/width_probe.sh`,
-`tools/backlog.py check`: results are in the task log. The six toast strings were measured with the probe on a scratch file (all within
-204 px); they are not added to `widths.tsv` until the owner accepts them.
+`python3 tests/design/check_scenarios.py`, `python3 tests/design/check_help.py`, `python3 tools/check_sequencer_ux.py`, `sh tests/design/width_probe.sh`,
+`python3 tools/backlog.py check`: results are in the task log of P2-024.
