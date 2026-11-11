@@ -42,14 +42,21 @@ change exists as a verified patch.
    BUILDING.md: the "Samples" section is already removed by the patch, but line 49 ("the sample attribution"), line 64
    (`FELUCCA_SLICE` row), line 81 and lines 92-97 (the test list) still describe removed things: P3-012 rewrites them.
    fm6 SysEx/OBJ_FM6BANK/OBJ_UPFM6 object ids in storage.c stay (flash map).
-4. As in P3-008 step 5: run `GOLDEN_UPDATE=1 sh tests/run_tests.sh` once, review the diff (only `song/*`, `sends/*` may
-   change), no BUDGET_UPDATE; hand-edit cpu_baseline rows only if regress prints OVER BUDGET for a `cpu/mix/*` row.
+   **Residual grep hits the patch does not remove (found on regeneration):** tools/gen_tables.py `fm6_tables()` and the `FM6_*` tables
+   (only fm6_core.c used them: delete them, `./build.sh` must still pass); comment hits in storage.c 21/29/30/33, engines.c 59/148,
+   params.c 133, tests/settings_test.c 9-10 and tests/ui_test.c 45 (`ENGI_SAMPLE`, `SMP_*` local defines: delete if unused, else reword),
+   web/emu/felucca_web.c 36 (`SMP_USER_XIP`: delete). Reword so the acceptance grep prints nothing.
+4. Regenerated on top of the regenerated P3-008 (BUG-004): the patch also carries (h) midi_control.c `MIDI_CC_ENG` rows 4, 8 and 12
+   set to 0 (the removed SAMPLE, GRAIN and FM6 rows made `midi_control_test` "every engine's CC74 / CC71 target" fail on the
+   placeholder descriptors) and (i) the accepted `song/*` golden lines. After the patch and the deletes (`git rm -r`, one entry is a
+   directory), run `sh tests/run_tests.sh` once: expected ALL HOST TESTS PASSED with no GOLDEN_UPDATE; a golden line that
+   differs other than a removed one: stop and file a BUG. No BUDGET_UPDATE.
 
 ## Acceptance criteria
 - [ ] The 21 files in P3-009.deletes.txt are gone; no `#include` of them remains
 - [ ] `grep -rnEI 'eng_sample|eng_grain|eng_slice|eng_fm6|fm6_[a-z_]+|fm4_(convert|apply|track|load_preset|preset_values)|FM4_(NPRESETS|TO_FM6)|\bFM6_[A-Z_]+|FP_SIZE|ENGI_(SAMPLE|FM6)|ENG_(SAMPLE|GRAIN|SLICE|FM6)|SMP_[A-Z_]+|smp_[a-z_]+|slc_[a-z_]+|SLC_[A-Z_]+|FELUCCA_SLICE|snd_said|snd_missing|gen_samples|gen_fm6_patches|felucca_samples|felucca_fm6|fm1_sample_upload|sampleio' firmware/src tests tools web LICENSING.md` prints nothing (a hit in a comment: reword it; storage.c may keep `OBJ_FM6BANK` / `OBJ_UPFM6` / `OBJ_FM6VB`: those object ids are not in the pattern)
-- [ ] Flash image shrinks by at least 140000 B (rehearsal: 157304 B)
-- [ ] Build line `image 189792 B; RAM .data+.bss 26676 B of 73728; pool 144052 B of 368640` (on top of 007 + 011 + 008)
+- [ ] Flash image shrinks by at least 140000 B (regenerated: 157304 B)
+- [ ] Build line `image 189808 B; RAM .data+.bss 26676 B of 73728; pool 144052 B of 368640` (regenerated on HEAD d03c6c8 + 008; the old rehearsal said 189792)
 - [ ] `sh tools/check.sh` ends CHECK PASS; RAM headroom at least 8192 B; Log lists the changed golden lines
 
 ## Verification

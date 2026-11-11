@@ -11,7 +11,7 @@ gate: none
 ---
 ## Goal
 Remove the drum kit and physical models (sound design, not preview). Runs after P3-011 (order change, see P3-011).
-Rehearsed on top of P3-007 + P3-011; the change exists as a verified patch.
+Rehearsed on top of P3-007 + P3-011; the change exists as a verified patch. The patch was regenerated on HEAD d03c6c8 after BUG-004 (two hunks drifted after P3-011) and now also carries the test fixes and the accepted goldens that the first rehearsal left to the executor.
 
 ## Read first
 - docs/design/rehearsal/P3-008.patch, P3-008.deletes.txt
@@ -41,21 +41,22 @@ Rehearsed on top of P3-007 + P3-011; the change exists as a verified patch.
    tests/cpu_baseline.txt the `cpu/PHYS/*`, `cpu/DRUM/*` rows, tests/union_golden.txt the sequences naming engine 9 or 10
    (396 sequences left), tests/target_budget.py/.txt the 19 functions named in the old text (`phys_render` ... `dv_metal_mix`).
 4. LICENSING.md: the DRUM voices row, the DaisySP and Rings rows and the "ports" sentence; web/emu/felucca_web.c: the
-   `ENGI_PHYS` use (now engine 2) and the upreset include.
-5. **Not covered by the patch (the rehearsal did not run the full suite after this step):** `GOLDEN_UPDATE=1 sh tests/run_tests.sh`
-   once. Expected: `union_test` reports every remaining sequence changed (the sequences share one random generator, so
-   removing two engines moves all hashes): accept; `regress` may report `song/*` and the mix rows changed (the demo song's
-   track 4 is ANALOG now). Review `git diff tests/golden.txt tests/union_golden.txt`: only `song/*`, `sends/*` and the union
-   lines may change; any `preset/ANALOG/*` or `mode/ANALOG/*` change means a real sound change: stop and file a BUG.
-   `tests/cpu_baseline.txt`: if regress prints `CPU OVER BUDGET` for `cpu/mix/idle_drums` or `cpu/mix/3parts_full_drums`,
-   write the printed instruction count into those two rows by hand. **Do not set BUDGET_UPDATE** (it also rewrites
-   tests/target_budget.txt, FB-004 A). The target budget step prints a `note` for `fm1_alnk0_irq` (cheaper, about -30 %):
-   expected, not a failure.
+   `ENGI_PHYS` use (now engine 2). (The `upreset.c` include is already gone: P3-011 removed it, so the patch has no hunk for it.)
+5. **Test fixes beyond the rehearsal's first cut (BUG-004 regeneration found them by running the whole suite; all are in the patch):**
+   hostsim.c: the clap-into-the-DRUM-lane check is dropped (a melodic part's recording replaces the step; `ok_clap` leaves the
+   fail count); audio_test.c: the "held one-shot drum" overload case is deleted; mod_test.c: the cost test uses ANALOG BRASS and
+   an all-ANALOG mix (`PHYS` and the mixed engines are gone) and `MOD_COST_MAX` is 7.0 (the cheaper mix makes the same slot cost
+   a larger share: 6.0 % measured); tests/golden.txt `song/4track_mix` and `song/4track_swing20` and tests/union_golden.txt
+   already hold the accepted new hashes (the demo song's track 4 is ANALOG now; the union sequences were regenerated).
+   **After applying the patch and the deletes, run `sh tests/run_tests.sh` once: expected ALL HOST TESTS PASSED with no
+   GOLDEN_UPDATE.** A golden line that differs (any `preset/ANALOG/*` or `mode/ANALOG/*` especially) is a real sound change or a
+   host difference: stop and file a BUG. **Do not set BUDGET_UPDATE** (it also rewrites tests/target_budget.txt, FB-004 A).
+   The target budget step may print a `note` for `fm1_alnk0_irq` (cheaper, about -30 %): expected, not a failure.
 
 ## Acceptance criteria
 - [ ] The files in P3-008.deletes.txt show `D`; no `#include` of them remains in felucca.c / engines.c / tests
-- [ ] `grep -rnEI 'ENGI_(DRUM|PHYS)|ENG_(DRUM|PHYS)|drum_track|drum_voice|eng_drum|eng_phys|phys_dsp|phys_symp|\bdv_[a-z_]+|\bpx_(modal|memb|string|symp)[a-z_]*|drum_from_(phys|perc)|\bN_DRUM_KIT|DK_(PLAYS|COUNT)' firmware/src tests tools web LICENSING.md BUILDING.md` prints nothing (a hit left in a comment: reword it, one line each, so nothing remains; the rehearsal left such comments in core.h 6/63, params.c 148, seq.c 970)
-- [ ] Build line `image 347096 B; RAM .data+.bss 34340 B of 73728; pool 144720 B of 368640` (rehearsal, on top of 007 + 011)
+- [ ] `grep -rnEI 'ENGI_(DRUM|PHYS)|ENG_(DRUM|PHYS)|drum_track|drum_voice|eng_drum|eng_phys|phys_dsp|phys_symp|\bdv_[a-z_]+|\bpx_(modal|memb|string|symp)[a-z_]*|drum_from_(phys|perc)|\bN_DRUM_KIT|DK_(PLAYS|COUNT)' firmware/src tests tools web LICENSING.md BUILDING.md` prints nothing (a hit left in a comment: reword it, one line each, so nothing remains; the regenerated patch leaves such comments in core.h 6/63, params.c 148, seq.c 970 and tests/hostsim.c 137; hits in eng_sample.c:8 and tools/gen_samples.py:23 are files P3-009 deletes: leave them)
+- [ ] Build line `image 347112 B; RAM .data+.bss 34340 B of 73728; pool 144720 B of 368640` (regenerated on HEAD d03c6c8; the old rehearsal said 347096)
 - [ ] `sh tools/check.sh` ends CHECK PASS; RAM headroom at least 8192 B; the Log lists the golden lines that changed
 - [ ] The Log states that no BUDGET_UPDATE was run and what was written by hand into cpu_baseline.txt, if anything
 
@@ -72,3 +73,18 @@ sh tools/check.sh
 - Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).
 
 ## Log
+
+### 2026-11-11 executor (claude-haiku-5-5)
+- Read CLAUDE.md, VISION.md, this task, and the Read-first files. Set in_progress.
+- Verification step 1 failed: `git apply --check docs/design/rehearsal/P3-008.patch` exits 1 on HEAD 0f080ac:
+```
+error: patch failed: firmware/src/core.h:18
+error: firmware/src/core.h: patch does not apply
+error: patch failed: web/emu/felucca_web.c:202
+error: web/emu/felucca_web.c: patch does not apply
+```
+  Other files in the patch pass the check. Cause: the patch was rehearsed on a base before P3-011. HEAD core.h has
+  the P3-011 comment on UP_SLOTS, and HEAD felucca_web.c no longer includes upreset.c (P3-011 deleted it).
+- Per Deliverable step 1 ("stop and file a BUG") I applied nothing and deleted nothing. Filed backlog/bugs/BUG-004-p3-008-patch-does-not-apply-to-head.md.
+- Not run: `git apply`, `git rm`, `sh tools/check.sh`, `./build.sh`, the golden/budget steps. Nothing else was changed.
+- Status set to blocked until BUG-004 is fixed.

@@ -1,5 +1,23 @@
---- a/firmware/src/core.h	2026-11-11 18:22:45
-+++ b/firmware/src/core.h	2026-11-11 18:27:26
+--- a/LICENSING.md
++++ b/LICENSING.md
+@@ -28,7 +28,6 @@ All by Hügelton Instruments (Leo Kuroshita), in this tree:
+ | What | Licence | Where |
+ | --- | --- | --- |
+ | Felucca: firmware, tools, web pages, tests | GPL-3.0-only | `LICENSE` |
+-| The PHASE engine's waveforms: a C port of the oscillator of CrispyZebra (<https://github.com/hugelton/CrispyZebra>) | GPL-3.0 | `firmware/src/eng_phase.c` |
+ | The controls picture | GPL-3.0-only | `docs/controls.jpg` |
+ | The Fukiai icon font (<https://github.com/hugelton/Fukiai>): the firmware's icons (rasterised at build time by `tools/gen_aa_icons.py`) and the web editor's | MIT | `web/fukiai.ttf`, `LICENSES/MIT-Fukiai.txt`, `web/FUKIAI-LICENSE.txt` |
+ 
+@@ -37,7 +36,6 @@ All by Hügelton Instruments (Leo Kuroshita), in this tree:
+ | What | Licence | Where |
+ | --- | --- | --- |
+ | Inter Tight font by The Inter Project Authors: the UI text, rasterised into the firmware at build time (`tools/gen_aa_font.py`; the generated tables are not offered as a font, and the font declares no Reserved Font Name) | SIL OFL 1.1 | `assets/fonts/InterTight[wght].ttf`, `LICENSES/OFL-InterTight.txt` (also `assets/fonts/OFL.txt`) |
+-| klattsch by Tony Gies (<https://github.com/tgies/klattsch>): design reference for the VOICE engine; no code copied. Formant data from Klatt (1980) / Hillenbrand et al. (1995) | MIT (klattsch) | credit only |
+ | X0X by charlesvestal (<https://github.com/charlesvestal/fm1-x0x>), a Felucca fork: the design of the browser emulator (the worklet, the device clock driven by its audio, the exports); its files credit it in their headers | GPL-3.0 | `web/emu/` |
+ | DotGothic16 font by The DotGothic16 Project Authors (<https://github.com/fontworks-fonts/DotGothic16>): the browser emulator's knob labels, served with its page (cut to printable ASCII; the font declares no Reserved Font Name) | SIL OFL 1.1 | `web/emu/fonts/DotGothic16-subset.woff`, `LICENSES/OFL-DotGothic16.txt` (also `web/emu/fonts/OFL.txt`) |
+ | JieLi AC79 SDK by JieLi Technology: three of its files go into every `.fwsc` package (below); none are in this tree | Apache-2.0 | `LICENSES/Apache-2.0.txt` |
+--- a/firmware/src/core.h
++++ b/firmware/src/core.h
 @@ -13,9 +13,8 @@
  #define NTRK NPART               /* tracks (the formats and the protocol count these): every track is a part */
  #define NSTEP 64
@@ -10,10 +28,10 @@
 +#define NENGINES 1               /* ANALOG only (P3-010) */
 +#define NENG_SHOWN 1   /* the engines one can pick: PRESETS, the EDIT layer, the editor,
                                                  * in the display order of engines.c ENGINE_ORDER */
- #define UP_SLOTS 32u             /* user presets (upreset.c) */
+ #define UP_SLOTS 32u             /* user preset slots (removed in P3-011: the constant stays for favorites.c) */
  #define NELEM(a) (sizeof(a) / sizeof((a)[0]))
---- a/firmware/src/engines.c	2026-11-11 18:22:31
-+++ b/firmware/src/engines.c	2026-11-11 18:27:32
+--- a/firmware/src/engines.c
++++ b/firmware/src/engines.c
 @@ -4,125 +4,20 @@
   * factory patterns (SAVE > PHRASES) and the parts' sounds at power-on. */
  #include "dsp.c"
@@ -42,7 +60,7 @@
 -#include "eng_trio.c"
 -#include "eng_wheel.c"
 -#include "eng_noise.c"
- 
+-
 -/* a retired engine's place in the table: no presets, never offered, silent (P3-008..P3-009 removed PHYS, DRUM, SAMPLE, GRAIN, FM6,
 - * SLICE; DIGITAL went before). The table keeps its indices until P3-010 reduces it to ANALOG */
 -/* EDIT: the ranges are the stores' (a value of engine 1 is clamped to them before it converts) */
@@ -66,7 +84,7 @@
 -    .knob = {P_E4, P_E5, P_E6, P_REL},
 -};
 -
--
+ 
 -/* the editor protocol, user presets and projects store these indices: append, never reorder */
 +/* The preview synth is one engine: ANALOG (SYSTEM_MAP decision 40). Every other engine was removed in P3-008..P3-010;
 + * a stored engine number other than 0 plays as ANALOG (eng_idx) */
@@ -143,7 +161,7 @@
   * flags 1 = accent, 2 = slide, 4 = tie (holds the previous note). Names: at most 8 characters */
  #define T_ 4
  static const struct {
-@@ -145,16 +40,6 @@
+@@ -145,16 +40,6 @@ static const struct {
       {1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
      {"SUB", {36, 0, 0, 0, 0, 0, 0, 36, 0, 0, 34, 0, 0, 0, 0, 0},                   /* 8 low, held */
       {1, T_, T_, T_, 0, 0, 0, 0, 0, 0, 0, T_, T_, T_, 0, 0}},
@@ -160,7 +178,7 @@
      /* 16ths up a C minor arpeggio, twice: the line the ARP presets (RAVE, ARP 8BIT, ARP LEAD) suggest
       * now that the arpeggiator is the track's and a preset no longer switches it on */
      {"ARP", {48, 51, 55, 60, 63, 67, 72, 75, 48, 51, 55, 60, 63, 67, 72, 75},       /* 13 */
-@@ -164,6 +49,6 @@
+@@ -164,6 +49,6 @@ static const struct {
  #define NPATTERNS (sizeof PATTERNS / sizeof PATTERNS[0])
  
  /* the parts at power-on (engine, preset, PATTERNS[n - 1] in the sequencer, 0 = empty: all are): bass, pad, lead, drums */
@@ -169,9 +187,9 @@
 +static const uint8_t TRK_DEF[NPART][3] = {{0, 4, 0}, {0, 0, 0}, {0, 1, 0}, {0, 0, 0}}; /* ANALOG presets: ACID, the first,
 +                                                                       * the second, the first (P3-010: one engine) */
  static uint32_t trk_def_engine(uint32_t i) { return TRK_DEF[i % NPART][0]; }
---- a/firmware/src/main.c	2026-11-11 18:22:45
-+++ b/firmware/src/main.c	2026-11-11 18:27:26
-@@ -108,7 +108,6 @@
+--- a/firmware/src/main.c
++++ b/firmware/src/main.c
+@@ -108,7 +108,6 @@ static void felucca_init(void)
          set_engine_of(t, TRK_DEF[i][0]);
          apply_preset_to(t, TRK_DEF[i][1]);    /* with its sends */
          t->engine = t->eng_req;
@@ -179,22 +197,22 @@
          track_defaults_steps(t);              /* (a sound load never touches them) */
          if (TRK_DEF[i][2])
              load_pat16(t, PATTERNS[TRK_DEF[i][2] - 1u].note, PATTERNS[TRK_DEF[i][2] - 1u].flags);
---- a/firmware/src/midi_control.c	2026-11-11 18:22:45
-+++ b/firmware/src/midi_control.c	2026-11-11 18:27:26
-@@ -180,9 +180,7 @@
+--- a/firmware/src/midi_control.c
++++ b/firmware/src/midi_control.c
+@@ -180,9 +180,7 @@ static const uint8_t MIDI_CC_MAP[][2] = {
  };
  /* per engine (ENGINES[] order): CC74's E index + 1 in the high nibble, CC71's in the low one, 0 = none */
  static const uint8_t MIDI_CC_ENG[NENGINES] = {
--    0x56, 0x00, 0x30, 0x80, 0x50, 0x07, 0x67, 0x00,   /* ANALOG CUT RES, -, PHASE DCW, LOFI TONE, SAMPLE CUT, VOICE Q,
+-    0x56, 0x00, 0x30, 0x80, 0x00, 0x07, 0x67, 0x00,   /* ANALOG CUT RES, -, PHASE DCW, LOFI TONE, - (SAMPLE), VOICE Q,
 -                                                       * TRIO CUT RES, WHEEL - */
--    0x80, 0x00, 0x00, 0x34, 0x30,                     /* GRAIN TONE, - (PHYS), - (DRUM), NOISE FREQ RES, FM6 MLVL */
+-    0x00, 0x00, 0x00, 0x34, 0x00,                     /* - (GRAIN), - (PHYS), - (DRUM), NOISE FREQ RES, - (FM6) */
 +    0x56,                                             /* ANALOG CUT RES */
  };
  /* a CC sets parameter id of track t as a knob would: 0..127 over its range */
  static void midi_cc_set(track_t *t, uint32_t id, uint32_t value)
---- a/firmware/src/params.c	2026-11-11 18:22:45
-+++ b/firmware/src/params.c	2026-11-11 18:27:26
-@@ -70,8 +70,7 @@
+--- a/firmware/src/params.c
++++ b/firmware/src/params.c
+@@ -70,8 +70,7 @@ static const char *const N_IRATE[] = {"689", "919", "1.1k", "1.4k", "1.8k", "2.2
  static const char *const N_MSRC[] = {"OFF", "LFO", "ENV", "VEL", "KEY", "RAND", "MODW", "AT", "EXPR", "S&H", "SLEW"};
  static const char *const N_MDST[] = {"OFF", "PITCH", "CUT", "SHP", "AMP", "PAN", "DIST", "CHO", "DLY", "REV", "RATE",
                                       "VIB", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "DEPTH", "VEL", "TIME"};
@@ -204,9 +222,9 @@
  
  #define PD(l, f, mn, mx, df) {l, f, mn, mx, df, 0, 0}
  #define PE(l, n, df) {l, F_ENUM, 0, (int16_t)(sizeof(n) / sizeof(n[0]) - 1), df, n, 0}
---- a/firmware/src/ui_menu.c	2026-11-11 16:37:29
-+++ b/firmware/src/ui_menu.c	2026-11-11 18:29:20
-@@ -38,43 +38,13 @@
+--- a/firmware/src/ui_menu.c
++++ b/firmware/src/ui_menu.c
+@@ -38,43 +38,13 @@ typedef struct { const char *text; uint8_t kind; } menu_credit_t;
  static const menu_credit_t MENU_CREDITS[] = {
      {"H\xFCgelton Instruments", MC_TITLE},  /* Felucca's own: above; these are ours too */
      {"Leo Kuroshita", MC_TEXT},
@@ -250,9 +268,9 @@
  };
  
  static int32_t menu_text(const char *s, int32_t y, uint16_t col, int draw)
---- a/firmware/src/voice.c	2026-11-11 18:14:56
-+++ b/firmware/src/voice.c	2026-11-11 18:27:26
-@@ -476,7 +476,6 @@
+--- a/firmware/src/voice.c
++++ b/firmware/src/voice.c
+@@ -476,7 +476,6 @@ static void engine_block(track_t *t)
              v->env = v->env_out = 0;
          }
          t->engine = eng_idx(t->eng_req);
@@ -260,7 +278,7 @@
          t->xf_on = 0;
          t->nmono = 0;
          t->mono_note = 0;
-@@ -487,7 +486,6 @@
+@@ -487,7 +486,6 @@ static void engine_block(track_t *t)
                  trk_note_on(t, t->xp_note[i], t->xp_vel[i]);
          }
      }
@@ -268,26 +286,9 @@
      for (i = 0; i < 8u; i++)                            /* the engine's own values, for a later fade */
          t->pe_old[i] = t->p[P_E0 + i];
  }
---- a/tests/audio_test.c	2026-11-11 18:16:26
-+++ b/tests/audio_test.c	2026-11-11 18:31:07
-@@ -78,14 +78,6 @@
-     check("a lead alone on each part stays protected", lead->gate && bass->gate && shed_count == 1u);
- 
-     fresh();
--    host_preset(&trk[0], 0, 0);
--    trk_note_on(&trk[0], 36, 100); trk_note_on(&trk[0], 38, 100);
--    lead = held(&trk[0], 36); extra = held(&trk[0], 38);
--    shed_voice(); mix_block(out, CTL);
--    check("overload frees a held one-shot drum without waiting for its decay",
--          lead && extra && lead->active && !extra->active && voices_busy() == 1u);
--
--    fresh();
-     trk[0].p[P_VOICE] = V_UNISON;
-     trk_note_on(&trk[0], 55, 100);
-     shed_voice(); mix_block(out, CTL);
---- a/tests/cpu_baseline.txt	2026-11-11 18:26:15
-+++ b/tests/cpu_baseline.txt	2026-11-11 18:28:57
-@@ -12,35 +12,6 @@
+--- a/tests/cpu_baseline.txt
++++ b/tests/cpu_baseline.txt
+@@ -12,35 +12,6 @@ cpu/ANALOG/08_PLUCK 1009
  cpu/ANALOG/09_BRASS 1170
  cpu/ANALOG/10_WIND 1082
  cpu/ANALOG/11_STRINGS 1006
@@ -323,9 +324,9 @@
  cpu/mix/idle 147
  cpu/mix/idle_drums 361
  cpu/mix/3parts_full_drums 1266
---- a/tests/golden.txt	2026-11-11 18:26:15
-+++ b/tests/golden.txt	2026-11-11 18:28:57
-@@ -12,43 +12,10 @@
+--- a/tests/golden.txt
++++ b/tests/golden.txt
+@@ -12,48 +12,15 @@ preset/ANALOG/08_PLUCK 33e8858e2406fd50
  preset/ANALOG/09_BRASS 011c24710a3e6af8
  preset/ANALOG/10_WIND 5f3a875ece6de798
  preset/ANALOG/11_STRINGS 6cb1d215ae603058
@@ -369,9 +370,16 @@
  sends/ANALOG/dry 48d6d38da94549d4
  sends/ANALOG/chorus 48d6d38da94549d4
  sends/ANALOG/delay 48d6d38da94549d4
---- a/tests/hostsim.c	2026-11-11 18:24:50
-+++ b/tests/hostsim.c	2026-11-11 18:28:07
-@@ -85,6 +85,7 @@
+ sends/ANALOG/reverb 48d6d38da94549d4
+ sends/ANALOG/all 48d6d38da94549d4
+ sends/ANALOG/dist 48d6d38da94549d4
+-song/4track_mix 3ff1976b1f4c6288
+-song/4track_swing20 fb5c2fc987c3e5b8
++song/4track_mix a5f5f88872a0cfa4
++song/4track_swing20 81316d9df95fddf4
+--- a/tests/hostsim.c
++++ b/tests/hostsim.c
+@@ -85,6 +85,7 @@ static void host_tracks_init(void)                /* as felucca_init: defaults,
  /* the factory preset as ui.c apply_preset_to sets it (sound, sends; not the steps, not the track's own:
   * the mix, ARP, SCL, the pattern parameters, the SLICER);
   * the engine as the UI asks for it (eng_req: the audio side switches; host_preset: at once) */
@@ -379,7 +387,7 @@
  static void host_preset_values(track_t *t, uint32_t e, uint32_t pi, const preset_t *p)
  {
      static const uint8_t FX_DEF[4] = {0, 24, 28, 36};
-@@ -119,7 +120,6 @@
+@@ -119,7 +120,6 @@ static void host_preset(track_t *t, uint32_t e, uint32_t pi)
  {
      host_preset_req(t, e, pi);
      t->engine = t->eng_req;                       /* (DIGITAL, retired: FM6) */
@@ -387,7 +395,72 @@
  }
  
  /* the drums of the render tests: DRUM's kit (the power-on track 4; until 1.0.2 these used SAMPLE PERC) */
-@@ -820,7 +820,6 @@
+@@ -194,7 +194,8 @@ static int tracks_demo(const char *dir, const char *name, uint32_t solo)
+     song.g[G_BPM] = 120;
+     host_preset(t1, 0, 4);
+     host_preset(t2, TRK_DEF[1][0], TRK_DEF[1][1]);
+-    host_preset(t3, 3, 0);
++    t2->p[P_VOICE] = V_POLY;                       /* (the pad takes chords; ANALOG preset 0 is mono, P3-010) */
++    host_preset(t3, 0, 0);                         /* (LOFI PULSE LD until P3-010) */
+     host_drums(td);                                /* DRUM KIT (SAMPLE PERC until 1.0.2) */
+     for (i = 0; i < 16u; i++) {
+         uint8_t n = ACID[i];
+@@ -739,18 +740,9 @@ static int tracks_test(const char *dir)
+         waitpid(pid, &st, 0);
+         if (!WIFEXITED(st) || WEXITSTATUS(st))
+             fail++;
+-        fflush(stdout);
+-        pid = fork();
+-        if (!pid) {
+-            int rc = xfade_test(dir);
+-            fflush(stdout);
+-            _exit(rc);
+-        }
+-        waitpid(pid, &st, 0);
+-        if (!WIFEXITED(st) || WEXITSTATUS(st))
+-            fail++;
++        /* (xfade_test, the engine-switch crossfade, has nothing to switch between since P3-010: ANALOG is the only engine) */
+     }
+-    printf("tracks: WAVs in %s: %s (mix), %s, %s, %s, %s, steal.wav, engine_switch.wav\n", dir, SOLO[0], SOLO[1], SOLO[2], SOLO[3], SOLO[4]);
++    printf("tracks: WAVs in %s: %s (mix), %s, %s, %s, %s, steal.wav\n", dir, SOLO[0], SOLO[1], SOLO[2], SOLO[3], SOLO[4]);
+     /* one part: every preset with 8 held notes (the engine's cap: VOICE 4); the worst one */
+     for (e = 0; e < NENGINES; e++)
+         for (pi = 0; pi < ENGINES[e]->npresets; pi++) {
+@@ -771,14 +763,13 @@ static int tracks_test(const char *dir)
+         if (eng_ok(e))
+             printf(" %s %s %.1f%s", ENGINES[e]->name, ENGINES[e]->presets[heavy[e]].name, best_e[e],
+                    e + 1u < NENGINES ? "," : "\n");
+-    {   /* LOFI, PHASE, VOICE (their heaviest presets) and drums on part 4 at once:
++    {   /* ANALOG's heaviest preset on parts 1..3 and the hits on part 4 at once (ANALOG is the only engine, P3-010):
+          * 3 + 3 + 2 notes and the hits in the budget of 8 */
+-        const uint8_t fm = 3;
+-        uint8_t parts[NPART][3] = {{fm, (uint8_t)heavy[fm], 3}, {2, (uint8_t)heavy[2], 3}, {5, (uint8_t)heavy[5], 2},
++        uint8_t parts[NPART][3] = {{0, (uint8_t)heavy[0], 3}, {0, (uint8_t)heavy[0], 3}, {0, (uint8_t)heavy[0], 2},
+                                    {0, 0, DRUM_HITS}};
+-        uint8_t full[NPART][3] = {{fm, (uint8_t)heavy[fm], 8}, {2, (uint8_t)heavy[2], 8}, {5, (uint8_t)heavy[5], 4},
++        uint8_t full[NPART][3] = {{0, (uint8_t)heavy[0], 8}, {0, (uint8_t)heavy[0], 8}, {0, (uint8_t)heavy[0], 4},
+                                   {0, 0, DRUM_HITS}};
+-        uint8_t vv[NPART][3] = {{5, (uint8_t)heavy[5], 4}, {5, (uint8_t)heavy[5], 4}, {0, 0, 0}, {0, 0, 0}};
++        uint8_t vv[NPART][3] = {{0, (uint8_t)heavy[0], 4}, {0, (uint8_t)heavy[0], 4}, {0, 0, 0}, {0, 0, 0}};
+         uint8_t idle[NPART][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, DRUM_HITS}};
+         uint32_t bm2 = 0, bm3 = 0;
+         double two_voice, none;
+@@ -787,11 +778,11 @@ static int tracks_test(const char *dir)
+         two_voice = tracks_cost(vv, &bm3);
+         none = tracks_cost(idle, 0);
+         printf("tracks: worst single part: %s %s %.1f ns\n", ENGINES[worst_e]->name, ENGINES[worst_e]->presets[worst_p].name, worst);
+-        printf("tracks: %s + PHASE + VOICE + drums, 3 + 3 + 2 notes: %.1f ns (%.2f x the worst single part), "
+-               "%u voices\n", ENGINES[fm]->name, four, four / worst, bm);
++        printf("tracks: 3 ANALOG parts + hits, 3 + 3 + 2 notes: %.1f ns (%.2f x the worst single part), "
++               "%u voices\n", four, four / worst, bm);
+         printf("tracks: the same, 8 + 8 + 4 notes asked for (budget keeps %u): %.1f ns (%.2f x)\n", bm2, four_full,
+                four_full / worst);
+-        printf("tracks: two VOICE parts, 4 + 4 voices (the heaviest 8 the budget allows): %.1f ns (%.2f x); "
++        printf("tracks: two ANALOG parts, 4 + 4 voices (the heaviest 8 the budget allows): %.1f ns (%.2f x); "
+                "no notes but the drums (buses, 3 idle parts): %.1f ns\n", two_voice, two_voice / worst, none);
+         if (bm > NVOICE || bm2 > NVOICE || bm3 > NVOICE)
+             fail++;
+@@ -815,7 +806,6 @@ int main(int argc, char **argv)
      for (i = 0; i < G_COUNT; i++) song.g[i] = GP[i].def;
      for (i = 0; i < P_E0; i++) inst.p[i] = TP[i].def;
      inst.eng_req = inst.engine = (uint8_t)eng;
@@ -395,9 +468,9 @@
      for (i = 0; i < 8; i++) inst.p[P_E0 + i] = ENGINES[eng]->edit[i].def;
      if (ENGINES[eng]->npresets) {
          const preset_t *p = &ENGINES[eng]->presets[preset % ENGINES[eng]->npresets];
---- a/tests/midi_control_test.c	2026-11-11 18:25:13
-+++ b/tests/midi_control_test.c	2026-11-11 18:31:07
-@@ -472,8 +472,8 @@
+--- a/tests/midi_control_test.c
++++ b/tests/midi_control_test.c
+@@ -472,8 +472,8 @@ static int cc_map_test(void)
      };
      int bad = 0, ok = 1; uint32_t i, e; int16_t before[P_COUNT];
      midi_test_reset();
@@ -408,7 +481,7 @@
      for (i = 0; i < NELEM(COMMON); i++) {
          queued(0xB0, COMMON[i].cc, 127, 1);
          ok &= trk[0].p[COMMON[i].id] == TP[COMMON[i].id].max;
-@@ -498,9 +498,6 @@
+@@ -498,9 +498,6 @@ static int cc_map_test(void)
          }
      }
      bad += check("every engine's CC74 / CC71 target is a continuous EDIT value (or none)", ok);
@@ -418,9 +491,9 @@
      memcpy(before, trk[0].p, sizeof before);
      queued(0xB0, 121, 0, 1);
      bad += check("CC121 resets no mapped parameter (RP-015)", !memcmp(before, trk[0].p, sizeof before));
---- a/tests/mod_test.c	2026-11-11 14:22:40
-+++ b/tests/mod_test.c	2026-11-11 18:31:07
-@@ -308,28 +308,6 @@
+--- a/tests/mod_test.c
++++ b/tests/mod_test.c
+@@ -308,28 +308,6 @@ static void test_math(void)
      mod_end(t);
      check("every per-block value restored", t->p[P_DIST] == 64 && t->p[P_CHOR] == 64 && t->p[P_LRATE] == 100 && t->p[P_LD_PIT] == 0);
  
@@ -449,9 +522,9 @@
      /* per-voice sources on a per-block destination: the latest note-on */
      fresh(0, 0);
      slot(t, 0, MS_VEL, MD_PAN, 63);
---- a/tests/project_test.c	2026-11-11 18:25:13
-+++ b/tests/project_test.c	2026-11-11 18:31:07
-@@ -25,15 +25,15 @@
+--- a/tests/project_test.c
++++ b/tests/project_test.c
+@@ -25,15 +25,15 @@ int main(void)
      bad += check("FUN10 fits one flash object", sizeof(project_store_t) <= 4096u - 256u && sizeof(project_store_t) == 3840u);
      memset(&q, 0, sizeof q);
      q.magic = PROJ_MAGIC; q.size = sizeof q; q.parts = NPART; q.phys = PROJ_PHYS;
@@ -470,9 +543,9 @@
      st.raw[100] ^= 1u;
      bad += check("FUN10 with a changed byte: the hash refuses it", !proj_import(&q2, &st, sizeof st));
      st.raw[100] ^= 1u;
---- a/tests/regress.c	2026-11-11 18:25:13
-+++ b/tests/regress.c	2026-11-11 18:31:34
-@@ -413,7 +413,7 @@
+--- a/tests/regress.c
++++ b/tests/regress.c
+@@ -413,7 +413,7 @@ static void midi_pkt(uint32_t st, uint32_t d1, uint32_t d2)   /* as usb.c: the q
   * fades within its one block), the VOICE part at most 4; then all off: every voice free */
  static int chk_budget(char *msg, uint32_t n)
  {
@@ -481,7 +554,7 @@
      uint8_t held[NPART][128] = {{0}};
      uint32_t p, k, worst = 0, vworst = 0, fading = 0, kills0 = voice_kills;
      host_tracks_init();
-@@ -440,7 +440,7 @@
+@@ -440,7 +440,7 @@ static int chk_budget(char *msg, uint32_t n)
          for (p = 0; p < NPART; p++)
              for (i = 0; i < NVOICE; i++) {
                  a += trk[p].v[i].active;
@@ -490,7 +563,7 @@
                  fading += trk[p].v[i].active && trk[p].v[i].stage == 4u;
              }
          worst = a > worst ? a : worst;
-@@ -750,35 +750,6 @@
+@@ -750,35 +750,6 @@ static int chk_keep_legato(char *m, uint32_t n) { return chk_keep(m, n, V_LEGATO
  static int chk_keep_unison(char *m, uint32_t n) { return chk_keep(m, n, V_UNISON); }
  
  /* the VOICE engine's cap: 8 keys in POLY and in UNISON (alone: the budget does not limit it) */
@@ -526,7 +599,7 @@
  
  /* no hanging notes: 6 s of random MIDI note-ons / offs on channels 1..4 (the parts), 5, 10 and 16 (ignored
   * with ROUT CH1-4, the selected track with SEL), and keys, while the selected track changes; round 1 with ROUT
-@@ -975,7 +946,6 @@
+@@ -975,7 +946,6 @@ int main(int argc, char **argv)
      add(J_CHECK, "voices: MONO keeps its note")->check = chk_keep_mono;
      add(J_CHECK, "voices: LEGATO keeps its note")->check = chk_keep_legato;
      add(J_CHECK, "voices: UNISON keeps its note")->check = chk_keep_unison;
@@ -534,8 +607,8 @@
      add(J_CHECK, "routing: no hanging notes")->check = chk_hang;
      run_jobs(J, nj, jobs_at_once);
  
---- a/tests/run_tests.sh	2026-11-11 18:26:06
-+++ b/tests/run_tests.sh	2026-11-11 18:28:57
+--- a/tests/run_tests.sh
++++ b/tests/run_tests.sh
 @@ -42,9 +42,6 @@
  #                   responses around the cutoff, RES, bounded at the corners), ENV SYNC (OFF bit for bit, the note values
  #                   on the knob, attack / decay / release times at 60 / 120 / 173 BPM and on the external clock), the cost;
@@ -556,7 +629,7 @@
  # Sanitizers (ASan + UBSan, when the compiler has them; SANITIZE=0 skips): the stored-data and protocol tests again
  #                   (loader, M-UPGRADE entry, projects, fun10).
  #                   UBSan leaves out the DSP's intended wraps (signed overflow, shifts) and the XIP rebase of a user zone's
-@@ -204,17 +198,10 @@
+@@ -204,17 +198,10 @@ if [ -f build/gen/felucca_tables.h ]; then
      mkdir -p build/sound15_demo
      run "1.5 sound items: ANALOG filter TYPE LP / BP / HP (responses, LP and other engines bit for bit), ENV SYNC (times at several tempi), cost, demos" \
          "$OUT/sound15_test" build/sound15_demo
@@ -574,9 +647,9 @@
  else
      echo "== skip hostsim (run ./build.sh once)"
  fi
---- a/tests/target_budget.py	2026-11-11 18:26:15
-+++ b/tests/target_budget.py	2026-11-11 18:28:57
-@@ -14,9 +14,9 @@
+--- a/tests/target_budget.py
++++ b/tests/target_budget.py
+@@ -14,9 +14,9 @@ import os
  import re
  import sys
  
@@ -589,8 +662,8 @@
           "fm1_alnk0_irq", "fm1_timer5_irq",               # the audio ISR; TIMER5: the key / LED scan (hal/fm1_input.h)
           "uac_tap48",                                       # the USB audio input at 48 kHz: the 44.1 -> 48 resampler (usb.c)
           "click_render",                                    # the metronome's click (click.c), while it sounds
---- a/tests/target_budget.txt	2026-11-11 18:26:15
-+++ b/tests/target_budget.txt	2026-11-11 18:28:57
+--- a/tests/target_budget.txt
++++ b/tests/target_budget.txt
 @@ -2,15 +2,6 @@
  # function in build/felucca.dis, x4 per nesting level, divides x9. The check allows +10 %.
  # Rewritten by BUDGET_UPDATE=1.
@@ -607,21 +680,3 @@
  fm1_alnk0_irq 17319
  fm1_timer5_irq 35436
  click_render 30
---- a/LICENSING.md	2026-11-11 18:26:15
-+++ b/LICENSING.md	2026-11-11 18:29:20
-@@ -28,7 +28,6 @@
- | What | Licence | Where |
- | --- | --- | --- |
- | Felucca: firmware, tools, web pages, tests | GPL-3.0-only | `LICENSE` |
--| The PHASE engine's waveforms: a C port of the oscillator of CrispyZebra (<https://github.com/hugelton/CrispyZebra>) | GPL-3.0 | `firmware/src/eng_phase.c` |
- | The controls picture | GPL-3.0-only | `docs/controls.jpg` |
- | The Fukiai icon font (<https://github.com/hugelton/Fukiai>): the firmware's icons (rasterised at build time by `tools/gen_aa_icons.py`) and the web editor's | MIT | `web/fukiai.ttf`, `LICENSES/MIT-Fukiai.txt`, `web/FUKIAI-LICENSE.txt` |
- 
-@@ -37,7 +36,6 @@
- | What | Licence | Where |
- | --- | --- | --- |
- | Inter Tight font by The Inter Project Authors: the UI text, rasterised into the firmware at build time (`tools/gen_aa_font.py`; the generated tables are not offered as a font, and the font declares no Reserved Font Name) | SIL OFL 1.1 | `assets/fonts/InterTight[wght].ttf`, `LICENSES/OFL-InterTight.txt` (also `assets/fonts/OFL.txt`) |
--| klattsch by Tony Gies (<https://github.com/tgies/klattsch>): design reference for the VOICE engine; no code copied. Formant data from Klatt (1980) / Hillenbrand et al. (1995) | MIT (klattsch) | credit only |
- | X0X by charlesvestal (<https://github.com/charlesvestal/fm1-x0x>), a Felucca fork: the design of the browser emulator (the worklet, the device clock driven by its audio, the exports); its files credit it in their headers | GPL-3.0 | `web/emu/` |
- | DotGothic16 font by The DotGothic16 Project Authors (<https://github.com/fontworks-fonts/DotGothic16>): the browser emulator's knob labels, served with its page (cut to printable ASCII; the font declares no Reserved Font Name) | SIL OFL 1.1 | `web/emu/fonts/DotGothic16-subset.woff`, `LICENSES/OFL-DotGothic16.txt` (also `web/emu/fonts/OFL.txt`) |
- | JieLi AC79 SDK by JieLi Technology: three of its files go into every `.fwsc` package (below); none are in this tree | Apache-2.0 | `LICENSES/Apache-2.0.txt` |

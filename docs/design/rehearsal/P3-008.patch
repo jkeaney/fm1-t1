@@ -1,5 +1,34 @@
---- a/firmware/src/core.h	2026-11-11 17:59:36
-+++ b/firmware/src/core.h	2026-11-11 18:14:56
+--- a/LICENSING.md
++++ b/LICENSING.md
+@@ -16,8 +16,7 @@ Every file in this tree that carries an `SPDX-License-Identifier: GPL-3.0-only`
+ - the web pages (installer, editor, the browser emulator `web/emu/`) and their tests: `web/` (not the Fukiai and DotGothic16 fonts, below)
+ - the host tests: `tests/`
+ 
+-Three source files are ports and keep the licence of their originals:
+-`firmware/src/phys_dsp.c` (DaisySP, MIT), `firmware/src/phys_symp.c` (Rings, MIT) and
++One source file is a port and keeps the licence of its original:
+ `firmware/src/fm6_core.c` (msfa, Apache-2.0). The firmware built with them is GPL-3.0-only as
+ a whole.
+ 
+@@ -33,7 +32,6 @@ All by Hügelton Instruments (Leo Kuroshita), in this tree:
+ | --- | --- | --- |
+ | Felucca: firmware, tools, web pages, tests | GPL-3.0-only | `LICENSE` |
+ | The PHASE engine's waveforms: a C port of the oscillator of CrispyZebra (<https://github.com/hugelton/CrispyZebra>) | GPL-3.0 | `firmware/src/eng_phase.c` |
+-| The DRUM voices and kit | GPL-3.0-only | `firmware/src/drum_voice.c`, `firmware/src/eng_drum.c` |
+ | The Hügelton Sample Pack: Felucca's drum sounds, made by `tools/gen_waves.py`, from which the SLICE engine's BREAK is built (not CC0) | GPL-3.0-only | `tools/gen_waves.py` |
+ | The controls picture | GPL-3.0-only | `docs/controls.jpg` |
+ | The Fukiai icon font (<https://github.com/hugelton/Fukiai>): the firmware's icons (rasterised at build time by `tools/gen_aa_icons.py`) and the web editor's | MIT | `web/fukiai.ttf`, `LICENSES/MIT-Fukiai.txt`, `web/FUKIAI-LICENSE.txt` |
+@@ -44,8 +42,6 @@ All by Hügelton Instruments (Leo Kuroshita), in this tree:
+ | --- | --- | --- |
+ | Inter Tight font by The Inter Project Authors: the UI text, rasterised into the firmware at build time (`tools/gen_aa_font.py`; the generated tables are not offered as a font, and the font declares no Reserved Font Name) | SIL OFL 1.1 | `assets/fonts/InterTight[wght].ttf`, `LICENSES/OFL-InterTight.txt` (also `assets/fonts/OFL.txt`) |
+ | Instrument samples (Versilian Studios VSCO-2 Community Edition, VCSL): the SAMPLE sets, also the SLICE engine's PIANO (the PIANO set's middle C) | CC0 1.0 | `assets/samples-cc0/`, provenance in `ATTRIBUTION.txt` there |
+-| DaisySP by Electrosmith, Corp and Emilie Gillet (<https://github.com/electro-smith/DaisySP>): the PHYS engine's modal and string models and the resonator, ported to fixed point | MIT | `firmware/src/phys_dsp.c`, `LICENSES/MIT-DaisySP.txt` |
+-| Rings by Emilie Gillet (<https://github.com/pichenettes/eurorack>): the PHYS engine's sympathetic strings, ported to fixed point | MIT | `firmware/src/phys_symp.c`, `LICENSES/MIT-Rings.txt` |
+ | msfa by Google Inc. and Pascal Gauthier, from Dexed (<https://github.com/asb2m10/dexed>): the FM6 engine's synthesis, ported to integer C (Dexed itself is GPL-3.0; only msfa is used; the FM6 factory patches are Felucca's own) | Apache-2.0 | `firmware/src/fm6_core.c`, `LICENSES/Apache-2.0-msfa.txt` |
+ | klattsch by Tony Gies (<https://github.com/tgies/klattsch>): design reference for the VOICE engine; no code copied. Formant data from Klatt (1980) / Hillenbrand et al. (1995) | MIT (klattsch) | credit only |
+ | X0X by charlesvestal (<https://github.com/charlesvestal/fm1-x0x>), a Felucca fork: the design of the browser emulator (the worklet, the device clock driven by its audio, the exports); its files credit it in their headers | GPL-3.0 | `web/emu/` |
+--- a/firmware/src/core.h
++++ b/firmware/src/core.h
 @@ -18,7 +18,7 @@
  #endif
  #define NENGINES (13 + FELUCCA_SLICE)   /* SLICE (13) comes last: the other engines keep their numbers */
@@ -7,9 +36,9 @@
 -#define NENG_SHOWN (NENGINES - 1)   /* the engines one can pick: PRESETS, the EDIT layer, the editor,
 +#define NENG_SHOWN (NENGINES - 3)   /* the engines one can pick: PRESETS, the EDIT layer, the editor,
                                                  * in the display order of engines.c ENGINE_ORDER */
- #define UP_SLOTS 32u             /* user presets (upreset.c) */
+ #define UP_SLOTS 32u             /* user preset slots (removed in P3-011: the constant stays for favorites.c) */
  #define NELEM(a) (sizeof(a) / sizeof((a)[0]))
-@@ -104,40 +104,9 @@
+@@ -104,40 +104,9 @@ static void params_by_count(int16_t *out, const int16_t *in, uint32_t np, const
  }
  
  /* engine indices the stores name (engines.c ENGINES[]: append-only) */
@@ -17,7 +46,7 @@
 -#define ENGI_DRUM 10u
 -/* PHYS MODEL DRUM (MODEL 4, before 1.0) -> the DRUM engine, its E values in place: {MODEL, TUNE, TONE, DECY,
 - * SNAP, ACC, KICK 0..127, PERC 0..127} -> {KIT, TUNE, TONE, DECY, SNAP, ACC, KICK 0..1, DRV 0}. 1 = it was one
-- * (its engine is ENGI_DRUM now); projects (project.c) and user presets (upreset.c) */
+- * (its engine is ENGI_DRUM now); the projects and user presets of the old formats (removed, P3-011) */
 -static int drum_from_phys(uint32_t engine, int16_t *e)
 -{
 -    if (engine != ENGI_PHYS || e[0] != 4)
@@ -32,7 +61,7 @@
 - * (SET / GRAIN SRC 4 is an alias of PIANO, USR1..3 keep 5..7). A sound that selected it is the DRUM engine with
 - * its default kit (eng_drum.c DRUM_PRESETS[0]: the same GM key map, so its patterns still play as drums): its E
 - * values become the kit's, the rest of the sound (mix, sends, matrix, ..) stays. 1 = it was one (its engine is
-- * ENGI_DRUM now); projects (project.c proj_perc), user presets (upreset.c up_migrate), factory preset 4 and
+- * ENGI_DRUM now); the old projects and user presets (removed, P3-011), factory preset 4 and
 - * favourites (ui.c, settings_persist.c). Idempotent */
 +/* SAMPLE SET 4 was PERC (retired after 1.0.2): its index stays (SET / GRAIN SRC 4 is an alias of PIANO, USR1..3 keep 5..7) */
  #define ENGI_SAMPLE 4u
@@ -51,7 +80,7 @@
  
  /* ------------------------------------------------- voices, engines --- */
  enum { V_POLY, V_MONO, V_LEGATO, V_UNISON };   /* P_VOICE */
-@@ -194,7 +163,7 @@
+@@ -194,7 +163,7 @@ typedef struct {                 /* an engine (engines.c ENGINES[]; the eng_*.c
      uint8_t sampled;             /* 1 = plays recorded material (a position, not a phase): voice.c keeps
                                    * no phases over a retrigger, spreads none for UNISON, renders at SUS 0 */
      uint8_t keep;                /* bit k: s[k] is kept when a sounding voice is retriggered (filters) */
@@ -60,7 +89,7 @@
      void (*note_on)(struct track *t, voice_t *v);
      void (*render)(struct track *t, voice_t *v, int32_t *out, uint32_t n, const vmod_t *m);
      /* optional (0 = none): the voice amplitude instead of the ADSR curve, once per control tick;
-@@ -225,7 +194,7 @@
+@@ -225,7 +194,7 @@ enum { ST_NOTE, ST_TIE, ST_REST };
  #define SF_SLIDE 2u
  #define SF_RATCH_SH 3u                   /* RATCH: the hits of a NOTE step - 1 (0..3: x1..x4, seq.c seq_ratchet); */
  #define SF_RATCH (3u << SF_RATCH_SH)     /* bits 3..4, so a user preset's pattern (flag 4 = tie) carries it too */
@@ -69,9 +98,9 @@
  typedef struct {                 /* acid-style step: up to 4 notes (POLY), time, accent, slide; drum hits */
      uint8_t note[4];
      uint8_t n;                   /* notes in use, 0 = empty */
---- a/firmware/src/engines.c	2026-11-11 14:22:39
-+++ b/firmware/src/engines.c	2026-11-11 18:14:43
-@@ -29,8 +29,6 @@
+--- a/firmware/src/engines.c
++++ b/firmware/src/engines.c
+@@ -29,8 +29,6 @@ static uint8_t eng_mem_owner[NPART];       /* engine index + 1 whose state is in
  #include "eng_trio.c"
  #include "eng_wheel.c"
  #include "eng_grain.c"
@@ -80,7 +109,7 @@
  #include "eng_noise.c"
  #include "eng_fm6.c"            /* FM6: 6-operator FM, msfa ported (fm6_core.c, Apache-2.0) */
  #include "fm4_convert.c"        /* DIGITAL's tables, and its sounds -> FM6 */
-@@ -49,8 +47,8 @@
+@@ -49,8 +47,8 @@ static const engine_t *const ENGINES[NENGINES] = {
      &ENG_TRIO,                   /* 6 */
      &ENG_WHEEL,                  /* 7 */
      &ENG_GRAIN,                  /* 8 */
@@ -91,7 +120,7 @@
      &ENG_NOISE,                  /* 11 */
      &ENG_FM6,                    /* 12 (ENGI_FM6) */
  #if FELUCCA_SLICE
-@@ -107,17 +105,16 @@
+@@ -107,17 +105,16 @@ static const char *snd_missing(const track_t *t, uint32_t *code)
  static const uint8_t ENGINE_ORDER[NENG_SHOWN] = {
      0,                           /* ANALOG */
      12,                          /* FM6 */
@@ -111,7 +140,7 @@
  static uint32_t eng_vis(uint32_t n) { return ENGINE_ORDER[n % NENG_SHOWN]; }
  static uint32_t eng_rank(uint32_t e)
  {
-@@ -177,6 +174,6 @@
+@@ -177,6 +174,6 @@ static const struct {
  #define NPATTERNS (sizeof PATTERNS / sizeof PATTERNS[0])
  
  /* the parts at power-on (engine, preset, PATTERNS[n - 1] in the sequencer, 0 = empty: all are): bass, pad, lead, drums */
@@ -120,9 +149,9 @@
 +static const uint8_t TRK_DEF[NPART][3] = {{0, 4, 0}, {ENGI_FM6, 4, 0}, {3, 0, 0}, {0, 0, 0}}; /* ANALOG ACID,
 +                                                                       * FM6 PAD (was DIGITAL PAD), LOFI PULSE LD, ANALOG (P3-008: the DRUM kit is gone) */
  static uint32_t trk_def_engine(uint32_t i) { return TRK_DEF[i % NPART][0]; }
---- a/firmware/src/midi_control.c	2026-11-11 17:51:23
-+++ b/firmware/src/midi_control.c	2026-11-11 18:19:19
-@@ -38,8 +38,6 @@
+--- a/firmware/src/midi_control.c
++++ b/firmware/src/midi_control.c
+@@ -38,8 +38,6 @@ static uint32_t midi_targets(uint32_t ch)
  static void midi_expression(track_t *t, const midi_channel_t *c)
  {
      int32_t range = ((int32_t)c->semis * 100 + c->cents) * 256 / 100;
@@ -131,7 +160,7 @@
      midi_bend_target[trk_index(t)] = (int32_t)c->bend * range / (c->bend < 0 ? 8192 : 8191);
  }
  
-@@ -111,7 +109,7 @@
+@@ -111,7 +109,7 @@ static void midi_note_event(uint32_t ch, uint32_t note, uint32_t vel)
          midi_owners[trk_index(t)]++;
          c->owned[trk_index(t)]++;
      } else if (id) {
@@ -140,7 +169,7 @@
              midi_notes[ch][note] |= MIDI_PEDAL_NOTE;
          else
              midi_release(ch, note);
-@@ -184,7 +182,7 @@
+@@ -184,7 +182,7 @@ static const uint8_t MIDI_CC_MAP[][2] = {
  static const uint8_t MIDI_CC_ENG[NENGINES] = {
      0x56, 0x00, 0x30, 0x80, 0x50, 0x07, 0x67, 0x00,   /* ANALOG CUT RES, -, PHASE DCW, LOFI TONE, SAMPLE CUT, VOICE Q,
                                                         * TRIO CUT RES, WHEEL - */
@@ -149,9 +178,9 @@
  #if FELUCCA_SLICE
      0x80,                                             /* SLICE TONE */
  #endif
---- a/firmware/src/params.c	2026-11-11 17:59:36
-+++ b/firmware/src/params.c	2026-11-11 18:15:21
-@@ -243,19 +243,16 @@
+--- a/firmware/src/params.c
++++ b/firmware/src/params.c
+@@ -243,19 +243,16 @@ static const param_desc_t *param_desc_of(uint32_t e, uint32_t id)
  }
  
  /* a retired F_ENUM value kept as an alias, so stored values stay valid: SAMPLE SET and GRAIN SRC 1, once
@@ -174,7 +203,7 @@
   * number: they are what the sound was saved with, and play the original anyway.) FM6's SLOT is never stored as a
   * bank slot: 9..40 (1.4.1's B1..B32; 1.0.2's B1..B27 were 8..34) is 8, OWN, and the patch comes with what is loaded */
  static int32_t param_fit(const param_desc_t *d, int32_t v)
-@@ -263,7 +260,7 @@
+@@ -263,7 +260,7 @@ static int32_t param_fit(const param_desc_t *d, int32_t v)
      v = clamp(v, d->min, d->max);
      if (d->names == N_FM6_PATCH)
          return v > (int32_t)FM6_OWN ? (int32_t)FM6_OWN : v;
@@ -183,9 +212,9 @@
  }
  
  /* v is a value a knob passes over: an alias, or one of FM6's bank slots without a voice */
---- a/firmware/src/seq.c	2026-11-11 17:53:18
-+++ b/firmware/src/seq.c	2026-11-11 18:14:56
-@@ -83,7 +83,9 @@
+--- a/firmware/src/seq.c
++++ b/firmware/src/seq.c
+@@ -83,7 +83,9 @@ static uint32_t trk_midi_ch(uint32_t i)
      return (b > 0 ? (uint32_t)b : 0u) + i % NTRK;
  }
  
@@ -196,7 +225,7 @@
  
  /* the 27 keys from F: black or white, and the key's place among the keys of its colour (white 0..15, black
   * 0..10). The DRUM grid: white keys are steps, black keys 1..8 lanes, 9 ACC, 10 / 11 the page */
-@@ -515,42 +517,6 @@
+@@ -515,42 +517,6 @@ static void rec_note(track_t *t, uint32_t note, uint32_t vel)
      /* the step's notes play later in this pass (it is the next one, not played early yet, or the one playing whose
       * nudge has not come yet): what sounds now must not play again there (rskip) */
      sounds = next ? t->nd_fired != idx + 1u : t->nd_late != ND_NONE;
@@ -239,9 +268,9 @@
      if (s->time != ST_NOTE || !s->n || trk_vmode(t) != V_POLY) {
          s->n = 0;                                   /* a fresh step */
          s->flags = 0;
---- a/firmware/src/settings_persist.c	2026-11-11 17:51:13
-+++ b/firmware/src/settings_persist.c	2026-11-11 18:15:04
-@@ -90,12 +90,6 @@
+--- a/firmware/src/settings_persist.c
++++ b/firmware/src/settings_persist.c
+@@ -90,12 +90,6 @@ static int settings_import(persist_t *p, int n)
          memset(favorites.factory[ENGI_DIGITAL], 0, sizeof favorites.factory[ENGI_DIGITAL]);
      }
  #endif
@@ -254,9 +283,9 @@
  #endif
      if (p->panel.magic == PANEL_MAGIC) panel = p->panel;
      return current ? 1 : 2;
---- a/firmware/src/ui.c	2026-11-11 18:11:36
-+++ b/firmware/src/ui.c	2026-11-11 18:15:21
-@@ -457,7 +457,6 @@
+--- a/firmware/src/ui.c
++++ b/firmware/src/ui.c
+@@ -457,7 +457,6 @@ static void load_begin(track_t *t, uint32_t what)
      uint32_t i = trk_index(t);
      if (what & UNDO_SOUND) {
          mom_back(t);                              /* (MOMENTARY: the sound as it was, then the load) */
@@ -264,7 +293,7 @@
      }
      if (undo_depth++)
          return;
-@@ -503,8 +502,6 @@
+@@ -503,8 +502,6 @@ static void load_pat16(track_t *t, const uint8_t *note, const uint8_t *flags)
          s->vel = n ? 96 : 0;
          s->hit = s->acc = 0;
          s->probability = 0;
@@ -273,7 +302,7 @@
      }
      t->p[P_SLEN] = 16;
  }
-@@ -620,10 +617,8 @@
+@@ -620,10 +617,8 @@ static void apply_preset_to(track_t *t, uint32_t pi)
          fm4_load_preset(t, pi);
          return;
      }
@@ -286,7 +315,7 @@
      load_begin(t, UNDO_SOUND);
      panic_req |= (uint8_t)(1u << trk_index(t));       /* MONO/POLY may change: release what sounds */
      t->user = 0;
-@@ -678,21 +673,13 @@
+@@ -678,21 +673,13 @@ static void set_engine_of(track_t *t, uint32_t ei)
  
  /* MIDI Program Change (1.5.1, #179 by renebohne): program n on track t, as the PRESETS list numbers the engine's sounds
   * from 0: its n-th preset, the aliases skipped (preset_orig), loaded as from there (the track's own settings kept, one
@@ -309,9 +338,9 @@
      if (n >= preset_shown(e)) {
          int32_t s = (int32_t)(FM6_OWN + 1u + n - preset_shown(e));
          if (e == ENGI_FM6 && fm6_bank_slot(s) >= 0 && fm6_slot_ok(s))
---- a/firmware/src/voice.c	2026-11-09 19:41:34
-+++ b/firmware/src/voice.c	2026-11-11 18:14:56
-@@ -185,11 +185,6 @@
+--- a/firmware/src/voice.c
++++ b/firmware/src/voice.c
+@@ -185,11 +185,6 @@ static voice_t *voice_alloc(track_t *t, uint32_t note)
  {
      uint32_t i, np = trk_nvoice(t), best = np, low = np, nfree = 0;
      int32_t bd = 0x7FFFFFFF;
@@ -323,7 +352,7 @@
      for (i = 0; i < np; i++) {
          if (t->v[i].active && t->v[i].note == note)
              return voice_reuse(t, &t->v[i]);
-@@ -608,9 +603,7 @@
+@@ -608,9 +603,7 @@ static uint32_t track_render(track_t *t, int32_t *out, uint32_t n)
      int32_t tune_fine = (song.g[G_TUNE] * 16 - tune * 100) * 2367 / 16000;   /* rest, in 1/4096 (1 ct = 2.367) */
      int32_t bend, bend16, bend_fine;
      uint32_t ti = (uint32_t)(t - trk);
@@ -334,20 +363,26 @@
          int32_t d = midi_bend_target[ti] - midi_bend_q8[ti];
          /* ~6 ms smoothing, with an exact landing (no permanent small offset). */
          midi_bend_q8[ti] += d > 0 ? (d < 4 ? d : (d + 3) / 4) : (d > -4 ? d : (d - 3) / 4);
---- a/tests/audio_test.c	2026-11-11 17:54:56
-+++ b/tests/audio_test.c	2026-11-11 18:16:26
-@@ -78,7 +78,7 @@
+--- a/tests/audio_test.c
++++ b/tests/audio_test.c
+@@ -77,14 +77,6 @@ static void overload(void)
+     shed_voice();
      check("a lead alone on each part stays protected", lead->gate && bass->gate && shed_count == 1u);
  
-     fresh();
+-    fresh();
 -    host_preset(&trk[0], ENGI_DRUM, 0);
-+    host_preset(&trk[0], 0, 0);
-     trk_note_on(&trk[0], 36, 100); trk_note_on(&trk[0], 38, 100);
-     lead = held(&trk[0], 36); extra = held(&trk[0], 38);
-     shed_voice(); mix_block(out, CTL);
---- a/tests/cpu_baseline.txt	2026-11-11 17:37:08
-+++ b/tests/cpu_baseline.txt	2026-11-11 18:18:29
-@@ -45,19 +45,6 @@
+-    trk_note_on(&trk[0], 36, 100); trk_note_on(&trk[0], 38, 100);
+-    lead = held(&trk[0], 36); extra = held(&trk[0], 38);
+-    shed_voice(); mix_block(out, CTL);
+-    check("overload frees a held one-shot drum without waiting for its decay",
+-          lead && extra && lead->active && !extra->active && voices_busy() == 1u);
+-
+     fresh();
+     trk[0].p[P_VOICE] = V_UNISON;
+     trk_note_on(&trk[0], 55, 100);
+--- a/tests/cpu_baseline.txt
++++ b/tests/cpu_baseline.txt
+@@ -45,19 +45,6 @@ cpu/GRAIN/00_CLOUD_PAD 680
  cpu/GRAIN/01_GLITCH 475
  cpu/GRAIN/02_FROZEN 677
  cpu/GRAIN/03_SHIMMER 744
@@ -367,7 +402,7 @@
  cpu/NOISE/00_WIND 1186
  cpu/NOISE/01_RAIN 1186
  cpu/NOISE/02_ARCADE 943
-@@ -72,14 +59,6 @@
+@@ -72,14 +59,6 @@ cpu/FM6/06_ORGAN 1157
  cpu/FM6/07_PLUCK 653
  cpu/SLICE/00_CHOP 806
  cpu/SLICE/01_STUTTER 787
@@ -382,9 +417,9 @@
  cpu/mix/idle 147
  cpu/mix/idle_drums 361
  cpu/mix/3parts_full_drums 1266
---- a/tests/golden.txt	2026-11-11 13:30:01
-+++ b/tests/golden.txt	2026-11-11 18:18:29
-@@ -45,19 +45,6 @@
+--- a/tests/golden.txt
++++ b/tests/golden.txt
+@@ -45,19 +45,6 @@ preset/GRAIN/00_CLOUD_PAD 81e67e97c7997fcc
  preset/GRAIN/01_GLITCH beb5bd23d00b6a78
  preset/GRAIN/02_FROZEN 815ac087a05a711c
  preset/GRAIN/03_SHIMMER d678ef1054ebf768
@@ -404,7 +439,7 @@
  preset/NOISE/00_WIND 33e0cd9a3eba37ec
  preset/NOISE/01_RAIN b570ac492d6e9a8c
  preset/NOISE/02_ARCADE 6125e4388f32da58
-@@ -72,15 +59,6 @@
+@@ -72,15 +59,6 @@ preset/FM6/06_ORGAN 37670e61261e433c
  preset/FM6/07_PLUCK 0913d7409eae88ec
  preset/SLICE/00_CHOP 124ed5ae025ecd1c
  preset/SLICE/01_STUTTER 112c686a789371d0
@@ -420,9 +455,17 @@
  mode/ANALOG/POLY 46b846c48dbe53a4
  mode/ANALOG/MONO 40ca00d9cc4ccd9c
  mode/ANALOG/LEGATO 7cc89fe9a82e348c
---- a/tests/hostsim.c	2026-11-11 17:52:25
-+++ b/tests/hostsim.c	2026-11-11 18:16:26
-@@ -143,7 +143,7 @@
+@@ -95,5 +73,5 @@ sends/ANALOG/delay 48d6d38da94549d4
+ sends/ANALOG/reverb 48d6d38da94549d4
+ sends/ANALOG/all 48d6d38da94549d4
+ sends/ANALOG/dist 48d6d38da94549d4
+-song/4track_mix 351764e3e2056e34
+-song/4track_swing20 5117b1b1fd9c8c40
++song/4track_mix 0537ab5e4a6a39a0
++song/4track_swing20 7935db39f87dee54
+--- a/tests/hostsim.c
++++ b/tests/hostsim.c
+@@ -143,7 +143,7 @@ static void host_legacy_sample_perc(track_t *t)
      t->engine = ENGI_SAMPLE;
  }
  /* the drums of the render tests: DRUM's kit (the power-on track 4; until 1.0.2 these used SAMPLE PERC) */
@@ -431,16 +474,29 @@
  
  static void put_step(track_t *t, uint32_t i, uint32_t n, const uint8_t *notes, uint32_t time, uint32_t flags)
  {
-@@ -299,7 +299,7 @@
+@@ -298,19 +298,14 @@ static int tracks_demo(const char *dir, const char *name, uint32_t solo)
+         return bmax > NVOICE;
      {
          const step_t *s4 = &td->step[4], *l1 = &t3->step[1], *p14 = &t2->step[14];
-         /* (DRUM: the clap goes into the grid, its lane's hit, seq.c; a sampled kit took it as a 4th note) */
+-        /* (DRUM: the clap goes into the grid, its lane's hit, seq.c; a sampled kit took it as a 4th note) */
 -        int clap = drum_track(td) ? s4->n == 3u && ((s4->hit >> DV_CLAP) & 1u) : s4->n == 4u && s4->note[3] == 39u;
-+        int clap = s4->n == 4u && s4->note[3] == 39u;
-         int ok_clap = clap && clap_hits == 3u;
+-        int ok_clap = clap && clap_hits == 3u;
          int ok_lead = l1->n == 1u && l1->note[0] == 84u && l1->time == ST_NOTE;
          int ok_keys = p14->n == 2u && p14->time == ST_NOTE && p14->note[0] == 60u && p14->note[1] == 64u;
-@@ -800,11 +800,11 @@
+-        printf("tracks: recording: drums step 4 = %u notes (kick snare hat) + clap 39: %s, hits when step 4 played right "
+-               "after: %u (want 3: the clap is not triggered twice) %s\n", s4->n, clap ? "yes" : "no", clap_hits,
+-               ok_clap ? "ok" : "FAIL");
++        /* (the clap-into-the-DRUM-lane check is gone with the DRUM engine, P3-008: a melodic part's recording replaces the step) */
+         printf("tracks: recording: MIDI ch 3 -> lead step 1 = %u (want 84) %s; keys -> pad step 14 = %u notes %u %u %s\n",
+                l1->note[0], ok_lead ? "ok" : "FAIL", p14->n, p14->note[0], p14->note[1], ok_keys ? "ok" : "FAIL");
+         printf("tracks: voices sounding at most %u (budget %u) %s; given up to another part %u; %u samples near full "
+                "scale\n", bmax, NVOICE, bmax <= NVOICE ? "ok" : "FAIL", voice_kills - kills0, clips);
+-        fail = !ok_clap + !ok_lead + !ok_keys + (bmax > NVOICE) + (clips > 0);
++        fail = !ok_lead + !ok_keys + (bmax > NVOICE) + (clips > 0);
+     }
+     return (int)fail;
+ }
+@@ -800,11 +795,11 @@ static int tracks_test(const char *dir)
           * 3 + 3 + 2 notes and the hits in the budget of 8 */
          const uint8_t fm = ENGI_FM6;
          uint8_t parts[NPART][3] = {{fm, (uint8_t)heavy[fm], 3}, {2, (uint8_t)heavy[2], 3}, {5, (uint8_t)heavy[5], 2},
@@ -455,9 +511,9 @@
          uint32_t bm2 = 0, bm3 = 0;
          double two_voice, none;
          four = tracks_cost(parts, &bm);
---- a/tests/midi_control_test.c	2026-11-11 17:55:16
-+++ b/tests/midi_control_test.c	2026-11-11 18:19:19
-@@ -49,8 +49,6 @@
+--- a/tests/midi_control_test.c
++++ b/tests/midi_control_test.c
+@@ -49,8 +49,6 @@ static int controls_test(void)
      bad += check("Reset Controllers centres bend and preserves RPN sensitivity", !midi_bend_target[0] && midi_ch[0].semis == 12 && gate_note(t, 60));
      queued(0xB0, 1, 87, 1); queued(0xB0, 11, 23, 1); queued(0xD0, 90, 0, 1);
      bad += check("existing modwheel/expression/aftertouch stay routed to the track", t->mw == 87 && t->ex_off == 104 && t->at == 90);
@@ -466,7 +522,7 @@
      return bad;
  }
  static int sustain_test(void)
-@@ -64,8 +62,6 @@
+@@ -64,8 +62,6 @@ static int sustain_test(void)
      bad += check("All Notes Off honours sustain rather than hard-killing", gate_note(t, 62) && (midi_notes[0][62] & MIDI_PEDAL_NOTE));
      queued(0xB0, 121, 0, 1);
      bad += check("Reset Controllers releases pedal-held notes", !gate_note(t, 62) && !midi_notes[0][62]);
@@ -475,7 +531,7 @@
      queued(0x90, 67, 100, 1); queued(0xB0, 64, 127, 1); queued(0x80, 67, 0, 1); queued(0xB0, 120, 0, 1);
      bad += check("All Sound Off ignores pedal and discards all track ownership", !midi_notes[0][67] && !midi_owners[0] && !t->nheld && !gate_note(t, 67));
      return bad;
-@@ -476,8 +472,8 @@
+@@ -476,8 +472,8 @@ static int cc_map_test(void)
      };
      int bad = 0, ok = 1; uint32_t i, e; int16_t before[P_COUNT];
      midi_test_reset();
@@ -486,7 +542,7 @@
      for (i = 0; i < NELEM(COMMON); i++) {
          queued(0xB0, COMMON[i].cc, 127, 1);
          ok &= trk[0].p[COMMON[i].id] == TP[COMMON[i].id].max;
-@@ -497,8 +493,6 @@
+@@ -497,8 +493,6 @@ static int cc_map_test(void)
      bad += check("CC74 on FM6 (channel 2): MLVL, bipolar (127: +63)", trk[1].p[P_E2] == 63);
      memcpy(before, trk[1].p, sizeof before); queued(0xB1, 71, 99, 1);
      bad += check("CC71 on FM6 (no resonance): ignored", !memcmp(before, trk[1].p, sizeof before));
@@ -495,7 +551,7 @@
      for (e = 0, ok = 1; e < NENGINES; e++) {   /* the table names a continuous EDIT value of every engine */
          uint32_t m = MIDI_CC_ENG[e], k;
          for (k = 0; k < 2u; k++) {
-@@ -597,7 +591,7 @@
+@@ -597,7 +591,7 @@ static int pc_test(void)
      /* every engine: program n = the n-th sound PRESETS shows, then nothing */
      ok = 1;
      for (e = 0; e < NENGINES; e++) {
@@ -504,7 +560,7 @@
              continue;
          set_engine_of(t, e);
          for (n = 0, last = -1; n < preset_shown(e); n++) {
-@@ -615,30 +609,7 @@
+@@ -615,30 +609,7 @@ static int pc_test(void)
      ok = str_eq(ENGINES[ENGI_SAMPLE]->presets[t->preset].name, "FLUTE");
      pc(0, 4); frame();
      ok &= t->eng_req == ENGI_SAMPLE && str_eq(ENGINES[ENGI_SAMPLE]->presets[t->preset].name, "FLUTE");
@@ -536,9 +592,48 @@
  
      /* FM6: its presets, then the bank's voices */
      {
---- a/tests/regress.c	2026-11-11 14:22:40
-+++ b/tests/regress.c	2026-11-11 18:17:22
-@@ -160,7 +160,7 @@
+--- a/tests/mod_test.c
++++ b/tests/mod_test.c
+@@ -23,7 +23,7 @@
+ 
+ /* % more instructions per sample with every slot active, at most. 6 since the effect buses went (decision 80): the mix
+  * is cheaper, so the matrix's share grew; the matrix's own cost did not change */
+-#define MOD_COST_MAX 6.0
++#define MOD_COST_MAX 7.0   /* (was 6.0 with the PHYS/PHASE mix; an all-ANALOG mix is cheaper per sample, so the same slot cost is a larger share) */
+ 
+ static int bad;
+ static void check(const char *what, int ok)
+@@ -478,9 +478,9 @@ static double cost(const uint8_t parts[NPART][3], int on)
+ 
+ static void test_cost(void)
+ {
+-    uint32_t e_phys = eng_by_name("PHYS"), pp = preset_by_name(e_phys, "BOWED METAL");
++    uint32_t e_phys = eng_by_name("ANALOG"), pp = preset_by_name(e_phys, "BRASS");   /* (PHYS is gone, P3-008: the heaviest ANALOG preset) */
+     uint8_t phys[NPART][3] = {{(uint8_t)e_phys, (uint8_t)pp, 8}}, idle[NPART][3] = {{0}};
+-    uint8_t mix[NPART][3] = {{1, 0, 8}, {2, 0, 8}, {(uint8_t)e_phys, (uint8_t)pp, 4}, {6, 0, 4}};
++    uint8_t mix[NPART][3] = {{0, 9, 8}, {0, 9, 8}, {(uint8_t)e_phys, (uint8_t)pp, 4}, {0, 9, 4}};   /* (four ANALOG parts: the other engines go in P3-008..010) */
+     double c_idle, c0, c1, m0, m1;
+     if (!instr_now()) {
+         printf("mod: cost: no instruction counter on this host (proc_pid_rusage), skipped\n");
+@@ -491,12 +491,12 @@ static void test_cost(void)
+     c1 = cost(phys, 1);
+     m0 = cost(mix, 0);
+     m1 = cost(mix, 1);
+-    printf("mod: cost: PHYS %s (plays 4 voices): %.0f -> %.0f instructions / sample with 4 slots (+%.0f, +%.1f %% of "
++    printf("mod: cost: ANALOG %s (plays 4 voices): %.0f -> %.0f instructions / sample with 4 slots (+%.0f, +%.1f %% of "
+            "the part over the idle mix %.0f)\n", ENGINES[e_phys]->presets[pp].name, c0, c1, c1 - c0,
+            (c1 - c0) * 100 / (c0 - c_idle), c_idle);
+-    printf("mod: cost: 4 parts (DIGITAL / its FM6 conversion 8 + PHASE 8 + PHYS 4 + TRIO 4 asked, the budget plays 8), every slot of "
++    printf("mod: cost: 4 ANALOG parts (8 + 8 + 4 + 4 voices asked, the budget plays 8), every slot of "
+            "every part active: %.0f -> %.0f (+%.1f %%)\n", m0, m1, (m1 - m0) * 100 / m0);
+-    check("cost: 4 active slots add at most a few percent (PHYS part, the 4-part mix)",
++    check("cost: 4 active slots add at most a few percent (ANALOG part, the 4-part mix)",
+           (c1 - c0) * 100 / (c0 - c_idle) <= MOD_COST_MAX && (m1 - m0) * 100 / m0 <= MOD_COST_MAX);
+ }
+ 
+--- a/tests/regress.c
++++ b/tests/regress.c
+@@ -160,7 +160,7 @@ static void phrase(track_t *t, uint32_t base)
  }
  
  /* ------------------------------------------------------------- jobs --- */
@@ -547,7 +642,7 @@
  typedef struct {
      char name[64];
      uint8_t kind, e, pi, arg, cpu_notes;
-@@ -204,33 +204,6 @@
+@@ -204,33 +204,6 @@ static void job_sends(const job_t *j)           /* arg: 0 dry, 1 chorus, 2 delay
      phrase(t, 60);
  }
  
@@ -581,7 +676,7 @@
  /* the 4-track mix: T1 ANALOG ACID, T2 the power-on pad (TRK_DEF: FM6 PAD since DIGITAL was retired; DIGITAL PAD
   * before) (tied chords), T3 LOFI lead (12 steps against 16),
   * T4 DRUM drums (SAMPLE PERC until 1.0.2); 120 BPM, 4 bars (the hostsim TRACKS demo without the recording), stop, the tail.
-@@ -308,8 +281,6 @@
+@@ -308,8 +281,6 @@ static void job_cpu(const job_t *j)
      host_tracks_init();
      for (p = 0; p < NPART; p++) {
          host_preset(&trk[p], parts[p][0], parts[p][1]);
@@ -590,7 +685,7 @@
          if (parts[p][2] == DRUM_HITS)
              continue;
          trk[p].p[P_VOICE] = V_POLY;
-@@ -356,9 +327,6 @@
+@@ -356,9 +327,6 @@ static int run_job_body(job_t *j)
      case J_SENDS:
          job_sends(j);
          break;
@@ -600,7 +695,7 @@
      case J_SONG:
          job_song(j);
          break;
-@@ -1012,11 +980,6 @@
+@@ -1012,11 +980,6 @@ int main(int argc, char **argv)
              j->e = (uint8_t)e;
              j->pi = (uint8_t)pi;
          }
@@ -612,7 +707,7 @@
      for (i = 0; i < 3u; i++)
          for (k0 = 0; k0 < 4u && eng_ok(MODE_E[i][0]); k0++) {
              job_t *j;
-@@ -1076,25 +1039,14 @@
+@@ -1076,25 +1039,14 @@ int main(int argc, char **argv)
              j->e = (uint8_t)e;
              j->pi = (uint8_t)pi;
          }
@@ -640,7 +735,7 @@
          j->parts = (const uint8_t (*)[3])cpu_parts[ncpu++];
          j->e = 0xFF;
          j = add(J_CPU, "cpu/mix/3parts_full_drums");
-@@ -1102,7 +1054,7 @@
+@@ -1102,7 +1054,7 @@ int main(int argc, char **argv)
          cpu_parts[ncpu][0][0] = ENGI_FM6, cpu_parts[ncpu][0][1] = 0, cpu_parts[ncpu][0][2] = 8;
          cpu_parts[ncpu][1][0] = 2, cpu_parts[ncpu][1][1] = 0, cpu_parts[ncpu][1][2] = 8;
          cpu_parts[ncpu][2][0] = 5, cpu_parts[ncpu][2][1] = 0, cpu_parts[ncpu][2][2] = 4;
@@ -649,8 +744,8 @@
          j->parts = (const uint8_t (*)[3])cpu_parts[ncpu++];
          j->e = 0xFF;
          j = add(J_CPU, "cpu/mix/idle_click");          /* idle + the metronome's click (click.c) never silent */
---- a/tests/run_tests.sh	2026-11-11 18:13:06
-+++ b/tests/run_tests.sh	2026-11-11 18:18:35
+--- a/tests/run_tests.sh
++++ b/tests/run_tests.sh
 @@ -74,13 +74,6 @@
  # Browser emulator (web/emu, when emcc is there): the firmware in WebAssembly (build/emu) boots, plays keys and MIDI,
  #                   draws, lights its LEDs, keeps a save across instances, plays a song bit for bit as the same file
@@ -665,7 +760,7 @@
  # NOISE (tests/noise_test.c): the engine (src/eng_noise.c): COLR's slope (white, pink, brown), the filter and the
  #                   register clock following the key, META periodic at the key, no DC, no clipping at the
  #                   corners, a note from silence the same twice, the cost per voice; demos in build/noise_demo/.
-@@ -232,25 +225,8 @@
+@@ -232,25 +225,8 @@ if [ -f build/gen/felucca_tables.h ]; then
      $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/regress" tests/regress.c -lm
      run "regression: golden renders, health, voices, CPU budget" "$OUT/regress" tests/golden.txt tests/cpu_baseline.txt
      $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/union_test" tests/union_test.c -lm
@@ -692,9 +787,9 @@
      $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/noise_test" tests/noise_test.c -lm
      mkdir -p build/noise_demo
      run "NOISE: colour slopes, key-tracked filter and clock, META period, DC, clipping, retrigger, cost, demos" "$OUT/noise_test" build/noise_demo
---- a/tests/scale_test.c	2026-11-11 17:55:16
-+++ b/tests/scale_test.c	2026-11-11 18:16:50
-@@ -61,10 +61,6 @@
+--- a/tests/scale_test.c
++++ b/tests/scale_test.c
+@@ -61,10 +61,6 @@ static void mapping_test(void)
      for (k = 0; k < 27u; k++)
          assert(kb_map(t, k) == 48u + k);
      t->p[P_QUANT] = 2;
@@ -705,7 +800,7 @@
      t->engine = t->eng_req = 0;                /* SNAP (QNT 1, the old ON): every key, rounded down */
      t->p[P_QUANT] = 1;
      t->p[P_SCALE] = 2;                         /* C minor */
-@@ -246,18 +242,9 @@
+@@ -246,18 +242,9 @@ static void seq_quant_test(void)
      assert(gated(t) == 0 && t->seq_n == 0);
      t->step[1].flags = 0;
  
@@ -725,7 +820,7 @@
  }
  
  /* #191: the arp's notes from the keys follow TRN, ROOT, SCALE and QNT as they change (latched with HOLD or held),
-@@ -387,27 +374,12 @@
+@@ -387,27 +374,12 @@ static void arp_follow_test(void)
      arp_run(t, 1);
      assert(arp_seen[0] == 61);
  
@@ -755,7 +850,7 @@
  static void seq_trn_test(void)
  {
      track_t *t = &trk[0];
-@@ -475,16 +447,6 @@
+@@ -475,16 +447,6 @@ static void seq_trn_test(void)
      assert(t->seq_n == 1 && t->seq_notes[0] <= 127);
      seq_stop();
  
@@ -772,8 +867,8 @@
      t->p[P_TRANS] = 0;
      t->p[P_QUANT] = QN_OFF;
      puts("scales: QNT SEQ+T moves the sequence by TRN then snaps (steps unchanged, nothing held); other QNT values ignore TRN");
---- a/tests/settings_test.c	2026-11-11 16:39:01
-+++ b/tests/settings_test.c	2026-11-11 18:17:10
+--- a/tests/settings_test.c
++++ b/tests/settings_test.c
 @@ -6,8 +6,7 @@
  #define __attribute__(x)
  #define NENGINES 9u
@@ -784,7 +879,7 @@
  #define SMP_SET_PERC 4u
  static uint8_t fx_lowcut;
  static void fm1_led_key(unsigned k, int on) { (void)k; (void)on; }
-@@ -55,16 +54,6 @@
+@@ -55,16 +54,6 @@ int main(void)
      }
  #ifdef FELUCCA_FAVORITES
      assert(favorite_has(8, 0) && favorite_has(NENGINES, 31) && favorites.filter);
@@ -801,9 +896,9 @@
  #endif
      settings.lowcut = 0;
      settings_export(&p);
---- a/tests/speaker_test.c	2026-11-09 19:41:34
-+++ b/tests/speaker_test.c	2026-11-11 18:17:44
-@@ -68,26 +68,18 @@
+--- a/tests/speaker_test.c
++++ b/tests/speaker_test.c
+@@ -68,26 +68,18 @@ static uint32_t kick_pattern(void)
  {
      static const char *const NAME[2] = {"PUNCH", "ROUND"};
      static float f[2 * FS];
@@ -838,9 +933,9 @@
              }
          }
          for (gi = 1; gi <= 2u; gi++) {
---- a/tests/target_budget.py	2026-11-11 17:52:25
-+++ b/tests/target_budget.py	2026-11-11 18:18:35
-@@ -16,11 +16,8 @@
+--- a/tests/target_budget.py
++++ b/tests/target_budget.py
+@@ -16,11 +16,8 @@ import sys
  
  FUNCS = ["analog_render", "phase_render", "phase_render_f", "lofi_render", "sample_render", "formant_render",
           "trio_render", "trio_pass", "wheel_render", "wheel_block",
@@ -854,9 +949,9 @@
           "fm1_alnk0_irq", "fm1_timer5_irq",               # the audio ISR; TIMER5: the key / LED scan (hal/fm1_input.h)
           "uac_tap48",                                       # the USB audio input at 48 kHz: the 44.1 -> 48 resampler (usb.c)
           "click_render",                                    # the metronome's click (click.c), while it sounds
---- a/tests/target_budget.txt	2026-11-11 17:59:21
-+++ b/tests/target_budget.txt	2026-11-11 18:18:29
-@@ -13,29 +13,10 @@
+--- a/tests/target_budget.txt
++++ b/tests/target_budget.txt
+@@ -13,29 +13,10 @@ wheel_render 267
  wheel_block 102
  grain_render 1723
  grain_block 137
@@ -886,9 +981,9 @@
  slice_render 436
  slc_rev 120
  fm1_alnk0_irq 17319
---- a/tests/ui_test.c	2026-11-11 18:11:36
-+++ b/tests/ui_test.c	2026-11-11 18:18:03
-@@ -309,18 +309,6 @@
+--- a/tests/ui_test.c
++++ b/tests/ui_test.c
+@@ -309,18 +309,6 @@ static void tap_key(uint32_t k)                   /* a key down for a frame, the
      fm1_in.notes &= ~(1u << k);
      frame();
  }
@@ -907,7 +1002,7 @@
  /* key k of colour black (1) / white (0) at place p (seq.c key_place) */
  static uint32_t key_at(int black, uint32_t p)
  {
-@@ -1453,12 +1441,6 @@
+@@ -1453,12 +1441,6 @@ static int test_scale_leds(void)
      ok &= sc == ALL && root == C_KEYS;
      bad += check("#127 QNT SNAP: the keys of the scale; QNT WHITE: all the white keys, its roots; CHR: every key", ok);
      t->p[P_SCALE] = 1;
@@ -920,53 +1015,69 @@
      menu_put(MI_SCLLED, 0);
      ok = !(ui_rec_prefs & 0x40u) && !scale_leds(&root);
      bad += check("#127 SCALE LEDS OFF again: the bit clears", ok);
---- a/tests/union_golden.txt	2026-11-11 13:30:15
-+++ b/tests/union_golden.txt	2026-11-11 18:18:29
-@@ -5,10 +5,6 @@
- 7-0-7 p0 w10 a1e6e47cfe465897
- 0-8 p0 w10 68f8525ed6576c07
- 8-0-8 p0 w10 2f2a68977219c08d
+--- a/tests/union_golden.txt
++++ b/tests/union_golden.txt
+@@ -1,720 +1,396 @@
+-0-0 p0 w10 ff2a6bf6fb43ed0f
+-0-4 p0 w10 5834f4a712e38a1d
+-4-0-4 p0 w10 b71cb5f60dbdff0f
+-0-7 p0 w10 0a86a3a64c7c879f
+-7-0-7 p0 w10 a1e6e47cfe465897
+-0-8 p0 w10 68f8525ed6576c07
+-8-0-8 p0 w10 2f2a68977219c08d
 -0-9 p0 w10 1c7074b1f47e3967
 -9-0-9 p0 w10 9d90513069705e13
 -0-10 p0 w10 ea4fcb6d705edaa1
 -10-0-10 p0 w10 8aa25da443fe8e4b
- 0-12 p0 w10 881a5a735652e011
- 12-0-12 p0 w10 45be02da2e71580b
- 0-13 p0 w10 491299eb4a7b0c29
-@@ -20,10 +16,6 @@
- 7-4-7 p0 w10 1d403cd7d07179d5
- 4-8 p0 w10 8eb52e614aa0b731
- 8-4-8 p0 w10 c634577ba1f3b775
+-0-12 p0 w10 881a5a735652e011
+-12-0-12 p0 w10 45be02da2e71580b
+-0-13 p0 w10 491299eb4a7b0c29
+-13-0-13 p0 w10 0a44679342150f4d
+-4-0 p0 w10 81c1715918af5351
+-0-4-0 p0 w10 65529f8c9f7096d7
+-4-4 p0 w10 7253d99b28d13f61
+-4-7 p0 w10 333b16130ec66e5b
+-7-4-7 p0 w10 1d403cd7d07179d5
+-4-8 p0 w10 8eb52e614aa0b731
+-8-4-8 p0 w10 c634577ba1f3b775
 -4-9 p0 w10 42f88856de1e5c7b
 -9-4-9 p0 w10 70f2b0b8226a488f
 -4-10 p0 w10 969945eeadf72d35
 -10-4-10 p0 w10 54f5f75175b45b3b
- 4-12 p0 w10 b46b7f7082409c45
- 12-4-12 p0 w10 520463059fd07e35
- 4-13 p0 w10 292ebb673580980d
-@@ -35,10 +27,6 @@
- 7-7 p0 w10 0817381855352611
- 7-8 p0 w10 04d41ef8969150f3
- 8-7-8 p0 w10 66e22b6512b5a547
+-4-12 p0 w10 b46b7f7082409c45
+-12-4-12 p0 w10 520463059fd07e35
+-4-13 p0 w10 292ebb673580980d
+-13-4-13 p0 w10 3d2c50775d461e1d
+-7-0 p0 w10 beb119e67865ffc7
+-0-7-0 p0 w10 b9747e2ec17749e5
+-7-4 p0 w10 5e7d7125ab8bc123
+-4-7-4 p0 w10 29b113ff8bccaa51
+-7-7 p0 w10 0817381855352611
+-7-8 p0 w10 04d41ef8969150f3
+-8-7-8 p0 w10 66e22b6512b5a547
 -7-9 p0 w10 940c3493b1a8f735
 -9-7-9 p0 w10 704e1659aec62aaf
 -7-10 p0 w10 ef1c22628a26e08f
 -10-7-10 p0 w10 e47e39d058a1819d
- 7-12 p0 w10 91270ec445a6be17
- 12-7-12 p0 w10 1acba17231e2360f
- 7-13 p0 w10 8d5cc41f805c121f
-@@ -50,44 +38,10 @@
- 8-7 p0 w10 b5c285900394a91b
- 7-8-7 p0 w10 10d06ce11b231cd3
- 8-8 p0 w10 c91886da17b9aded
+-7-12 p0 w10 91270ec445a6be17
+-12-7-12 p0 w10 1acba17231e2360f
+-7-13 p0 w10 8d5cc41f805c121f
+-13-7-13 p0 w10 24efb69194f62527
+-8-0 p0 w10 20aaae23568091f5
+-0-8-0 p0 w10 b1b2f748d13b463d
+-8-4 p0 w10 720818ff003386eb
+-4-8-4 p0 w10 904b15ee9e599ae3
+-8-7 p0 w10 b5c285900394a91b
+-7-8-7 p0 w10 10d06ce11b231cd3
+-8-8 p0 w10 c91886da17b9aded
 -8-9 p0 w10 5407c294e0bfa445
 -9-8-9 p0 w10 ccb2d15ff9e1d1c1
 -8-10 p0 w10 ae6673c991243a9d
 -10-8-10 p0 w10 ce0d56f9d8cdc17d
- 8-12 p0 w10 4ff5b0f5067fe885
- 12-8-12 p0 w10 4424c6da2285f2c1
- 8-13 p0 w10 dd3ecb992beb5975
- 13-8-13 p0 w10 eb2c0b580e5fa957
+-8-12 p0 w10 4ff5b0f5067fe885
+-12-8-12 p0 w10 4424c6da2285f2c1
+-8-13 p0 w10 dd3ecb992beb5975
+-13-8-13 p0 w10 eb2c0b580e5fa957
 -9-0 p0 w10 77d92940c6e329d9
 -0-9-0 p0 w10 0e5a305317c785d5
 -9-4 p0 w10 26ed1c90e16b2f6d
@@ -997,76 +1108,96 @@
 -12-10-12 p0 w10 64b42b5b8ef9feeb
 -10-13 p0 w10 0124c01c7585266b
 -13-10-13 p0 w10 5e8a448293969185
- 12-0 p0 w10 679b59d67b08e4cd
- 0-12-0 p0 w10 a5a304a90cda68e9
- 12-4 p0 w10 5958adffd27716eb
-@@ -96,10 +50,6 @@
- 7-12-7 p0 w10 2d4f84cd5bdc1e49
- 12-8 p0 w10 bb2fc949db75bd51
- 8-12-8 p0 w10 eabfd866212e9c95
+-12-0 p0 w10 679b59d67b08e4cd
+-0-12-0 p0 w10 a5a304a90cda68e9
+-12-4 p0 w10 5958adffd27716eb
+-4-12-4 p0 w10 b718f55d7d0fed15
+-12-7 p0 w10 dcd8c56807af6e9f
+-7-12-7 p0 w10 2d4f84cd5bdc1e49
+-12-8 p0 w10 bb2fc949db75bd51
+-8-12-8 p0 w10 eabfd866212e9c95
 -12-9 p0 w10 e34b0ca9622e2723
 -9-12-9 p0 w10 6128fdf6543f57ab
 -12-10 p0 w10 3659330bf223a19d
 -10-12-10 p0 w10 98489aea73299ed1
- 12-12 p0 w10 e59b55ca91177e19
- 12-13 p0 w10 9c00c12d6faff3ff
- 13-12-13 p0 w10 824baddb048e8f09
-@@ -111,10 +61,6 @@
- 7-13-7 p0 w10 eb82f10d6bc62637
- 13-8 p0 w10 e21018b714d83069
- 8-13-8 p0 w10 4e80d3f28f398167
+-12-12 p0 w10 e59b55ca91177e19
+-12-13 p0 w10 9c00c12d6faff3ff
+-13-12-13 p0 w10 824baddb048e8f09
+-13-0 p0 w10 d1b9f89847c1e1cb
+-0-13-0 p0 w10 d612c1c24330ff23
+-13-4 p0 w10 2d1ed2aeaaad44d9
+-4-13-4 p0 w10 d85bbeef7797d7ed
+-13-7 p0 w10 3c32b8e13fb932b3
+-7-13-7 p0 w10 eb82f10d6bc62637
+-13-8 p0 w10 e21018b714d83069
+-8-13-8 p0 w10 4e80d3f28f398167
 -13-9 p0 w10 94138dbb26d664b3
 -9-13-9 p0 w10 37ef626623a176f1
 -13-10 p0 w10 c307dd197a69500d
 -10-13-10 p0 w10 ac6c24da6da40f05
- 13-12 p0 w10 0db3bf740fa72abd
- 12-13-12 p0 w10 44cee7873b166d8d
- 13-13 p0 w10 a373a661497c4fc5
-@@ -125,10 +71,6 @@
- 7-0-7 p1 w10 3156c0d0dfe3790d
- 0-8 p1 w10 44bcb6352a0db2e5
- 8-0-8 p1 w10 2771ed033fcd6d57
+-13-12 p0 w10 0db3bf740fa72abd
+-12-13-12 p0 w10 44cee7873b166d8d
+-13-13 p0 w10 a373a661497c4fc5
+-0-0 p1 w10 bcd7736ad48b16f3
+-0-4 p1 w10 e65456b1f7f64e3b
+-4-0-4 p1 w10 cb1a0479a50e2523
+-0-7 p1 w10 4a6a2f45307cb9e9
+-7-0-7 p1 w10 3156c0d0dfe3790d
+-0-8 p1 w10 44bcb6352a0db2e5
+-8-0-8 p1 w10 2771ed033fcd6d57
 -0-9 p1 w10 4f6674dad2c567cf
 -9-0-9 p1 w10 7a28becec7981a89
 -0-10 p1 w10 444ff2374c6729b1
 -10-0-10 p1 w10 c69a4fe88363a273
- 0-12 p1 w10 15a0df275424827b
- 12-0-12 p1 w10 e18c2a8496915e81
- 0-13 p1 w10 69291124397b7071
-@@ -140,10 +82,6 @@
- 7-4-7 p1 w10 157196e3c603b175
- 4-8 p1 w10 e24f78e155dcd353
- 8-4-8 p1 w10 8424d2f5ecaf6d6f
+-0-12 p1 w10 15a0df275424827b
+-12-0-12 p1 w10 e18c2a8496915e81
+-0-13 p1 w10 69291124397b7071
+-13-0-13 p1 w10 6f37bd5e0605aaa1
+-4-0 p1 w10 2ffcf1ff58860b03
+-0-4-0 p1 w10 58278c9dbc491a8d
+-4-4 p1 w10 3783d9d3e2db6025
+-4-7 p1 w10 818e52962a57dfdd
+-7-4-7 p1 w10 157196e3c603b175
+-4-8 p1 w10 e24f78e155dcd353
+-8-4-8 p1 w10 8424d2f5ecaf6d6f
 -4-9 p1 w10 40d509ade57ec739
 -9-4-9 p1 w10 5d233c31ae5a1b5b
 -4-10 p1 w10 43bc3e5d1cac4395
 -10-4-10 p1 w10 0fa822d53012696d
- 4-12 p1 w10 259c41cde2958997
- 12-4-12 p1 w10 50517271abd09a87
- 4-13 p1 w10 5bfe89fa356dbe8f
-@@ -155,10 +93,6 @@
- 7-7 p1 w10 4464627c15efb70f
- 7-8 p1 w10 66fa01b46e2fd3b5
- 8-7-8 p1 w10 b1d9d4ef703d9b8f
+-4-12 p1 w10 259c41cde2958997
+-12-4-12 p1 w10 50517271abd09a87
+-4-13 p1 w10 5bfe89fa356dbe8f
+-13-4-13 p1 w10 0ad0ca5e9956b0d1
+-7-0 p1 w10 c055bcdd616bb76d
+-0-7-0 p1 w10 953ce8c8d25beaf9
+-7-4 p1 w10 9064acba3df8afcd
+-4-7-4 p1 w10 72d7f4453cbca705
+-7-7 p1 w10 4464627c15efb70f
+-7-8 p1 w10 66fa01b46e2fd3b5
+-8-7-8 p1 w10 b1d9d4ef703d9b8f
 -7-9 p1 w10 067c1eec6e5fc927
 -9-7-9 p1 w10 5792e7e5e0027f93
 -7-10 p1 w10 bf41ff541c836df7
 -10-7-10 p1 w10 efa0e2da107b5f37
- 7-12 p1 w10 ce42f483f7b40813
- 12-7-12 p1 w10 e6eea089464d9b7f
- 7-13 p1 w10 bcb82e6e998fed41
-@@ -170,44 +104,10 @@
- 8-7 p1 w10 0727adbc5cbae7bd
- 7-8-7 p1 w10 1e4a64ca268eabdd
- 8-8 p1 w10 bbd88a49e3cf5df3
+-7-12 p1 w10 ce42f483f7b40813
+-12-7-12 p1 w10 e6eea089464d9b7f
+-7-13 p1 w10 bcb82e6e998fed41
+-13-7-13 p1 w10 f0d703fdee5a6ced
+-8-0 p1 w10 84ef6ce129e8732f
+-0-8-0 p1 w10 09a3e86574e1e393
+-8-4 p1 w10 64dbb472c5400afd
+-4-8-4 p1 w10 701f7fafe3d87b0f
+-8-7 p1 w10 0727adbc5cbae7bd
+-7-8-7 p1 w10 1e4a64ca268eabdd
+-8-8 p1 w10 bbd88a49e3cf5df3
 -8-9 p1 w10 5561d7328cd510ad
 -9-8-9 p1 w10 9d8a1fa5ddd8c8db
 -8-10 p1 w10 1026fa2a86ae8529
 -10-8-10 p1 w10 96d8ff07c2963625
- 8-12 p1 w10 9e670b167a090cef
- 12-8-12 p1 w10 bcea977e50d9451d
- 8-13 p1 w10 1c975d7fa1149fa3
- 13-8-13 p1 w10 faaae5c4c896bd1b
+-8-12 p1 w10 9e670b167a090cef
+-12-8-12 p1 w10 bcea977e50d9451d
+-8-13 p1 w10 1c975d7fa1149fa3
+-13-8-13 p1 w10 faaae5c4c896bd1b
 -9-0 p1 w10 5dc4c3bcf3245bcf
 -0-9-0 p1 w10 afb52d1033ba3faf
 -9-4 p1 w10 59b4a4c8bc5ab09f
@@ -1097,76 +1228,96 @@
 -12-10-12 p1 w10 e0bae2f5e2da3405
 -10-13 p1 w10 0a5277e6e2db662d
 -13-10-13 p1 w10 819d2483b9341783
- 12-0 p1 w10 fe97d508ed7eefd5
- 0-12-0 p1 w10 d6b2371696381adf
- 12-4 p1 w10 1fede7ebbf10e473
-@@ -216,10 +116,6 @@
- 7-12-7 p1 w10 60a9c83388dc6d0b
- 12-8 p1 w10 95fd1d06124015ef
- 8-12-8 p1 w10 261134ae75974b17
+-12-0 p1 w10 fe97d508ed7eefd5
+-0-12-0 p1 w10 d6b2371696381adf
+-12-4 p1 w10 1fede7ebbf10e473
+-4-12-4 p1 w10 31bee5adf8790af5
+-12-7 p1 w10 06885c37b436aa53
+-7-12-7 p1 w10 60a9c83388dc6d0b
+-12-8 p1 w10 95fd1d06124015ef
+-8-12-8 p1 w10 261134ae75974b17
 -12-9 p1 w10 f77e031a88221d19
 -9-12-9 p1 w10 49808d9011a8c697
 -12-10 p1 w10 fcefb97163701e77
 -10-12-10 p1 w10 edbf01aa5b85827f
- 12-12 p1 w10 5631b40505643d89
- 12-13 p1 w10 4f4a001dfafa15a7
- 13-12-13 p1 w10 6264d5c7031ccd2d
-@@ -231,10 +127,6 @@
- 7-13-7 p1 w10 6e3dccb247ead369
- 13-8 p1 w10 68bad22255e28f05
- 8-13-8 p1 w10 1f6e0dcd141e6465
+-12-12 p1 w10 5631b40505643d89
+-12-13 p1 w10 4f4a001dfafa15a7
+-13-12-13 p1 w10 6264d5c7031ccd2d
+-13-0 p1 w10 85701d925325236d
+-0-13-0 p1 w10 cf6f9f7c56a5040f
+-13-4 p1 w10 ff3e2d12efff7b1d
+-4-13-4 p1 w10 6db0793e703a9f8d
+-13-7 p1 w10 7ac76e6f3218b649
+-7-13-7 p1 w10 6e3dccb247ead369
+-13-8 p1 w10 68bad22255e28f05
+-8-13-8 p1 w10 1f6e0dcd141e6465
 -13-9 p1 w10 d87f79162b84edb7
 -9-13-9 p1 w10 6096eb4d901bfedf
 -13-10 p1 w10 03ca5b0a981b4c47
 -10-13-10 p1 w10 95236c0acc10b207
- 13-12 p1 w10 48e83a14fa552c89
- 12-13-12 p1 w10 971a65622140b92b
- 13-13 p1 w10 3f0cf25f44e05011
-@@ -245,10 +137,6 @@
- 7-0-7 p2 w10 2683026d6a134739
- 0-8 p2 w10 2fd81ba2e41b8a75
- 8-0-8 p2 w10 3dc84f617f90b6bd
+-13-12 p1 w10 48e83a14fa552c89
+-12-13-12 p1 w10 971a65622140b92b
+-13-13 p1 w10 3f0cf25f44e05011
+-0-0 p2 w10 92ef16612c086d53
+-0-4 p2 w10 17419fd77de3821f
+-4-0-4 p2 w10 a442b855854c1445
+-0-7 p2 w10 ab52c7658f18f2f3
+-7-0-7 p2 w10 2683026d6a134739
+-0-8 p2 w10 2fd81ba2e41b8a75
+-8-0-8 p2 w10 3dc84f617f90b6bd
 -0-9 p2 w10 f6631c40980d67c7
 -9-0-9 p2 w10 456f24c18f3a5adb
 -0-10 p2 w10 0cbe7780b3f1cc75
 -10-0-10 p2 w10 d8123d9c91504f99
- 0-12 p2 w10 680b63dac62be119
- 12-0-12 p2 w10 015e2c14a32d7081
- 0-13 p2 w10 4bff4b185b7846a5
-@@ -260,10 +148,6 @@
- 7-4-7 p2 w10 71deafe911610adf
- 4-8 p2 w10 3a24b562f1cefe83
- 8-4-8 p2 w10 436166fc2a02f163
+-0-12 p2 w10 680b63dac62be119
+-12-0-12 p2 w10 015e2c14a32d7081
+-0-13 p2 w10 4bff4b185b7846a5
+-13-0-13 p2 w10 06ed5f474acdef31
+-4-0 p2 w10 8d78d1494cd0849f
+-0-4-0 p2 w10 434c74be8c02cddb
+-4-4 p2 w10 d8243f7627b595d9
+-4-7 p2 w10 4a0bbc58c66104cd
+-7-4-7 p2 w10 71deafe911610adf
+-4-8 p2 w10 3a24b562f1cefe83
+-8-4-8 p2 w10 436166fc2a02f163
 -4-9 p2 w10 b63e21155d6df883
 -9-4-9 p2 w10 efc007a07d5524b5
 -4-10 p2 w10 7eedaad98163fc9f
 -10-4-10 p2 w10 9d0df13729468f1d
- 4-12 p2 w10 dcc2dc689a2b5e1f
- 12-4-12 p2 w10 e78132b8f6dbf923
- 4-13 p2 w10 b93b9989861c8bef
-@@ -275,10 +159,6 @@
- 7-7 p2 w10 14795dfb137f810d
- 7-8 p2 w10 fbdbbe70ac899b27
- 8-7-8 p2 w10 e61234650d7e225f
+-4-12 p2 w10 dcc2dc689a2b5e1f
+-12-4-12 p2 w10 e78132b8f6dbf923
+-4-13 p2 w10 b93b9989861c8bef
+-13-4-13 p2 w10 ba324a475f415a49
+-7-0 p2 w10 ae22ec295e120d4b
+-0-7-0 p2 w10 e26fafe06b5c0817
+-7-4 p2 w10 37dfb37f1413be2b
+-4-7-4 p2 w10 0ab4a67292a53cb9
+-7-7 p2 w10 14795dfb137f810d
+-7-8 p2 w10 fbdbbe70ac899b27
+-8-7-8 p2 w10 e61234650d7e225f
 -7-9 p2 w10 1405d6d4e7e4111d
 -9-7-9 p2 w10 e94992fd4abff099
 -7-10 p2 w10 fa81802f90870faf
 -10-7-10 p2 w10 a9efecbede57c1f9
- 7-12 p2 w10 df1a24ad2056cafd
- 12-7-12 p2 w10 1f7194c1c33f416d
- 7-13 p2 w10 a5af673f220e337f
-@@ -290,44 +170,10 @@
- 8-7 p2 w10 29b8c73ca5693371
- 7-8-7 p2 w10 4a6e12b6cb9a6e65
- 8-8 p2 w10 02657ba7908819c1
+-7-12 p2 w10 df1a24ad2056cafd
+-12-7-12 p2 w10 1f7194c1c33f416d
+-7-13 p2 w10 a5af673f220e337f
+-13-7-13 p2 w10 f51679c9735c42ad
+-8-0 p2 w10 376e2ebfb9ec33fb
+-0-8-0 p2 w10 77e22c8b9bb8ad51
+-8-4 p2 w10 d0dced3b1c8b4fc5
+-4-8-4 p2 w10 e1365a1c3617427d
+-8-7 p2 w10 29b8c73ca5693371
+-7-8-7 p2 w10 4a6e12b6cb9a6e65
+-8-8 p2 w10 02657ba7908819c1
 -8-9 p2 w10 a46ed4a218b6e1b7
 -9-8-9 p2 w10 f0a319987f17dadf
 -8-10 p2 w10 cff26768658183f3
 -10-8-10 p2 w10 7d7f9956773cda3b
- 8-12 p2 w10 4d52a783e0dce431
- 12-8-12 p2 w10 3e51b67cf2ad814d
- 8-13 p2 w10 272479eda20a78b5
- 13-8-13 p2 w10 4538feda8185377b
+-8-12 p2 w10 4d52a783e0dce431
+-12-8-12 p2 w10 3e51b67cf2ad814d
+-8-13 p2 w10 272479eda20a78b5
+-13-8-13 p2 w10 4538feda8185377b
 -9-0 p2 w10 139cd35a5718e88d
 -0-9-0 p2 w10 57c8682ae7861f47
 -9-4 p2 w10 015020a1a381ca55
@@ -1197,76 +1348,96 @@
 -12-10-12 p2 w10 46dde89795d8414f
 -10-13 p2 w10 8e12960eb496a71b
 -13-10-13 p2 w10 52d254df42e0669f
- 12-0 p2 w10 085fe6cf7ee1d411
- 0-12-0 p2 w10 3e869922dc18a6b3
- 12-4 p2 w10 ae06cae0fbeb2611
-@@ -336,10 +182,6 @@
- 7-12-7 p2 w10 7496b93cc91771fb
- 12-8 p2 w10 517d0d41d6524e29
- 8-12-8 p2 w10 269ee2d412e1c4a9
+-12-0 p2 w10 085fe6cf7ee1d411
+-0-12-0 p2 w10 3e869922dc18a6b3
+-12-4 p2 w10 ae06cae0fbeb2611
+-4-12-4 p2 w10 42e4c4e67569cc9b
+-12-7 p2 w10 6b8b8330f29bf3f5
+-7-12-7 p2 w10 7496b93cc91771fb
+-12-8 p2 w10 517d0d41d6524e29
+-8-12-8 p2 w10 269ee2d412e1c4a9
 -12-9 p2 w10 afd26b0509fae2db
 -9-12-9 p2 w10 c668b1a71a500d13
 -12-10 p2 w10 918c199c842db7b7
 -10-12-10 p2 w10 dbfacd9be594b28b
- 12-12 p2 w10 b04c16020990add7
- 12-13 p2 w10 28ac179995037c47
- 13-12-13 p2 w10 b86ccde77c22c231
-@@ -351,10 +193,6 @@
- 7-13-7 p2 w10 05f7017584aabbb3
- 13-8 p2 w10 7a4c48ee6631e1b5
- 8-13-8 p2 w10 3377cf9880f1e643
+-12-12 p2 w10 b04c16020990add7
+-12-13 p2 w10 28ac179995037c47
+-13-12-13 p2 w10 b86ccde77c22c231
+-13-0 p2 w10 cd57aadd553376a7
+-0-13-0 p2 w10 07cc37eb2a3d884f
+-13-4 p2 w10 30da593710b0a60b
+-4-13-4 p2 w10 64380b49a90f03ab
+-13-7 p2 w10 3521eb26f0fdf17f
+-7-13-7 p2 w10 05f7017584aabbb3
+-13-8 p2 w10 7a4c48ee6631e1b5
+-8-13-8 p2 w10 3377cf9880f1e643
 -13-9 p2 w10 a118c1c57a912e1d
 -9-13-9 p2 w10 7610158a3e443015
 -13-10 p2 w10 9f159295467e0391
 -10-13-10 p2 w10 657849300cd3695b
- 13-12 p2 w10 8e65eb2c742e4829
- 12-13-12 p2 w10 e4387aa968b27edf
- 13-13 p2 w10 02dc2dfaa5469fb1
-@@ -365,10 +203,6 @@
- 7-0-7 p0 w0 40753f5ce43a800b
- 0-8 p0 w0 a0f96e7fa37f5e69
- 8-0-8 p0 w0 d1110d70a6bd78a5
+-13-12 p2 w10 8e65eb2c742e4829
+-12-13-12 p2 w10 e4387aa968b27edf
+-13-13 p2 w10 02dc2dfaa5469fb1
+-0-0 p0 w0 db3077b1954a0ffb
+-0-4 p0 w0 d547d71cc0ce33ff
+-4-0-4 p0 w0 25211bdcfd7eb0f1
+-0-7 p0 w0 229f0d866f2cea9f
+-7-0-7 p0 w0 40753f5ce43a800b
+-0-8 p0 w0 a0f96e7fa37f5e69
+-8-0-8 p0 w0 d1110d70a6bd78a5
 -0-9 p0 w0 036d78d6a09cfc2b
 -9-0-9 p0 w0 33a8f8bd8f8ee48d
 -0-10 p0 w0 97e31e2b033e21ad
 -10-0-10 p0 w0 48d3e34afbc2bf1d
- 0-12 p0 w0 69ea9195da2c091f
- 12-0-12 p0 w0 93c344d08b8518a7
- 0-13 p0 w0 808f6ed2f60e9de7
-@@ -380,10 +214,6 @@
- 7-4-7 p0 w0 7ff41d154d289419
- 4-8 p0 w0 654d433f66db0ab7
- 8-4-8 p0 w0 aeb0a8018116a4a9
+-0-12 p0 w0 69ea9195da2c091f
+-12-0-12 p0 w0 93c344d08b8518a7
+-0-13 p0 w0 808f6ed2f60e9de7
+-13-0-13 p0 w0 6f2b76949fa55285
+-4-0 p0 w0 0ce62939c6fc830d
+-0-4-0 p0 w0 40aa29759d5d9fd9
+-4-4 p0 w0 e13028bbe8a0d463
+-4-7 p0 w0 2927c7f08e02310d
+-7-4-7 p0 w0 7ff41d154d289419
+-4-8 p0 w0 654d433f66db0ab7
+-8-4-8 p0 w0 aeb0a8018116a4a9
 -4-9 p0 w0 f9a8e40a8a54a431
 -9-4-9 p0 w0 26d1b5339c81c861
 -4-10 p0 w0 2e3080f0127386d1
 -10-4-10 p0 w0 d3f00fcdb5bf9127
- 4-12 p0 w0 6f7e8b2953b98a93
- 12-4-12 p0 w0 6032b2846926a523
- 4-13 p0 w0 27e8475490ec344b
-@@ -395,10 +225,6 @@
- 7-7 p0 w0 d93ef337242b7e6b
- 7-8 p0 w0 be5b622e81f68f69
- 8-7-8 p0 w0 c3bc94939b4c970b
+-4-12 p0 w0 6f7e8b2953b98a93
+-12-4-12 p0 w0 6032b2846926a523
+-4-13 p0 w0 27e8475490ec344b
+-13-4-13 p0 w0 d4616b1229e82509
+-7-0 p0 w0 2db8f658cbc8792f
+-0-7-0 p0 w0 9ce971cd3f99a04b
+-7-4 p0 w0 66cc9ac2f7a4c55d
+-4-7-4 p0 w0 f737285ae15b65fd
+-7-7 p0 w0 d93ef337242b7e6b
+-7-8 p0 w0 be5b622e81f68f69
+-8-7-8 p0 w0 c3bc94939b4c970b
 -7-9 p0 w0 7e8341ce02da783b
 -9-7-9 p0 w0 184dc1afebc0e347
 -7-10 p0 w0 04d5cc281e69f503
 -10-7-10 p0 w0 24d9bc82b935fac5
- 7-12 p0 w0 a2d41df4def4a8ad
- 12-7-12 p0 w0 6093d80b18514905
- 7-13 p0 w0 d32f540ee7e17225
-@@ -410,44 +236,10 @@
- 8-7 p0 w0 aa810b87264b5fb5
- 7-8-7 p0 w0 54c5a9e4743856c5
- 8-8 p0 w0 d7b841893cc2032d
+-7-12 p0 w0 a2d41df4def4a8ad
+-12-7-12 p0 w0 6093d80b18514905
+-7-13 p0 w0 d32f540ee7e17225
+-13-7-13 p0 w0 494f580bff47e571
+-8-0 p0 w0 4c5edcf12e382f11
+-0-8-0 p0 w0 0685ec505cee83d1
+-8-4 p0 w0 f15b43a5d85a201b
+-4-8-4 p0 w0 0e6a159d02c3aa4b
+-8-7 p0 w0 aa810b87264b5fb5
+-7-8-7 p0 w0 54c5a9e4743856c5
+-8-8 p0 w0 d7b841893cc2032d
 -8-9 p0 w0 9c4b57cce8a4869b
 -9-8-9 p0 w0 a60be583c82f37c5
 -8-10 p0 w0 1eedcc6503208257
 -10-8-10 p0 w0 8dd45c47ba5ee95b
- 8-12 p0 w0 000184e1f7e40945
- 12-8-12 p0 w0 ae8207414bb4ccfd
- 8-13 p0 w0 655073dcdff68325
- 13-8-13 p0 w0 6726ab56229a9cfd
+-8-12 p0 w0 000184e1f7e40945
+-12-8-12 p0 w0 ae8207414bb4ccfd
+-8-13 p0 w0 655073dcdff68325
+-13-8-13 p0 w0 6726ab56229a9cfd
 -9-0 p0 w0 dea8521835686c21
 -0-9-0 p0 w0 29f8a34b9f2421e7
 -9-4 p0 w0 ae5dee5942138995
@@ -1297,76 +1468,96 @@
 -12-10-12 p0 w0 810859e5e4016047
 -10-13 p0 w0 73d00a014b037559
 -13-10-13 p0 w0 7c20042e25d016bb
- 12-0 p0 w0 42585a21adad5c2f
- 0-12-0 p0 w0 9bc7ef517ac77e71
- 12-4 p0 w0 871cf049af595b11
-@@ -456,10 +248,6 @@
- 7-12-7 p0 w0 7fb53470703be043
- 12-8 p0 w0 837559f209b9c6ab
- 8-12-8 p0 w0 3c924cf29b5ede43
+-12-0 p0 w0 42585a21adad5c2f
+-0-12-0 p0 w0 9bc7ef517ac77e71
+-12-4 p0 w0 871cf049af595b11
+-4-12-4 p0 w0 ddfccb2f4e823fdf
+-12-7 p0 w0 c4da501cdef33b93
+-7-12-7 p0 w0 7fb53470703be043
+-12-8 p0 w0 837559f209b9c6ab
+-8-12-8 p0 w0 3c924cf29b5ede43
 -12-9 p0 w0 b42160746fd8be19
 -9-12-9 p0 w0 bf4cdb817d1e3745
 -12-10 p0 w0 ad1c6b0d3e612631
 -10-12-10 p0 w0 7a77e9176b81aded
- 12-12 p0 w0 508967591283a723
- 12-13 p0 w0 c8ad67b3ee75fae3
- 13-12-13 p0 w0 2c666f147d901dcf
-@@ -471,10 +259,6 @@
- 7-13-7 p0 w0 566964ae359ba60f
- 13-8 p0 w0 5e374d533dd8166f
- 8-13-8 p0 w0 c14d18c82a6e8fbb
+-12-12 p0 w0 508967591283a723
+-12-13 p0 w0 c8ad67b3ee75fae3
+-13-12-13 p0 w0 2c666f147d901dcf
+-13-0 p0 w0 3d7c0739b5382ded
+-0-13-0 p0 w0 c7076d870ad12035
+-13-4 p0 w0 b09bcb95cf5281bb
+-4-13-4 p0 w0 04d1a71878810f5d
+-13-7 p0 w0 b3c0c05731509b9d
+-7-13-7 p0 w0 566964ae359ba60f
+-13-8 p0 w0 5e374d533dd8166f
+-8-13-8 p0 w0 c14d18c82a6e8fbb
 -13-9 p0 w0 2e3fc0982a8f9445
 -9-13-9 p0 w0 751f2d26a04cd6b5
 -13-10 p0 w0 2842e8e092c44689
 -10-13-10 p0 w0 8e31447a66452ac5
- 13-12 p0 w0 34fe926a5996bc2b
- 12-13-12 p0 w0 c2a75e09a7c86213
- 13-13 p0 w0 5299de9f98d4d7e3
-@@ -485,10 +269,6 @@
- 7-0-7 p1 w0 8490a64b8cb5fff9
- 0-8 p1 w0 08605505ae2e7391
- 8-0-8 p1 w0 6eb0cf96c4e8ae39
+-13-12 p0 w0 34fe926a5996bc2b
+-12-13-12 p0 w0 c2a75e09a7c86213
+-13-13 p0 w0 5299de9f98d4d7e3
+-0-0 p1 w0 0a01823cd3047295
+-0-4 p1 w0 4a8bb26cdae3518f
+-4-0-4 p1 w0 e60791cca72bd5d9
+-0-7 p1 w0 ad134292bd521e11
+-7-0-7 p1 w0 8490a64b8cb5fff9
+-0-8 p1 w0 08605505ae2e7391
+-8-0-8 p1 w0 6eb0cf96c4e8ae39
 -0-9 p1 w0 e77279c6189a6e15
 -9-0-9 p1 w0 b35ba48c4e37c3a7
 -0-10 p1 w0 cd9f4b5ab31b50a3
 -10-0-10 p1 w0 284401bb857459e3
- 0-12 p1 w0 80a49a9f48d61f35
- 12-0-12 p1 w0 57551e18d3c7af2d
- 0-13 p1 w0 b97e581a6666378f
-@@ -500,10 +280,6 @@
- 7-4-7 p1 w0 b38c41e4340e40e9
- 4-8 p1 w0 39dc1fa474a227cf
- 8-4-8 p1 w0 81a54c63cb40c5dd
+-0-12 p1 w0 80a49a9f48d61f35
+-12-0-12 p1 w0 57551e18d3c7af2d
+-0-13 p1 w0 b97e581a6666378f
+-13-0-13 p1 w0 5503e854cc5f1087
+-4-0 p1 w0 aee08e63699321e1
+-0-4-0 p1 w0 2ccf79a5e416dd01
+-4-4 p1 w0 a1b2342285759e9b
+-4-7 p1 w0 8cfe472f3b95f7c3
+-7-4-7 p1 w0 b38c41e4340e40e9
+-4-8 p1 w0 39dc1fa474a227cf
+-8-4-8 p1 w0 81a54c63cb40c5dd
 -4-9 p1 w0 984b320b39137d29
 -9-4-9 p1 w0 50c28a64beb3b11d
 -4-10 p1 w0 ef210ae69d5e1fe9
 -10-4-10 p1 w0 2e1151168d1cff7f
- 4-12 p1 w0 f74e2b3a792862a5
- 12-4-12 p1 w0 7fb695920b7b6983
- 4-13 p1 w0 3820e4976ac1fccf
-@@ -515,10 +291,6 @@
- 7-7 p1 w0 ddce95d831e58b97
- 7-8 p1 w0 e6dd6078c7b6b193
- 8-7-8 p1 w0 3aff1a675dcf8a5d
+-4-12 p1 w0 f74e2b3a792862a5
+-12-4-12 p1 w0 7fb695920b7b6983
+-4-13 p1 w0 3820e4976ac1fccf
+-13-4-13 p1 w0 da604e5601da6b41
+-7-0 p1 w0 e7147ddb78451ed1
+-0-7-0 p1 w0 aec1cd01e07baf71
+-7-4 p1 w0 45714809702e7669
+-4-7-4 p1 w0 015fb744e686b80b
+-7-7 p1 w0 ddce95d831e58b97
+-7-8 p1 w0 e6dd6078c7b6b193
+-8-7-8 p1 w0 3aff1a675dcf8a5d
 -7-9 p1 w0 18bf983d4f33247b
 -9-7-9 p1 w0 3facf635ecd435d1
 -7-10 p1 w0 0ea7e10c14747b7d
 -10-7-10 p1 w0 21c221a73b79be91
- 7-12 p1 w0 5da21194ed09faed
- 12-7-12 p1 w0 663567ab971e6c6f
- 7-13 p1 w0 c876a0c2e9040ae3
-@@ -530,44 +302,10 @@
- 8-7 p1 w0 e84508b1ed661fed
- 7-8-7 p1 w0 08278a72c0d6f20f
- 8-8 p1 w0 057fac010b6946ef
+-7-12 p1 w0 5da21194ed09faed
+-12-7-12 p1 w0 663567ab971e6c6f
+-7-13 p1 w0 c876a0c2e9040ae3
+-13-7-13 p1 w0 aeea05d173a663c7
+-8-0 p1 w0 a77708d89e3c73f1
+-0-8-0 p1 w0 769add56184f9415
+-8-4 p1 w0 3ed7e2e19e390129
+-4-8-4 p1 w0 d80f81f503ce3e85
+-8-7 p1 w0 e84508b1ed661fed
+-7-8-7 p1 w0 08278a72c0d6f20f
+-8-8 p1 w0 057fac010b6946ef
 -8-9 p1 w0 f44f5cbfb0c796d7
 -9-8-9 p1 w0 0bee0c776f218a37
 -8-10 p1 w0 5295f70d4dfc371d
 -10-8-10 p1 w0 c60c7e76ff81ec29
- 8-12 p1 w0 a2f28d259f0cf741
- 12-8-12 p1 w0 1492569984144ca5
- 8-13 p1 w0 ebd6a8fb5cae0483
- 13-8-13 p1 w0 ef046572c562d4d5
+-8-12 p1 w0 a2f28d259f0cf741
+-12-8-12 p1 w0 1492569984144ca5
+-8-13 p1 w0 ebd6a8fb5cae0483
+-13-8-13 p1 w0 ef046572c562d4d5
 -9-0 p1 w0 c5ff1ff2c2105c11
 -0-9-0 p1 w0 539a547131321f1b
 -9-4 p1 w0 44d03fc380120aa9
@@ -1397,76 +1588,96 @@
 -12-10-12 p1 w0 60553436ee0b39e7
 -10-13 p1 w0 5816ed2c8c9b4a4d
 -13-10-13 p1 w0 05265b61066caf85
- 12-0 p1 w0 9343e713663f53e9
- 0-12-0 p1 w0 5de7c0850b1d3581
- 12-4 p1 w0 9d5ceba4275ead6f
-@@ -576,10 +314,6 @@
- 7-12-7 p1 w0 404f0d8b8a52cf65
- 12-8 p1 w0 25fa4b8ac5b24489
- 8-12-8 p1 w0 161b372191ea3809
+-12-0 p1 w0 9343e713663f53e9
+-0-12-0 p1 w0 5de7c0850b1d3581
+-12-4 p1 w0 9d5ceba4275ead6f
+-4-12-4 p1 w0 c5f5e5e94a2e4d4d
+-12-7 p1 w0 39c217685a5bba6b
+-7-12-7 p1 w0 404f0d8b8a52cf65
+-12-8 p1 w0 25fa4b8ac5b24489
+-8-12-8 p1 w0 161b372191ea3809
 -12-9 p1 w0 61dae039614b9e73
 -9-12-9 p1 w0 494d14befae712c1
 -12-10 p1 w0 21bc21cf78aa64a3
 -10-12-10 p1 w0 05f336b44df7e021
- 12-12 p1 w0 1b8ed1a1e7a84365
- 12-13 p1 w0 ee67c853e41518f3
- 13-12-13 p1 w0 5782da8ed8b265cd
-@@ -591,10 +325,6 @@
- 7-13-7 p1 w0 7e743debf78354b3
- 13-8 p1 w0 e2a468d813fb6e51
- 8-13-8 p1 w0 a0f189af2b52de07
+-12-12 p1 w0 1b8ed1a1e7a84365
+-12-13 p1 w0 ee67c853e41518f3
+-13-12-13 p1 w0 5782da8ed8b265cd
+-13-0 p1 w0 d99d48373f397305
+-0-13-0 p1 w0 c0bf20c94a04823f
+-13-4 p1 w0 0748ae45903f1d9f
+-4-13-4 p1 w0 4657eef23cb051f7
+-13-7 p1 w0 5002af609ed90bdd
+-7-13-7 p1 w0 7e743debf78354b3
+-13-8 p1 w0 e2a468d813fb6e51
+-8-13-8 p1 w0 a0f189af2b52de07
 -13-9 p1 w0 04846ce833dab479
 -9-13-9 p1 w0 12a20bfbb36f6dcf
 -13-10 p1 w0 05c2e945e07ddf83
 -10-13-10 p1 w0 19a34a590b018f43
- 13-12 p1 w0 dd322750a75c3cab
- 12-13-12 p1 w0 bcb5b289f0959cb7
- 13-13 p1 w0 8d18c5c4777cc591
-@@ -605,10 +335,6 @@
- 7-0-7 p2 w0 9b274bf14dde9bd3
- 0-8 p2 w0 9ebf845378a90437
- 8-0-8 p2 w0 8ec2e238fe01ba5f
+-13-12 p1 w0 dd322750a75c3cab
+-12-13-12 p1 w0 bcb5b289f0959cb7
+-13-13 p1 w0 8d18c5c4777cc591
+-0-0 p2 w0 063412f8869d9833
+-0-4 p2 w0 4914829e2f8b0f6b
+-4-0-4 p2 w0 2cbf466e18046f93
+-0-7 p2 w0 61f0f0076a60e05d
+-7-0-7 p2 w0 9b274bf14dde9bd3
+-0-8 p2 w0 9ebf845378a90437
+-8-0-8 p2 w0 8ec2e238fe01ba5f
 -0-9 p2 w0 831dafef75dea1a1
 -9-0-9 p2 w0 a908c18c29c3d3bb
 -0-10 p2 w0 f3c959397f7955eb
 -10-0-10 p2 w0 b9947d860731ae65
- 0-12 p2 w0 0ddbacf72caa0457
- 12-0-12 p2 w0 afc3a6ce474c7935
- 0-13 p2 w0 97068b461f1cf947
-@@ -620,10 +346,6 @@
- 7-4-7 p2 w0 00684ecab73d503d
- 4-8 p2 w0 1e8e08525c38c0b5
- 8-4-8 p2 w0 298c00e928def2b7
+-0-12 p2 w0 0ddbacf72caa0457
+-12-0-12 p2 w0 afc3a6ce474c7935
+-0-13 p2 w0 97068b461f1cf947
+-13-0-13 p2 w0 a8a32f23f3f8e3c9
+-4-0 p2 w0 a0872483d3311383
+-0-4-0 p2 w0 285f34ce76585517
+-4-4 p2 w0 0a48f35b0d47b1bd
+-4-7 p2 w0 0e22e1c18e150699
+-7-4-7 p2 w0 00684ecab73d503d
+-4-8 p2 w0 1e8e08525c38c0b5
+-8-4-8 p2 w0 298c00e928def2b7
 -4-9 p2 w0 c45e951c1c4a3ae1
 -9-4-9 p2 w0 6466f85f0c2a8e1b
 -4-10 p2 w0 7421226e5be2635d
 -10-4-10 p2 w0 0be4b4915b98aef9
- 4-12 p2 w0 f67636d37a6c87f9
- 12-4-12 p2 w0 6de23d0d95402485
- 4-13 p2 w0 e423a4869f9d8981
-@@ -635,10 +357,6 @@
- 7-7 p2 w0 562bbfd61d441eed
- 7-8 p2 w0 d69b0dc4065f67fb
- 8-7-8 p2 w0 c607b8e616d361f1
+-4-12 p2 w0 f67636d37a6c87f9
+-12-4-12 p2 w0 6de23d0d95402485
+-4-13 p2 w0 e423a4869f9d8981
+-13-4-13 p2 w0 b2293ca54ccceda7
+-7-0 p2 w0 2c079fbf1cf73e55
+-0-7-0 p2 w0 1821f759f5436c8b
+-7-4 p2 w0 06f27e60a77d9143
+-4-7-4 p2 w0 65ac466a0ad135ab
+-7-7 p2 w0 562bbfd61d441eed
+-7-8 p2 w0 d69b0dc4065f67fb
+-8-7-8 p2 w0 c607b8e616d361f1
 -7-9 p2 w0 bba515c995364c59
 -9-7-9 p2 w0 50b76d1459933033
 -7-10 p2 w0 e60888b888ed3725
 -10-7-10 p2 w0 3f7b499431956de3
- 7-12 p2 w0 75d1e911d069bf85
- 12-7-12 p2 w0 fc3dd16f7f69b0d1
- 7-13 p2 w0 79f22aaaf00a969f
-@@ -650,44 +368,10 @@
- 8-7 p2 w0 69e537c341fffe25
- 7-8-7 p2 w0 0a42194ddc300121
- 8-8 p2 w0 b07f8ce9758c749b
+-7-12 p2 w0 75d1e911d069bf85
+-12-7-12 p2 w0 fc3dd16f7f69b0d1
+-7-13 p2 w0 79f22aaaf00a969f
+-13-7-13 p2 w0 152139e29a06232b
+-8-0 p2 w0 273866d64be1a14f
+-0-8-0 p2 w0 48deb6b73c189fcf
+-8-4 p2 w0 56e86d6e0b6e0845
+-4-8-4 p2 w0 69a6a66348235647
+-8-7 p2 w0 69e537c341fffe25
+-7-8-7 p2 w0 0a42194ddc300121
+-8-8 p2 w0 b07f8ce9758c749b
 -8-9 p2 w0 bfd350946a450de1
 -9-8-9 p2 w0 dac0abed41f9b1b9
 -8-10 p2 w0 992cedab7ee96cf3
 -10-8-10 p2 w0 b7c84415a88f8711
- 8-12 p2 w0 de4e59299b20b9c1
- 12-8-12 p2 w0 9156e3cace29b85d
- 8-13 p2 w0 6c4c02857f622293
- 13-8-13 p2 w0 22223db8352b3b4d
+-8-12 p2 w0 de4e59299b20b9c1
+-12-8-12 p2 w0 9156e3cace29b85d
+-8-13 p2 w0 6c4c02857f622293
+-13-8-13 p2 w0 22223db8352b3b4d
 -9-0 p2 w0 b452577eadd2ebf7
 -0-9-0 p2 w0 1afe6be937fa1ebd
 -9-4 p2 w0 2a8674027857382d
@@ -1497,34 +1708,435 @@
 -12-10-12 p2 w0 bc095bbbd52fa171
 -10-13 p2 w0 d73252201744f93d
 -13-10-13 p2 w0 67e35858821bfa77
- 12-0 p2 w0 4eaf7ab528620761
- 0-12-0 p2 w0 3399f3a3101db807
- 12-4 p2 w0 960545b34a9a60d5
-@@ -696,10 +380,6 @@
- 7-12-7 p2 w0 63ec5d836f9a9ee7
- 12-8 p2 w0 357b71d1dfac28c5
- 8-12-8 p2 w0 716106c00f0511bf
+-12-0 p2 w0 4eaf7ab528620761
+-0-12-0 p2 w0 3399f3a3101db807
+-12-4 p2 w0 960545b34a9a60d5
+-4-12-4 p2 w0 f7351b02d93a310b
+-12-7 p2 w0 dbe0019867d84def
+-7-12-7 p2 w0 63ec5d836f9a9ee7
+-12-8 p2 w0 357b71d1dfac28c5
+-8-12-8 p2 w0 716106c00f0511bf
 -12-9 p2 w0 c9f05a16ce282359
 -9-12-9 p2 w0 54e8a5a6d7ec8aaf
 -12-10 p2 w0 6d12a57ea4a0a2f5
 -10-12-10 p2 w0 30c63db69acc1855
- 12-12 p2 w0 fd80fd2ad88f8fd1
- 12-13 p2 w0 f473a0931475fa59
- 13-12-13 p2 w0 561f11ec7f52cd13
-@@ -711,10 +391,6 @@
- 7-13-7 p2 w0 11e9d45c6320c499
- 13-8 p2 w0 7a4fa76da2838e9f
- 8-13-8 p2 w0 1d720db20f395eaf
+-12-12 p2 w0 fd80fd2ad88f8fd1
+-12-13 p2 w0 f473a0931475fa59
+-13-12-13 p2 w0 561f11ec7f52cd13
+-13-0 p2 w0 278811e795aa7d8d
+-0-13-0 p2 w0 005b3753c3b35fff
+-13-4 p2 w0 f906607d31df8557
+-4-13-4 p2 w0 122674d2dd395813
+-13-7 p2 w0 2c04f222190ceb4b
+-7-13-7 p2 w0 11e9d45c6320c499
+-13-8 p2 w0 7a4fa76da2838e9f
+-8-13-8 p2 w0 1d720db20f395eaf
 -13-9 p2 w0 fdcc1e80b323842b
 -9-13-9 p2 w0 35964b695557999d
 -13-10 p2 w0 fea4132d6fffa867
 -10-13-10 p2 w0 5b12776932ea149d
- 13-12 p2 w0 fcadae3a55d48a33
- 12-13-12 p2 w0 1b82638ac031f5c5
- 13-13 p2 w0 4e86f9ed66db5b83
---- a/tests/union_test.c	2026-11-09 19:41:34
-+++ b/tests/union_test.c	2026-11-11 18:17:10
-@@ -40,8 +40,6 @@
+-13-12 p2 w0 fcadae3a55d48a33
+-12-13-12 p2 w0 1b82638ac031f5c5
+-13-13 p2 w0 4e86f9ed66db5b83
++0-0 p0 w10 e99fed383def6905
++0-4 p0 w10 1889cce481a8c8a3
++4-0-4 p0 w10 47148e13c4a20c57
++0-7 p0 w10 f06f601e151c7d77
++7-0-7 p0 w10 e20bf416e01038a7
++0-8 p0 w10 6c5c48d0b827fc15
++8-0-8 p0 w10 c310f4e5a2ec12cd
++0-12 p0 w10 5dae2e5bec51a44d
++12-0-12 p0 w10 0abd37e851ae485b
++0-13 p0 w10 8bc86865f02211a3
++13-0-13 p0 w10 04576dfa06fae681
++4-0 p0 w10 715c6952c03289d9
++0-4-0 p0 w10 398f65e4dee5cad1
++4-4 p0 w10 6b9b167d3cd5f7a7
++4-7 p0 w10 1bdb9f1df745062d
++7-4-7 p0 w10 2c53b76533bdb273
++4-8 p0 w10 071e267d335f464d
++8-4-8 p0 w10 1cae5746dbf6e2af
++4-12 p0 w10 79d329d6e2bdc991
++12-4-12 p0 w10 e329f9560e79c283
++4-13 p0 w10 703d9087b5306707
++13-4-13 p0 w10 a0e396024294f201
++7-0 p0 w10 88ee47c728611039
++0-7-0 p0 w10 21c67c0bc111697d
++7-4 p0 w10 7cad3d8c7ff39559
++4-7-4 p0 w10 dea21c7d03c9c8bd
++7-7 p0 w10 15712adcde8f1b81
++7-8 p0 w10 652d97821b5caef7
++8-7-8 p0 w10 2143c71632a9ad27
++7-12 p0 w10 f3066635a5231a6b
++12-7-12 p0 w10 f74d5a0e55c80373
++7-13 p0 w10 ef3da1a21e920479
++13-7-13 p0 w10 358507a2940395ff
++8-0 p0 w10 6fa295c5ed5f400b
++0-8-0 p0 w10 2018542f2268e329
++8-4 p0 w10 bdac7437a8364b93
++4-8-4 p0 w10 64dcd9b63004f385
++8-7 p0 w10 459817bf63de06bb
++7-8-7 p0 w10 0fc0be9fb8887251
++8-8 p0 w10 11aaebfc1c2e8149
++8-12 p0 w10 8ed6d073913ce2d1
++12-8-12 p0 w10 744275122a24a46f
++8-13 p0 w10 4e751cb30d04e3c5
++13-8-13 p0 w10 e483f6b2fcf98ae7
++12-0 p0 w10 43fdcb9264cb7f27
++0-12-0 p0 w10 1276321767f92483
++12-4 p0 w10 04d51f52a2fda761
++4-12-4 p0 w10 12a4c84f2dbbe7b3
++12-7 p0 w10 e0bcf574bf810dc1
++7-12-7 p0 w10 b5a9ac7a5ab2ff73
++12-8 p0 w10 8ff69230b3ecbb6d
++8-12-8 p0 w10 c11bccd5707192b7
++12-12 p0 w10 fac6b5cc5ddf3ef5
++12-13 p0 w10 f8505a4b244e7dd9
++13-12-13 p0 w10 c29faa997a3d3f9b
++13-0 p0 w10 bf4c286896e92eeb
++0-13-0 p0 w10 906b33f0c82e1513
++13-4 p0 w10 1af04d8f33b3853f
++4-13-4 p0 w10 b74a4a383f5744af
++13-7 p0 w10 82ffb9491ae460e5
++7-13-7 p0 w10 eedad45a9b840713
++13-8 p0 w10 e7e16ef0803857c5
++8-13-8 p0 w10 56d8fbaec516ab69
++13-12 p0 w10 886a6567c5001929
++12-13-12 p0 w10 a6e7e29f44e66e81
++13-13 p0 w10 b0670c5daa947a1f
++0-0 p1 w10 a284a75d7e014ba5
++0-4 p1 w10 ab801947b2a2bf8f
++4-0-4 p1 w10 62799bce6b98bb81
++0-7 p1 w10 84156de215b180f3
++7-0-7 p1 w10 ea43fc60b81e41c1
++0-8 p1 w10 0f12f58f374f3317
++8-0-8 p1 w10 dcaa43c840bfe0bb
++0-12 p1 w10 1357cfb9d00cc5fd
++12-0-12 p1 w10 c82df3a0fdfec96b
++0-13 p1 w10 1b377b0442871435
++13-0-13 p1 w10 6742aa25272a3f55
++4-0 p1 w10 9700ebc906d238e3
++0-4-0 p1 w10 fe6530d2de370c33
++4-4 p1 w10 c15707d58721cf5f
++4-7 p1 w10 f49488577cf1e395
++7-4-7 p1 w10 3a52bd49bbfa76d1
++4-8 p1 w10 b3e39afdd5655ad5
++8-4-8 p1 w10 916fd0ab665ac57f
++4-12 p1 w10 558acbc6de03e28b
++12-4-12 p1 w10 e36bd06f5c84398b
++4-13 p1 w10 725c01ff25909beb
++13-4-13 p1 w10 390c96c86d381da1
++7-0 p1 w10 552abb1a209dd563
++0-7-0 p1 w10 6e3c984042287853
++7-4 p1 w10 461b6c58ff5c1647
++4-7-4 p1 w10 0e756731b1f1c607
++7-7 p1 w10 03d9c1b57b537195
++7-8 p1 w10 b924f96c18939ce7
++8-7-8 p1 w10 03c111b11fc8f31f
++7-12 p1 w10 f758ec777e93bbf7
++12-7-12 p1 w10 6a9b1ec0e321d8cd
++7-13 p1 w10 0167e11941aa484d
++13-7-13 p1 w10 a6a979c5d818a431
++8-0 p1 w10 5239b0d489674855
++0-8-0 p1 w10 061c04a68f8178f5
++8-4 p1 w10 f394f478911321b7
++4-8-4 p1 w10 ab765bc5cf0c9dcf
++8-7 p1 w10 a04a79af9441989d
++7-8-7 p1 w10 97e8f9ad27e27015
++8-8 p1 w10 0521334cd229ec0d
++8-12 p1 w10 135a9359b5248d23
++12-8-12 p1 w10 905c4659281146e5
++8-13 p1 w10 a53586b21a3eb82f
++13-8-13 p1 w10 5f5d6bf40abcc765
++12-0 p1 w10 303ca50c0a70438d
++0-12-0 p1 w10 67031048d352967b
++12-4 p1 w10 a41ccb1dfb42152d
++4-12-4 p1 w10 1e40797f17840d43
++12-7 p1 w10 55394bf7c7b863cb
++7-12-7 p1 w10 89b5daa9e78f9155
++12-8 p1 w10 f72022c9d4444a11
++8-12-8 p1 w10 d07052061706288f
++12-12 p1 w10 094f650e4c3702c7
++12-13 p1 w10 f1f598d673d3d4c3
++13-12-13 p1 w10 f137fca8c27f5267
++13-0 p1 w10 6a37381dce843d4b
++0-13-0 p1 w10 3698b15256bf40c9
++13-4 p1 w10 75de09e0199f3fd7
++4-13-4 p1 w10 03cde84cc4cd3823
++13-7 p1 w10 c9cac3418a489e91
++7-13-7 p1 w10 ad130463483f3927
++13-8 p1 w10 c059874cc45f8937
++8-13-8 p1 w10 ec81a88e005c6c17
++13-12 p1 w10 02f7eb0669757da5
++12-13-12 p1 w10 aeb9cdefcde7dd91
++13-13 p1 w10 65a521c78942a45d
++0-0 p2 w10 5a854ff4f65e292d
++0-4 p2 w10 8514523fd3e249df
++4-0-4 p2 w10 72586f48282e8a1d
++0-7 p2 w10 78d32d3bc1c2b769
++7-0-7 p2 w10 1c84f3b12f387557
++0-8 p2 w10 25d1ddb70cda3cbf
++8-0-8 p2 w10 deb92b37d9db2c13
++0-12 p2 w10 e83e6170ac87ca55
++12-0-12 p2 w10 edd9c26fb266c64b
++0-13 p2 w10 098e9edaf9a8c2a1
++13-0-13 p2 w10 4a6f9d181ccc7b5f
++4-0 p2 w10 cf58db47d00f4989
++0-4-0 p2 w10 1bd4cf4f4c8a328f
++4-4 p2 w10 9bc3be6a3c5e9a71
++4-7 p2 w10 acc91a46bec18cb9
++7-4-7 p2 w10 7b72606c5e7ebf41
++4-8 p2 w10 c33ac01fc2018a6d
++8-4-8 p2 w10 83e32f1b94a50103
++4-12 p2 w10 48f3ba0dfb8649bb
++12-4-12 p2 w10 f43a5372ee82d87b
++4-13 p2 w10 9230fc18066d3fbb
++13-4-13 p2 w10 3e32d5b247ca9e79
++7-0 p2 w10 f93d0a8078d610c9
++0-7-0 p2 w10 3db66d2bca083667
++7-4 p2 w10 c2205edea5e8498b
++4-7-4 p2 w10 def56f156196c1df
++7-7 p2 w10 bf8efeef4cbcc8db
++7-8 p2 w10 89eb09e75628b371
++8-7-8 p2 w10 0da4cc5f86dbecb1
++7-12 p2 w10 e3f7a7acb0fade49
++12-7-12 p2 w10 f637dcd3c2e9dfe5
++7-13 p2 w10 9c9d4c4bcb99aacb
++13-7-13 p2 w10 34573e8cb1fef7c7
++8-0 p2 w10 6b86b6814ebf4a79
++0-8-0 p2 w10 14441d0aadc5c085
++8-4 p2 w10 742ae394923bef0d
++4-8-4 p2 w10 b69d1421055235e9
++8-7 p2 w10 8c43293a9cf1e2c3
++7-8-7 p2 w10 0bb85a6fbd996679
++8-8 p2 w10 e4a604c30dfcc9dd
++8-12 p2 w10 bb7ddeb030e76927
++12-8-12 p2 w10 535045658733b539
++8-13 p2 w10 f501aa2d14beb18d
++13-8-13 p2 w10 ca5f2b4315bd6b73
++12-0 p2 w10 7be9c49e46ce49b7
++0-12-0 p2 w10 43d0a40e8937d7b3
++12-4 p2 w10 6edc95ae458e5409
++4-12-4 p2 w10 cfa0d3383e888fe9
++12-7 p2 w10 70d9016103189e1b
++7-12-7 p2 w10 58eb2bda5858b14b
++12-8 p2 w10 fd8aa9c5a0773db3
++8-12-8 p2 w10 342abd1e01060b01
++12-12 p2 w10 2cc75141cb7a33b3
++12-13 p2 w10 12404d0171630e13
++13-12-13 p2 w10 a4f85cef01733ca5
++13-0 p2 w10 854f2bcb79785801
++0-13-0 p2 w10 d8c333077f88867f
++13-4 p2 w10 928046dc43be4eeb
++4-13-4 p2 w10 1cb614067b7265e9
++13-7 p2 w10 416a9ad1d0f4701b
++7-13-7 p2 w10 c63d8d713b992281
++13-8 p2 w10 9888f2e30a9f8667
++8-13-8 p2 w10 92193a1363ff8d83
++13-12 p2 w10 3ef47786c31758a5
++12-13-12 p2 w10 9fc6e3a6c174ff13
++13-13 p2 w10 1128f6b1ed6d986d
++0-0 p0 w0 dad02f7b945212ab
++0-4 p0 w0 3904504390acbb73
++4-0-4 p0 w0 996992d9f3d4b23f
++0-7 p0 w0 5158bb62b230d8d5
++7-0-7 p0 w0 0fa4ebc68d2a46a7
++0-8 p0 w0 83b1d0af1858edf5
++8-0-8 p0 w0 8ce8144c0cf84da1
++0-12 p0 w0 5564a8840336c9f9
++12-0-12 p0 w0 ac052585344166a9
++0-13 p0 w0 b36707e239222881
++13-0-13 p0 w0 fbe55a350fe97225
++4-0 p0 w0 4c5846368ea1400b
++0-4-0 p0 w0 218a2e1cfe666409
++4-4 p0 w0 5e1f721e80393e77
++4-7 p0 w0 7dded9481ce294f3
++7-4-7 p0 w0 89e0953db70ad1c3
++4-8 p0 w0 de1a8965b2eb192f
++8-4-8 p0 w0 c4a86a9c903757e7
++4-12 p0 w0 8d2bf5905053a73d
++12-4-12 p0 w0 b15924fa48fe3513
++4-13 p0 w0 1310c959e565d2e5
++13-4-13 p0 w0 bb5496c286f56817
++7-0 p0 w0 c5d8bb145d65d221
++0-7-0 p0 w0 d50d7576d7f89443
++7-4 p0 w0 84c509b7ffa84e49
++4-7-4 p0 w0 c6ad4b53c9387e2f
++7-7 p0 w0 f039361782ec0e6d
++7-8 p0 w0 6ff9bea18599b711
++8-7-8 p0 w0 defad03148d141f5
++7-12 p0 w0 9524e39951dc24bf
++12-7-12 p0 w0 131dd1c57af85689
++7-13 p0 w0 8748d5223eb609e7
++13-7-13 p0 w0 c7b4a39dc190da1b
++8-0 p0 w0 83d6abd48219d85b
++0-8-0 p0 w0 1b0628f33ec1a075
++8-4 p0 w0 d5d72353b0e6c0cb
++4-8-4 p0 w0 e1fa58026cd20585
++8-7 p0 w0 8ce0035858247479
++7-8-7 p0 w0 36cc12acc3f63969
++8-8 p0 w0 0188e660df46c407
++8-12 p0 w0 0d3ccea48620be8f
++12-8-12 p0 w0 715a06cbe37fa9d1
++8-13 p0 w0 cb5060209a230ee7
++13-8-13 p0 w0 0641564041177d0f
++12-0 p0 w0 199b1e9ef936a921
++0-12-0 p0 w0 1b095721a64c7c4f
++12-4 p0 w0 af5b26906fdf479d
++4-12-4 p0 w0 86b695b3ef35ed55
++12-7 p0 w0 232b80a38595d591
++7-12-7 p0 w0 838396cd24b1bd3b
++12-8 p0 w0 845c9b9e29ea1183
++8-12-8 p0 w0 53628e2338833157
++12-12 p0 w0 ce75cdccab230ecd
++12-13 p0 w0 931da9e8a19ec3dd
++13-12-13 p0 w0 702e7d37abd27a15
++13-0 p0 w0 540da4044fe4e487
++0-13-0 p0 w0 62fb94a08bfc9fd9
++13-4 p0 w0 bbc9e775e9af9b0f
++4-13-4 p0 w0 0944782f3b83233b
++13-7 p0 w0 3f5d886dc755e3c3
++7-13-7 p0 w0 7d629bb7e3d4b171
++13-8 p0 w0 ea374727874b75a7
++8-13-8 p0 w0 f09fc7509ad8f143
++13-12 p0 w0 ab0118193f9b9ef5
++12-13-12 p0 w0 b2e51840f7f17335
++13-13 p0 w0 72acb7a19a0214dd
++0-0 p1 w0 b47c91fb3450602b
++0-4 p1 w0 a69e8df936f6c6cf
++4-0-4 p1 w0 a231e0a52198d107
++0-7 p1 w0 ea72182b438451b7
++7-0-7 p1 w0 bc0ba7ebe2f688b3
++0-8 p1 w0 fe0fba4f4e5e790d
++8-0-8 p1 w0 e998afbb2239ddc3
++0-12 p1 w0 665363d67dbe36b1
++12-0-12 p1 w0 03273778902b7c7f
++0-13 p1 w0 76ca7a4219568b9b
++13-0-13 p1 w0 0e1502ef865b276d
++4-0 p1 w0 5e4f9cd2862282e1
++0-4-0 p1 w0 a5c8067b024207f5
++4-4 p1 w0 39869ad235a7b8e5
++4-7 p1 w0 8a25b4fd63f71899
++7-4-7 p1 w0 e33d8fd22a1e5387
++4-8 p1 w0 5065d64a37b043f1
++8-4-8 p1 w0 968b69927a5e810f
++4-12 p1 w0 da65987409ffa461
++12-4-12 p1 w0 199f0507f169c931
++4-13 p1 w0 da3c71231a60762b
++13-4-13 p1 w0 a40c00dae2164c01
++7-0 p1 w0 341f1e4ecd4561d7
++0-7-0 p1 w0 21e2cbaa3f4b0cb9
++7-4 p1 w0 0e8ec84d051dc1e3
++4-7-4 p1 w0 18dea785e2b58817
++7-7 p1 w0 df1454cabd437c7f
++7-8 p1 w0 b635382fbd9bf715
++8-7-8 p1 w0 fb69447593905c69
++7-12 p1 w0 11eb51def1bfd789
++12-7-12 p1 w0 3fd009819b40b575
++7-13 p1 w0 f9cab274611e876f
++13-7-13 p1 w0 92f999d68f7fd733
++8-0 p1 w0 53911631420fa6f7
++0-8-0 p1 w0 8e6e9f7b26c10fbf
++8-4 p1 w0 9282d9bff4ab14a3
++4-8-4 p1 w0 0d6f249f678b95bd
++8-7 p1 w0 8ccb4dcea8fbd359
++7-8-7 p1 w0 48d3f9b1c872d14d
++8-8 p1 w0 c9db35657843a059
++8-12 p1 w0 df2f41c5b97c2a5d
++12-8-12 p1 w0 6f112c824898c9f3
++8-13 p1 w0 90e022c71e6f6c8f
++13-8-13 p1 w0 d15797e845a12155
++12-0 p1 w0 d4ce2c4b8a16701b
++0-12-0 p1 w0 fd49358c5cfd2cfb
++12-4 p1 w0 e0672a2f327fb0fb
++4-12-4 p1 w0 4f25eba74378d9bb
++12-7 p1 w0 3753315d306b670f
++7-12-7 p1 w0 977730833b3438b3
++12-8 p1 w0 7de6f90d91cb8285
++8-12-8 p1 w0 007ae3f64f5702d1
++12-12 p1 w0 e4c2af90a4352b47
++12-13 p1 w0 c5b68e6f0551df0f
++13-12-13 p1 w0 4027367232b0e2bf
++13-0 p1 w0 f0404da3326da9e3
++0-13-0 p1 w0 b162437d9ddb86e5
++13-4 p1 w0 c69fcdafe01a74f9
++4-13-4 p1 w0 6f66c3df6091863d
++13-7 p1 w0 90776adbba730553
++7-13-7 p1 w0 7475d906b8e4f593
++13-8 p1 w0 6ef79d16c5787653
++8-13-8 p1 w0 bf60be2af56bcdab
++13-12 p1 w0 587570752eb9baaf
++12-13-12 p1 w0 26e3f3f3a6de3485
++13-13 p1 w0 40bda8d427065fdd
++0-0 p2 w0 434fa07350186447
++0-4 p2 w0 fb01692d5e011015
++4-0-4 p2 w0 451f6908350366e7
++0-7 p2 w0 7f92e7afe51aa561
++7-0-7 p2 w0 903ec37014d25241
++0-8 p2 w0 c636763c34746d8b
++8-0-8 p2 w0 e644fe6e12959901
++0-12 p2 w0 2694a42cd81db4ed
++12-0-12 p2 w0 b5853d33d2b58917
++0-13 p2 w0 5060cc3e4f7b5237
++13-0-13 p2 w0 22e4bf9bb3b6fadf
++4-0 p2 w0 147e87f0fa0a25e5
++0-4-0 p2 w0 b61fbbd942f6f147
++4-4 p2 w0 ae1c9d597a3d24df
++4-7 p2 w0 247d46caaf538db9
++7-4-7 p2 w0 ead4e4d9331df6a5
++4-8 p2 w0 f8eba1ca982772fb
++8-4-8 p2 w0 a4731f66f0bb9409
++4-12 p2 w0 07f76bf062bdcfb7
++12-4-12 p2 w0 d45a2b0f2a116b1d
++4-13 p2 w0 09f536c04f9056d1
++13-4-13 p2 w0 388ed460290d70f5
++7-0 p2 w0 aaa0f75dd9e1e87b
++0-7-0 p2 w0 6264ca8dd0766c51
++7-4 p2 w0 79930b94e517b64d
++4-7-4 p2 w0 e3babee5893ad17b
++7-7 p2 w0 f7cfb07d584a4a59
++7-8 p2 w0 3cb3af7260895049
++8-7-8 p2 w0 aa0433a4abb83cbd
++7-12 p2 w0 b26e3b6b8c03bb83
++12-7-12 p2 w0 2ec69cc650057cbf
++7-13 p2 w0 51ccc072de968fcf
++13-7-13 p2 w0 275dcd3f8fe86b27
++8-0 p2 w0 df2a14dace2645e3
++0-8-0 p2 w0 a6dc8808e326c5df
++8-4 p2 w0 74704c39d464dfe3
++4-8-4 p2 w0 288eb79229762c31
++8-7 p2 w0 5ccf9140371aba8d
++7-8-7 p2 w0 949965ef17c4fbd7
++8-8 p2 w0 eeba59f39c2c8391
++8-12 p2 w0 ec65b531f8ef03f1
++12-8-12 p2 w0 1dfa8d675c363269
++8-13 p2 w0 b15aad60bcee7c41
++13-8-13 p2 w0 daab184d02ab7e95
++12-0 p2 w0 c96fe5f32d1e9867
++0-12-0 p2 w0 d3f436a035577ecd
++12-4 p2 w0 1015da24af8fec37
++4-12-4 p2 w0 11d4e9f7a50dc029
++12-7 p2 w0 df85da0342fdae1b
++7-12-7 p2 w0 62b2810622fa0cef
++12-8 p2 w0 b86c482f9f3611c9
++8-12-8 p2 w0 c0159b3f2e32bed1
++12-12 p2 w0 0e49b1f443f3312f
++12-13 p2 w0 6c0846974397f709
++13-12-13 p2 w0 26245062febc4401
++13-0 p2 w0 3c86083747475931
++0-13-0 p2 w0 44ae23b02e344081
++13-4 p2 w0 42a1f2795eb11231
++4-13-4 p2 w0 d01e09cdbe253df3
++13-7 p2 w0 467db878beeb6e33
++7-13-7 p2 w0 c4acc8cf4614eaff
++13-8 p2 w0 42e15607a679dc6d
++8-13-8 p2 w0 db5d7714a2167051
++13-12 p2 w0 5490f9dd57477f89
++12-13-12 p2 w0 d9b74b3c46c9a46d
++13-13 p2 w0 a934da422c826f33
+--- a/tests/union_test.c
++++ b/tests/union_test.c
+@@ -40,8 +40,6 @@ static void uplay(track_t *t, uint32_t e, uint32_t pi, uint32_t base, uint32_t w
  {
      static const uint8_t CH[4] = {0, 4, 7, 12};
      uint32_t i;
@@ -1533,7 +2145,7 @@
      host_preset_req(t, e, pi);                   /* eng_req: the audio side switches (voice.c engine_block) */
      urun(wait_ms);
      for (i = 0; i < 4u; i++)
-@@ -55,7 +53,7 @@
+@@ -55,7 +53,7 @@ static void uplay(track_t *t, uint32_t e, uint32_t pi, uint32_t base, uint32_t w
      urun(250);                                   /* still ringing at the next switch */
  }
  
@@ -1542,17 +2154,9 @@
  #if FELUCCA_SLICE
                                13 /* SLICE */
  #endif
---- a/web/emu/felucca_web.c	2026-11-11 17:33:31
-+++ b/web/emu/felucca_web.c	2026-11-11 18:19:40
-@@ -202,7 +202,6 @@
- static void fl_plain_window_init(void) {}
- #define FL_FAR(fn) (fn)
- #include "../../firmware/src/storage.c"
--#include "../../firmware/src/upreset.c"
- #include "../../firmware/src/project.c"
- 
- /* ------------------------------------------------- main.c and its HAL --- */
-@@ -443,11 +442,11 @@
+--- a/web/emu/felucca_web.c
++++ b/web/emu/felucca_web.c
+@@ -442,11 +442,11 @@ EXPORT uint8_t *web_anim_levels(void)
  }
  
  /* for the test and the bench (web/emu/emu_test.mjs), a heavy song straight into the tracks (as hostsim's
@@ -1566,32 +2170,3 @@
      static const uint8_t CH[4][4] = {{48, 55, 60, 64}, {45, 52, 57, 60}, {41, 48, 53, 57}, {43, 50, 55, 59}};
      uint32_t p, i;
      for (p = 0; p < 3u; p++) {
---- a/LICENSING.md	2026-11-09 19:41:34
-+++ b/LICENSING.md	2026-11-11 18:19:40
-@@ -16,8 +16,7 @@
- - the web pages (installer, editor, the browser emulator `web/emu/`) and their tests: `web/` (not the Fukiai and DotGothic16 fonts, below)
- - the host tests: `tests/`
- 
--Three source files are ports and keep the licence of their originals:
--`firmware/src/phys_dsp.c` (DaisySP, MIT), `firmware/src/phys_symp.c` (Rings, MIT) and
-+One source file is a port and keeps the licence of its original:
- `firmware/src/fm6_core.c` (msfa, Apache-2.0). The firmware built with them is GPL-3.0-only as
- a whole.
- 
-@@ -33,7 +32,6 @@
- | --- | --- | --- |
- | Felucca: firmware, tools, web pages, tests | GPL-3.0-only | `LICENSE` |
- | The PHASE engine's waveforms: a C port of the oscillator of CrispyZebra (<https://github.com/hugelton/CrispyZebra>) | GPL-3.0 | `firmware/src/eng_phase.c` |
--| The DRUM voices and kit | GPL-3.0-only | `firmware/src/drum_voice.c`, `firmware/src/eng_drum.c` |
- | The Hügelton Sample Pack: Felucca's drum sounds, made by `tools/gen_waves.py`, from which the SLICE engine's BREAK is built (not CC0) | GPL-3.0-only | `tools/gen_waves.py` |
- | The controls picture | GPL-3.0-only | `docs/controls.jpg` |
- | The Fukiai icon font (<https://github.com/hugelton/Fukiai>): the firmware's icons (rasterised at build time by `tools/gen_aa_icons.py`) and the web editor's | MIT | `web/fukiai.ttf`, `LICENSES/MIT-Fukiai.txt`, `web/FUKIAI-LICENSE.txt` |
-@@ -44,8 +42,6 @@
- | --- | --- | --- |
- | Inter Tight font by The Inter Project Authors: the UI text, rasterised into the firmware at build time (`tools/gen_aa_font.py`; the generated tables are not offered as a font, and the font declares no Reserved Font Name) | SIL OFL 1.1 | `assets/fonts/InterTight[wght].ttf`, `LICENSES/OFL-InterTight.txt` (also `assets/fonts/OFL.txt`) |
- | Instrument samples (Versilian Studios VSCO-2 Community Edition, VCSL): the SAMPLE sets, also the SLICE engine's PIANO (the PIANO set's middle C) | CC0 1.0 | `assets/samples-cc0/`, provenance in `ATTRIBUTION.txt` there |
--| DaisySP by Electrosmith, Corp and Emilie Gillet (<https://github.com/electro-smith/DaisySP>): the PHYS engine's modal and string models and the resonator, ported to fixed point | MIT | `firmware/src/phys_dsp.c`, `LICENSES/MIT-DaisySP.txt` |
--| Rings by Emilie Gillet (<https://github.com/pichenettes/eurorack>): the PHYS engine's sympathetic strings, ported to fixed point | MIT | `firmware/src/phys_symp.c`, `LICENSES/MIT-Rings.txt` |
- | msfa by Google Inc. and Pascal Gauthier, from Dexed (<https://github.com/asb2m10/dexed>): the FM6 engine's synthesis, ported to integer C (Dexed itself is GPL-3.0; only msfa is used; the FM6 factory patches are Felucca's own) | Apache-2.0 | `firmware/src/fm6_core.c`, `LICENSES/Apache-2.0-msfa.txt` |
- | klattsch by Tony Gies (<https://github.com/tgies/klattsch>): design reference for the VOICE engine; no code copied. Formant data from Klatt (1980) / Hillenbrand et al. (1995) | MIT (klattsch) | credit only |
- | X0X by charlesvestal (<https://github.com/charlesvestal/fm1-x0x>), a Felucca fork: the design of the browser emulator (the worklet, the device clock driven by its audio, the exports); its files credit it in their headers | GPL-3.0 | `web/emu/` |
