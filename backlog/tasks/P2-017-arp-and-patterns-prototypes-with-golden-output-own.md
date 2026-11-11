@@ -86,3 +86,15 @@ python3 tests/design/patterns_proto.py --check -> OK (run inside run_protos; 13 
 6. Cost table, esp. PATTERNS CPU measured later on the device.
 7. Gate A of the use case and its stale-row list.
 
+
+### 2026-11-12 review (sonnet)
+Verdict: checkable parts PASS; gate is `human-review`, so the task stays at `review`. Firmware untouched (diff has no firmware/ path); `./build.sh` and `tools/check.sh` not run by instruction (another agent is building), so no RAM line to quote; LOCK.md 2 states +168 B .bss, headroom about 38.6 KB, well over the 8192 B trigger.
+Re-run, all green:
+- `sh tests/design/run_protos.sh`: six algorithms, `arp_ref: 1728 cases, 0 mismatches`, `euclid_ref` 53/0, `patterns_ref` 126/0, goldens equal, two runs byte-identical, `PROTOS PASS`.
+- `grep -r 'P2-017 fills' docs/design/algorithms`: empty.
+- `width_probe.sh`: 297 strings, 0 over. `check_scenarios.py`: 490 rows, 0 without a scenario. `check_help.py`: OK 392 rows. `check_sequencer_ux.py`: OK. `backlog.py check`: 133 items, 0 errors.
+Criteria 1-5 verified against files (decision 90 names: run_protos checks 13 song titles absent). Criterion 6 is the owner's.
+Gate A: steps 1-8 in docs/design/features/P2-017-*.md match arp/SPEC and patterns/SPEC and the golden; scores sum correctly (12/12/10/10/11/11); the ROW 2 held score of 10 is below the performance rule of 11 and is honestly flagged for the owner, not hidden. Five-surface sync agrees for the surfaces the task owns. Gate B sections 7-9: prototype only, no screen rendered, so n/a until P5 device; recorded as pending, not failed.
+Finding (stale EUCLID SHAPE "absent" rows): needs a follow-up task. They are live in SCREEN_SPEC 2.7 (line 329), UX_REVIEW, ALGORITHM_SET 4.4 and also SEQUENCER_UX, CONTROL_MAP.md:34, PERFORMANCE_DESIGN and `tests/design/widths.tsv:98` (`NO SHAPE IN EUCLID` toast; the width row is harmless but the string is now dead). P2-029's scope is ADR-0003 and HARMONY only, and "P4-031" named by the executor does not exist as a task file (only mentioned in MODULATION.md/HW docs). Without a task these rows contradict the locked design and would mislead P4/P5 executors. Suggested: new task "Sync design docs to EUCLID SHAPE=MOD and the six-algorithm lock" (SCREEN_SPEC, UX_REVIEW, ALGORITHM_SET, SEQUENCER_UX, CONTROL_MAP, PERFORMANCE_DESIGN, MODULATION PulseOut wording, widths.tsv), depends on this lock.
+Minor: running arp_ref.py/patterns_ref.py bare gives an IndexError (they need an argument); fine inside run_protos.
+Awaiting owner: LOCK.md section 6, items 1-7 (knob/dice tables and ROW 2 held score 10; ARP DIR names, DENS 12, O-5 THUMB home note; PATTERNS O1-O3; SHAPE re-rolls s_mod, sub-label option A/B/C; ADR-0003 contract changes; cost table incl. PATTERNS CPU; Gate A). One `Approved: owner <date>` line closes it.
