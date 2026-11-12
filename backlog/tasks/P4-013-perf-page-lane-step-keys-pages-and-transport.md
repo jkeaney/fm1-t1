@@ -3,7 +3,7 @@ id: P4-013
 title: PERF page: lane, step keys, pages and transport
 phase: P4
 type: task
-status: review
+status: todo
 priority: 2
 executor: haiku
 depends_on: [P4-012]
@@ -57,3 +57,12 @@ Built: ui_sq.c PERF controls (ui_sq_keys, ui_sq_button, ui_sq_knob, ui_sq_select
 - Wired: white keys (tap = sq_step_tap on release, hold 0.4 s = sq_note_edit_begin + NOTE_EDIT), M1-M4 (tap mute, hold + release < 1.5 s toggles the preview bit pad[0]&0x80, 1.5 s removes: out of use + muted, EDIT restores), SELECT (move / add past the last), K1-K4 via sq_morph_turn on the live row, dice FX/SCL/SEQ/ENV/ARP/LFO (absent layer inert), EDIT undo/redo, OCT-/OCT+ rows, PG-/PG+ (FOLLOW off, PG+ twice adds a page). PLAY was already wired. Strings come from ui_msgs (digits and the algorithm short name are put into table rows).
 - Not done, for follow-up (not in tables/MESSAGES or out of scope): no `PAST THE END` / `64 STEPS = MAX` message row (a tap past LENGTH is silent); a step turned ON while stopped does not sound (sq_live_* are ISR-side); hard-tap ACCENT; CHN/RIG, SOL/FIL/ROL, RST keys; ALGO and PRESETS encoders (drained); preview toggle has no toast; ADD_PAGE overlay is the toast only; NOTE_EDIT is a stand-in that lasts while the opening key is held (P4-014 replaces uisq_pg_note_edit); channel removal is UI state (uisq_used + mute), not in presets.
 - Reviewer: look at uisq_key_up / uisq_keys_tick (hold ladder) and the removal semantics.
+
+### 2026-11-13 review (sonnet)
+Verdict: FAIL, back to todo. `sh tools/check.sh` = CHECK PASS; `RAM .data+.bss 29192 B of 73728` (headroom 44536 B, OK). Gate B filled in docs/design/features/P4-013-*.md.
+Hold ladder (uisq_key_up / uisq_keys_tick) is correct: the 0.4 s and 1.5 s come from ui_hold_rows / ui_remove_rows, `fired` stops a tap after a hold, mute-on-tap vs preview-on-release split is right, ISR only reads muted/pad[0] (single bytes), note-offs follow each slot's own flags so removal cannot hang a note. Findings to fix:
+- [ ] F1 (must fix) ui_sq.c uisq_do_remove (~line 893): removal only mutes MIDI. `pad[0] & 0x80` (preview) stays set and sq_emit's preview gate (sq_core.c:148) ignores `muted`, so a removed channel with PREVIEW on keeps sounding on the built-in synth, and a removed channel's preview toggles are invisible. Fix: on remove clear bit 7 of pad[0] (save it with uisq_gone_muted, restore on EDIT undo); add a test that after remove with preview on, sq_emit/the preview gate is off, and EDIT restores it.
+- [ ] F2 uisq_gone is one slot: removing a second channel before EDIT overwrites the first, so the first cannot be undone (and any dice or PG+ clears it, ui_sq.c ~906-940). Keep a per-channel gone mask (uisq_gone_mask + muted/preview bytes) or document the single-level rule in key_map and test it; EDIT should restore the most recent.
+- [ ] F3 uisq_key_up returns early when page != PERF, before ui_sq_held_m_set(0) / ui_sq_hold_end(). Hold M1, then hold a white key 0.4 s (NOTE_EDIT), release M1: the PREVIEW/REMOVE hint stays. Clear the M hint before the page check.
+- [ ] F4 (minor) NOTE_EDIT stand-in never ends the sq note-edit session; P4-014 must close it. Note it in P4-014's Log when picked up.
+Gaps triage: legitimately later: NOTE_EDIT body (P4-014), MIDI channel and CHAN page (P4-015), RST (P4-018), SOL/FIL/ROL (P6-003), PRESETS encoder (P7-002), hard-tap ACCENT (needs key force; P4-014/P4-017). Must exist before HW-1 and were nobody's: CHN key (D#4) entry to CHAN, PERF ALGO encoder, PAST THE END / 64 STEPS = MAX, stopped step sounds once, preview toast. Filed as P4-032 (depends P4-013, P4-015) and added to P4-018's depends_on so it precedes P4-020 and HW-1 (P4-021).

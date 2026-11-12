@@ -63,10 +63,21 @@ Pass: performance >= 11, setup >= 9, no sub-score < 2.
 Design locked: cited from the locked tables (P4-030) and SCREEN_SPEC_V2 (ADR-0006); Gate A by the executor, the reviewer confirms.
 
 ## 7. Walk-through (after the build)
-Gate B: reviewer fills this on the host render build/ui_sq/perf_*.png and the test tests/ui_sq_perf_test.c (host only, no device).
+Reviewer 2026-11-13, host only (tests/ui_sq_perf_test.c passes inside CHECK PASS; no device).
+Steps 1-2, 4-8, 10-12 behave as predicted (test cases for tap, K1 hot tile, dice toasts, EDIT undo/redo, M tap/preview/1.4 s/1.5 s, SELECT add, PG+/PG-). Differences:
+- Step 3: NOTE_EDIT is a stand-in that closes when the key is released (P4-014).
+- Step 9: removal leaves the channel's preview bit ON, so a removed channel can still be heard on the built-in synth (finding F1).
+- Step 9 twice in a row: the first channel's EDIT=UNDO is lost (one-slot undo, finding F2).
+- Not wired: CHN key, ALGO encoder (P4-032), PAST THE END, step-on-while-stopped, preview toast.
 
 ## 8. Actual ease score
-Reviewer.
+| Function | V | I | O | L | /12 | Pass? |
+| --- | --- | --- | --- | --- | --- | --- |
+| Step tap / hold | 3 | 3 | 3 | 3 | 12 | yes (stopped: no sound, so O=2 there; still 11) |
+| Morph / dice / undo | 3 | 3 | 3 | 3 | 12 | yes |
+| Mute / preview / remove | 3 | 2 | 2 | 2 | 9 | yes (setup), O drops: no preview toast, removed channel still audible |
+| Add channel | 3 | 3 | 3 | 2 | 11 | yes |
 
 ## 9. Sync re-check and outcome
-Reviewer.
+Buttons/tables agree for the wired controls (ui_hold_rows 400 ms on W and B01-B04, ui_remove_rows 1500 ms); renders unchanged. check_scenarios / help untouched. Live checklist: "does not change another channel" is not true for removal (finding F1 keeps a channel audible); "no hung notes" holds (note-offs follow the slot's own flags, sq_core.c sq_emit). One-handed hold ladders await HW-1.
+Outcome: Fail (F1), see the task Log. Debt filed as P4-032.
