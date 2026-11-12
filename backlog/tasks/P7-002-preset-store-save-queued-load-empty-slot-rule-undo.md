@@ -20,7 +20,7 @@ gate: none
 - firmware/src/project.c, storage.c
 
 ## Deliverable
-- project.c: `SQ_NSLOT` 16 preset objects (SeqPreset v3 incl. HarmonySave), save, validated load (version, ranges), staging copy and undo-last-load copy in `.pool` (initialised explicitly: pool is not zeroed)
+- project.c: `SQ_NSLOT` 16 preset objects (SeqPreset v4 incl. HarmonySave, plus the 100 B ModSave sibling: a 1656 B slot payload; save/load pass both to sq_preset_save/load), save, validated load (version, ranges), staging copy and undo-last-load copy in `.pool` (initialised explicitly: pool is not zeroed)
 - ui_sq.c: PRESETS encoder with pending slot display, bar-aligned apply, empty-slot toast, SAVE tap/hold
 - tests/preset_test.c: round trip of all 16 slots, power-loss mid-write (fake storage), corrupt/old version rejected, empty slot leaves the pattern unchanged, queued load applies on the bar
 

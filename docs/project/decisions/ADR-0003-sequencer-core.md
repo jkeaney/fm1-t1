@@ -389,8 +389,8 @@ void    sq_global_set(const GlobalSave *g);                       /* recomputes 
 void    sq_restart(void);                                         /* F#5 RESTRT (P1-014: was D#5): all channels to step 0 at the next step */
 void    sq_live_on(uint8_t note, uint8_t vel);                    /* a key on the selected channel; snapped; ISR-safe */
 void    sq_live_off(uint8_t note);
-int     sq_preset_save(SeqPreset *out);
-int     sq_preset_load(const SeqPreset *in, uint8_t when);        /* when: 0 now (stopped), 1 at the next bar */
+int     sq_preset_save(SeqPreset *out, ModSave *ms);              /* ms: SQ_NCH entries (the 100 B sibling array) or NULL to skip */
+int     sq_preset_load(const SeqPreset *in, const ModSave *ms, uint8_t when);   /* ms NULL keeps the live s_mod; when: 0 now (stopped), 1 at the next bar */
 ```
 
 ## 7. Timing and the scheduler

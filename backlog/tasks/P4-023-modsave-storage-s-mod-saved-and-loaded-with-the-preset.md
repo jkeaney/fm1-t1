@@ -3,7 +3,7 @@ id: P4-023
 title: ModSave storage: s_mod saved and loaded with the preset
 phase: P4
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P4-005]
@@ -50,3 +50,15 @@ SQ_CHAN PASS
 CHECK PASS
 ```
 Note: sq_*.c is not yet in the felucca.c unity build (cut-over P4-012), so the RAM line is unchanged by this task.
+
+### 2026-11-12 review (sonnet)
+Verdict: PASS (gate none -> done).
+- check.sh: CHECK PASS. `RAM .data+.bss 23828 B of 73728` (headroom 49900 B >= 8192). sq_*.c is not in the unity build yet.
+- (a) ModSave 25 B/channel, 100 B total, static-asserted; dev and slot[] stay zero (memset on save); sizeof(SeqPreset)==1556 asserted in t_preset. Matches ADR-0003 section 22 row 1 (sibling array).
+- (b) NULL on save skips, NULL on load keeps live s_mod. A rejected load (-1) returns before staging touches sq_stage_smod. Queued load: staged caches built from sq_stage_smod, sq_chan_sync copies it in under sq_stage_valid at the epoch change, then rebuilds; same path as bpm/harm, no new race.
+- (c) Old code could not compile the test, but the assertions are behavioural (round trip of 0x1234-pattern values for 6 ch x 6 algo, byte-identical re-save, s_mod unchanged until the bar). Fuzz 100000 ticks, ASan+UBSan, seeds 1, 7, 12345: all SQ_CHAN PASS.
+- Non-blocking: the fuzz always passes NULL for ModSave (tests/sq_chan_test.c:473-479), so the ModSave path is not fuzzed; the queued-test comment says "a dice while pending does not survive the landing" but no dice is issued while pending. Load also accepts s_mod = 0 (zero-filled ModSave); integrity is the P7 CRC's job. Worth a follow-up in P4-012/P7-002 if desired.
+- (d) Any 16-bit s_mod is accepted, dev/slots ignored; no out-of-range indexing possible.
+- (e) ADR-0003 section 22 already sizes the pool at 18 x 1656 B. P7-001 and P7-002 still said v3/1396 B: fixed (1656 B payload).
+- (f) ADR-0003 section 6 prototypes updated to the three-argument forms.
+- (g) `ls backlog/tasks | grep -F '*'` is empty.

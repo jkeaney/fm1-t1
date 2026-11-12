@@ -10,7 +10,7 @@ depends_on: [P3-012]
 gate: human-review
 ---
 ## Goal
-Choose and document flash offsets for 16 preset slots (SeqPreset v3, 1396 B) and settings that cannot collide with the app image, the update loader, OTA or the existing storage A/B sectors.
+Choose and document flash offsets for 16 preset slots (SeqPreset v4, 1556 B, plus its 100 B ModSave sibling = a 1656 B slot payload before the storage-layer header and CRC; ADR-0003 section 22 row 1) and settings that cannot collide with the app image, the update loader, OTA or the existing storage A/B sectors.
 
 ## Read first
 - firmware/src/storage.c, storage_hw.c, ota.c, ota_hw.c, loader/ (sector use)
