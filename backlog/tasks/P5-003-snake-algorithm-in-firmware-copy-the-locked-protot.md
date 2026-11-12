@@ -22,6 +22,8 @@ Land SNAKE exactly as prototyped (ADR-0003 §14: the prototype is the firmware f
 - `ALGOS[]` row for SNAKE in sq_algos.c (P5-001 creates sq_algos.c with the table and `SQ_NALGO` entries)
 - tests/sq_algo_snake_test.c: includes the firmware file, prints the golden matrix, diffs against docs/design/algorithms/snake/golden.txt; runs the generic purity and table tests (ADR-0003 §14); run_tests.sh step
 
+- Orchestrator decision 2026-11-12 (resolves the P5-001 block): the algorithm golden is checked in two parts. This task diffs only the plain matrix part of golden.txt (everything before the `H-INERT` section); the `H-INERT` and `HARM 1-4-5-1` sections need `harm.c` and are checked by P5-005's test, whose acceptance criterion gains them. `static` is not applied to typedefs. Rows of the `ALGOS[]` table for algorithms that do not exist yet are filled by their own tasks (the unity build must still compile: use the real rows only, with `SQ_NALGO` and the table sized per the ADR). If the Use case file `docs/design/features/<ID>-*.md` named in the UX gate section does not exist, create it from `_TEMPLATE.md` using the algorithm's SPEC.md section 1 and the scenario steps that exercise it, with Gate A marked 'cited from the locked design (P2-017)'.
+
 ## Acceptance criteria
 - [ ] `diff` of the test output against docs/design/algorithms/snake/golden.txt is empty
 - [ ] Purity tests (a)-(e) and table tests pass

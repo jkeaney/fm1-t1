@@ -23,6 +23,8 @@ The chord stage every channel passes through (HARMONY.md §4), copied from the l
 - API for the UI: set progression slot, VOICE, MOVE, DRONE, BARS, ROLE per channel, PROG dice, undo (EDIT swaps the later of channel and harmony records)
 - tests/sq_harm_test.c: H-GOLDEN tables equal harmony_proto.py output (checked-in text), H-INERT for all four algorithms against their goldens, ROLE OFF identity for any progression, H-UNDO
 
+- Orchestrator decision 2026-11-12: this task's test also checks the `H-INERT` and `HARM 1-4-5-1` sections of every locked algorithm golden (ACID, EUCLID, SNAKE, STAGE, ARP, PATTERNS) that P5-001..P5-004, P5-007 and P5-008 leave unchecked because they need harm.c.
+
 ## Acceptance criteria
 - [ ] sq_harm_test passes all four H- checks
 - [ ] `.bss` growth is at most 42 B (build line before/after in the Log)
