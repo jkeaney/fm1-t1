@@ -3,7 +3,7 @@ id: P4-003
 title: usb.c 128-entry MIDI out ring, midi_out_free and the reserve rule
 phase: P4
 type: task
-status: review
+status: done
 priority: 2
 executor: haiku
 depends_on: [P3-012]
@@ -81,3 +81,13 @@ Notes for the reviewer:
 - `midi_out_drops` counts both reserve drops (NOTE_ON) and full-ring refusals (any packet). The deliverable asks for "the drop counter counts"; a split into ON / full counters was not made.
 - The NOTE_ON test is `status 0x9n and velocity != 0`. Velocity-0 NOTE_ONs are never dropped, matching ADR-0003 8.1 (never sent as NOTE_ON).
 - Timestamps and TIMER5 release (P4-007) not touched. The ADR/doc edits in the working tree (docs/design, ADR-0003, P2-029/P2-030) belong to another agent and are not in this commit.
+
+### 2026-11-12 review (sonnet)
+
+Verdict: PASS (gate none -> done).
+- Re-ran `sh tools/check.sh`: CHECK PASS (usb_ring_test, uac, usb_desc all ok in build/check/tests.log). `./build.sh`: `image 168860 B; RAM .data+.bss 23316 B of 73728; pool 92500 B of 368640`. Headroom 50412 B >= 8192 B.
+- Reserve rule (usb.c:211-214): refuses when free == 0, or NOTE_ON with velocity != 0 and free < MO_RESERVE (8). So 8 free still queues an ON, 7 does not; OFF, vel-0 ON, CC123 and 0xF8 queue until the ring is full. midi_out_is_on checks status 0x9n and `pkt >> 24 != 0`, so velocity-0 is a note-off.
+- Index math: all producers/consumers of midi_out_q use `% MQO` (usb.c producer, ep1_tx, t1_link_test.c:21, midi_control_test.c:276); grep finds no stray `% MQ` on the out ring. scale_test uses literal slots 0/1 only (fine). Free count `MQO - (mo_w - mo_r)` is unsigned-wrap safe; 128 is a power of two.
+- ISR safety: midi_out_event is the single producer (audio ISR; seq.c keyboard_block and t1_glue flush both run there); ep1_tx only advances mo_r, so a stale free count can only under-estimate (safe). midi_out_drops is written only by the producer. Minor, non-blocking: t1_glue.c:88 note-off on stop relies on being called from the ISR (transport_req), as before.
+- midi_out_drops semantics: documented at usb.c:177 and in the executor Log (counts reserve drops and full-ring refusals together, none when no host). Not yet exposed anywhere; P4-007 or a later diagnostics task may split it.
+- Scope: only usb.c, two test index fixes, usb_ring_test.c, run_tests.sh. Nothing else touched.
