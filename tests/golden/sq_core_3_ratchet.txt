@@ -1,0 +1,20 @@
+    0 MIDI ch= 1 ON  n= 40 v=100
+    6 MIDI ch= 1 OFF n= 40
+   12 MIDI ch= 1 ON  n= 40 v=100
+   16 MIDI ch= 1 OFF n= 40
+   20 MIDI ch= 1 ON  n= 40 v=100
+   22 MIDI ch= 1 OFF n= 40
+   24 MIDI ch= 1 ON  n= 41 v=100
+   26 MIDI ch= 1 OFF n= 41
+   28 MIDI ch= 1 ON  n= 41 v=100
+   32 MIDI ch= 1 OFF n= 41
+   36 MIDI ch= 1 ON  n= 41 v=100
+   42 MIDI ch= 1 OFF n= 41
+   48 MIDI ch= 1 ON  n= 42 v=100
+   52 MIDI ch= 1 OFF n= 42
+   57 MIDI ch= 1 ON  n= 42 v=100
+   60 MIDI ch= 1 OFF n= 42
+   64 MIDI ch= 1 ON  n= 42 v=100
+   66 MIDI ch= 1 OFF n= 42
+   69 MIDI ch= 1 ON  n= 42 v=100
+   70 MIDI ch= 1 OFF n= 42

@@ -147,6 +147,17 @@ cc -std=c11 -Wall -Wextra -Werror -O1 -fno-strict-aliasing -Ifirmware/src -Itest
 sq_prims_cmp() { "$OUT/sq_prims_test" > "$OUT/sq_prims_out.txt" && cmp "$OUT/sq_prims_out.txt" tests/sq_prims_golden.txt; }
 run "shared primitives: firmware sq_prims.c dump equals tests/sq_prims_golden.txt byte for byte" sq_prims_cmp
 
+# Scheduler (P4-004): firmware sq_core.c against mock hooks and a mock ALGOS table: the nine event goldens of ADR-0003 section 14
+# (tests/golden/sq_core_*.txt) and the 100000-tick invariant fuzz, under ASan + UBSan when the compiler has them
+SQC="-std=c11 -Wall -Wextra -Werror -Wno-unused-function -O1 -fno-strict-aliasing -Ifirmware/src"
+printf 'int main(void){return 0;}\n' > "$OUT/sq_san_probe.c"
+if ${CC%% *} -fsanitize=address,undefined -o "$OUT/sq_san_probe" "$OUT/sq_san_probe.c" 2>/dev/null && "$OUT/sq_san_probe"; then
+    SQC="$SQC -g -fsanitize=address,undefined -fno-sanitize-recover=undefined"
+    export ASAN_OPTIONS="${ASAN_OPTIONS:-detect_leaks=0}"
+fi
+${CC%% *} $SQC -o "$OUT/sq_core_test" tests/sq_core_test.c
+run "sequencer scheduler: sq_core.c event goldens 1-9 (tests/golden/sq_core_*.txt) + 100000-tick invariant fuzz" "$OUT/sq_core_test"
+
 [ -f build/felucca.fwsc ] || { echo "run ./build.sh first"; exit 1; }
 
 $CC -DOWN_PKG=1 -o "$OUT/ota_test" tests/ota_test.c

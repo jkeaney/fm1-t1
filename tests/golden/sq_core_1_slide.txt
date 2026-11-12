@@ -1,0 +1,12 @@
+    0 MIDI ch= 2 ON  n= 36 v=120
+   48 MIDI ch= 2 ON  n= 39 v= 80
+   54 MIDI ch= 2 OFF n= 36
+  107 MIDI ch= 2 OFF n= 39
+  192 MIDI ch= 2 ON  n= 48 v= 80
+  240 MIDI ch= 2 ON  n= 36 v= 80
+  246 MIDI ch= 2 OFF n= 48
+  288 MIDI ch= 2 ON  n= 41 v= 80
+  294 MIDI ch= 2 OFF n= 36
+  299 MIDI ch= 2 OFF n= 41
+  336 MIDI ch= 2 ON  n= 43 v=120
+  362 MIDI ch= 2 OFF n= 43

@@ -1,0 +1,4 @@
+    0 MIDI ch= 1 ON  n= 38 v=100
+  382 MIDI ch= 1 OFF n= 38
+  384 MIDI ch= 1 ON  n= 38 v=100
+  431 MIDI ch= 1 OFF n= 38

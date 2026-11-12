@@ -1,0 +1,9 @@
+    0 MIDI ch= 2 ON  n= 36 v=120
+    0 MIDI ch= 5 ON  n= 60 v= 90
+   48 MIDI ch= 2 ON  n= 39 v= 80
+   50 MIDI ch= 2 OFF n= 36
+   50 MIDI ch= 2 OFF n= 39
+   50 MIDI ch= 5 OFF n= 60
+   50 MIDI ch= 2 CC123
+   50 MIDI ch= 5 CC123
+   50 MIDI ch= 8 CC123

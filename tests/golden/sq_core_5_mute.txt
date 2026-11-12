@@ -1,0 +1,11 @@
+    0 MIDI ch= 3 ON  n= 50 v=100
+   38 MIDI ch= 3 OFF n= 50
+   48 MIDI ch= 3 ON  n= 51 v=100
+   86 MIDI ch= 3 OFF n= 51
+   96 MIDI ch= 3 ON  n= 52 v=100
+  134 MIDI ch= 3 OFF n= 52
+  288 MIDI ch= 3 ON  n= 56 v=100
+  326 MIDI ch= 3 OFF n= 56
+  336 MIDI ch= 3 ON  n= 57 v=100
+  374 MIDI ch= 3 OFF n= 57
+  384 MIDI ch= 3 ON  n= 50 v=100
