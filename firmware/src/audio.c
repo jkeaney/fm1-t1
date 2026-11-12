@@ -113,6 +113,7 @@ void fm1_alnk0_irq(void)                       /* via isr_alnk0 (hal/fm1_isr.S) 
 #if FELUCCA_UAC
         uac_render_start();
 #endif
+        sq_half_begin(t0);                      /* sq_core.c: the TIMER4 time this half starts rendering, the reference of every MIDI stamp (M2) */
         for (b = 0; b < HALF_FRAMES; b += CTL) {
 #ifdef FM1_INPUT_LAT
             kb_out_tick = t0 + (HALF_FRAMES + b) * DAC_TICKS;   /* when this block plays (seq.c kb_lat) */

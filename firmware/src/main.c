@@ -176,7 +176,7 @@ static void fm1_main(void)
     panel_init();
     felucca_init();
     master_boot();
-    t1_glue_init();                           /* Torso T-1: its pattern RAM (the pool) and default pattern */
+    sq_boot();                                /* the sequencer core: defaults, the caches built, sq_ready last (ADR-0003 12); before the audio ISR runs */
     kb_boot_hold = 1;                         /* #137: no notes from the keys before the UI (seq.c keyboard_block) */
     audio_init();
     usb_start();
@@ -274,6 +274,7 @@ static void fm1_main(void)
         felucca_dbg.page = ui.page;
         felucca_dbg.home = ui.home;
         felucca_dbg.stage = 1;
+        sq_frame();                                   /* once per frame, BEFORE the UI reads or writes any sq_ state (ADR-0003 6; ui_sq_glue.c) */
         ui_input();
         settings_poll();                              /* queued settings save: only while stopped */
         autosave_poll();                              /* (1.2) the music, stopped and idle: project.c */

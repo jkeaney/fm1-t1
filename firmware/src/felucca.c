@@ -36,7 +36,7 @@
 #error "FELUCCA_OTA needs FELUCCA_FLASH"
 #endif
 
-/* the Torso T-1 sequencer (torso_t1*.c, t1_glue.c, ui_t1.c) is in this build; its sources freestanding (torso_t1_port.c) */
+/* the shared T-1 sources (torso_t1_algo.c) are freestanding (torso_t1_port.c supplies snprintf) */
 #define T1_DEVICE 1
 
 /* ------------------------------------------------------------- HAL --- */
@@ -70,20 +70,18 @@
 #if FELUCCA_UART
 #include "midi_uart.c"
 #endif
-#include "clk_ext.c"           /* the clock source model + PLL for following an external clock (P4-009; not wired until the cut-over, P4-012) */
+#include "clk_ext.c"           /* the clock source model + PLL for following an external clock (P4-009; fed from events_block, which also sets SQ_IS_MASTER) */
 #include "seq.c"
 #include "torso_t1_port.c"
-#include "torso_t1.c"
-#include "torso_t1_algo.c"
+#include "torso_t1_algo.c"       /* what the new core keeps of the T-1 (ADR-0003 13): Bjorklund, rotate, pace curve, scale masks, phrase contour */
 #include "sq_types.h"            /* the sequencer core's data model (ADR-0003 section 14): types and constants only, no code */
 #include "sq_prims.h"
 #include "sq_prims.c"           /* the shared sequencer primitives SP1..SP9, SP16..SP20 (P4-002); static, pure */
 #include "sq_algo_acid.c"        /* ACID, the locked prototype as firmware (P5-001); static, pure */
-#include "sq_algos.c"            /* the ALGOS[] table: row 0 ACID, the other rows are filled by their own tasks (P5-002..P5-008) */
-#include "torso_t1_pipeline.c"
-#include "torso_t1_state.c"
-#include "torso_t1_ui.c"
-#include "t1_glue.c"              /* the T-1 in the audio ISR: clock, transport, MIDI OUT */
+#include "sq_algos.c"            /* the ALGOS[] table: row 0 ACID, the other rows are filled by their own tasks (P5-002..P5-008); an empty row is an inert channel (FB-014) */
+#define SQ_IS_MASTER() clkx_master()   /* clock out only while the source is INT: silent in every EXT state (TIMING_SPEC R12; clk_ext.c) */
+#include "sq_core.c"             /* the scheduler: the event queue, sq_emit, sq_block (ADR-0003 7, 8), live notes */
+#include "sq_chan.c"             /* the channel state API, defaults, sq_boot, presets (ADR-0003 6, 10, 12) */
 #include "audio.c"
 
 /* -------------------------------------------------------------- UI --- */
@@ -94,7 +92,8 @@
 #include "ui_draw.c"
 #include "ui_menu.c"
 #include "ui_input.c"
-#include "ui_t1.c"               /* the Torso T-1 screen and controls: the only page besides the menu (P3-006) */
+#include "ui_sq.c"               /* the sequencer screen v2 (SCREEN_SPEC_V2, ADR-0006): bands, tiles, music row, buttons, keybed, message slot */
+#include "ui_sq_glue.c"          /* its controls and the per-frame sync (the only page besides the menu) */
 
 /* --------------------------------------------- storage, update, editor --- */
 #if FELUCCA_FLASH

@@ -20,7 +20,7 @@
  *
  * Included by the unity build AFTER the algorithm table (`static const AlgoDesc ALGOS[SQ_NALGO]`, sq_algos.c) and after
  * usb.c / voice.c / fx.c, which supply midi_out_event_at, midi_out_free, MO_RESERVE, trk[], trk_note_on / trk_note_off and
- * the beat length (SQ_EXT_BEAT / SQ_BPM). It is not in felucca.c yet and nothing calls sq_block (cut-over is P4-012); tests/sq_core_test.c includes it
+ * the beat length (SQ_EXT_BEAT / SQ_BPM). It is in felucca.c since the cut-over (P4-012: seq.c events_block calls sq_block, audio.c sq_half_begin); tests/sq_core_test.c includes it
  * against mock hooks and a mock ALGOS table. The ISR owns everything below except the double-buffered caches and the
  * staged preset, which the main loop writes (ADR-0003 6). Freestanding: memset / memcpy only. */
 
@@ -81,6 +81,9 @@ static uint32_t  sq_cur;                  /* the tick of the call in progress: w
 static uint32_t  sq_acc;                  /* PPQN * 16 * samples against sq_beat_q4() (the T-1 accumulator of t1_glue.c, in 1/16 samples: M10) */
 static uint32_t  sq_entropy_ctr;          /* free-running, also while stopped: the dice seed source (ADR-0003 3.1) */
 static uint8_t   sq_playing;
+static volatile uint8_t sq_sel;           /* the selected channel: the UI writes (ui_sq_select), the live notes read it once per call */
+static uint8_t   sq_live_c[128];          /* live notes (below): 0 = not sounding, else 1 + the channel it went to */
+static volatile uint8_t sq_ready;         /* set last by sq_boot (ADR-0003 12); seq.c events_block runs sq_block only when set (seq.c holds the first declaration) */
 static uint8_t   sq_off_stage;            /* 1 while sq_all_off still has note-offs or CC123 to send (the ring was short) */
 static uint16_t  sq_cc_pend;              /* MIDI channels still owed a CC123 */
 static uint32_t  sq_tref;                 /* TIMER4 time at which the current half buffer starts rendering (M2), filtered by sq_half_begin */
@@ -347,6 +350,8 @@ static void sq_step_start(uint8_t c, uint32_t now, uint8_t L)
         if (r->snd[li]) { sq_evq_purge_off(c, (uint8_t)(r->snd[li] - 1u)); sq_off_now(c, (uint8_t)li, now); }
         r->tie = 0; }
 
+    if (!a->step) { r->open = 0; r->slide_in = 0; r->tie = 0; goto advance; }   /* FB-014: an ALGOS[] row nobody has written yet (build / step NULL) is an inert, silent channel: its clock runs, nothing is evaluated or sent */
+
     sq_eval(c, p, r->pass, a, k, g, &out);                            /* 2. */
     if (pairing && r->nxt_ok && r->nxt.pad == (uint8_t)(a->id + 1u)) {   /*    pairing fields come from the snapshot taken one step ago */
         out.flags = (uint8_t)((out.flags & ~(PO_HIT | PO_SLIDE_IN)) | (r->nxt.flags & (PO_HIT | PO_SLIDE_IN)));
@@ -457,6 +462,7 @@ static uint8_t sq_all_off(void)
         if ((sq_cc_pend >> m) & 1u) { if (midi_out_free() == 0u) return 0; sq_emit_cc123(m); sq_cc_pend = (uint16_t)(sq_cc_pend & ~(1u << m)); }
     for (int i = 0; i < SQ_EVQ_N; i++) sq_evq[i].kind = 0;
     memset(sq_rt, 0, sizeof sq_rt);
+    memset(sq_live_c, 0, sizeof sq_live_c);                        
     sq_off_stage = 0;
     return 1; }
 
@@ -479,6 +485,29 @@ static void sq_on_stop(void)
     if (sq_playing) sq_rt_byte(0xFC);             /* due at once, ahead of the note-offs of sq_all_off */
     sq_playing = 0;
     (void)sq_all_off(); }
+
+/* Live notes (ADR-0003 6, 16.9): a key or a MIDI IN note plays on the SELECTED channel, out its MIDI channel and into its preview part,
+ * through the same exit as the sequence (sq_emit, so STOP / PANIC end it and the unique-MIDI and mute gates apply). ISR side: keyboard_block
+ * and midi_event call these from events_block. sq_sel is written by the UI (ui_sq_select) and read once per call; sq_live_c remembers which
+ * channel each note went to, so a note-off follows its note-on after the selection moved. The note is sent as played (no scale snap yet:
+ * what a key MEANS on a page is P4-013's). */
+static void sq_live_on(uint8_t note, uint8_t vel)
+{   const uint8_t c = (uint8_t)(sq_sel & 3u);
+    note &= 0x7Fu;
+    if (sq_live_c[note]) return;                                      /* a repeated note-on of a held note: one note */
+    sq_stamp_now();
+    sq_live_c[note] = (uint8_t)(c + 1u);
+    (void)sq_emit(sq_chan_byte(c), 2, note, vel ? vel : 1u); }
+
+static void sq_live_off(uint8_t note)
+{   uint8_t c;
+    note &= 0x7Fu;
+    if (!sq_live_c[note]) return;
+    c = (uint8_t)(sq_live_c[note] - 1u);
+    sq_live_c[note] = 0;
+    sq_stamp_now();
+    if (!sq_emit((uint8_t)(c << 5), 1, note, 0))                      /* the ring was full: retry at the next tick (sq_dispatch), never a hung note */
+        (void)sq_sched_one((uint8_t)(c << 5), sq_now, 1, note, 0); }
 
 /* The ISR half of a queued preset load (ADR-0003 10): at a 768-tick bar start the staged ChanSaves go live, the caches the main loop
  * built into the inactive buffers and the staged SeqGlobal become the active ones. rt.p / grid are untouched: the music does not jump. */

@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments */
 /* Felucca UI input: LEDs, knobs and buttons, panel setup. P3-006 (R3b): the groovebox pages' input is gone; what is left is
- * the button hold timers, the MENU, the T-1 screen's early return (ui_t1.c) and the LEDs. */
+ * the button hold timers, the MENU, the sequencer screen's early return (ui_sq_glue.c) and the LEDs. */
 /* ----------------------------------------------------------- LEDs --- */
 /* The LED picture is built off-line and copied one byte per column: clearing
  * and relighting would let the 10 kHz scan catch the dark gap and flicker. */
@@ -309,19 +309,19 @@ static void ui_input(void)
     fx_usb_fixed = (ui_prefs & PREF_USB_FIXED) != 0u;   /* (MENU > USB LEVEL: fx.c, audio.c) */
     scope_mix = (ui_prefs2 & (PREF_SCOPE_MIX >> 16)) != 0u;   /* (MENU > SCOPE: fx.c, audio.c) */
     rp_apply();                                         /* (MENU > CLICK, CLICK LEVEL, COUNT-IN: click.c, seq.c) */
-    t1_poll();                                          /* (the T-1 mode, always on: ui_t1.c) */
+    ui_sq_poll();                                       /* (the sequencer screen, always on: ui_sq_glue.c) */
     if (!ui.menu)
         usb_serial_apply();                             /* (MENU > USB SERIAL: when the menu has closed) */
     if (scr_input(pressed, notes))                      /* MENU > SCREEN OFF: dark, or the wake gesture: swallowed */
         return;                                         /* (before the buttons' timers: no tap or hold after it) */
     home = btn_hold(&ui.home_t0, B_HOME, now, 1);
-    if (!ui.menu && !ui.confirm) {                      /* the T-1's controls (ui_t1.c); HOME held: the MENU */
+    if (!ui.menu && !ui.confirm) {                      /* the sequencer's controls (ui_sq_glue.c); HOME held: the MENU */
         if (home == BT_HOLD) {
             ui.menu = 1;
             ui.force = 1;
             song.seq_mode = 0;
         } else
-            t1_input(pressed, notes);
+            ui_sq_controls(pressed, notes);
         return;
     }
     oct = oct_taps(pressed, 1);

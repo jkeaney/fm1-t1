@@ -440,7 +440,7 @@ static void mono_check(void)
     for (i = 0; i < 240u * 240u; i++) {
         uint16_t c = swap16(host_screen[i]);
         int32_t d = (int32_t)((c >> 5) & 63u) - (int32_t)(c >> 11) * 2;
-        if ((c >> 11) != (c & 31u) || (bw ? d < -2 || d > 2 : d != 0)) {
+        if (c != 0xFFFFu && ((c >> 11) != (c & 31u) || (bw ? d < -2 || d > 2 : d != 0))) {   /* (white 0xFFFF is SCREEN_SPEC_V2 3's: G = 63 is the 5-6-5 rounding of a neutral) */
             if (!mono_bad) fprintf(rep, "%s %s: pixel %u,%u = %04x off %s\n", bw ? "MONO" : "GREY", cur_name, i % 240u, i / 240u, c,
                                    bw ? "neutral" : "gray");
             mono_bad++;
@@ -478,25 +478,23 @@ static void lcd_rule(uint32_t x, uint32_t y, uint32_t w, uint32_t h)
     GFX_HOOK_RULE(x, y, w, h);
 }
 static void pal(uint32_t p) { settings.palette = p; palette_set(p); }
-/* a playing T-1 on the working pattern (its default line), the tempo 124, the bar's 3rd beat */
+/* a playing sequencer on its power-on state (CH1 ACID), the tempo 124, the bar's 3rd beat */
 static void state(void)
 {
     ui_power_on();
-    t1_glue_init();
+    sq_playing = 1;
     song.playing = 1;
     song.g[G_BPM] = 124;
     clk_pos = 0; clk_step = 8; cin_total = cin_left = 0;   /* the bar's 3rd beat: the header's metronome at rest */
 }
 
-enum { S_T1, S_T1_IDLE, S_T1_PAGE2, S_T1_PAGE3, S_T1_PAGE4, S_T1_SHIFT, S_T1_GLOBAL, S_T1_TEMP, S_T1_MUTED, S_T1_TRACK3,
-       S_T1_HOT, S_MESSAGE, S_MESSAGE_KEY, S_MESSAGE_NOFILE, S_CONFIRM, S_CONFIRM_PROJ, S_CONFIRM_USER, S_CONFIRM_ERASE,
+enum { S_T1, S_T1_IDLE, S_T1_MUTED, S_T1_TRACK3, S_MESSAGE, S_MESSAGE_KEY, S_MESSAGE_NOFILE, S_CONFIRM, S_CONFIRM_PROJ, S_CONFIRM_USER, S_CONFIRM_ERASE,
        S_MENU, S_MENU_SPEAKER, S_ABOUT, S_ABOUT_REC, S_ABOUT_CREDITS, S_ABOUT_END, S_MENU_INFO, S_UBOOT, S_CALIBRATION, S_SPLASH,
        S_BATT0, S_BATT1, S_BATT2, S_BATT3, S_BATT_USB, S_MENU_SLIDE, S_COUNTIN, S_COUNTIN2, S_HEAD_PLAY_REC, S_HEAD_REC_OTHER,
        S_HEAD_BPM_TURN, S_HEAD_DOWNBEAT, S_HEAD_BEAT_2, S_MENU_ROW, S_COUNT = S_MENU_ROW + 28 };
 static const char *s_name(int s)
 {
-    static const char *const N[S_MENU_ROW] = {"t1", "t1_idle", "t1_page2", "t1_page3", "t1_page4", "t1_shift", "t1_global",
-        "t1_temp", "t1_muted", "t1_track3", "t1_hot", "message", "message_key", "message_nofile", "confirm", "confirm_project",
+    static const char *const N[S_MENU_ROW] = {"sq", "sq_idle", "sq_muted", "sq_chan3", "message", "message_key", "message_nofile", "confirm", "confirm_project",
         "confirm_user", "confirm_erase", "menu", "menu_speaker", "about", "about_rec", "about_credits", "about_end", "menu_info",
         "uboot", "calibration", "splash", "batt_0", "batt_1", "batt_2", "batt_3", "batt_usb", "menu_slide", "countin",
         "countin_2bars", "head_play_rec", "head_rec_other", "head_bpm_turn", "head_downbeat", "head_beat_2"};
@@ -506,27 +504,16 @@ static const char *s_name(int s)
     return row;
 }
 #define S_NAME_OF(s) s_name((int)(s))
-static void t1_page(uint32_t pg) { t1_ui_state.current_page = (uint8_t)pg; }
 static void setup(int s)
 {
     memset(kb_chn, 0, sizeof kb_chn);
     state();
-    t1_ui_state.shift_active = t1_ui_state.global_active = t1_ui_state.temp_active = false;
-    t1_ui_state.hot_timeout = 0;
-    t1_ui_state.selected_track = 1;
-    t1_page(0);
+    uisq_page = UI_PG_PERF; uisq_sel = 0; sq_sel = 0;
     switch (s) {
     case S_T1: song.octave = 2; song.rec = 1; usb.config = 1; break;
-    case S_T1_IDLE: song.playing = 0; song.batt_raw = 570; break;
-    case S_T1_PAGE2: t1_page(1); break;
-    case S_T1_PAGE3: t1_page(2); break;
-    case S_T1_PAGE4: t1_page(3); break;
-    case S_T1_SHIFT: t1_ui_state.shift_active = true; break;
-    case S_T1_GLOBAL: t1_ui_state.global_active = true; break;
-    case S_T1_TEMP: t1_ui_state.temp_active = true; break;
-    case S_T1_MUTED: t1_sequencer_ram.active_pattern.tracks[1].muted = 1; break;
-    case S_T1_TRACK3: t1_ui_state.selected_track = 3; break;
-    case S_T1_HOT: t1_ui_state.hot_encoder = 1; t1_ui_state.hot_timeout = 30; break;
+    case S_T1_IDLE: song.playing = 0; sq_playing = 0; song.batt_raw = 570; break;
+    case S_T1_MUTED: sq_ch[0].muted = 1; break;
+    case S_T1_TRACK3: uisq_sel = 2; sq_sel = 2; break;
     case S_MESSAGE: ui_say("LOADED ", "07 A VERY LONG PATTERN NAME"); break;
     case S_MESSAGE_KEY: ui_message("[SAVE] HOLD TO UNDO"); break;            /* a message with a keycap */
     case S_MESSAGE_NOFILE: ui_message(MSG_NO_SAMPLE); break;
@@ -568,7 +555,7 @@ static void setup(int s)
     }
 }
 
-static uint8_t t1_scene;                          /* the scene shows the T-1 screen (FB-007: its findings are listed, not failing) */
+static uint8_t t1_scene;                          /* the scene shows the sequencer screen (FB-007: its findings are listed, not failing) */
 static uint32_t nt1;
 static uint32_t scene_n0;                         /* nfind when the scene began drawing (draw() may find too) */
 static void lint_scene(void)
@@ -874,7 +861,7 @@ int main(int argc, char **argv)
     al_off = 1;
     /* draw cost: a full redraw of a screen (all strips), and the T-1 screen frame by frame */
     {
-        static const int COST[] = {S_T1, S_T1_PAGE2, S_MENU, S_ABOUT_CREDITS, S_CONFIRM_PROJ};
+        static const int COST[] = {S_T1, S_T1_MUTED, S_MENU, S_ABOUT_CREDITS, S_CONFIRM_PROJ};
         enum { N = 200 };
         uint32_t i, k;
         fprintf(rep, "\ndraw cost on the host (cc -O1; only the ratios mean anything on the device):\n");

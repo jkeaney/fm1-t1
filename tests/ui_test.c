@@ -151,7 +151,8 @@ static struct { uint32_t stage; } felucca_dbg;
 #include "../firmware/src/ui_draw.c"
 #include "../firmware/src/ui_menu.c"
 #include "../firmware/src/ui_input.c"
-#include "../firmware/src/ui_t1.c"
+#include "../firmware/src/ui_sq.c"
+#include "../firmware/src/ui_sq_glue.c"
 #include "../firmware/src/project.c"
 
 static int check(const char *what, int ok)
@@ -200,6 +201,9 @@ static void ui_power_on(void)
     panel = PANEL_DEFAULT;
     settings.palette = UI_GREY_INDEX;
     palette_set(UI_GREY_INDEX);
+    sq_boot();                                    /* the sequencer's state is the power-on one; sq_ready off: the pattern tracks play, as the tests below expect */
+    sq_ready = 0;
+    uisq_page = UI_PG_PERF; uisq_sel = 0; sq_sel = 0;
     transport_req = 0;
     panic_req = 0;
     mi_r = mi_w = midi_in_overflow = 0;
@@ -701,7 +705,7 @@ static int screen_gray(void)
     uint32_t i;
     for (i = 0; i < 240u * 240u; i++) {
         uint16_t c = swap16(host_screen[i]);
-        if ((c >> 11) != (c & 31u) || ((c >> 5) & 63u) != (c >> 11) * 2u)
+        if (c != 0xFFFFu && ((c >> 11) != (c & 31u) || ((c >> 5) & 63u) != (c >> 11) * 2u))   /* (white 0xFFFF: SCREEN_SPEC_V2 3's pointer / selection bar / cap, G = 63 not 62) */
             return 0;
     }
     return 1;
@@ -721,7 +725,7 @@ static int mono_screens(uint32_t pal, int (*chk)(void), uint32_t *n)
 {
     int ok = 1;
     uint32_t i;
-    for (i = 0; i < 6u; i++) {                      /* the T-1 screen (playing, REC), the menu, ABOUT, a dialog, UPDATE, the count-in */
+    for (i = 0; i < 6u; i++) {                      /* the sequencer screen (playing, REC), the menu, ABOUT, a dialog, UPDATE, the count-in */
         ui_power_on(); song.rec = 3; song.playing = i == 0u;
         settings.palette = pal; palette_set(pal);
         if (i == 1u || i == 2u) { ui.menu = (uint8_t)i; ui.menu_scroll = 300; }
@@ -738,15 +742,15 @@ static int test_mono_screens(void)
     int bad = 0, ok;
     uint32_t e, n = 0, nb = 0;
     ok = mono_screens(UI_GREY_INDEX, screen_gray, &n);
-    bad += check("GREY: every pixel of the T-1 screen, menu, ABOUT, dialog and countdown is gray", ok && n >= 6u);
+    bad += check("GREY: every pixel of the sequencer screen, menu, ABOUT, dialog and countdown is gray", ok && n >= 6u);
     ok = mono_screens(UI_BW_INDEX, screen_neutral, &nb);
-    bad += check("MONO (black and white): every pixel of the T-1 screen, menu, ABOUT, dialog and countdown is neutral",
+    bad += check("MONO (black and white): every pixel of the sequencer screen, menu, ABOUT, dialog and countdown is neutral",
                  ok && nb == n);
     ui_power_on();
     for (e = 0; e < NPALETTES; e++) {               /* the other palettes are not gray: the check sees colour */
         ui_power_on(); palette_set(e); ui.force = 1; ui_draw();
         ok = screen_gray();
-        if (e == UI_GREY_INDEX ? !ok : ok) bad += check("palette colour shows on the T-1 screen", 0);
+        if (e == UI_GREY_INDEX ? !ok : ok) bad += check("palette colour shows on the sequencer screen", 0);
     }
     palette_set(UI_GREY_INDEX);
     return bad;
@@ -867,9 +871,8 @@ static uint64_t scr_session(uint32_t setting, uint32_t *flags)
     ui_power_on();
     scr_put(setting);
     song.master_q12 = 4096;
-    t1_glue_init();                                /* the T-1 plays the preview synth: its track 1 gets the default line */
-    t1_sequencer_ram.active_pattern.tracks[0].cycles[0] = t1_sequencer_ram.active_pattern.tracks[1].cycles[0];
-    t1_pipeline_invalidate_masks();
+    sq_ready = 1;                                  /* the sequencer core plays; CH1 (ACID, unmuted) is heard on the preview synth */
+    sq_ch[0].pad[0] = 0x80u;
     transport_req = 1;
     for (f = 0; f < 400u; f++) {
         if (f == 50u)
@@ -932,11 +935,10 @@ static int test_idle_leds(void)
     memset(fm1_led, 0x5A, sizeof fm1_led);
     ui_leds();
     bad += check("  it has the LEDs: ui_leds writes none", fm1_led[0] == 0x5A && fm1_led[3] == 0x5A);
-    t1_ui_state.hot_timeout = 0;
     ui.home = 1;
     turn(EN_K1, 3); ui_leds();
-    bad += check("  a knob turned ends it at once and is not swallowed (the T-1 screen takes the turn)", !host_idle &&
-                 t1_ui_state.hot_timeout != 0 && fm1_led[0] != 0x5A);
+    bad += check("  a knob turned ends it at once and is not swallowed (the sequencer screen takes the turn)", !host_idle &&
+                 fm1_led[0] != 0x5A);
     frame(); fm1_ms += IDLE_LEDS_MS; frame(); ui_leds();   /* (the turn counted as input: a minute from it) */
     ok = host_idle;
     fm1_in.notes = 1u << 4; host_notes |= 1u << 4; frame(); ui_leds();
@@ -974,11 +976,11 @@ static int test_idle_leds(void)
     settings_leds = LEDS_DIM;
     return bad;
 }
-static uint32_t t1_hash(void)                      /* the working pattern of the T-1 (what the four knobs edit) */
+static uint32_t sq_hash(void)                      /* the channels' state (what the four knobs edit) */
 {
-    const uint8_t *p = (const uint8_t *)&t1_sequencer_ram.active_pattern;
+    const uint8_t *p = (const uint8_t *)sq_ch;
     uint32_t i, h = 2166136261u;
-    for (i = 0; i < sizeof t1_sequencer_ram.active_pattern; i++)
+    for (i = 0; i < sizeof sq_ch; i++)
         h = (h ^ p[i]) * 16777619u;
     return h;
 }
@@ -986,7 +988,6 @@ static int test_screen_off(void)
 {
     int bad = 0, ok;
     uint32_t n, rows, i;
-    uint8_t pg0;
     uint32_t h0;
 
     ui_power_on();
@@ -1010,20 +1011,20 @@ static int test_screen_off(void)
     bad += check("SCREEN OFF: 30 MIN untouched -> DISPOFF + SLPIN once; dark: nothing drawn", ok);
 
     n = host_pw_n;
-    pg0 = t1_ui_state.current_page;
     ok = ui.home && !ui.menu;
-    btn_down(B_SEQ); frame();                         /* a page button wakes it, does not turn the T-1 page */
+    btn_down(B_PLAY); frame();                        /* PLAY wakes it, does not start the transport */
     ok &= scrn.st == SCR_SLPOUT && host_pw_n == n + 1u && host_pw[n] == 1u;   /* (SLPIN long ago: SLPOUT at once) */
     frames(100u);
     ok &= host_pw_n == n + 1u && host_blit_rows == rows;   /* (dark until 120 ms after it) */
     rows = host_blit_rows;
     frames(200u);
     ok &= scr_woke(n) && host_blit_rows - rows >= 200u;   /* (the frame before DISPON redrew it all) */
-    ok &= t1_ui_state.current_page == pg0;
-    btn_up(B_SEQ); frame(); frames(100u);
-    ok &= ui.home && !ui.menu && !scrn.eat && !kb_asleep && t1_ui_state.current_page == pg0;
-    press(B_SEQ);                                     /* awake: the button works again */
-    ok &= t1_ui_state.current_page != pg0;
+    ok &= !transport_req;
+    btn_up(B_PLAY); frame(); frames(100u);
+    ok &= ui.home && !ui.menu && !scrn.eat && !kb_asleep && !transport_req;
+    press(B_PLAY);                                    /* awake: the button works again */
+    ok &= transport_req == 1u;
+    transport_req = 0;
     bad += check("SCREEN OFF: a button wakes it (SLPOUT, 120 ms, the page redrawn, DISPON), swallowed", ok);
 
     go_home();
@@ -1041,7 +1042,7 @@ static int test_screen_off(void)
 
     scr_idle(31u * 60000u);
     n = host_pw_n;
-    ui.menu = 1;                                      /* (the menu: the keys play; the T-1 screen's keys select) */
+    ui.menu = 1;                                      /* (the menu: the keys play; the sequencer screen's keys are silent) */
     ok = !host_bl && !gates();
     key_down(white(0)); frame();                      /* a key: wakes it, no note (seq.c kb_asleep) */
     ok &= !gates();
@@ -1057,15 +1058,14 @@ static int test_screen_off(void)
 
     scr_idle(31u * 60000u);
     n = host_pw_n;
-    h0 = t1_hash();
-    t1_ui_state.hot_timeout = 0;
+    h0 = sq_hash();
     for (i = 0; i < 20u; i++) turn(EN_K1, 1);        /* a knob turned to wake it, still turning (on past the wake) */
-    ok = scr_woke(n) && t1_hash() == h0 && !t1_ui_state.hot_timeout;
+    ok = scr_woke(n) && sq_hash() == h0;
     turn(EN_PRESET, 1); turn(EN_ALGO, 1); turn(EN_SELECT, 1); turn(EN_K4, -1);
-    ok &= t1_hash() == h0 && !t1_ui_state.hot_timeout && song.sel == 0u && song.g[G_BPM] == GP[G_BPM].def && scrn.eat;
+    ok &= sq_hash() == h0 && song.sel == 0u && song.g[G_BPM] == GP[G_BPM].def && scrn.eat;
     frames(400u);                                     /* at rest SCR_EAT_MS: the knobs are the page's again */
     turn(EN_K1, 1);
-    ok &= t1_ui_state.hot_timeout != 0;                /* (the T-1 screen takes the turn: its card lights) */
+    ok &= !scrn.eat;                                   /* (the knobs are the page's again) */
     bad += check("SCREEN OFF: a knob wakes it; turns until it rests 0.3 s change nothing (K1..4, PRESETS, ALGO, SELECT)", ok);
 
     menu_put(MI_SCROFF, 0u);                         /* NEVER */
@@ -1518,16 +1518,16 @@ static int test_knob_accel(void)
         if (gap >= 40 * (s < 0 ? -s : s) && r != s) ok = 0;
     }
     bad += check("#52 KNOB ACCEL: never on narrow values or lists; 20000 random reads keep the sign, x1..x8, slow = x1", ok);
-    {   /* the real knob: SELECT (BPM) on the T-1 screen, a detent a frame (16 ms): 1 + 1 + 3 x 6 = 20 for 8 detents; OFF: 8 */
+    {   /* the real knob's read (accel), a detent a frame (16 ms): 1 + 1 + 3 x 6 = 20 for 8 detents; OFF: 8 */
         int16_t v0;
         ui_power_on(); ui_prefs = PREF_ACCEL;
-        song.g[G_BPM] = 100; v0 = song.g[G_BPM];       /* (SELECT is the tempo on the T-1 screen) */
+        v0 = 100;                                      /* (no knob changes a value on the stub pages yet: accel(), the call the morph knobs make, is read directly) */
         fm1_ms += 1000;
-        for (k = 0; k < 8u; k++) turn(EN_SELECT, 1);
-        ok = song.g[G_BPM] - v0 == 20;
-        ui_prefs = 0; song.g[G_BPM] = 100; fm1_ms += 1000;
-        for (k = 0; k < 8u; k++) turn(EN_SELECT, 1);
-        ok &= song.g[G_BPM] == 108;
+        for (k = 0; k < 8u; k++) { fm1_ms += 16u; v0 = (int16_t)(v0 + accel(EN_SELECT, 1, 200)); }
+        ok = v0 - 100 == 20;
+        ui_prefs = 0; v0 = 100; fm1_ms += 1000;
+        for (k = 0; k < 8u; k++) { fm1_ms += 16u; v0 = (int16_t)(v0 + accel(EN_SELECT, 1, 200)); }
+        ok &= v0 == 108;
         bad += check("#52 KNOB ACCEL on MIXER LEVEL: a fast turn of 8 detents moves 20 (OFF: 8)", ok);
     }
     {   /* saved with the settings; settings from before it: OFF */
@@ -1764,7 +1764,7 @@ static int test_usb_serial(void)
     return bad;
 }
 
-/* P3-005 (R3a): the retired rows. The T-1 mode is on from the first main-loop frame on the device (t1u_always, ui_t1.c),
+/* P3-005 (R3a): the retired rows. The sequencer screen is up from the first main-loop frame on the device (ui_sq_glue.c),
  * and the bits of the retired rows (FX LATCH, BPM LOCK, CHORD ENTRY, SELECT, T1 SEQ) read as their fixed defaults
  * whatever an old record saved (settings_import) */
 static int test_retired_menu_bits(void)
@@ -1773,9 +1773,9 @@ static int test_retired_menu_bits(void)
     persist_t p;
     ui_power_on();
     frame();
-    ok = t1_mode == 1;
+    ok = uisq_page == UI_PG_PERF && song.grid == 2;
     ui.force = 1; ui_draw();
-    bad += check("P3-006: the T-1 mode is on from the first frame, on the host too", ok);
+    bad += check("P4-012: the sequencer screen (the PERF page) is up from the first frame, on the host too", ok);
 
     settings_export(&p);
     p.favorites.factory[15][30] = 0xFFu;                /* FX LATCH (bit 0), BPM LOCK (bit 4) */
@@ -2125,29 +2125,23 @@ static int test_head_group(void)
     return bad;
 }
 
-/* P3-006: the T-1 screen is the only page besides the menu: it is up from the first frame (the keys silent, the T-1's
- * controls), HOME held opens the MENU, a HOME tap closes it onto the T-1 screen again, and ui_draw_page picks
- * uboot > menu > count-in > confirm > T-1 */
-static int test_t1_screen(void)
+/* P4-012: the sequencer screen (ui_sq.c) is the only page besides the menu: it is up from the first frame on the PERF page (the keys silent,
+ * the page's stub controls), PLAY starts the transport, HOME held opens the MENU, a HOME tap closes it onto the sequencer screen again,
+ * and ui_draw_page picks uboot > menu > count-in > confirm > the sequencer screen */
+static int test_sq_screen(void)
 {
     int bad = 0, ok;
     uint32_t rows;
-    uint8_t pg0;
     ui_power_on();
     frame();
     rows = host_blit_rows;
     ui.force = 1; frame();
-    ok = t1_mode == 1 && song.grid == 2 && host_blit_rows > rows && !ui.menu;
-    bad += check("P3-006: the T-1 screen is drawn from the first frame, the keys are silent", ok);
-    pg0 = t1_ui_state.current_page;
-    press(B_SEQ);
-    ok = t1_ui_state.current_page != pg0;
-    press(B_OCTDN);
-    ok &= t1_ui_state.current_page == pg0;
+    ok = uisq_page == UI_PG_PERF && song.grid == 2 && host_blit_rows > rows && !ui.menu;
+    bad += check("P4-012: the sequencer screen boots into the PERF page stub, drawn from the first frame, the keys silent", ok);
     press(B_PLAY);
-    ok &= transport_req == 1u;
+    ok = transport_req == 1u;
     transport_req = 0;
-    bad += check("P3-006: SEQ / OCT- turn the T-1 pages, PLAY starts the transport", ok);
+    bad += check("P4-012: PLAY starts the transport", ok);
     hold(B_HOME);
     ok = ui.menu == 1u;
     ui.force = 1; frame();
@@ -2156,12 +2150,12 @@ static int test_t1_screen(void)
     ok &= !ui.menu;
     ui.force = 1; frame();
     ok &= song.grid == 2;
-    bad += check("P3-006: HOME held opens the MENU (the keys play), HOME closes it onto the T-1 screen", ok);
+    bad += check("P4-012: HOME held opens the MENU (the keys play), HOME closes it onto the sequencer screen", ok);
     ui.confirm = CF_CLEAR_SEQ; ui.force = 1; frame();
     ok = ui.confirm == CF_CLEAR_SEQ;
     press(B_OCTDN);
     ok &= !ui.confirm;
-    bad += check("P3-006: a confirm dialog takes the screen and OCT- closes it", ok);
+    bad += check("P4-012: a confirm dialog takes the screen and OCT- closes it", ok);
     ui_power_on();
     return bad;
 }
@@ -2170,7 +2164,7 @@ int main(void)
 {
     setvbuf(stdout, NULL, _IONBF, 0);
     int bad = 0;
-    bad += test_t1_screen();
+    bad += test_sq_screen();
     bad += test_display_preferences();
     bad += test_menu_tabs();
     bad += test_menu_project_rows();

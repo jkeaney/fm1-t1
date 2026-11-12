@@ -2,9 +2,9 @@
 /* ui_sq.c: the sequencer UI: the screen v2 bands, the two-strip plan and the frame (P4-026, SCREEN_SPEC_V2 2, ADR-0006), and the live-state elements
  * header, knob tiles, status line and music row (P4-028, SCREEN_SPEC_V2 4.1-4.4: drawn from a UisqView, filled from sq_* and the descriptor alone),
  * the buttons, keybed, footer and message slot (P4-029, SCREEN_SPEC_V2 4.5, 4.6, 5), the label lookups of the generated tables build/gen/ui_tables.h,
- * redraw by state signature, the page enum and the page dispatch with stub pages. It replaces ui_t1.c's screen at the cut-over
- * (P4-012); until then NOTHING in ui_draw.c, ui_input.c or main.c calls it, and felucca.c does not include it (the host test
- * tests/ui_sq_test.c does, after gfx.c, sq_core.c and sq_chan.c).
+ * redraw by state signature, the page enum and the page dispatch with stub pages. It replaced the T-1 screen at the cut-over
+ * (P4-012): ui_draw.c, ui_input.c and main.c reach it through ui_sq_glue.c, and felucca.c includes both (the host test
+ * tests/ui_sq_test.c includes this file alone, after gfx.c, sq_core.c and sq_chan.c).
  *
  * Include order (unity build): after gfx.c (cv_*, cv_icon, text_w, AF_*, T_*), ui.c (`ui.force`), sq_core.c and sq_chan.c (the sq_*
  * state and API), and ui_tables.h (build/gen; included here, it is a pragma-once header of flash-resident const tables). Freestanding.

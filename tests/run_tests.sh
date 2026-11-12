@@ -13,17 +13,17 @@
 #                   (tests/target_budget.txt, +10 %; exact, static).
 #   voices          the budget of 8, steal fades, MONO / LEGATO / UNISON keep their note, the VOICE cap,
 #                   no hanging notes on any MIDI / key routing.
-# UI renders (tests/ui_render.c, P3-006): the screens that are left, every palette, from the real drawing code: the T-1 screen
+# UI renders (tests/ui_render.c, P3-006, P4-012): the screens that are left, every palette, from the real drawing code: the sequencer screen
 #                   (pages, SHIFT / GLOBAL / TEMP, mute, track, a lit card), the menu (every row, ABOUT, INFO, CALIBRATION), UPDATE
 #                   MODE, the splash, the dialog, the count-in, the header's states and batteries. The layout lint (no text
 #                   off the screen, cut, hidden, overlapping or spilling out of its cell / card; only free text
 #                   ellipsised), GREY gray, MONO neutral, the draw cost, the text audit (build/ui_new/text_audit.tsv);
 #                   PNGs of GREY MONO GREEN PAPER NIGHT in build/ui_new (tests/ui_render.py), the findings in build/ui_new/report.txt
-#                   (the T-1 screen's own findings are listed there and do not fail: FB-007);
+#                   (the sequencer screen's own findings are listed there and do not fail: FB-007);
 #                   the alignment: every text / icon / keycap meant to be centred, or on its neighbours' line, by its
 #                   ink against its box (cells, chips, buttons, rows, the keycaps' pills), every screen in FLAT and LINE and
 #                   every palette, over every value it can show; 1 px off or more fails (build/ui_new/align.txt).
-# UI (tests/ui_test.c): the UI sources against stub display / buttons / knobs: the T-1 screen is the page (HOME held opens the
+# UI (tests/ui_test.c): the UI sources against stub display / buttons / knobs: the sequencer screen (PERF page stub) is the page (HOME held opens the
 #                   MENU, a dialog takes the screen), the menu's tabs and rows, SCREEN OFF / WAKE, the LEDs (idle, scale), the
 #                   header, STYLE, KNOB ACCEL, CLICK / USB / retired settings, GREY gray, MONO neutral.
 # Audio / persistence: the real C paths against simulated DMA and NOR flash: bounded overload
@@ -88,21 +88,8 @@ run "keys and buttons: fast press, long release, bouncy contacts (one note each)
 $CC -o "$OUT/midi_uart_test" tests/midi_uart_test.c
 run "TRS MIDI parser" "$OUT/midi_uart_test"
 
-$CC -O2 -Ibuild/gen -Ifirmware/src -o "$OUT/torso_phase1_test" tests/torso_phase1_test.c firmware/src/torso_t1.c -lm
-run "Torso T-1 Phase 1 (environment baseline, RAM reservation, 192 PPQN timer, FreeRTOS priority hierarchy, micro-queue)" "$OUT/torso_phase1_test"
-
-$CC -O2 -Ibuild/gen -Ifirmware/src -o "$OUT/torso_phase2_test" tests/torso_phase2_test.c firmware/src/torso_t1.c firmware/src/torso_t1_algo.c -lm
-run "Torso T-1 Phase 2 (Bjorklund Euclidean rhythms, pace/ratchet, harmony/voicing, Galois LFSR, p-locks)" "$OUT/torso_phase2_test"
-
-$CC -O2 -Ibuild/gen -Ifirmware/src -o "$OUT/torso_phase3_test" tests/torso_phase3_test.c firmware/src/torso_t1.c firmware/src/torso_t1_algo.c firmware/src/torso_t1_pipeline.c -lm
-run "Torso T-1 Phase 3 (dual output routing, 6-track 192 PPQN pipeline, polyphony stress, ISR latency)" "$OUT/torso_phase3_test"
-
-$CC -O2 -Ibuild/gen -Ifirmware/src -o "$OUT/torso_phase4_test" tests/torso_phase4_test.c firmware/src/torso_t1.c firmware/src/torso_t1_algo.c firmware/src/torso_t1_pipeline.c firmware/src/torso_t1_state.c -lm
-run "Torso T-1 Phase 4 (TEMP mode, snapshot revert latency, global track offsets, SPI flash layout)" "$OUT/torso_phase4_test"
-
-$CC -O2 -Ibuild/gen -Ifirmware/src -o "$OUT/torso_phase5_test" tests/torso_phase5_test.c firmware/src/torso_t1.c firmware/src/torso_t1_algo.c firmware/src/torso_t1_pipeline.c firmware/src/torso_t1_state.c firmware/src/torso_t1_ui.c -lm
-run "Torso T-1 Phase 5 (UI & control surface, track/cycle navigation, 4-page encoder dispatch, card formatting, p-lock step editing)" "$OUT/torso_phase5_test"
-
+$CC -O2 -Ibuild/gen -Ifirmware/src -o "$OUT/torso_phase2_test" tests/torso_phase2_test.c firmware/src/torso_t1_algo.c -lm
+run "T-1 algorithm functions the new core keeps (Bjorklund, rotate, pace curve, scale masks, phrase contours)" "$OUT/torso_phase2_test"
 
 HALF=$(sed -n 's/^#define HALF_FRAMES \([0-9]*\).*/\1/p' firmware/src/core.h)
 $CC -O2 -DT_CDC=1 -DHALF_FRAMES=$HALF -o "$OUT/uac_test" tests/uac_test.c -lm
@@ -256,9 +243,9 @@ if [ -f build/gen/felucca_tables.h ]; then
     $CC -O1 -w -Ibuild/gen -o "$OUT/settings_test" tests/settings_test.c
     run "settings: PER1..PER4 migration, palette ids and preference preservation" "$OUT/settings_test"
     $CC -w -Ibuild/gen -Ifirmware/src -o "$OUT/ui_test" tests/ui_test.c -lm
-    run "UI (P3-006): the T-1 screen and the menu: tabs, rows, SCREEN OFF / WAKE, LEDS, header, STYLE, GREY gray, MONO neutral" "$OUT/ui_test"
-    $CC -w -Ibuild/gen -Ifirmware/src -o "$OUT/t1_link_test" tests/t1_link_test.c -lm
-    run "T-1 link (P3-001): the real seq.c + torso_t1*.c + t1_glue.c + ui_t1.c: 2 bars on MIDI channel 2, STOP sends CC123" "$OUT/t1_link_test"
+    run "UI (P3-006, P4-012): the sequencer screen and the menu: tabs, rows, SCREEN OFF / WAKE, LEDS, header, STYLE, GREY gray, MONO neutral" "$OUT/ui_test"
+    $CC -w -Ibuild/gen -Ifirmware/src -o "$OUT/sq_link_test" tests/sq_link_test.c -lm
+    run "sequencer link (P4-012): the real seq.c + sq_*.c + ui_sq.c: 2 bars of ACID on MIDI channel 1, STOP sends offs then CC123, empty ALGOS rows are inert (FB-014)" "$OUT/sq_link_test"
     FV=$(sed -n 's/^#define FELUCCA_VERSION "\([^"]*\)".*/\1/p' firmware/src/felucca.c)   # (the splash, ABOUT: the real version)
     $CC -O1 -w "-DFELUCCA_VERSION=\"$FV\"" -Ibuild/gen -Ifirmware/src -Itests -o "$OUT/ui_render" tests/ui_render.c -lm
     mkdir -p build/ui_new/ppm build/ui_slot

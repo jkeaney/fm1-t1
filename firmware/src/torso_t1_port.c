@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Torso T-1 on the FM-1: what the T-1 sources take from a hosted libc, for the freestanding firmware build
  * (felucca.c defines T1_DEVICE; the host tests build the same sources against the system libc instead).
- * snprintf: only the conversions torso_t1_ui.c uses: %s %u %d %+d %0NX (N <= 8). Always NUL-terminates. */
+ * snprintf: only the conversions the shared sources used: %s %u %d %+d %0NX (N <= 8). Always NUL-terminates. */
 #include <stdarg.h>
 
 static void t1p_put(char *d, unsigned size, unsigned *n, char c)

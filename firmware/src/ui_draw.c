@@ -619,7 +619,7 @@ static void ui_draw_page(uint32_t counting)
         ui.force = 0;
         return;
     }
-    if (counting && !ui.confirm) {                      /* the count-in: over the T-1 screen */
+    if (counting && !ui.confirm) {                      /* the count-in: over the sequencer screen */
         draw_countin();
         draw_head();
         return;
@@ -632,5 +632,5 @@ static void ui_draw_page(uint32_t counting)
         draw_head();                                    /* recording remains visible over confirmations */
         return;
     }
-    t1_draw();                                          /* the T-1's screen (ui_t1.c): the only page left (P3-006) */
+    ui_sq_screen();                                     /* the sequencer's screen (ui_sq.c, SCREEN_SPEC_V2): the only page left */
 }

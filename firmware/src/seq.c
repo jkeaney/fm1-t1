@@ -55,13 +55,15 @@ static volatile uint8_t midi_seen;       /* 1.5.5 (#208): bit per track, a MIDI 
                                           * looked (ui_input.c midi_follow: the track's light, AUTO SELECT;
                                           * ui.c scr_input: MENU > MIDI > SCREEN WAKE +MIDI) */
 
-/* Torso T-1 (t1_glue.c, included after this file in the firmware and, with the real torso_t1*.c, in the host tests:
- * tests/host_t1_hooks.h) */
-static volatile uint8_t t1_mode, t1_off_req;
-static void t1_on_start(void);
-static void t1_on_stop(void);
-static void t1_all_off(void);
-static void t1_block(uint32_t n);
+/* The sequencer core (sq_core.c / sq_chan.c, included after this file in the firmware and, with the same files, in the host tests:
+ * tests/host_sq_hooks.h). sq_ready: set last by sq_boot (ADR-0003 12); until then (the host tests that never boot it) events_block
+ * runs the pattern tracks as before. The definition is in sq_core.c; this is its forward declaration. */
+static volatile uint8_t sq_ready;
+static void sq_on_start(void);
+static void sq_on_stop(void);
+static void sq_block(uint32_t n);
+static void sq_live_on(uint8_t note, uint8_t vel);      /* MIDI IN notes play on the selected channel (midi_control.c midi_event) */
+static void sq_live_off(uint8_t note);
 
 static uint32_t trk_index(const track_t *t) { return (uint32_t)(t - trk); }
 
@@ -752,7 +754,8 @@ static void seq_start(void)
     beat_pos = 0; beat_n = 0;                      /* the ARP LED's beat from the top too */
     clk_pos = CLK_START;                           /* the metronome's first beat with step 0 */
     song.playing = 1;
-    t1_on_start();                                 /* t1_glue.c: the T-1 from its tick 0 too */
+    if (sq_ready)
+        sq_on_start();                             /* sq_core.c: the sequencer core from its tick 0 too */
 }
 
 static void seq_release(track_t *t)
@@ -783,7 +786,8 @@ static void seq_stop(void)
         trk[i].nd_late = trk[i].nd_early = ND_NONE;   /* (a nudged step not played yet: not after the stop) */
         trk[i].nd_fired = 0;
     }
-    t1_on_stop();                                  /* t1_glue.c: every T-1 note off (MIDI OUT too) */
+    if (sq_ready)
+        sq_on_stop();                              /* sq_core.c: every sounding note off (MIDI OUT too), then CC123 */
 }
 
 /* play one step: TIE extends, REST releases, NOTE (re)triggers its notes, then its lane hits (their GM
@@ -1198,6 +1202,9 @@ static void events_block(uint32_t n)
 {
     uint32_t i, pr, seq_n = n;
     uint32_t clock_mode = (uint32_t)song.g[G_CLOCK];
+    if (clkx.internal_only != (uint8_t)!clock_mode)    /* CLOCK = INTERNAL: no host clock is ever accepted, so clock out stays on (clk_ext.c, R12) */
+        (void)clkx_set_internal_only((uint8_t)!clock_mode);
+    (void)clkx_poll(MO_NOW());                         /* the silence timer (R5/R6); the transport and the tempo still follow midi_clock.c (P4-012 Log) */
     if (midi_clock.mode != clock_mode) {
         seq_stop();
         memset(&midi_clock, 0, sizeof midi_clock);
@@ -1275,6 +1282,8 @@ static void events_block(uint32_t n)
         uint32_t d1 = (pkt >> 16) & 0x7Fu, d2 = (pkt >> 24) & 0x7Fu;
         uint32_t source = midi_in_source[at] ? midi_in_source[at] : 1u, ms = midi_in_ms[at];
         mi_r++;
+        if (status >= 0xF8u || status == 0xF2u)
+            (void)clkx_event((uint8_t)source, (uint8_t)status, (uint8_t)d1, (uint8_t)d2, midi_in_t[at]);   /* the clock source model: who is the master (SQ_IS_MASTER) */
         if (status >= 0xF8u) {
             if (clock_mode == source) {
                 if (status == 0xF8u)
@@ -1298,12 +1307,8 @@ static void events_block(uint32_t n)
     }
     if (aud_req)
         seq_audition();                               /* (STEP PREVIEW: a step sounds, stopped) */
-    if (t1_off_req) {                               /* T1 mode turned off: its notes end */
-        t1_off_req = 0;
-        t1_all_off();
-    }
-    if (t1_mode)                                    /* T1 mode: the T-1 tracks play in place of the patterns */
-        t1_block(seq_n);
+    if (sq_ready)                                   /* the sequencer core plays in place of the patterns */
+        sq_block(seq_n);
     else
         for (i = 0; i < NTRK; i++)
             seq_tick(&trk[i], seq_n);

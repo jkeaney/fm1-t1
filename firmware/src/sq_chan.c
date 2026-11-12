@@ -7,7 +7,7 @@
  * (sq_defaults / sq_boot, ADR-0003 12) and sq_preset_save / sq_preset_load (RAM only; flash is P7).
  *
  * Included by the unity build right AFTER sq_core.c (it uses sq_ch, sq_gdb, sq_cache, sq_calgo, sq_cidx, sq_epoch, sq_stage_ch,
- * sq_load_pending, sq_apply_load, sq_entropy_ctr, ALGOS). Not in felucca.c yet (cut-over is P4-012). Freestanding: memset / memcpy.
+ * sq_load_pending, sq_apply_load, sq_entropy_ctr, ALGOS). In felucca.c since the cut-over (P4-012). Freestanding: memset / memcpy.
  *
  * What the API never touches: ChanSave.ed[] (SEQUENCER_UX 1.2: a dice, a morph or an algorithm change rewrites the generated layer
  * only), ChanRT, the event queue, sq_emit. Only a preset load replaces the edits.
@@ -17,7 +17,7 @@
  * The edit-layer writers and the page operations (P4-006) are below, after the algorithm section. */
 
 #ifndef SQ_IRQ_OFF
-#define SQ_IRQ_OFF()  fm1_irq_off()      /* a multi-byte swap the ISR must not see half of (the t1u_temp pattern, ui_t1.c) */
+#define SQ_IRQ_OFF()  fm1_irq_off()      /* a multi-byte swap the ISR must not see half of (the swap pattern of the removed T-1 UI) */
 #define SQ_IRQ_ON()   fm1_irq_on()
 #endif
 
@@ -71,7 +71,8 @@ static void sq_build_buf(uint8_t c, uint8_t buf, const SeqGlobal *g, const ChanS
     uint16_t sd[SQ_NSEED + 1];
     for (uint8_t i = 0; i < SQ_NSEED; i++) sd[i] = cs->st[cs->algo].seed[i];
     sd[SQ_SEED_MOD] = smod[cs->algo];
-    a->build(cs->st[cs->algo].morph, sd, g, sq_cache[c][buf]);
+    if (a->build) a->build(cs->st[cs->algo].morph, sd, g, sq_cache[c][buf]);   /* FB-014: a row not yet written (build NULL) leaves an inert cache: the core plays nothing from it */
+    else memset(sq_cache[c][buf], 0, sizeof sq_cache[c][buf]);
     sq_calgo[c][buf] = cs->algo; }
 
 /* Main loop. Builds into the inactive buffer, then flips (one byte store). If the ISR applied a preset meanwhile (sq_epoch moved) the
@@ -500,8 +501,8 @@ static void sq_defaults(SeqPreset *p)                                 /* the pow
     for (uint8_t c = 0; c < SQ_NCH; c++) sq_default_chan(c, &p->ch[c]);
     sq_default_harm(&p->harm); }
 
-/* ADR-0003 12 step 4 minus audio: fill the state from the defaults, build all four caches into buffer 0, zero the runtime. The caller
- * sets sq_ready (cut-over, P4-012). Call before the ISR runs sq_block. */
+/* ADR-0003 12 step 4 minus audio: fill the state from the defaults, build all four caches into buffer 0, zero the runtime. Sets sq_ready last
+ * (the cut-over, P4-012: seq.c events_block runs sq_block from then on). Call before the audio ISR starts. */
 static void sq_boot(void)
 {   sq_default_global(&sq_gdb[0]); sq_gdb[1] = sq_gdb[0];
     sq_gidx = 0; sq_load_pending = 0; sq_um_valid = 0; sq_stage_valid = 0; sq_ne_state = 0;
@@ -515,7 +516,8 @@ static void sq_boot(void)
     }
     memset(sq_rt, 0, sizeof sq_rt);
     for (int i = 0; i < SQ_EVQ_N; i++) sq_evq[i].kind = 0;
-    sq_seen_epoch = sq_epoch; }
+    sq_seen_epoch = sq_epoch;
+    sq_ready = 1; }                                                  /* last: the ISR plays only a state that is complete (ADR-0003 12) */
 
 /* ------------------------------------------------------------------ presets (ADR-0003 10; RAM only) */
 

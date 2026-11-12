@@ -88,10 +88,10 @@ static uint8_t sync_reload;                  /* engine / preset / project / user
  * the panel 76..198 (a SURF area; the graphs live in it), footer 202..240; BG between them */
 #define Y_HEAD 0
 #define H_HEAD 24
-/* the Torso T-1 mode's screen and controls (ui_t1.c, included after ui_input.c) */
-static void t1_poll(void);
-static void t1_input(uint32_t pressed, uint32_t notes);
-static void t1_draw(void);
+/* the sequencer's screen and controls (ui_sq.c, ui_sq_glue.c; included after ui_input.c) */
+static void ui_sq_poll(void);
+static void ui_sq_controls(uint32_t pressed, uint32_t notes);
+static void ui_sq_screen(void);
 #define Y_LABEL 28                    /* the cards */
 #define Y_SEP_END 72
 #define CARD_W 57

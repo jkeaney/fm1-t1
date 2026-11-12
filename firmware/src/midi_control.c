@@ -351,8 +351,15 @@ static void __attribute__((noinline)) midi_event(uint32_t st, uint32_t ch, uint3
 {
     if (song.g[G_ROUTE] != 1 && !midi_in_block(ch))
         return;
-    if (st == 0x90u || st == 0x80u)
-        midi_note_event(ch, d1, st == 0x90u ? d2 : 0);
+    if (st == 0x90u || st == 0x80u) {
+        if (sq_ready) {                            /* the sequencer core: a note from the host plays on the selected channel (sq_core.c, ADR-0003 16.9) */
+            if (st == 0x90u && d2)
+                sq_live_on((uint8_t)d1, (uint8_t)d2);
+            else
+                sq_live_off((uint8_t)d1);
+        } else
+            midi_note_event(ch, d1, st == 0x90u ? d2 : 0);
+    }
     else if (st == 0xE0u) {
         midi_channel(ch)->bend = (int16_t)((int32_t)(d1 | (d2 << 7)) - 8192);
         midi_expression_channel(ch);

@@ -7,8 +7,10 @@
  * the CLKX_A_* action bits each call returns (the ISR owner acts on them) and the state in `clkx` (the fields SCREEN_SPEC 6.1
  * reads). It touches no register, no sequencer state and no ring, so it is the same code on the device and in tests/clock_test.c.
  *
- * Not wired yet: the new core (sq_core.c) is not in the build until the cut-over (P4-012). The old path (midi_clock.c) still runs
- * the transport; this file is compiled into the image (its RAM is counted) and nothing calls it. P4-012 will:
+ * Wired at the cut-over (P4-012) as far as the SOURCE goes: seq.c events_block feeds it every realtime byte and SPP (clkx_event), polls it
+ * once per block (clkx_poll), sets internal_only from the CLOCK setting, and SQ_IS_MASTER() is clkx_master() (felucca.c), so clock out is silent
+ * whenever a host clock is followed. The transport and the tempo of a followed clock still come from midi_clock.c (its pulse counter and
+ * beat_samples); the PLL below (clkx_beat_q4, clkx_tick_time) and the CLKX_A_* actions are NOT used by the core yet: see the P4-012 Log. The plan was:
  *   - feed it every midi_in_q packet >= 0xF8 and 0xF2 with midi_in_t[] and the source (1 USB, 2 TRS),
  *   - call clkx_poll(fm1_ticks()) once per block and clkx_play() / clkx_stop() for the panel,
  *   - act on the bits: STOP = sq_on_stop(), START = sq_on_start() with tick 0 at this pulse, CONT = continue at clkx.pulse_idx * 8,
