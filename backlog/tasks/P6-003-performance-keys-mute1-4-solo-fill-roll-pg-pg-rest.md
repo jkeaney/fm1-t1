@@ -6,7 +6,7 @@ type: task
 status: todo
 priority: 2
 executor: haiku
-depends_on: [P6-002]
+depends_on: [P6-002, BUG-007]
 gate: none
 ---
 ## Goal

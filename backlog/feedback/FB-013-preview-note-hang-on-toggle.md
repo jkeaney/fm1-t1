@@ -3,7 +3,7 @@ id: FB-013
 title: Preview note can hang when ChanSave.pad[0] bit 7 (PREVIEW) changes while a note sounds
 phase: P4
 type: feedback
-status: todo
+status: done
 priority: 2
 executor: human
 depends_on: []
@@ -36,3 +36,5 @@ python3 tools/backlog.py check
 n/a, internal work (tooling, plumbing, docs, process); no producer-visible control, screen or sound change.
 
 ## Log
+
+- 2026-11-12 orchestrator triage: filed BUG-007; P6-003 depends on it.

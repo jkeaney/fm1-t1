@@ -3,7 +3,7 @@ id: FB-012
 title: ADR-0003 section 10 vs section 12 and the code: bad preset, who clears UndoRec, dice entropy (doc-fix)
 phase: P4
 type: feedback
-status: todo
+status: done
 priority: 2
 executor: human
 depends_on: []
@@ -36,3 +36,5 @@ python3 tools/backlog.py check
 n/a, internal work (tooling, plumbing, docs, process); no producer-visible control, screen or sound change.
 
 ## Log
+
+- 2026-11-12 orchestrator triage: filed P2-031 (ADR-0003 doc fixes); the sq_undo_new deletion is in P4-024; P4-011 depends on P2-031.
