@@ -3,7 +3,7 @@ id: P4-002
 title: sq_prims.c with golden tests
 phase: P4
 type: task
-status: review
+status: done
 priority: 2
 executor: sonnet
 depends_on: [P4-001, BUG-002, P2-029]
@@ -77,3 +77,7 @@ prototype; run_tests.sh step. The dump's SP1 lines equal the independent Python 
     sh tools/check.sh                          -> CHECK PASS (tests.log: "== shared primitives ..." ran, no STEP FAILED)
     ./build.sh | grep RAM  ->  ok    image 168860 B; RAM .data+.bss 23316 B of 73728; pool 92500 B of 368640
 RAM headroom 73728 - 23316 = 50412 B (>= 8192). Includes: sq_prims.c only sq_prims.h; sq_prims.h only sq_types.h (stdint etc. via it).
+
+### 2026-11-12 review (sonnet)
+Verdict: **PASS**. Checked: sq_prims.c/.h differ from the prototypes only by `static` (SPDX already in the prototype); `extern const SQ_SCALE_MASKS` dropped from the header, the table is `static const` in the .c, its only firmware user is sq_prims.c:87 (tests/design/proto_main.c uses the prototype's non-static table, unaffected). Prototype `prims --dump` equals tests/sq_prims_golden.txt (cmp, 179 lines); the dump covers all 21 functions declared in sq_prims.h. Includes: sq_prims.c -> sq_prims.h -> sq_types.h only. `sh tests/design/run_protos.sh` -> PROTOS PASS, golden files unchanged (git clean). `sh tools/check.sh` -> CHECK PASS.
+`ok    image 168860 B; RAM .data+.bss 23316 B of 73728; pool 92500 B of 368640` -> headroom 50412 B (>= 8192).
