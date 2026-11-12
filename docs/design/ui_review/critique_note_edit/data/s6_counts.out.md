@@ -1,0 +1,22 @@
+| render | text draws (visible) | distinct strings | distinct (string,font) | AF_L / AF_M / AF_S draws | distinct text fg colours | distinct text bg colours | icons | filled rects (R) | frames (F) | unique RGB values in the frame | of which exact palette tokens | AA blends (other) | colours drawn by rect/frame/icon/text ops (cv_pset hatches not logged) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| note_open | 28 | 24 | 24 | 0 / 18 / 10 | 5 (BG, CH1, MID, TEXT, WHITE) | 4 (BG, CH1, RAISE, SURF) | 20 | 129 | 4 | 71 | 13 | 58 | BG, CH1, CHF1, DICE, DIM, MID, RAISE, SURF, TEXT, WHITE |
+| note_set | 30 | 26 | 26 | 0 / 18 / 12 | 5 (BG, CH1, MID, TEXT, WHITE) | 4 (BG, CH1, RAISE, SURF) | 20 | 130 | 5 | 71 | 12 | 59 | BG, CH1, DICE, DIM, MID, RAISE, SURF, TEXT, WHITE |
+| note_dice | 30 | 29 | 29 | 3 / 15 / 12 | 4 (BG, MID, TEXT, WHITE) | 6 (BG, CH1, CHF1, RAISE, SURF, WHITE) | 20 | 138 | 5 | 98 | 14 | 84 | BG, CH1, CHF1, DICE, DIM, MID, RAISE, SURF, TEXT, WHITE |
+| note_final | 28 | 25 | 25 | 1 / 17 / 10 | 5 (BG, CH1, MID, TEXT, WHITE) | 5 (BG, CH1, CHF1, RAISE, SURF) | 20 | 130 | 6 | 93 | 13 | 80 | BG, CH1, CHF1, DICE, DIM, MID, RAISE, SURF, TEXT, WHITE |
+| worst_w1 | 31 | 30 | 30 | 2 / 16 / 13 | 5 (BG, CH1, MID, TEXT, WHITE) | 5 (BG, CH1, CHF1, RAISE, SURF) | 20 | 139 | 5 | 94 | 13 | 81 | BG, CH1, CHF1, DICE, DIM, MID, RAISE, SURF, TEXT, WHITE |
+| worst_w2 | 28 | 26 | 26 | 1 / 17 / 10 | 5 (BG, CH1, MID, TEXT, WHITE) | 5 (BG, CH1, CHF1, RAISE, SURF) | 20 | 134 | 6 | 90 | 13 | 77 | BG, CH1, CHF1, DICE, DIM, MID, RAISE, SURF, TEXT, WHITE |
+
+### the same counts on the PERF page, same state (the locked main-screen code path), for comparison
+| render | text draws (visible) | distinct strings | AF_L / AF_M / AF_S | distinct text fg | icons | unique RGB values |
+|---|---|---|---|---|---|---|
+| note_open_perf | 27 | 23 | 4 / 15 / 8 | 5 | 20 | 78 |
+| note_set_perf | 27 | 23 | 4 / 15 / 8 | 5 | 20 | 78 |
+| note_dice_perf | 27 | 23 | 4 / 15 / 8 | 4 | 20 | 75 |
+| note_final_perf | 27 | 23 | 4 / 15 / 8 | 5 | 20 | 78 |
+
+### page-specific (NOTE_EDIT) vs persistent text, per render: strings that exist only here (not on the same-state PERF render)
+- note_open: NOTE_EDIT-only: `PITCH`@9,23, `AUTO`@10,45, `GEN C2`@9,65, `GATE`@72,23, `AUTO`@70,45, `GEN 40`@70,65, `VELO`@131,23, `AUTO`@130,45, `GEN 43`@130,65, `RATCH`@186,23, `AUTO`@190,45, `GEN 1X`@190,65, `STEP`@3,79, `9`@34,76, `= SET BY YOU`@162,79, `KNOBS EDIT`@2,221, `HOME = DONE`@139,221; PERF-only (absent on NOTE_EDIT): `DENS`@11,23, `12`@12,41, `PEDAL`@67,23, `6`@81,41, `JUMP`@130,23, `5`@141,41, `ACCNT`@185,23, `3`@201,41, `P01`@3,76, `ROW`@85,79, `1`@117,78, `2`@130,78, `1/1`@215,76, `PAGE`@185,79, `KEYS = STEPS`@2,221, `HOLD = EDIT`@151,221
+- note_set: NOTE_EDIT-only: `PITCH`@9,23, `AUTO`@10,45, `GEN C2`@9,65, `GATE`@72,23, `AUTO`@70,45, `GEN 40`@70,65, `VELO`@131,23, `AUTO`@130,45, `GEN 43`@130,65, `RATCH`@186,23, `AUTO`@190,45, `GEN 1X`@190,65, `STEP`@3,79, `9`@34,76, `SLIDE`@50,78, `PROB 50`@87,78, `OCT-2`@140,78, `KNOBS EDIT`@2,221, `HOME = DONE`@139,221; PERF-only (absent on NOTE_EDIT): `DENS`@11,23, `12`@12,41, `PEDAL`@67,23, `6`@81,41, `JUMP`@130,23, `5`@141,41, `ACCNT`@185,23, `3`@201,41, `P01`@3,76, `ROW`@85,79, `1`@117,78, `2`@130,78, `1/1`@215,76, `PAGE`@185,79, `KEYS = STEPS`@2,221, `HOLD = EDIT`@151,221
+- note_dice: NOTE_EDIT-only: `PITCH`@9,23, `F2`@13,36, `GEN C2`@9,65, `GATE`@72,23, `100`@63,36, `GEN 40`@70,65, `VELO`@131,23, `80`@132,36, `GEN 43`@130,65, `RATCH`@186,23, `AUTO`@190,45, `GEN 1X`@190,65, `STEP`@3,79, `9`@34,76, `NO SLIDE`@50,78, `PROB 50`@106,78, `OCT-2`@159,78, `KNOBS EDIT`@2,221, `HOME = DONE`@139,221; PERF-only (absent on NOTE_EDIT): `DENS`@11,23, `12`@12,41, `PEDAL`@67,23, `6`@81,41, `JUMP`@130,23, `5`@141,41, `ACCNT`@185,23, `3`@201,41, `P01`@3,76, `ROW`@85,79, `1`@117,78, `2`@130,78, `1/1`@215,76, `PAGE`@185,79, `KEYS = STEPS`@2,221, `HOLD = EDIT`@151,221
+- note_final: NOTE_EDIT-only: `PITCH`@9,23, `AUTO`@10,45, `GEN C2`@9,65, `GATE`@72,23, `AUTO`@70,45, `GEN 40`@70,65, `VELO`@131,23, `83`@132,36, `GEN 43`@130,65, `RATCH`@186,23, `AUTO`@190,45, `GEN 1X`@190,65, `STEP`@3,79, `9`@34,76, `= SET BY YOU`@162,79, `KNOBS EDIT`@2,221, `HOME = DONE`@139,221; PERF-only (absent on NOTE_EDIT): `DENS`@11,23, `12`@12,41, `PEDAL`@67,23, `6`@81,41, `JUMP`@130,23, `5`@141,41, `ACCNT`@185,23, `3`@201,41, `P01`@3,76, `ROW`@85,79, `1`@117,78, `2`@130,78, `1/1`@215,76, `PAGE`@185,79, `KEYS = STEPS`@2,221, `HOLD = EDIT`@151,221
