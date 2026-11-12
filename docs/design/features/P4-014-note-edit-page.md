@@ -10,7 +10,7 @@ The bass line plays; the producer wants one note changed (a pitch, a longer or a
 ## 2. Steps a producer takes
 | # | Producer does (control id, context) | Screen shows after | Sound / MIDI after |
 | --- | --- | --- | --- |
-| 1 | Hold white key 9 for 0.4 s (KEY_W09_G4, PERF) | NOTE_EDIT: status line `STEP 9` (AF_M) and `HOLD KEY = MOVE`; footer `KNOBS = STEP 9`, `HOME = DONE`; four tiles `PITCH GATE VELO RATCH`, each with the value the step will play BIG in grey (`C2`, `40%`, `43`, `1x`) and the word `AUTO` under it; the step framed in the music row and on its key; the six layer buttons are corner-bracket "this step" icons | none (the audition is an ISR job, debt) |
+| 1 | Hold white key 9 for 0.4 s (KEY_W09_G4, PERF) | NOTE_EDIT: header chip `STEP 9` where the algorithm name was, status line `STEP 9` + chips; footer `HOLD KEY = MOVE` and `HOME = DONE` (always on screen); four tiles `PITCH GATE VELO RATCH`, each with the value the step will play BIG in grey (`C2`, `40%`, `43`, `1x`) and the word `AUTO` under it; the step framed in the music row and on its key; the six layer buttons are corner-bracket "this step" icons | none (the audition is an ISR job, debt) |
 | 2 | Turn K1 two detents up (EN_K1) | the tile fills in the channel colour, the note is big and white with a small white marker square at the tile's corner, `GEN C2` (the algorithm's note) under it (first detent: the generated pitch's next scale degree, F-12) | from the next pass the step plays that pitch |
 | 3 | Turn K2 to the top | `TIE`; turn it down to the bottom: the fill goes, the grey generated gate and `AUTO` return (the StepEdit field is cleared); a number is followed by a small `%` | next pass: no note-off until the next step |
 | 4 | Turn K3 / K4 (EN_K3, EN_K4) | `VELO` number, `ACC` at 100 or more; `RATCH` `2` with a small `x`; each back to `AUTO` at the bottom | next pass |
@@ -66,22 +66,22 @@ Renders (build/ui_sq/): `note_open.png`, `note_set.png`, `note_dice.png`, `note_
 - [x] Survives stop/start, clock-source change, preset load: edits are in ChanSave; a landed preset ends the session (the core) and the next write opens a new one; the page needs the channel selected and in use or it closes
 - [x] Cost recorded: RAM .data+.bss 29208 B of 73728 (headroom 44520 B); no new static buffer beyond ~90 B of view text; UisqView grows by 99 B on the stack of ui_sq_draw
 
-Design locked: pending owner sign-off of the picture (James Keaney)
+Design locked: James Keaney 2026-11-13 (answered "Good enough, sign" to the round 3 renders)
 
 ## 7. Walk-through (after the build)
-Method: host test tests/ui_sq_note_test.c (it drives ui_sq_keys / ui_sq_button / ui_sq_knob / ui_sq_select_turn / ui_sq_home exactly as ui_sq_glue.c does); frames in build/ui_sq/note_*.png. Firmware: working tree on bb1c058.
+Method: host test tests/ui_sq_note_test.c (it drives ui_sq_keys / ui_sq_button / ui_sq_knob / ui_sq_select_turn / ui_sq_home exactly as ui_sq_glue.c does); frames in build/ui_sq/note_*.png. Firmware: commit 3cb704b (revision 3 of the screen).
 | Step | Screen showed | MIDI |
 | --- | --- | --- |
-| 1 | NOTE band, `STEP 9`, nothing set, `GEN ...` under each AUTO, column 9 framed (pixel-checked) | none |
-| 2 | K1: ED.note = 0x80 | degree of the generated pitch | the StepEdit field only |
+| 1 | NOTE band: header chip `STEP 9` (pixel-checked), status line `STEP 9`, nothing set: each tile shows the algorithm's value big and grey with `AUTO` under it; column 9 framed in the music row and on its key; footer `HOLD KEY = MOVE` / `HOME = DONE` | none |
+| 2 | K1: the tile fills, the note is big and white with `GEN <note>` under it (ED.note = 0x80 | the generated pitch's next degree) | the StepEdit field only |
 | 3 | K2 top = TIE (gr 11), bottom = AUTO (gr 0) | StepEdit only |
 | 4 | K3 reads ACC at 100+, 127 max, AUTO at the bottom (vel 0); K4 2X..4X, AUTO | StepEdit only |
-| 5 | chips `SLIDE`, `PROB 50`, `OCT-2`; ENV sets 120 and back to AUTO (or 80 when the generator accents: F-10) | StepEdit only |
-| 6 | SCL sets a pitch, FX pitch + velocity + slide + gate; toasts `NOTES` / `ALL  EDIT=UNDO` | StepEdit only |
+| 5 | ARP / LFO buttons lit (slide, prob), chips `PROB 50`, `OCT-2` (the PITCH tile shows the shifted note); ENV sets 120 and back to AUTO (or 80 when the generator accents: F-10) | StepEdit only |
+| 6 | SCL sets a pitch, FX pitch + velocity + slide + gate; toasts `NOTE` / `DICED  EDIT=UNDO` in the message slot (footer hints stay) | StepEdit only |
 | 7 | EDIT restores the visit's start state; again redoes; third undoes | StepEdit only |
 | 8 | the editor moved to step 13 and its own snapshot; EDIT with nothing written there is inert | none |
 | 9 | HOME tap: PERF, session closed; a PERF tap on the same step then undoes alone | none |
-Differences from the prediction: none on the screen; MIDI is not sent by the page at all (no audition).
+Differences from the prediction: the screen is revision 3 (after the owner's two critique rounds); MIDI is not sent by the page at all (no audition).
 
 ## 8. Actual ease score
 | Function | V | I | O | L | /12 | Predicted | Delta | Pass? |
@@ -95,5 +95,5 @@ Differences from the prediction: none on the screen; MIDI is not sent by the pag
 ## 9. Sync re-check and outcome
 - `sh tools/check.sh`: CHECK PASS; tests/ui_sq_note_test.c: 0 failures. `python3 tests/design/check_scenarios.py`: 0 control-map rows with no scenario; `python3 tests/design/check_help.py`: OK (392 help rows).
 - Debt (to file as FB by the reviewer if accepted): audition of a changed pitch (ISR flag); hard-tap ACCENT (key force; NOTE_EDIT ENV and K3 are the fallback and exist); EDIT hold = RESET over NOTE_EDIT (P4-018); GLO / REC / CHN switching out of NOTE_EDIT (SET / REC / CHAN pages: P4-016, P4-017, P4-015).
-- Outcome: Pass with debt (revision 2); the picture and the button icons await the owner's re-look.
-- Approved: pending
+- Outcome: Pass with debt (revision 3 screen).
+- Approved: James Keaney 2026-11-13 (answered "Good enough, sign" to the round 3 renders)

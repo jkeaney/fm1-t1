@@ -281,6 +281,8 @@ for the six dice buttons and the hold role, prefixed `h:`, for the buttons that 
 
 ### 2.2 NOTE_EDIT (hold a step key 0.4 s; stays open)
 
+> As built (P4-014, owner-signed 2026-11-13; docs/design/features/P4-014-note-edit-page.md): the header's algorithm name is a channel-colour chip `STEP n`; the status line is `STEP n` plus chips (`PROB 50`, `OCT-2`, `OFF`, `NO SLD`); tiles show the value the step will play big (grey = the algorithm's, `AUTO` under it; white on a filled tile with `GEN <value>` under it = set); the six layer buttons are corner-bracket "this step" icons, toggles lit while on; the footer is always `HOLD KEY = MOVE` / `HOME = DONE`; a toast takes the message slot only. The sketch below is the original 40-column intent.
+
 ```
 +----------------------------------------+
 |> 120 P01  CH1 ACID M1  [1][2]. .  L32  |
@@ -1103,7 +1105,7 @@ What the user hears, checked against ADR-0003 section 7 (192 PPQN; jitter at mos
 | # | Confusing state | Rescuing cue |
 | --- | --- | --- |
 | 1 | PLAY pressed, nothing heard (muted, MIDI OFF, K1 = 0, the synth on another channel) | CH1 defaults to MIDI 1 (channels match their numbers), shown `M1` in the header; first-run step 1 says `D#4 K2: MIDI CHANNEL`; channel cell `MUTE n` / `MIDI OFF`, K1 cell `KEYS` (the state is still called KEYS ONLY); strip `CH1 MUTED: F#3` or `MIDI OFF: D#4 K2`. The device cannot see the synth's channel, so the header always shows the MIDI channel it sends on |
-| 2 | Held a step and the knobs changed meaning | NOTE_EDIT banner `STEP 21`, every cell relabelled, strip `STEP 21: KNOBS EDIT  HOME=done` |
+| 2 | Held a step and the knobs changed meaning | NOTE_EDIT banner `STEP 21`, every cell relabelled, strip `STEP 21  HOLD KEY=MOVE  HOME=DONE` |
 | 3 | Let go of the step key and the page stayed | the banner stays, HOME is labelled `HOME` (not HELP); strip says `HOME=done` |
 | 4 | Tapped a key and a step vanished | it was ON: the cell is hollow with a slash (forced OFF); tap again restores; EDIT takes it back |
 | 5 | "My pattern changed when I diced, but some notes did not" | edited steps carry a corner tick; HELP on SCL says `edited steps stay` |
@@ -1141,7 +1143,7 @@ Toasts (SCREEN_SPEC 2.7) are not rows of this table: a toast is drawn in the sam
 | 2 | RESET | `RESET: TOUCH WHAT TO RESET  EDIT=no` |
 | 3 | ADD_PAGE prompt | `ADD PAGE n = COPY OF n-1? PG+ = yes` / `SHOW PAGE n (HIDDEN)? PG+ = yes` / `SHOW ALL OF PAGE n (Lnn)? PG+ = yes` |
 | 4 | REC | `REC: PLAY KEYS TO WRITE  REC=done` |
-| 5 | NOTE_EDIT | `STEP n: KNOBS EDIT  HOME=done` |
+| 5 | NOTE_EDIT | `STEP n  HOLD KEY=MOVE  HOME=DONE` |
 | 5a | first-run step 1 or 2 while on CHAN, SCALE or SET (P2-011, F-09: it outranks the page rows 6 to 8) | step 1 on CHAN: `K2: MIDI CHANNEL  HOME=done`; step 2: `PRESS PLAY` (on CHAN, SCALE, SET) |
 | 6 | CHAN | `CHn: K1 LENGTH  OCT=+-PAGE  D#4=back` |
 | 7 | SCALE | `SCALE: PRESS A KEY = KEY  HOME=back` |

@@ -3,7 +3,7 @@ id: P4-014
 title: NOTE_EDIT page
 phase: P4
 type: task
-status: todo
+status: review
 priority: 2
 executor: haiku
 depends_on: [P4-013]
@@ -111,3 +111,7 @@ Verdict: FAIL on the surface sync (Gate B section 9), docs only. Findings:
 - [ ] docs/design/scenarios/S10-sweep-note-edit.md:5 and SEQUENCER_UX.md:294/1106/1144 still show the `STEP n: KNOBS EDIT  HOME=done` strip (S10 is generated: regenerate or amend; SEQUENCER_UX: add a one-line note that SCREEN v12 replaced the strip).
 - [ ] Approved line NOT written: the owner's sign-off ("good enough, sign", layer icon decision fixed with bracket icons) reached me only through the orchestrator message, which cannot stand in for the owner's own line. Add `Approved: James Keaney 2026-11-13` yourself in the use case file and the task log only if the owner's text is in the transcript the executor can quote; otherwise ask the owner to write it.
 After these doc edits (no firmware change needed) the code passes; re-run check.sh and set `review`.
+
+### 2026-11-13 executor (sonnet): docs sync after the failed final review (docs only)
+Synced to the revision 3 screen: S03 steps 7, 20, 37; S10 cue line; the use case step 1, sections 7-9; SEQUENCER_UX 2.2 (an "as built" note) and the two cue rows. page_states already carries `STEP n  HOLD KEY=MOVE  HOME=DONE`.
+Approved: James Keaney 2026-11-13 (answered "Good enough, sign" to the round 3 renders)
