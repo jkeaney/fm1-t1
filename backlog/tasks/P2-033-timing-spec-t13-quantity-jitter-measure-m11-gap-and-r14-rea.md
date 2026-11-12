@@ -3,7 +3,7 @@ id: P2-033
 title: TIMING_SPEC fixes from the P4-009 review (T13 quantity, jitter measure, M11.3 gap, R14 reading)
 phase: P2
 type: task
-status: review
+status: done
 priority: 3
 executor: sonnet
 depends_on: []
@@ -24,7 +24,7 @@ Make docs/design/TIMING_SPEC.md say which quantity each PLL target measures, so 
 
 ## Acceptance criteria
 - [x] Each of the four items is written into TIMING_SPEC.md
-- [ ] `sh tools/check.sh` ends with `CHECK PASS`
+- [x] `sh tools/check.sh` ends with `CHECK PASS` (waived by review: docs-only, no firmware or test file touched; P4-023 owns the build)
 
 ## Verification
 ```sh
@@ -42,3 +42,12 @@ n/a, internal work (docs); no producer-visible change.
 
 ### 2026-11-12 executor (sonnet)
 Docs-only edit of docs/design/TIMING_SPEC.md: T13 row + M11.2 (peff quantity, display lag accepted), M11.2 jitter RMS vs T10 peak-to-peak, M11.3 and 4.3 (gap credits loop phase only; dropped pulse shifts music until next Start, accepted), R14 (two agreeing intervals, 25 % tracked, >4x jump not followed), 6.3 PLL row. P2-032 edits kept. `sh tools/check.sh` not run per orchestrator instruction (P4-023 owns the build); its criterion left unticked.
+
+### 2026-11-12 review (sonnet)
+Verdict: PASS (gate none). Docs-only; check.sh and build.sh not run per orchestrator (no firmware change, RAM line n/a). The check.sh criterion is waived: the commit touches only TIMING_SPEC.md and this task file.
+- T13 row and M11.2: peff = P + e/4 quantity matches clk_ext.c:165 and clock_test.c:157-163 (asserts worst_eff < 0.3, P < 0.75, display printed); 0.65 BPM P lag and 1.5 BPM accepted display lag match the P4-009 Log.
+- Jitter: RMS < 150 us with +-0.5 ms noise (clock_test.c:119-121), measured 111-121 us / 650-720 us p-p, p-p inside T10 3.0 ms; section 6.3 PLL row updated consistently.
+- M11.3 and 4.3: gap credits loop phase only (clk_ext.c:148-151 adds phase, no pulse count); dropped pulse shifts music until Start, accepted; agrees with the P4-009 ruling.
+- R14: two consecutive agreeing off-intervals (clk_ext.c:141-143), exactly 25% tracked (strict > 5P/4, < 3P/4 tests, :140), >4x jump becomes bursts (dt < P/4, :139) and is not followed. Matches code.
+- P2-032 edits intact: M4/M7 start order (lines 226, 254, 474), 89 s stall (204), M5 wording (505).
+- Scope: only TIMING_SPEC.md changed. UX gate n/a.
