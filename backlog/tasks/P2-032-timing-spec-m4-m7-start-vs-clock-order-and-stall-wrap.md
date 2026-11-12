@@ -3,7 +3,7 @@ id: P2-032
 title: TIMING_SPEC fixes from the P4-007 review (M4 vs M7 order, 89 s stall, M5 never-dropped wording)
 phase: P2
 type: task
-status: review
+status: done
 priority: 3
 executor: sonnet
 depends_on: []
@@ -25,7 +25,7 @@ Make docs/design/TIMING_SPEC.md say what the code and MIDI require, so the P4-01
 - [x] M4 and M7 no longer disagree about tick 0
 - [x] M5 wording matches the full-ring behaviour
 - [x] The 89 s limit is written down
-- [ ] `sh tools/check.sh` ends with `CHECK PASS`
+- [x] `sh tools/check.sh` ends with `CHECK PASS` (waived by the reviewer: docs-only commit, no code touched)
 
 ## Verification
 ```sh
@@ -45,3 +45,11 @@ n/a, docs only.
 Docs only. Edited TIMING_SPEC.md: M3 (89 s signed-compare limit, accepted; ring cleared on bus reset only, usb.c mo_r = mo_w), M4 (tick-0 exception 0xFA then 0xF8), M5 (full-ring drop wording), M7 (cross-ref), 6.3 ordering row, section 7 rows.
 `grep -n "0xFA" docs/design/TIMING_SPEC.md` shows the new M4/M7/6.3 lines. `python3 tools/backlog.py check`: 148 items, 0 errors.
 `sh tools/check.sh` NOT run: orchestrator reserved it for P4-023 (docs-only change, no code touched).
+
+### 2026-11-12 review (sonnet)
+Verdict: PASS (gate none). Reviewed commit dfa7e9b by git show, not the working tree.
+- M4/M7 tick-0 exception: sq_core.c:429-430 emits 0xFA then 0xF8 at now==0 at the same stamp, steady state 0xF8 first (sq_core.c:418-420 SPP then 0xFB). The spec text matches the code.
+- M5: usb.c:232 drops everything at midi_out_free()==0 and only NOTE_ONs below MO_RESERVE (8, usb.c:182). Rewording is accurate.
+- 89 s: usb.c:972 mo_due uses (int32_t)(now - due); wording accurate.
+- Ring clear: executor is right. Only the bus reset clears it (usb.c:1366). SET_CONFIGURATION 0 (usb.c:672-684) does not, so the task text was wrong and the spec is correct as written. Genuine but low-severity gap (ONs queued, OFFs refused while !usb.config, ONs released on reconfigure): filed BUG-009.
+- check.sh criterion waived: docs-only, build owned by P4-023.
