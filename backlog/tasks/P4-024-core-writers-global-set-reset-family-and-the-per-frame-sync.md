@@ -45,3 +45,8 @@ n/a, core API plumbing; producer-visible behaviour is gated in the P4 page tasks
 - Wiring into the main loop and events_block (P4-012). The preview toggle writer (BUG-007).
 
 ## Log
+
+### 2026-11-12 note from the P4-006 review (reviewer, not a status change)
+- P4-006 already delivered, in sq_chan.c: `sq_step_set` (one field, AUTO via `SQ_AUTO`), `sq_step_clear` (one step), `sq_page_clear`, `sq_page_recopy`, `sq_page_src_set`, `sq_len_set`, `sq_page_add`, `sq_follow_set`. The reset family here is therefore only what is missing: undo for step-level edits (see FB-015) and any wiring the UI needs.
+- The Deliverable line "delete the unused `sq_undo_new` (sq_chan.c:95)" is stale: `sq_undo_page` (P4-006) now calls it. Keep it.
+- FB-015 recommends folding the TIE-cut on LENGTH change and step-edit undo (`sq_note_edit_begin`) into this task.
