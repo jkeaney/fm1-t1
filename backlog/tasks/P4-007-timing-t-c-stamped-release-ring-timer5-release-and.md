@@ -3,7 +3,7 @@ id: P4-007
 title: Timing T-C: stamped release ring, TIMER5 release and the tempo constant
 phase: P4
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P4-004]
@@ -88,3 +88,14 @@ For the reviewer
 - Nested-release safety (R1) is argued by reading (release runs in the TIMER5 handler beside usb_poll / uac_service, and the audio
   ISR cannot preempt TIMER5) and is NOT proven; hardware stress at 85 % load is P4-019/P4-022. The fallback flag is the answer.
 - Not flashed.
+
+### 2026-11-12 review (sonnet)
+Verdict: PASS (gate none). Not flashed; hardware validation stays with P4-019/P4-022.
+- tools/check.sh: CHECK PASS (re-run). `ok .ram_text: 916 insns, no calls`. `ok image 169020 B; RAM .data+.bss 23828 B of 73728; pool 92500 B of 368640`; headroom 49900 B (floor 8192 met).
+- (a) usb.c: ring index math uses free-running mo_w/mo_r with `% MQO` (128, power of two, so wrap-safe); due compare is `(int32_t)(now - due) >= 0` (wrap-safe within 2^31 ticks); empty ring takes the due as given; sorted insert raises an early due to the tail. No host: `!usb.config` returns before anything is queued or counted; bus reset sets mo_r = mo_w. Ring full: all packets dropped at free==0, NOTE_ONs below 8 free (reserve rule); TIMING_SPEC M5 wording "OFFs and clock never dropped" overstates this (filed in P2-032). R1: I looked for a counterexample and found none. ep1_tx runs only from the TIMER5 handler (usb_poll or the nested branch, after uac_service, sequentially), the audio ISR does not touch the SIE, and the producer/consumer split (mo_w vs mo_r) is single-writer each; a nested TIMER5 landing mid-publish sees either the old or the new mo_w. Residual (minor, in P2-032): a head older than 89 s looks not-due after a host stall.
+- (b) Recomputed: SEQ_FS_Q4 705882 with rounded per-beat division gives a worst error of 3.003 ppm over 40..240 BPM against 24 MHz/544 = 44117.647 Hz; matches the claim.
+- (c) M4 vs M7: M7 intends 0xFA before the first 0xF8 at tick 0 (Start must precede the first clock for a follower); M4's clock-first order is the steady-state rule. Code follows M7; filed P2-032 to reconcile the spec.
+- (d) FELUCCA_TX_NESTED=0 and default (1) both build (binaries differ by md5; same image size); tools/build.py forwards the flag. timing_test runs both ways in tests/run_tests.sh.
+- (e) Unchanged until cut-over: nothing calls sq_block or sq_half_begin (sq_core.c is not in felucca.c). The T-1 path uses midi_out_event, due now, released within 100 us by TIMER5 (was the usb_poll cadence): slightly earlier, not different in content. P4-012 Deliverable did not name sq_half_begin; added it plus an acceptance grep.
+- (f) Register access: usb.c/main.c use the existing sie_rd/sie_wr and fm1_usb_ep_send in the same file as before; sq_core.c touches no registers. No new direct register access outside hal/ beyond the pre-existing usb.c SIE pattern (moved into ep1_tx_ready/ep1_tx_arm).
+- Note (not blocking): tools/build.py line 190 has a missing comma ("FELUCCA_ICONS" "FELUCCA_CDC_DEFAULT" concatenates), so those two env flags are ignored; pre-existing.

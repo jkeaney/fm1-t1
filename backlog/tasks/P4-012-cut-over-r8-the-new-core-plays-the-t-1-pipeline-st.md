@@ -18,11 +18,13 @@ Switch the device to the new sequencer: `events_block` calls `sq_block`, keys an
 - firmware/src/seq.c (events_block, the t1 hooks), main.c, ui_draw.c, ui_input.c
 
 ## Deliverable
+- audio.c `fm1_alnk0_irq` calls `sq_half_begin(t0)` once per half buffer with the TIMER4 time at the half start (sq_core.c line 96; P4-007 left it uncalled, so M2 stamps are not filtered until this lands); `fm1_ticks` clock-out and stamped release stay inactive-by-default until then
 - seq.c `events_block` calls `sq_block` in place of `t1_block`; keyboard_block/MIDI IN call `sq_live_on/off`; main.c calls `sq_boot`; ui_draw_page/ui_input dispatch to ui_sq
 - Delete torso_t1_pipeline.c/.h, torso_t1_state.c/.h, torso_t1_ui.c/.h, ui_t1.c, t1_glue.c, torso_t1.c/.h (micro queue, rings) and the `t1_mode`/`t1_off_req` plumbing; keep torso_t1_algo.c only for the functions ADR-0003 §13 marks Reuse (bjorklund, rotate, pace curve, scale masks, fixed phrase contour) and torso_t1_port.c
 - torso_phase4/5 tests deleted; phase1-3 tests deleted or replaced by the sq_* tests (Log lists which); tests/t1_link_test.c replaced by tests/sq_link_test.c (2 bars of ACID on channel 1 reach midi_out_event; STOP sends offs then CC123)
 
 ## Acceptance criteria
+- [ ] `grep -n sq_half_begin firmware/src/audio.c` shows the call in the half-buffer interrupt
 - [ ] `grep -rn 't1_block\|t1_mode\|ui_t1' firmware/src` returns nothing
 - [ ] sq_link_test passes
 - [ ] Host render boots into the PERF page stub
