@@ -3,7 +3,7 @@ id: P2-031
 title: ADR-0003 doc fixes from the P4-005 review (bad preset rejects, sq_chan_sync, dice entropy)
 phase: P2
 type: task
-status: todo
+status: review
 priority: 2
 executor: sonnet
 depends_on: [P4-005]
@@ -48,3 +48,6 @@ Verified OK: section 3.1 (sq_chan.c:85 sq_entropy = sq_entropy_ctr mixed with ++
 Findings:
 - [ ] ADR-0003-sequencer-core.md:573 says an invalid CRC makes `sq_preset_load` return -1. The code does not: sq_preset_load (sq_chan.c:300-302) rejects only a wrong version or algo id; the CRC is never seen there (sq_chan.c:14,277 and the ADR's own SeqPreset field comment at line 159 say the storage layer, P7, computes and checks it). Fix: say "an invalid `version` or algorithm id rejects the load (-1, state untouched); the storage layer (P7-002) checks the CRC before calling `sq_preset_load` and decides what a corrupt slot shows". Section 12 step 6's "a rejected load returns -1" stays correct.
 - Minor (optional): section 3.1 says "low 16 bits of a free-running sample counter"; sq_entropy also folds in `ctr >> 16`.
+
+### 2026-11-12 executor (sonnet), review fix
+Dropped CRC from the reject list (sections 10; 12 step 6 only refers to section 10): sq_preset_load rejects a wrong version or algo id; the storage layer (P7-002) checks the CRC first. Section 3.1 now says the counter's low 16 bits folded with its high 16 bits. Section 22 unchanged.

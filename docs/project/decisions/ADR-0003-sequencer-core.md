@@ -202,7 +202,7 @@ amendment, because the preset layout is stored.
 - **Default** seed `k` (0-based index into the algorithm's seed list) of channel `ch` (0-based): if `seed_k[k] == 0xFF`
   the seed is literally 0 (EUCLID ROT = "no rotation"), else `(0x3A5D * (ch * n_seed + seed_k[k])) & 0xFFFF`, with
   `n_seed` and `seed_k[]` from the algorithm table (ALGORITHM_SET SP13 and each assessment's 6.1).
-- **Dice** gives a seed the value `sq_entropy()` = low 16 bits of a free-running sample counter (incremented by
+- **Dice** gives a seed the value `sq_entropy()` = the low 16 bits of a free-running sample counter folded with its high 16 bits (`ctr ^ ctr>>16`) (incremented by
   `n` in `sq_block`; it runs while stopped too) mixed with a dice counter (`sq_dice_n`, bumped per dice, so two dice at the same
   sample count differ); there is no `fm1_ms` hook; if the result equals the old seed, add `0x9E37`. For a layer bound to two seeds
   (ACID `ARTIC`) the second seed uses `entropy ^ 0x5A5A`. EUCLID ROT: if the new value is 0 it becomes 1. This is the
@@ -570,10 +570,10 @@ applied after `step()`), so morphs and dice never disturb them.
 - A preset is a `SeqPreset` (420 B). `sq_preset_save()` copies `sq_ch`, `sq_g.s`, BPM. Slot storage (P01..P16 = 6720 B,
   the autosave, the "undo last load" copy) is E7 (project.c becomes the store); this ADR fixes only the byte layout.
   `sq_preset_load()` **validates and clamps every field** (algo < 4, midi_ch <= 16 and unique: if two channels hold the same non-OFF value the lower-numbered keeps it and the others load as OFF, morph within `MorphDesc` min/max,
-  pin_note <= 96, scale < 16, ...); an invalid `version`, CRC or algorithm id **rejects the load**: `sq_preset_load` returns -1
+  pin_note <= 96, scale < 16, ...); a wrong `version` or an out-of-range algorithm id **rejects the load**: `sq_preset_load` returns -1
   and the live state is untouched (loading defaults over the live pattern because a slot is corrupt would destroy the player's
   work; a caller that wants defaults loads `sq_defaults()` through the same path). What an empty or corrupt slot shows is
-  decided by the storage layer (P7-002).
+  decided by the storage layer (P7-002), which also checks the CRC before calling `sq_preset_load` (the core does not).
 - **Queued to the next loop start (owner decision 34):** "loop start" = the next tick where the global bar counter
   `sq_bar` (192-PPQN ticks since PLAY / restart) reaches a multiple of **768 ticks** (always one 4/4 bar, whatever DIV
   and the loop lengths are): data constant `SQ_BAR_TICKS = 768` (owner decision 45, replacing the earlier
