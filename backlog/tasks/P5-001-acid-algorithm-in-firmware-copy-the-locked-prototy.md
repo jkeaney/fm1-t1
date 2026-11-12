@@ -3,7 +3,7 @@ id: P5-001
 title: ACID algorithm in firmware (copy the locked prototype)
 phase: P5
 type: task
-status: todo
+status: review
 priority: 1
 executor: sonnet
 depends_on: [P4-002, P2-017]
@@ -25,11 +25,11 @@ Land ACID exactly as prototyped (ADR-0003 §14: the prototype is the firmware fi
 - Orchestrator decision 2026-11-12 (resolves the P5-001 block): the algorithm golden is checked in two parts. This task diffs only the plain matrix part of golden.txt (everything before the `H-INERT` section); the `H-INERT` and `HARM 1-4-5-1` sections need `harm.c` and are checked by P5-005's test, whose acceptance criterion gains them. `static` is not applied to typedefs. Rows of the `ALGOS[]` table for algorithms that do not exist yet are filled by their own tasks (the unity build must still compile: use the real rows only, with `SQ_NALGO` and the table sized per the ADR). If the Use case file `docs/design/features/<ID>-*.md` named in the UX gate section does not exist, create it from `_TEMPLATE.md` using the algorithm's SPEC.md section 1 and the scenario steps that exercise it, with Gate A marked 'cited from the locked design (P2-017)'.
 
 ## Acceptance criteria
-- [ ] `diff` of the test output against docs/design/algorithms/acid/golden.txt is empty
-- [ ] Purity tests (a)-(e) and table tests pass
-- [ ] sq_algos.c exists with ACID as entry 0 and placeholders that fail the build if a later algorithm row is missing only where SQ_NALGO requires it
-- [ ] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
-- [ ] The build line `image ... RAM .data+.bss N of 73728; pool ...` is pasted into the Log; RAM headroom (73728 - N) is at least 8192 B, else stop and file an FB (E9 trigger)
+- [x] `diff` of the test output against docs/design/algorithms/acid/golden.txt is empty
+- [x] Purity tests (a)-(e) and table tests pass
+- [x] sq_algos.c exists with ACID as entry 0 and placeholders that fail the build if a later algorithm row is missing only where SQ_NALGO requires it
+- [x] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
+- [x] The build line `image ... RAM .data+.bss N of 73728; pool ...` is pasted into the Log; RAM headroom (73728 - N) is at least 8192 B, else stop and file an FB (E9 trigger)
 
 ## Verification
 ```sh
@@ -86,3 +86,24 @@ Options for the owner:
 - (c) Hold P5-001 until P5-005 is done.
 
 Acceptance criteria: none ticked (none verified).
+
+### 2026-11-12 executor (Sonnet 5.5)
+
+Done under the orchestrator decision (plain matrix only; harm sections move to P5-005). Files: `firmware/src/sq_algo_acid.c`, `firmware/src/sq_algos.c`, `firmware/src/felucca.c` (two includes after sq_prims.c), `tests/sq_algo_acid_test.c`, `tests/run_tests.sh` (two steps), `docs/design/features/P5-001-acid-algorithm-in-firmware-copy-the-lock.md` (Gate A cited from P2-017, steps from S02).
+
+Deviation from "copy exactly" (needs the reviewer's eye): the device clang rejects `[SQ_ALGO_ACID] = ALGO_ACID` ("initializer element is not a compile-time constant": a const object cannot initialise a const array element). So the descriptor is the macro `ALGO_ACID_ROW { ... }` with a trailing backslash on each line; the lines are SPEC.md section 5 verbatim. A run_tests step diffs them against SPEC.md (backslashes stripped). `static` is on all functions (already so in proto.c), not on the typedef. The two `#include "../common/..."` lines are dropped (already in the unity build).
+
+Placeholder rule (criterion 3), as read: `ALGOS[SQ_NALGO]` is sized by SQ_NALGO (6) with a designated row `[SQ_ALGO_ACID]`; the five later rows are zero until their tasks add them. The table test requires ALGOS[0] to be ACID and every row with a `build` to carry its own index as id. Nothing selects a zero row (sq_core.c is not in the unity build before P4-012).
+
+```
+$ cc -std=c11 -Wall -Wextra -Werror -Wno-unused-function -O1 -Ifirmware/src -o /tmp/acid_t tests/sq_algo_acid_test.c && /tmp/acid_t > out
+ACID: plain matrix, purity and table checks OK
+$ head -n (H-INERT line - 1) docs/design/algorithms/acid/golden.txt | diff - out   -> empty (6890 lines)
+$ sh tools/check.sh
+== ram headroom
+RAM .data+.bss 23828 B of 73728
+CHECK PASS
+$ grep image build/check/build.log
+  ok    image 169100 B; RAM .data+.bss 23828 B of 73728; pool 92500 B of 368640
+```
+Headroom 73728 - 23828 = 49900 B (>= 8192). tests.log has no STEP FAILED (the two new steps: descriptor equals SPEC, and golden + purity + tables). No device flashed.

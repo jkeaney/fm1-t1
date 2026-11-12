@@ -163,6 +163,18 @@ run "sequencer scheduler: sq_core.c event goldens 1-9 (tests/golden/sq_core_*.tx
 ${CC%% *} $SQC -o "$OUT/sq_chan_test" tests/sq_chan_test.c
 run "sequencer channel API: sq_chan.c UX 1.2 rows, unique MIDI, undo/redo, defaults, presets + 100000-tick API fuzz" "$OUT/sq_chan_test"
 
+# ACID in firmware (P5-001): firmware sq_algo_acid.c + the ALGOS[] row of sq_algos.c: the plain golden matrix of docs/design/algorithms/acid/golden.txt (everything
+# before its H-INERT line; the harm sections belong to P5-005), the purity tests (a)-(g) and the table tests of ADR-0003 section 14
+${CC%% *} $SQC -o "$OUT/sq_algo_acid_test" tests/sq_algo_acid_test.c
+sq_acid_cmp() { "$OUT/sq_algo_acid_test" > "$OUT/sq_algo_acid_out.txt" || return 1
+    n=$(grep -n '^## H-INERT' docs/design/algorithms/acid/golden.txt | head -1 | cut -d: -f1)
+    head -n $((n - 1)) docs/design/algorithms/acid/golden.txt | cmp - "$OUT/sq_algo_acid_out.txt"; }
+sq_acid_desc() { sed -n '/ALGODESC-BEGIN/,/ALGODESC-END/p' docs/design/algorithms/acid/SPEC.md | grep -v ALGODESC | sed -e '1d' -e '$d' > "$OUT/acid_spec_desc.txt"
+    sed -n '/ALGODESC-BEGIN/,/ALGODESC-END/p' firmware/src/sq_algo_acid.c | grep -v ALGODESC | sed -e '1d' -e '$d' -e 's/ \\$//' > "$OUT/acid_fw_desc.txt"
+    diff "$OUT/acid_spec_desc.txt" "$OUT/acid_fw_desc.txt"; }
+run "ACID algorithm: the descriptor in sq_algo_acid.c equals SPEC.md section 5 (modulo the macro backslashes)" sq_acid_desc
+run "ACID algorithm: firmware copy of the prototype, plain golden matrix equals acid/golden.txt before H-INERT, purity (a)-(g) and table tests" sq_acid_cmp
+
 # Timing T-C (P4-007, TIMING_SPEC 6.3): the real usb.c release ring + sq_core.c stamps: tick position, stamp, ordering, clock out count,
 # release, tempo constant; then the same rows with the M3 fallback (TIMER5 releases only between audio interrupts)
 ${CC%% *} $SQC -o "$OUT/timing_test" tests/timing_test.c

@@ -78,6 +78,8 @@
 #include "sq_types.h"            /* the sequencer core's data model (ADR-0003 section 14): types and constants only, no code */
 #include "sq_prims.h"
 #include "sq_prims.c"           /* the shared sequencer primitives SP1..SP9, SP16..SP20 (P4-002); static, pure */
+#include "sq_algo_acid.c"        /* ACID, the locked prototype as firmware (P5-001); static, pure */
+#include "sq_algos.c"            /* the ALGOS[] table: row 0 ACID, the other rows are filled by their own tasks (P5-002..P5-008) */
 #include "torso_t1_pipeline.c"
 #include "torso_t1_state.c"
 #include "torso_t1_ui.c"
