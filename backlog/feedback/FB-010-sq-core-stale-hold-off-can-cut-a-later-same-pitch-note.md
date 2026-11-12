@@ -3,7 +3,7 @@ id: FB-010
 title: sq_core stale queued OFF of a HOLD note can cut a later same-pitch note short
 phase: P4
 type: feedback
-status: todo
+status: done
 priority: 3
 executor: human
 depends_on: []
@@ -32,3 +32,5 @@ python3 tools/backlog.py check
 ```
 
 ## Log
+
+- 2026-11-12 orchestrator triage: filed BUG-006 (stale HOLD OFF, low severity, priority 2). The ratchet slope / skip rules are not a separate item: the locked prototypes define them and P4-006/P5-001 check the core against them.
