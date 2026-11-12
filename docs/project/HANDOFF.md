@@ -76,3 +76,10 @@ should be sized against the 276 KB free pool, not the old 780 B spare.
 Decisions are in OWNER_QUESTIONS.md (rows 65-78 decided; row 79 open). The owner asked for the
 sequencer UX to be locked at a high bar: easy, no deep learning, every state a page, every button has modes, every
 screen shows what the knobs control.
+## SCREEN DESIGN IS OPEN: read docs/design/ui_review/HANDOFF/00_START_HERE.md (2026-11-12)
+The 30 mm, 240x240 screen has been through four mock-up rounds (v1, v3, v3.1, v3.2); the owner judged v3.2 "not good
+enough" without saying why, and decision 120 (freeze) is withdrawn. A handoff package for a Claude design session to
+own it is in `docs/design/ui_review/HANDOFF/` (start with `00_START_HERE.md`; paste-in prompt in `SESSION_PROMPT.md`).
+**Hazard:** `python3 tools/backlog.py next` returns P4-012, which would wire the OLD dense layout into the new core:
+do not run it before the owner decides (block it, or split the cut-over: HANDOFF `07_ACCEPTANCE.md` section D).
+
