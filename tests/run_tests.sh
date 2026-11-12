@@ -142,6 +142,12 @@ run "USB MIDI out ring: 128 entries, reserve rule (ONs dropped first, offs and c
 cc -std=c11 -Wall -Werror -Ifirmware/src -o "$OUT/sq_types_test" tests/sq_types_test.c
 run "sequencer data model: sq_types.h as C11 (-Wall -Werror), locked sizes (ChanSave 384, ChanRT 24, UndoRec 94, SeqPreset 1556, HarmonySave 8)" "$OUT/sq_types_test"
 
+# UI tables (P4-010, ADR-0004): tools/gen_ui_tables.py compiles docs/design/*.tsv into build/gen/ui_tables.h; the row counts equal the TSV line counts
+tl() { echo $(( $(wc -l < "docs/design/$1.tsv") - 1 )); }
+python3 tools/gen_ui_tables.py --check && python3 tools/gen_ui_tables.py || { echo ">>> STEP FAILED: gen_ui_tables <<<"; fail=1; }
+cc -std=c11 -Wall -Wextra -Werror -Ibuild/gen -DT_PAGE_STATES=$(tl page_states) -DT_CONTROL_MAP=$(tl control_map) -DT_BUTTON_MODES=$(tl button_modes) -DT_KNOB_MAP=$(tl knob_map) -DT_KEY_MAP=$(tl key_map) -DT_HELP_TEXT=$(tl help_text) -o "$OUT/ui_tables_test" tests/ui_tables_test.c
+run "UI tables: build/gen/ui_tables.h row counts equal the design TSV line counts, ids and names agree" "$OUT/ui_tables_test"
+
 # Shared primitives (P4-002): the firmware copy (static) prints the dump of the prototype (tests/design/prims_test --dump), byte for byte
 cc -std=c11 -Wall -Wextra -Werror -O1 -fno-strict-aliasing -Ifirmware/src -Itests -o "$OUT/sq_prims_test" tests/sq_prims_test.c
 sq_prims_cmp() { "$OUT/sq_prims_test" > "$OUT/sq_prims_out.txt" && cmp "$OUT/sq_prims_out.txt" tests/sq_prims_golden.txt; }

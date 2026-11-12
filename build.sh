@@ -17,4 +17,5 @@ PY="${PYTHON:-python3}"
 if [ "$(uname -s)" != Linux ] || [ "$(uname -m)" != x86_64 ]; then
     docker info >/dev/null 2>&1 || { echo "build.sh: Docker is not running"; exit 1; }
 fi
+"$PY" tools/gen_ui_tables.py || exit 1     # P4-010: the design TSVs -> build/gen/ui_tables.h (labels measured on the fonts of the last build)
 exec "$PY" tools/build.py "$@"
