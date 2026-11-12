@@ -15,8 +15,8 @@ The bass line plays; the producer wants one note changed (a pitch, a longer or a
 | 3 | Turn K2 to the top | `TIE`; turn it down to the bottom: the fill goes, the grey generated gate and `AUTO` return (the StepEdit field is cleared); a number is followed by a small `%` | next pass: no note-off until the next step |
 | 4 | Turn K3 / K4 (EN_K3, EN_K4) | `VELO` number, `ACC` at 100 or more; `RATCH` `2` with a small `x`; each back to `AUTO` at the bottom | next pass |
 | 5 | Press ARP (SLIDE), LFO (PROB), ENV (ACCENT), SEQ (ON/OFF) | the pressed toggle's button turns channel colour with a white bottom edge while it is on; chips `PROB 50`, `OCT+1`, `NO SLD`, `OFF` for fields with no lit button | next pass |
-| 6 | Press OCT+ / OCT- | chip `OCT+1` | next pass |
-| 7 | Press SCL (NOTE) or FX (ALL) | new pitch (and for ALL accent, slide, gate); toast in the footer `NOTES` / `ALL  EDIT=UNDO` (the header keeps the algorithm and MIDI channel) | next pass |
+| 6 | Press OCT+ / OCT- | chip `OCT+1`, and the PITCH tile shows the shifted note | next pass |
+| 7 | Press SCL (NOTE) or FX (ALL) | new pitch (and for ALL accent, slide, gate); toast in the message slot `NOTE` / `DICED  EDIT=UNDO` (the footer hints stay) | next pass |
 | 8 | Press EDIT (B_EDIT) | the step is as it was when the page opened; toast `UNDO  EDIT=REDO`; again = `REDO` | next pass |
 | 9 | Hold another white key 0.4 s | the frame moves to that step, `STEP 13`; a new undo snapshot | none |
 | 10 | Tap HOME | back to PERF; the session is closed | none |
@@ -34,7 +34,7 @@ The bass line plays; the producer wants one note changed (a pitch, a longer or a
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Open on a step | 3 | 3 | 3 | 2 | 11 | the framed step and `STEP n` answer at once; the PERF cue `HOLD=EDIT NOTE` names it; one hold | yes |
 | Knob set / clear | 3 | 3 | 3 | 3 | 12 | the knob's tile is the value; AUTO is a word and an unfilled tile; the generated value sits under it | yes |
-| Layer buttons | 3 | 3 | 3 | 2 | 11 | rev 2: corner brackets say "this step", the toggle's tile shows its state; the picture was the die in rev 1 (9) | yes |
+| Layer buttons | 3 | 3 | 3 | 2 | 11 | rev 3 adds a tile outline and the header STEP chip so the mode does not rest on the icon; rev 2: corner brackets say "this step", the toggle's tile shows its state; the picture was the die in rev 1 (9) | yes |
 | EDIT undo | 2 | 3 | 3 | 3 | 11 | the printed EDIT icon is an undo arrow; the toast names REDO | yes |
 | HOME | 3 | 3 | 2 | 3 | 11 | printed word HOME; the footer says `HOME = DONE` | yes |
 Pass: performance >= 11 and no sub-score < 2; setup >= 9 and no 0.
@@ -48,13 +48,13 @@ The layer buttons were 9 in revision 1 (the die lied about four of the six); rev
 | UX / help (help_text, UX_REVIEW) | help_text rows exist; new words live in docs/design/note_edit_text.tsv (generated into ui_ne_text) | yes |
 | Workflow (scenario step) | S03 steps 7-22 reproduce in tests/ui_sq_note_test.c except the audition column and step 5-of-PERF hard tap; S03 step 8 text ("first detent = the generated note") follows SEQUENCER_UX F-12 (first detent already moves one degree) | yes, F-12 wins |
 
-### Proposed NOTE_EDIT picture, revision 2 (after the owner's critique: ASSESSMENT_A / EVIDENCE_B in docs/design/ui_review/critique_note_edit)
-Renders to look at: `build/ui_sq/note_open.png`, `note_set.png`, `note_dice.png`, `note_final.png`, `note_toast.png`, and the button sheet `note_buttons_1x.png` / `note_buttons_4x.png` (top: PERF's dice; middle: the six step buttons, nothing set; bottom: toggles set).
-- Layer buttons: the die ("re-roll the pattern") is replaced by open corner brackets ("this one step", the white step frame), 13 x 13, 2 px strokes, in `icons_v12.py` (`step_all/notes/accnt/slide/prob/onoff`, generated into the firmware table, pixel-identity tested). FX, SCL, ENV reuse the dice glyphs inside; SLIDE, PROB and ON/OFF are new. ENV, LFO, ARP, SEQ are toggles and show their state: grey tile = off, channel-colour tile with black glyph and a white bottom edge = on. PERF's dice are untouched.
-- Knob tiles: the BIG text is the value the step will play (AF_L; AF_M for the 24 note names wider than 54 px, e.g. `C#-1`). AUTO: grey, plain tile, the small word `AUTO` under it. Set: white, tile filled in the channel's dim colour, a white marker square, `GEN <value>` under it. GATE `%` and RATCH `x` are small (AF_S) after the digits because the big font has neither.
-- Mode named: `STEP n` in AF_M on the status line (white), `HOLD KEY = MOVE` (AF_S) and, when it fits, the legend square `= SET`; footer `KNOBS = STEP n` and `HOME = DONE` (the `X = Y` grammar of PERF's footer).
-- Defects from EVIDENCE B: the edited key's frame is drawn below the black keys (white with a black ring inside, it was hidden by them); the music-row frame has a black ring inside so the amber bar never touches white (2.29:1); the chip row starts after a two-digit step number, so it does not move at step 10; the toast is drawn in the footer so the header's algorithm and MIDI channel stay; `2x` is lower case, GATE has `%`. Not changed (locked PERF grammar, reported): black key / SURF / DICE tile contrasts below 3:1 are the v12 palette; the neighbour bar touching the frame's outer white ring (a 1 px adjacency when the neighbours are on).
-- Open for the owner: the bracket icons at 1x (the sheet), the footer toast, the short `NO SLD` chip.
+### Proposed NOTE_EDIT picture, revision 3 (after ASSESSMENT_A2; the owner asked for one more targeted pass, then sign)
+Renders (build/ui_sq/): `note_open.png`, `note_set.png`, `note_dice.png`, `note_final.png`, `note_toast.png`, `note_chips.png` (chips + a toast up), and the sheet `note_buttons_1x.png` / `note_buttons_4x.png` (top two rows: PERF's dice; then the step buttons unset; then toggles set).
+- P1-1, the page must not depend on icon detail: (a) the header's algorithm name is replaced by an inverted channel-colour chip `STEP n` while the page is open; (b) the six step tiles get a white 1 px outline (PERF's dice tiles have none); (c) the step icons are heavier (4 px bracket arms) with a 3 px pointer on the top edge (the lane's playhead pointer), a different silhouette from the closed die; PERF's dice are untouched.
+- P1-2, hints in every state: the footer is always `HOLD KEY = MOVE` (left) and `HOME = DONE` (right); the status line is `STEP n` plus the chips only; the toast is back in the message slot (header, x 104-239) and never touches the footer. The `= SET` legend is gone (it was 3.68:1 and premature: the marker square on a set tile explains itself next to `GEN`).
+- P1-3: the PITCH tile shows the note that WILL play, octave included (OCT-2 on a generated C2 reads `C0`; a set pitch is shifted the same way); the `OCT-2` chip stays.
+- P2: toast words are `DICED` (FX) and `NOTE` (SCL) with `EDIT=UNDO`; they fit the 136 px slot (the test measures it). Longer words (`NEW NOTE`, `DICED STEP`) do not fit with the hint.
+- Not done: the amber focus-frame colour (P2) and the P3 items (`NO SLD`, AUTO padding), left for the signing pass.
 
 ## 6. Live checklist (yes / no + reason / n/a)
 - [x] Reachable from the main screen, no menu: one 0.4 s hold on a step key

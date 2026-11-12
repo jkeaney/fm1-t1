@@ -96,3 +96,7 @@ sh tools/check.sh -> CHECK PASS ; RAM .data+.bss 29208 B of 73728 (headroom 4452
 tests/ui_sq_note_test.c: 0 failure(s) ; v12 compare 44 scenes 0 failed (PERF unchanged)
 ```
 Hazards added: ne_txt[4][8] / ne_unit[4][2] / ne_sub[4][12] / ne_chip[4][10] written only through uisq_cpy / uisq_cat (bounded); the longest sub line `GEN G#-1` is 8 of 12; the footer toast draws inside y 221-239 (strip 1; its signature is in strip 1 on this page); no new stack or counter.
+
+### 2026-11-13 executor (sonnet): critique round 2 (ASSESSMENT_A2), one targeted pass
+P1-1 header chip `STEP n` replaces the algorithm name, white outline on the six step tiles, heavier brackets + top pointer icons (dice untouched; sheet note_buttons_1x/4x.png). P1-2 footer = `HOLD KEY = MOVE` / `HOME = DONE` always, status line = `STEP n` + chips, toast back in the message slot (footer never covered; tested with chips + toast up). P1-3 PITCH tile shows the octave-shifted note (tests). P2 `= SET` legend removed; toast words `DICED` / `NOTE`. note_edit_text.tsv updated (KNOBS_STEP, SET_MARK out; TOAST_DICED, TOAST_NOTE in).
+`sh tools/check.sh` -> CHECK PASS; RAM .data+.bss 29208 B of 73728; tests/ui_sq_note_test.c 0 failures; check_scenarios / check_help OK. Not done: P2 amber focus frame, P3 items.

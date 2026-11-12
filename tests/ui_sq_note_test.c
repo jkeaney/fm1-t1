@@ -264,10 +264,10 @@ int main(int argc, char **argv)
       CHECK((V.ne_btn & 6) == 6, "the ARP (slide) and LFO (prob) buttons are lit");
       shot("note_set", 0, 0, 240, 240);
       btn(UI_C_B_SCL);  CHECK(ED(8)->note & 0x80, "SCL (NOTE): a PITCH edit");
-      CHECK(uisq_toast_until && streq(uisq_toast, ui_msgs[UI_MSG_TOAST_NOTES_EDIT_UNDO].a), "toast NOTES  EDIT=UNDO");
+      CHECK(uisq_toast_until && streq(uisq_toast, ui_ne_text[UI_NE_TOAST_NOTE]) && streq(uisq_toast_hint, "EDIT=UNDO"), "toast NOTE  EDIT=UNDO");
       for (int i = 0; i < 8; i++) { btn(UI_C_B_SCL); CHECK((ED(8)->note & 0x7F) <= 96, "dice pitch stays within 0..96"); }
       btn(UI_C_B_FX);   CHECK((ED(8)->note & 0x80) && ED(8)->vel && ((ED(8)->fl >> 2) & 3) && (ED(8)->gr & 15) >= 1 && (ED(8)->gr & 15) <= 10, "FX (ALL): pitch, velocity, slide and gate are all set");
-      CHECK(streq(uisq_toast, ui_msgs[UI_MSG_TOAST_ALL_EDIT_UNDO].a), "toast ALL  EDIT=UNDO");
+      CHECK(streq(uisq_toast, ui_ne_text[UI_NE_TOAST_DICED]) && streq(uisq_toast_hint, "EDIT=UNDO"), "toast DICED  EDIT=UNDO");
       shot("note_dice", 0, 0, 240, 240);
       /* ---- step 18: EDIT: one record for the whole visit ---- */
       btn(UI_C_B_EDIT);
@@ -363,7 +363,9 @@ int main(int argc, char **argv)
         uisq_cpy(w.ne_chip[0], 10, ui_ne_text[UI_NE_NO_SLIDE]); uisq_cpy(w.ne_chip[1], 10, "PROB 50"); uisq_cpy(w.ne_chip[2], 10, "OCT+2"); uisq_cpy(w.ne_chip[3], 10, ui_ne_text[UI_NE_OFF]);
         xe = uisq_ne_status_layout(&w, xs);
         CHECK(xe <= 237, "STEP 64 and four chips end at %d px, over 237", xe); }
-      CHECK(text_w(&AF_M, ui_ne_text[UI_NE_KNOBS_STEP]) + 4 + text_w(&AF_M, "64") + text_w(&AF_M, ui_ne_text[UI_NE_HOME_DONE]) + 8 <= 240, "the footer line fits 240 px (KNOBS = STEP 64  HOME = DONE)"); }
+      CHECK(text_w(&AF_M, ui_ne_text[UI_NE_HOLD_MOVE]) + text_w(&AF_M, ui_ne_text[UI_NE_HOME_DONE]) + 8 <= 240, "the footer fits HOLD KEY = MOVE and HOME = DONE in 240 px");
+      { char tw[24]; int ww; tw[0] = 0; uisq_cat(tw, 24, ui_ne_text[UI_NE_TOAST_DICED]); ww = 3 + 17 + W(tw) + 6 + W("EDIT=UNDO") + 3; CHECK(ww <= 136, "toast DICED EDIT=UNDO needs %d px of the 136 px slot", ww);
+        tw[0] = 0; uisq_cat(tw, 24, ui_ne_text[UI_NE_TOAST_NOTE]); ww = 3 + 17 + W(tw) + 6 + W("EDIT=UNDO") + 3; CHECK(ww <= 136, "toast NOTE EDIT=UNDO needs %d px", ww); } }
 
     /* ---- pixels: the edited step is framed in the music row and on its key; a set tile is filled, an AUTO tile is not ---- */
     { sq_playing = 0; hold_step(8); knob(2, 5); fresh();
@@ -401,9 +403,10 @@ int main(int argc, char **argv)
       printf("note names in AF_L: %d, AF_M fallback: %d\n", big, mid); }
     { hold_step(8); ui_sq_button(UI_C_B_FX); frame();                                                   /* a toast on NOTE_EDIT is in the footer: the header's chips, algorithm and MIDI stay */
       fresh();
-      CHECK(fb[(UISQ_FOOT_Y + 1) * 240 + 3] == swap16(UISQ_WHITE), "toast: the white slab is in the footer");
-      { int white = 0; for (int x = UISQ_MSG_X; x < 240; x++) white += fb[5 * 240 + x] == swap16(UISQ_WHITE);
-        CHECK(white < 20, "toast: the header's message slot is not painted white (%d white px)", white); }
+      { int white = 0, fw = 0; for (int x = UISQ_MSG_X; x < 240; x++) white += fb[5 * 240 + x] == swap16(UISQ_WHITE);
+        for (int y = UISQ_FOOT_Y; y < 240; y++) for (int x = 0; x < 240; x++) fw += fb[y * 240 + x] == swap16(UISQ_WHITE);
+        CHECK(white > 60, "toast: the white slab is in the message slot (%d white px)", white);
+        CHECK(fw < 1200, "toast: the footer is not covered (HOLD KEY = MOVE / HOME = DONE stay): %d white px", fw); }
       shot("note_toast", 0, 0, 240, 240);
       uisq_ne_leave(); }
 
@@ -420,6 +423,27 @@ int main(int argc, char **argv)
         snprintf(path, sizeof path, "%s/note_buttons_4x.png", outdir); png_write(path, big, 960, 0, 0, 960, 420); }
       CHECK((V.ne_btn & 6) == 6 || 1, "sheet written");
       uisq_ne_leave(); }
+
+
+    /* ---- round 2: the hints are on screen in every state; the mode is named in the header; the pitch tile shows the octave ---- */
+    { hold_step(8);
+      ui_sq_button(UI_C_B_OCTDN); ui_sq_button(UI_C_B_OCTDN); ui_sq_button(UI_C_B_ARP); ui_sq_button(UI_C_B_LFO); wait_ms(1200); fresh();
+      CHECK(fb[1 * 240 + 105] == swap16(T_CH(0)) || fb[1 * 240 + 106] == swap16(T_CH(0)), "header: the STEP n chip is in the channel colour where the algorithm name was");
+      ui_sq_button(UI_C_B_FX); frame(); fresh();
+      { int foot = 0; for (int y = UISQ_FOOT_Y + 4; y < UISQ_FOOT_Y + 16; y++) for (int x = 0; x < 240; x++) foot += fb[y * 240 + x] != swap16(T_BG);
+        CHECK(foot > 600, "footer ink (HOLD KEY = MOVE, HOME = DONE) with chips and a toast up: %d px", foot); }
+      { int hdr = 0; for (int x = 105; x < 160; x++) hdr += fb[8 * 240 + x] == swap16(T_CH(0)); (void)hdr; }
+      shot("note_chips", 0, 0, 240, 240);
+      uisq_ne_leave(); }
+    { PulseOut gen; const SeqGlobal *g = &sq_gdb[sq_gidx]; char want[8];
+      memset(ED(8), 0, sizeof(StepEdit)); hold_step(8); fill(); uisq_ne_gen(0, 8, &gen);
+      uisq_ne_set(SQ_F_OCT, -2); fill();
+      { const int n = (int)gen.note - 24; uisq_ne_note_name(want, sizeof want, (uint8_t)(n < 0 ? 0 : n)); }
+      CHECK(streq(V.ne_txt[0], want) && streq(V.ne_sub[0], ui_ne_text[UI_NE_AUTO]), "OCT-2 with AUTO pitch: the tile shows the note that will play (`%s`, wanted `%s`, gen %d fl %02x note %02x)", V.ne_txt[0], want, gen.note, ED(8)->fl, ED(8)->note);
+      uisq_ne_set(SQ_F_PITCH, 20); fill();
+      { int n = (int)sq_note(g, 20) - 24; uisq_ne_note_name(want, sizeof want, (uint8_t)(n < 0 ? 0 : n)); }
+      CHECK(streq(V.ne_txt[0], want), "OCT-2 with a set pitch: the shifted note (`%s`, wanted `%s`)", V.ne_txt[0], want);
+      memset(ED(8), 0, sizeof(StepEdit)); uisq_ne_leave(); }
 
     printf("ui_sq_note_test: %d failure(s)\n", fails);
     return fails ? 1 : 0; }

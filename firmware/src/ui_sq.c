@@ -584,8 +584,11 @@ static void uisq_ne_fill(UisqView *v, uint8_t vp)
     v->ne_step = (uint8_t)(p + 1u);
     v->edit = (p / SQ_PAGE == vp) ? (uint8_t)(p % SQ_PAGE + 1u) : 0u;
     c[0] = 0;
-    if (have) uisq_ne_note_name(c, sizeof c, o.note);
-    if (e->note & 0x80u) uisq_ne_note_name(b, sizeof b, sq_note(g, (int16_t)(e->note & 0x7Fu)));
+    {   /* the OCT edit shifts the sounding note: the tile shows the note that WILL play (a chip alone would contradict `C2`) */
+        const int32_t sh = (oc >= 1u && oc <= 5u) ? 12 * ((int32_t)oc - 3) : 0;
+        int32_t n;
+        if (have) { n = (int32_t)o.note + sh; uisq_ne_note_name(c, sizeof c, (uint8_t)(n < 0 ? 0 : n > 127 ? 127 : n)); }
+        if (e->note & 0x80u) { n = (int32_t)sq_note(g, (int16_t)(e->note & 0x7Fu)) + sh; uisq_ne_note_name(b, sizeof b, (uint8_t)(n < 0 ? 0 : n > 127 ? 127 : n)); } }
     uisq_ne_tile(v, 0, (uint8_t)((e->note & 0x80u) != 0u), b, c, have);                                              /* K1 PITCH */
     if (gt >= 1u && gt <= 11u) uisq_ne_gate_text(b, sizeof b, gt);
     if (have) uisq_ne_gate_text(c, sizeof c, uisq_ne_gen_gate(&o));
@@ -721,7 +724,14 @@ static void uisq_draw_header(const UisqView *v)
             if (i == sel) cv_rect(cx, y + 20, 13, 2, UISQ_WHITE);      /* selection: a white bar under the chip, whatever its state */
             if (off) cv_rect(cx + 1, y + 1, 11, 3, T_OFF); }           /* MIDI OFF: a red cap */
         else if (!plus) { plus = 1; uisq_text_c(cx, 13, y + 4, &AF_M, "+", T_MID, T_BG); } }
-    xe = uisq_text(105, y + 4, &AF_M, uisq_short_of(v->ch_algo[sel]), T_CH(sel), T_BG);
+    if (v->band == UISQ_BAND_NOTE) {                                   /* NOTE_EDIT: the mode is named where the algorithm is: an inverted channel-colour chip `STEP n` */
+        char sn[12];
+        int32_t w;
+        sn[0] = 0; uisq_cat(sn, sizeof sn, uisq_ne_w(UI_NE_STEP)); uisq_cat(sn, sizeof sn, " "); uisq_catu(sn, sizeof sn, v->ne_step);
+        w = text_w(&AF_M, sn) + 8;
+        cv_rect(105, y, w, 19, T_CH(sel));
+        xe = uisq_text(109, y + 4, &AF_M, sn, UISQ_INK, T_CH(sel)) + 4; }
+    else xe = uisq_text(105, y + 4, &AF_M, uisq_short_of(v->ch_algo[sel]), T_CH(sel), T_BG);
     if (v->ch_midi[sel] >= SQ_MIDI_OFF) {                              /* loud: an inverted red chip that says what is wrong */
         cv_rect(xe + 4, y, text_w(&AF_S, "MIDI") + text_w(&AF_M, "OFF") + 10, 19, T_OFF);
         xx = uisq_text(xe + 7, y + 6, &AF_S, "MIDI", UISQ_WHITE, T_OFF);
@@ -803,20 +813,13 @@ static void uisq_draw_status(const UisqView *v)
     char b[16];
     if (v->band == UISQ_BAND_NOTE) {                                   /* NOTE_EDIT: STEP n, the step's other set fields as chips, the move hint and the set mark's legend */
         int32_t xs[4];
-        const int32_t xe = uisq_ne_status_layout(v, xs);
-        const char *lg = uisq_ne_w(UI_NE_SET_MARK), *mv = uisq_ne_w(UI_NE_HOLD_MOVE);
-        const int32_t lw = text_w(&AF_S, lg) + 8, mw = text_w(&AF_S, mv);
-        int32_t xr = 237;
+        (void)uisq_ne_status_layout(v, xs);
         b[0] = 0; uisq_catu(b, sizeof b, v->ne_step);
         (void)uisq_text(uisq_text(3, y, &AF_M, uisq_ne_w(UI_NE_STEP), UISQ_WHITE, T_BG) + 4, y, &AF_M, b, UISQ_WHITE, T_BG);
         for (uint32_t i = 0; i < 4u; i++) {
             if (!v->ne_chip[i][0]) continue;
             cv_rect(xs[i], y - 1, text_w(&AF_S, v->ne_chip[i]) + 4, 13, T_CH(v->sel));
             uisq_text(xs[i] + 2, y + 1, &AF_S, v->ne_chip[i], UISQ_INK, T_CH(v->sel)); }
-        if (xe + mw <= xr) { uisq_text_r(xr, y + 2, &AF_S, mv, T_MID, T_BG); xr -= mw + 8; }         /* how to move to another step, when the chips leave room */
-        if (xe + lw <= xr) {                                           /* the legend of the set marker, when there is room left */
-            cv_rect(xr - text_w(&AF_S, lg) - 8, y + 2, 6, 6, UISQ_WHITE);
-            uisq_text_r(xr, y + 2, &AF_S, lg, T_MID, T_BG); }
         return; }
     if (v->pend) {
         b[0] = 0; uisq_cat(b, sizeof b, "P"); if (v->pend < 10u) uisq_cat(b, sizeof b, "0"); uisq_catu(b, sizeof b, v->pend); uisq_cat(b, sizeof b, "?");
@@ -898,7 +901,8 @@ static void uisq_draw_buttons(const UisqView *v)
             static const uint8_t sti[12] = { SQI_STEP_ALL, SQI_STEP_NOTES, SQI_STEP_ACCNT, SQI_STEP_PROB, 0, 0, 0, 0, SQI_STEP_SLIDE, SQI_STEP_ONOFF, 0, 0 };
             static const int8_t tog[12] = { -1, -1, 0, 1, -1, -1, -1, -1, 2, 3, -1, -1 };      /* the bit of ne_btn each toggle reads */
             ic = sti[i]; fg = UISQ_WHITE; bg = T_DICE;
-            if (tog[i] >= 0 && (v->ne_btn >> tog[i] & 1u)) { bg = T_CH(v->sel); fg = UISQ_INK; cv_rect(x, y, UISQ_BTN_W, UISQ_BTN_TH, bg); cv_rect(x, y + UISQ_BTN_TH - 2, UISQ_BTN_W, 2, UISQ_WHITE); } }
+            if (tog[i] >= 0 && (v->ne_btn >> tog[i] & 1u)) { bg = T_CH(v->sel); fg = UISQ_INK; cv_rect(x, y, UISQ_BTN_W, UISQ_BTN_TH, bg); cv_rect(x, y + UISQ_BTN_TH - 2, UISQ_BTN_W, 2, UISQ_WHITE); }
+            cv_frame(x, y, UISQ_BTN_W, UISQ_BTN_TH, UISQ_WHITE); }       /* a white outline round the six "this step" tiles: the page differs from PERF without reading an icon */
         if (v->btn_lit >> i & 1u) { bg = UISQ_WHITE; fg = UISQ_INK; cv_rect(x, y, UISQ_BTN_W, UISQ_BTN_TH, bg); }
         cv_icon(x + (UISQ_BTN_W - SQI_TAB[ic].w) / 2, y + (UISQ_BTN_TH - SQI_TAB[ic].h) / 2, ic, fg); } }
 
@@ -940,10 +944,8 @@ static void uisq_draw_keybed(const UisqView *v)
     { const int32_t ym = y + kh + 6;                                    /* the footer: the keys' mode line, or the setup cue (inverted) */
       char b[8];
       if (rec) { uisq_text(2, ym, &AF_M, uisq_foot_rec, T_TEXT, T_BG); uisq_text_r(238, ym + 1, &AF_S, uisq_foot_done, T_MID, T_BG); }
-      else if (v->band == UISQ_BAND_NOTE) {                           /* NOTE_EDIT: the mode and its step, and the way out */
-          char n[8];
-          n[0] = 0; uisq_catu(n, sizeof n, v->ne_step);
-          uisq_text(uisq_text(2, ym, &AF_M, uisq_ne_w(UI_NE_KNOBS_STEP), T_TEXT, T_BG) + 4, ym, &AF_M, n, T_TEXT, T_BG);
+      else if (v->band == UISQ_BAND_NOTE) {                           /* NOTE_EDIT: how to move the editor and the way out: on screen in every state (chips, toast) */
+          uisq_text(2, ym, &AF_M, uisq_ne_w(UI_NE_HOLD_MOVE), T_TEXT, T_BG);
           uisq_text_r(238, ym, &AF_M, uisq_ne_w(UI_NE_HOME_DONE), T_MID, T_BG); }
       else if (chan) { uisq_text(2, ym, &AF_M, uisq_foot_midi, T_TEXT, T_BG); uisq_text_r(238, ym, &AF_M, uisq_foot_back, T_MID, T_BG); }
       else if (v->cue) {
@@ -973,18 +975,16 @@ static void uisq_draw_msg(const UisqView *v)
         uisq_text(x0 + 5, 7, &AF_S, m->a, T_TEXT, UISQ_INK);
         uisq_fitm(x0 + nw + 6, 5, m->b, UISQ_INK, T_TEXT, w - nw - 8); }
     else if (m->kind == UI_MK_TOAST) {                                  /* [channel chip] what happened, how to reverse it */
-        const int32_t yo = v->band == UISQ_BAND_NOTE ? UISQ_FOOT_Y : 0, hh = v->band == UISQ_BAND_NOTE ? UISQ_FOOT_H : 22;   /* NOTE_EDIT: the toast takes the footer, so the header's algorithm and MIDI channel stay */
-        const int32_t xs = v->band == UISQ_BAND_NOTE ? 0 : x0, ws = v->band == UISQ_BAND_NOTE ? UISQ_W : w;
-        int32_t x = xs + 3;
+        int32_t x = x0 + 3;
         const int32_t hw = text_w(&AF_S, m->b);
-        cv_rect(xs, yo, ws, hh, UISQ_WHITE);
+        cv_rect(x0, 0, w, 22, UISQ_WHITE);
         if (m->chip) {
             b[0] = (char)('0' + m->chip); b[1] = 0;
-            cv_rect(x, yo + 2, 13, hh - 4, T_CH(m->chip - 1u));
-            uisq_text_c(x, 13, yo + (hh == 22 ? 6 : 4), &AF_M, b, UISQ_INK, T_CH(m->chip - 1u));
+            cv_rect(x, 2, 13, 18, T_CH(m->chip - 1u));
+            uisq_text_c(x, 13, 6, &AF_M, b, UISQ_INK, T_CH(m->chip - 1u));
             x += 17; }
-        uisq_fitm(x, yo + (hh == 22 ? 5 : 4), m->a, UISQ_INK, UISQ_WHITE, UISQ_W - 4 - hw - 6 - x);
-        uisq_text_r(237, yo + (hh == 22 ? 7 : 6), &AF_S, m->b, UISQ_INK, UISQ_WHITE); } }
+        uisq_fitm(x, 5, m->a, UISQ_INK, UISQ_WHITE, UISQ_W - 4 - hw - 6 - x);
+        uisq_text_r(237, 7, &AF_S, m->b, UISQ_INK, UISQ_WHITE); } }
 
 /* the elements, in the mock's order (screen v2 4.1-4.6, 5): the frame of tiles and keys first, the elements over it */
 static void uisq_draw_frame(void);
@@ -1148,7 +1148,7 @@ static void uisq_ne_button(uint8_t ctl)
             uisq_ne_set(SQ_F_VEL, (r >> 5 & 3u) == 0u ? (int16_t)UISQ_ACC_VEL : (int16_t)UISQ_NOACC_VEL);
             uisq_ne_set(SQ_F_SLIDE, (r >> 7 & 3u) == 0u ? 1 : 0);
             uisq_ne_set(SQ_F_GATE, (int16_t)(10u * (1u + (r >> 9) % 10u))); }
-        ui_sq_toast_id(ctl == UI_C_B_FX ? UI_MSG_TOAST_ALL_EDIT_UNDO : UI_MSG_TOAST_NOTES_EDIT_UNDO, uisq_edit_ch);
+        ui_sq_toast_msg(uisq_edit_ch, uisq_ne_w(ctl == UI_C_B_FX ? UI_NE_TOAST_DICED : UI_NE_TOAST_NOTE), ui_msgs[UI_MSG_TOAST_ALL_EDIT_UNDO].b);   /* [1] DICED  EDIT=UNDO */
         break; }
     case UI_C_B_ENV: {                                                  /* ACCENT: 120, or back (F-10): AUTO, or the explicit 80 when AUTO would accent again */
         if (!uisq_ne_gen(uisq_edit_ch, uisq_edit_step, &gen)) return;
@@ -1386,7 +1386,6 @@ static uint8_t ui_sq_draw(void)
     uisq_view_fill(&view);
     for (uint32_t s = 0; s < UISQ_NSTRIP; s++) { sg[s] = uisq_h(sg[s], uisq_page); sg[s] = uisq_h(sg[s], ux.gen); sg[s] = uisq_h(sg[s], uisq_view_sig(&view)); }
     sg[0] = uisq_h(sg[0], uisq_msg_sig(&view));
-    if (view.band == UISQ_BAND_NOTE) sg[1] = uisq_h(sg[1], uisq_msg_sig(&view));   /* NOTE_EDIT: its toast is drawn in the footer (strip 1) */
     for (const char *s = cue; *s; s++) sg[1] = uisq_h(sg[1], (uint8_t)*s);
     for (uint32_t s = 0; s < UISQ_NSTRIP; s++) {
         if (!ui.force && uisq_have_sig && sg[s] == uisq_sig[s]) continue;

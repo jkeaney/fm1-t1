@@ -152,10 +152,9 @@ for _n in ("left", "right", "rst"):   # P4-029: the black-key glyphs PG- PG+ RST
 
 # ---- P4-014: the NOTE_EDIT layer buttons. The die is "re-roll the pattern"; open corner brackets are "this one step" (the white step frame of the lane and the
 # key). Inner glyphs of FX / SCL / ENV are the dice's own (same idea at step level); SLIDE, PROB, ON/OFF are new. 13 x 13, 2 px strokes, brackets 3 px arms.
-STEP_FRAME = ["###.......###", "##.........##", "##.........##", "#...........#", ".............", ".............", ".............",
-              ".............", ".............", "#...........#", "##.........##", "##.........##", "###.......###"]
-
-
+STEP_FRAME = ["####.###.####", "##...###...##", "##.........##", "##.........##", "#...........#", ".............", ".............",
+              ".............", "#...........#", "##.........##", "##.........##", "##.........##", "####.....####"]
+# (round 2: heavier 4 px arms and a 3 px "this step" pointer on the top edge, the lane's playhead pointer; the die is a closed outline, so the two read apart at 30 mm)
 def step(inner):
     """inner: 9 rows of 9 chars placed at (2,2) inside the step brackets"""
     rows = [list(r) for r in STEP_FRAME]
