@@ -3,7 +3,7 @@ id: P4-027
 title: AlgoDesc / MorphDesc UI fields (ADR-0007) and the build-time width check
 phase: P4
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P5-001]
@@ -67,3 +67,7 @@ sh tests/design/run_protos.sh              -> PROTOS PASS
 sh tools/check.sh                          -> RAM .data+.bss 23844 B of 73728 ... CHECK PASS
 ```
 The selftest is not yet called from check.sh / run_tests.sh (`--check` is); the reviewer may want that added.
+
+### 2026-11-13 review (sonnet)
+Verdict: PASS (gate none). Re-ran `sh tools/check.sh` -> `RAM .data+.bss 23844 B of 73728` (headroom 49884 B), CHECK PASS; `gen_ui_tables.py --check` OK; `--selftest` OK (6 misfits caught); sq_algodesc_test in the suite. Diff limited to Deliverable files.
+Executor flags: (1) -Wno-missing-field-initializers in run_tests.sh SQC and run_protos.sh CF: accepted, host-test-only, firmware build unaffected. (2) --selftest not in check.sh: accepted; criterion "fails on a too-wide label (tested)" is met by the selftest run. Suggest wiring it into run_tests.sh in a later task. (3) AF_M value limit 58 vs mock 56: accepted; ADR-0007 sets no value limit for AF_M (58 is the label limit/tile width) and all rows pass at 56.
