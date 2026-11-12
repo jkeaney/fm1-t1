@@ -334,6 +334,26 @@ static void g10_stale_hold_off(void)
     CHECK(!strstr(logbuf, "  142 MIDI ch= 1 OFF n= 60"), "no stale HOLD OFF at tick 142 cutting the repeat\n%s", logbuf);
     golden("sq_core_10_stale_hold_off.txt"); }
 
+/* BUG-007: the preview flag (pad[0] bit 7) changes while a note sounds. The OFF follows where its ON went, not the flag's value now:
+ * cleared between ON and OFF still releases the preview voice; set between ON and OFF sends no OFF the voice never had an ON for. */
+static void g11_preview_flag_flips(void)
+{   Tbl *t; reset_all();
+    t = tbl_of(0, 0, 1, 1); put(t, 0, 1, 50, 100, 50, 0, 0);
+    sq_ch[0].midi_ch = 0; sq_ch[0].pad[0] = 0x80u;
+    start(); log_tick_now = 0; sq_tick(0);
+    CHECK(count_lines("PRV  c=1 ON") == 1, "preview ON sent");
+    sq_ch[0].pad[0] = 0u;                                          /* the toggle falls while the note sounds */
+    run(1, 30);
+    CHECK(count_lines("PRV  c=1 OFF") == 1, "preview OFF still sent after the flag fell\n%s", logbuf);
+    CHECK(count_lines("MIDI ch= 1 OFF") == 1, "MIDI OFF sent");
+    reset_all();
+    t = tbl_of(0, 0, 1, 1); put(t, 0, 1, 50, 100, 50, 0, 0);
+    sq_ch[0].midi_ch = 0; sq_ch[0].pad[0] = 0u;
+    start(); log_tick_now = 0; sq_tick(0);
+    sq_ch[0].pad[0] = 0x80u;                                       /* rises while the note sounds: no ON was sent, so no OFF */
+    run(1, 30);
+    CHECK(count_lines("PRV") == 0, "no preview OFF for a note whose ON never went to the voice\n%s", logbuf); }
+
 /* ---- sq_block: the accumulator runs 192 ticks per beat from the first block ---- */
 static void t_block(void)
 {   reset_all(); log_on = 0;
@@ -395,6 +415,7 @@ static void fuzz(long nticks)
         uint8_t c = (uint8_t)fz_rnd(SQ_NCH);
         mock_free = fz_rnd(8) == 0 ? fz_rnd(12) : 128;            /* a USB ring that is sometimes nearly full */
         if (r < 6) sq_ch[c].muted ^= 1u;
+        else if (r < 8) sq_ch[c].pad[0] ^= 0x80u;                 /* BUG-007: the preview toggle moves while notes sound */
         else if (r < 12) { uint32_t o = fz_rnd(5); sq_ch[c].midi_ch = (uint8_t)(o == 4 ? SQ_MIDI_OFF : c * 4u + o); }   /* private pools: no two channels share a MIDI channel */
         else if (r < 20 && !sq_load_pending) fz_rebuild(c, (uint8_t)(2 + fz_rnd(SQ_NALGO - 2)), 0);                               /* algorithm switch / morph: cache flip */
         else if (r < 24) sq_gdb[sq_gidx].s.div = (uint8_t)fz_rnd(6);
@@ -433,7 +454,7 @@ static void fuzz(long nticks)
 int main(int argc, char **argv)
 {   if (argc > 1) fz_seed = (uint32_t)strtoul(argv[1], NULL, 0);
     printf("sq_core scheduler\n");
-    g1_slide(); g2_swing(); g3_ratchet(); g4_hold(); g5_mute(); g6_stop(); g7_queue_full(); g8_midi_change(); g9_preset_bar(); g10_stale_hold_off();
+    g1_slide(); g2_swing(); g3_ratchet(); g4_hold(); g5_mute(); g6_stop(); g7_queue_full(); g8_midi_change(); g9_preset_bar(); g10_stale_hold_off(); g11_preview_flag_flips();
     t_block(); t_reserve();
     fuzz(100000);
     printf("%s\n", fails ? "SQ_CORE FAIL" : "SQ_CORE PASS");

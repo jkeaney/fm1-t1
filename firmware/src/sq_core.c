@@ -134,7 +134,7 @@ static void sq_snd_drop(ChanRT *r, uint8_t i)             /* free a sounding slo
  * the ring could not take (it stays queued and is retried); everything else is final.
  * MIDI gate (NOTE_ON): the channel is not OFF, not muted (read now: decision 111) and the USB ring has SQ_RESERVE slots free
  * (ADR-0003 8.3, P4-003). Preview gate: the channel's prv_on, independent of the MIDI gate. The slot remembers whether MIDI
- * went out (bit 4 of snd_chan set = no), so an OFF is sent only when its ON was, and an OFF whose ON was never sent is discarded. */
+ * went out (bit 4 of snd_chan set = no) and whether the ON reached the preview voice (bit 7 set = yes, BUG-007: the flag may move before the OFF), so an OFF is sent only when its ON was, and an OFF whose ON was never sent is discarded. */
 static uint8_t sq_emit(uint8_t chan, uint8_t kind, uint8_t note, uint8_t vel)
 {   uint8_t c = (uint8_t)((chan >> 5) & 3u);
     ChanRT *r = &sq_rt[c];
@@ -152,12 +152,12 @@ static uint8_t sq_emit(uint8_t chan, uint8_t kind, uint8_t note, uint8_t vel)
         if (i < 2u) {                                      /* that note is still sounding (a HOLD, a repeat's pitch): off before on, whoever scheduled it */
             if (!(r->snd_chan[i] & 0x10u) && midi_out_free() == 0u) { sq_drops++; return 1; }   /* cannot end it: lose the new ON, never hang a note */
             if (!(r->snd_chan[i] & 0x10u)) sq_midi_off(r->snd_chan[i], (uint8_t)(r->snd[i] - 1u));
-            if (SQ_PRV_ON(c)) trk_note_off(&trk[c], (uint32_t)(r->snd[i] - 1u));
+            if (r->snd_chan[i] & 0x80u) trk_note_off(&trk[c], (uint32_t)(r->snd[i] - 1u));
             sq_snd_drop(r, i);
         }
         i = r->snd[0] ? 1u : 0u;
         r->snd[i] = (uint8_t)(note + 1u);
-        r->snd_chan[i] = (uint8_t)((chan & 0x6Fu) | (midi ? 0u : 0x10u));
+        r->snd_chan[i] = (uint8_t)((chan & 0x6Fu) | (midi ? 0u : 0x10u) | (prv ? 0x80u : 0u));
         if (midi) sq_out(0x09u | (0x90u | (uint32_t)(chan & 15u)) << 8 | (uint32_t)note << 16 | (uint32_t)vel << 24);
         if (prv) trk_note_on(&trk[c], note, vel);
         r->act++;
@@ -169,7 +169,7 @@ static uint8_t sq_emit(uint8_t chan, uint8_t kind, uint8_t note, uint8_t vel)
             if (midi_out_free() == 0u) return 0;
             sq_midi_off(r->snd_chan[i], note);
         }
-        if (SQ_PRV_ON(c)) trk_note_off(&trk[c], note);
+        if (r->snd_chan[i] & 0x80u) trk_note_off(&trk[c], note);
         sq_snd_drop(r, i);
         return 1;
     } }
@@ -255,7 +255,7 @@ static int sq_snd_find(const ChanRT *r, uint8_t note)
  * `now` and retried. */
 static void sq_off_now(uint8_t c, uint8_t i, uint32_t now)
 {   uint8_t note = (uint8_t)(sq_rt[c].snd[i] - 1u);
-    if (!sq_emit((uint8_t)(c << 5), 1, note, 0)) (void)sq_sched_one(sq_rt[c].snd_chan[i], now, 1, note, 0); }
+    if (!sq_emit((uint8_t)(c << 5), 1, note, 0)) (void)sq_sched_one((uint8_t)(sq_rt[c].snd_chan[i] & 0x7Fu), now, 1, note, 0); }
 
 /* ADR-0003 7.3, step by step (the numbers are that section's). Channel c starts the step whose nominal start is rt.grid. */
 static void sq_step_start(uint8_t c, uint32_t now, uint8_t L)
@@ -378,7 +378,7 @@ static uint8_t sq_all_off(void)
         while (r->snd[0] || r->snd[1]) {
             uint8_t i = r->snd[0] ? 0u : 1u, note = (uint8_t)(r->snd[i] - 1u);
             if (!(r->snd_chan[i] & 0x10u)) { if (midi_out_free() == 0u) return 0; sq_midi_off(r->snd_chan[i], note); }
-            if (SQ_PRV_ON(c)) trk_note_off(&trk[c], note);
+            if (r->snd_chan[i] & 0x80u) trk_note_off(&trk[c], note);
             sq_snd_drop(r, i);
         }
     }
