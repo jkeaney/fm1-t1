@@ -3,7 +3,7 @@ id: P4-004
 title: sq_core.c scheduler with event-level golden tests
 phase: P4
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P4-002, P4-003]
@@ -65,3 +65,12 @@ Decisions for the reviewer:
 - sq_emit also does an emit-time same-pitch guard (OFF before ON if the note still sounds), found by the fuzz: ratchet repeats via sub_note can collide with a HOLD note.
 - Not done (other tasks): PO_TIE (P4-006), HARMONY (AF_CHORD gets an inert chord), clock out and stamping (P4-007/009), sq_preset_load staging (P4-005; only the ISR half sq_apply_bar_boundary is here).
 - tests/run_tests.sh gained one step running sq_core_test (sanitizers when available).
+
+### 2026-11-12 review (sonnet)
+Verdict: PASS (gate none).
+- `sh tools/check.sh` -> CHECK PASS. `./build.sh` -> `RAM .data+.bss 23316 B of 73728; pool 92500 B of 368640` (headroom 50412 B, >= 8192).
+- Goldens re-derived by hand from ADR-0003 14 / 7.3 and TIMING_SPEC M4/M8/M9, not from code output: (1) byte-identical to the 12 rows of docs/design/algorithms/sting.md worked example (0/48/54/107/192/240/246/288/294/299/336/362); (2) swing 66 gives o=15, odd ONs at 63/159/255/351, OFFs follow own start; (3) ratchet spacings 12/8/4, 4/8/12, 9/7/5/3, all >= 3 ticks inside the cell, a 4-trigger case; (4) hold OFF at 0+8*48-2=382 regardless of GATE, next ordinary step capped at S1-1=431; (5) muted ONs silent, a sounding note's OFF still sent, playhead equals unmuted run; (6) OFFs per channel byte then CC123 2,5,8 at the stop tick, queue empty; (7) 3 steps lost whole, no unmatched ON; (8) OFF 38 on old channel 2, next ON on 6; (9) staged preset lands at 768, playhead not jumped (step 1 -> note 61).
+- Fuzz re-run under ASan+UBSan with seeds 11, 4242, 987654, 0xdeadbeef, 7: all SQ_CORE PASS (100000 ticks each, 0 violations, nothing sounding after STOP).
+- sq_emit fix: OFF-before-ON of a still-sounding same pitch is correct: it drops the slot via sq_snd_drop, is skipped if the original ON never went out (0x10), refuses the new ON rather than hang when the ring is full, so no double OFF and no stuck note. One gap, see FB-010 (stale queued HOLD OFF can cut a later same-pitch note early; not an invariant breach).
+- Reserve rule: sq_emit checks midi_out_free() < SQ_RESERVE (= MO_RESERVE) before an ON, OFF and CC123 only need one free slot; usb.c also enforces it. sq_core.c is the only sq_* file calling midi_out_event/trk_*/beat_samples (grep clean). No reference to sq_core or sq_block in seq.c or felucca.c (stronger than the "forward declaration only" in the criterion).
+- Executor choices: ratchet velocity slope 0, no ratchet on slide/hold/tie steps: fine for now, ADR silent; listed in FB-010 for a design look. Swing parity from free-running pass*len+p matches ADR "t free-running": fine. Separate sq_playing flag: fine until P4-012 wires song.playing. HARMONY inert and PO_TIE deferred: correctly out of scope.
