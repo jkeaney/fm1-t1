@@ -869,7 +869,7 @@ static void ui_sq_select_turn(int32_t d)
             for (uint8_t c = 0; c < SQ_NCH; c++) if (!(uisq_used >> c & 1u)) { f = c; break; }
             if (f < SQ_NCH) {                                           /* add: the next free slot, new (setup cue), unmuted */
                 uisq_used |= (uint8_t)(1u << f);
-                uisq_gone_n = 0;                                        /* an add is a newer action than any removal */
+                uisq_gone_n = 0; uisq_undone = 0;                       /* an add is a newer action than any removal or undo */
                 sq_set_mute(f, 0);
                 ui_sq_new_set(f, 1);
                 uisq_sel = f;
@@ -894,7 +894,7 @@ static void ui_sq_knob(uint8_t k, int32_t d)
 
 static void uisq_do_remove(uint8_t ch)                                  /* removal of a channel: out of use and muted (the last one stays) */
 {   uint8_t left = (uint8_t)(uisq_used & ~(1u << ch));
-    if (!left) return;
+    if (ch >= SQ_NCH || !(uisq_used >> ch & 1u) || !left) return;     /* not in use: nothing to remove (no stack entry, no mute) */
     if (uisq_gone_n >= SQ_NCH) {                                        /* full: drop the oldest */
         for (uint8_t i = 1; i < SQ_NCH; i++) { uisq_gone_ch[i - 1] = uisq_gone_ch[i]; uisq_gone_muted[i - 1] = uisq_gone_muted[i]; uisq_gone_prv[i - 1] = uisq_gone_prv[i]; }
         uisq_gone_n = (uint8_t)(SQ_NCH - 1u); }
@@ -934,7 +934,7 @@ static void ui_sq_button(uint8_t ctl)
     case UI_C_B_EDIT:                                                   /* UNDO / REDO; a channel just removed comes back first */
         if (uisq_gone_n) {
             const uint8_t i = (uint8_t)(uisq_gone_n - 1u), c = uisq_gone_ch[i];
-            uisq_used |= (uint8_t)(1u << c); sq_set_mute(c, uisq_gone_muted[i]); sq_ch[c].pad[0] |= uisq_gone_prv[i]; uisq_gone_n = i; uisq_sel = c;
+            uisq_used |= (uint8_t)(1u << c); sq_set_mute(c, uisq_gone_muted[i]); sq_ch[c].pad[0] |= uisq_gone_prv[i]; uisq_gone_n = i; uisq_undone = 0; uisq_sel = c;
             ui_sq_toast_id(UI_MSG_TOAST_UNDO_EDIT_REDO, c); }
         else if (sq_undo(sel)) {
             ui_sq_toast_id(uisq_undone ? UI_MSG_TOAST_REDO_EDIT_UNDO : UI_MSG_TOAST_UNDO_EDIT_REDO, sel);

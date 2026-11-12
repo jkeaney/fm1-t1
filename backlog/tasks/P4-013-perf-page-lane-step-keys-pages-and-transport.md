@@ -3,7 +3,7 @@ id: P4-013
 title: PERF page: lane, step keys, pages and transport
 phase: P4
 type: task
-status: todo
+status: review
 priority: 2
 executor: haiku
 depends_on: [P4-012]
@@ -89,3 +89,8 @@ Findings (full list from the state-machine scan):
 - [ ] F6 ui_sq.c:1017-1019 vs :1033-ish key_down: holding an M key of a channel NOT in use for 1.5 s still reaches uisq_do_remove (key_down returns early without arming, but uisq_keys_tick has no used-check; uisq_do_remove has none either). It pushes a phantom entry, mutes the unused channel and toasts GONE; EDIT then "restores" a channel that never existed (sets its used bit, selects it). Fix: in uisq_keys_tick (or at the top of uisq_do_remove) return when !(uisq_used >> ch & 1u); set key_fired so no tap fires on release; add a test (hold M3 while only CH1-2 used: gone_n stays 0, used unchanged, no toast).
 - [ ] F7 (minor) uisq_undone is not cleared by the removal-restore path (:937) or by a channel add (:872); the next sq_undo toast can say REDO after an unrelated action. Clear it in both.
 No other unbounded index found: uisq_key_t0/fired indexed by k<27; uisq_vpage guarded by uisq_view_page; uisq_edit_key guarded by >=UISQ_NKEY.
+
+### 2026-11-13 executor (Sonnet 5.5), review 3 fix
+- F6: `uisq_do_remove` returns early when the channel's `uisq_used` bit is clear (no stack entry, no mute). Test added.
+- F7: `uisq_undone` is cleared on a removal restore and on a channel add. Tests added.
+- `sh tools/check.sh` -> CHECK PASS.

@@ -308,6 +308,18 @@ int main(int argc, char **argv)
       ui_sq_button(UI_C_B_EDIT); CHECK(uisq_gone_n == SQ_NCH - 1 && uisq_used == 0x0F, "EDIT pops one");
       uisq_gone_n = 0; uisq_new = 0; uisq_sel = 0; uisq_vpage = 0; for (int c = 0; c < 4; c++) sq_ch[c].muted = 0; }
 
+    /* F6: removing a channel that is not in use does nothing; F7: a removal restore / an add clears the undo-redo toggle */
+    { uisq_used = 0x0D; uisq_gone_n = 0; sq_ch[1].muted = 0;
+      uisq_do_remove(1); CHECK(uisq_gone_n == 0 && !sq_ch[1].muted && uisq_used == 0x0D, "F6: an unused channel is not removed");
+      uisq_used = 0x0F;
+      ui_sq_button(UI_C_B_SCL); ui_sq_button(UI_C_B_EDIT); CHECK(uisq_undone == 1, "an undo sets the toggle");
+      uisq_do_remove(2); ui_sq_button(UI_C_B_EDIT);
+      CHECK(uisq_undone == 0 && uisq_used == 0x0F, "F7: restoring a removal clears the toggle");
+      ui_sq_button(UI_C_B_SCL); ui_sq_button(UI_C_B_EDIT); CHECK(!strcmp(uisq_toast, "UNDO"), "next undo says UNDO");
+      uisq_used = 0x03; uisq_sel = 1; ui_sq_select_turn(1);
+      CHECK(uisq_undone == 0, "F7: an add clears the toggle");
+      uisq_used = 0x0F; uisq_new = 0; uisq_sel = 0; uisq_undone = 0; uisq_gone_n = 0; }
+
     /* ---- the last channel in use cannot be removed ---- */
     { uisq_used = 0x01; uisq_do_remove(0); CHECK(uisq_used == 0x01, "the last channel stays"); uisq_used = 0x0F; }
 
