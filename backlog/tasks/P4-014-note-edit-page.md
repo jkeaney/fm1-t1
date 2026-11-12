@@ -3,7 +3,7 @@ id: P4-014
 title: NOTE_EDIT page
 phase: P4
 type: task
-status: review
+status: todo
 priority: 2
 executor: haiku
 depends_on: [P4-013]
@@ -100,3 +100,14 @@ Hazards added: ne_txt[4][8] / ne_unit[4][2] / ne_sub[4][12] / ne_chip[4][10] wri
 ### 2026-11-13 executor (sonnet): critique round 2 (ASSESSMENT_A2), one targeted pass
 P1-1 header chip `STEP n` replaces the algorithm name, white outline on the six step tiles, heavier brackets + top pointer icons (dice untouched; sheet note_buttons_1x/4x.png). P1-2 footer = `HOLD KEY = MOVE` / `HOME = DONE` always, status line = `STEP n` + chips, toast back in the message slot (footer never covered; tested with chips + toast up). P1-3 PITCH tile shows the octave-shifted note (tests). P2 `= SET` legend removed; toast words `DICED` / `NOTE`. note_edit_text.tsv updated (KNOBS_STEP, SET_MARK out; TOAST_DICED, TOAST_NOTE in).
 `sh tools/check.sh` -> CHECK PASS; RAM .data+.bss 29208 B of 73728; tests/ui_sq_note_test.c 0 failures; check_scenarios / check_help OK. Not done: P2 amber focus frame, P3 items.
+
+### 2026-11-13 review (sonnet): final, after critique rounds 1-2
+Re-ran: `sh tools/check.sh` -> CHECK PASS; `./build.sh`: `image 190296 B; RAM .data+.bss 29208 B of 73728` (headroom 44520 B >= 8192); gen_ui_tables --check OK; tests: ui_sq_test OK, ui_sq_note_test 0 failures (note names AF_L 104 / AF_M fallback 24 = 128).
+Code verified, no defects: pitch tile arithmetic = sq_core.c sq_eval (shift 12*(oc-3) for oc 1..5, i.e. -24..+24, clamp 0..127, applied after a set pitch via sq_note); text buffers bounded (b/c[8], ne_sub[12] holds `GEN G#-1` + unit, ne_unit[2]); toggle bits ENV/LFO/ARP/SEQ map to ne_btn 0..3 correctly; sq_undo_step_rec() (!sq_um_valid, what == 8, algo valid) and the per-frame drop of uisq_ne_dirty are sound; page closes when step >= len, channel changed or removed; dirty reset on open/move/leave; icon table is generated and pixel-identity tested. Minor, accepted: sq_undo_step_rec does not compare the record's idx with the edited step (safe because dirty is per visit); uisq_step_read returns zero on a stale algorithm cache, so the SEQ button shows OFF for one block.
+Verdict: FAIL on the surface sync (Gate B section 9), docs only. Findings:
+- [ ] docs/design/scenarios/S03-step-entry-note-edit-pages.md:14 (step 7): says footer `KNOBS = STEP 9` and status line right `HOLD KEY = MOVE`; the firmware (ui_sq.c uisq_draw_keybed footer) has footer left `HOLD KEY = MOVE`, right `HOME = DONE`, the status line is `STEP n` plus chips only, and the header carries an inverted `STEP n` chip in place of the algorithm name. Rewrite the cell. `KNOBS_STEP` no longer exists in note_edit_text.tsv.
+- [ ] S03:27 (step 20): `banner CH1 NOTE EDIT STEP 13; footer KNOBS = STEP 13` -> header chip `STEP 13`, footer unchanged `HOLD KEY = MOVE` / `HOME = DONE`. S03:44 (step 37) `banner CH1 NOTE EDIT STEP 3` -> header chip `STEP 3`.
+- [ ] docs/design/features/P4-014-note-edit-page.md:13 (use case step 1) has the same stale footer/status text (`HOLD KEY = MOVE` beside the status line, footer `KNOBS = STEP 9`); fix to the final screen. Section 7 still says "working tree on bb1c058" and its step 1 does not mention the header chip, step icons or the octave-applied pitch; section 8 scores predate rounds 1-2 (layer buttons L still 2 although the icons changed): re-walk from the current test frames and re-score. Section 9 outcome line "revision 2" is current; keep.
+- [ ] docs/design/scenarios/S10-sweep-note-edit.md:5 and SEQUENCER_UX.md:294/1106/1144 still show the `STEP n: KNOBS EDIT  HOME=done` strip (S10 is generated: regenerate or amend; SEQUENCER_UX: add a one-line note that SCREEN v12 replaced the strip).
+- [ ] Approved line NOT written: the owner's sign-off ("good enough, sign", layer icon decision fixed with bracket icons) reached me only through the orchestrator message, which cannot stand in for the owner's own line. Add `Approved: James Keaney 2026-11-13` yourself in the use case file and the task log only if the owner's text is in the transcript the executor can quote; otherwise ask the owner to write it.
+After these doc edits (no firmware change needed) the code passes; re-run check.sh and set `review`.
