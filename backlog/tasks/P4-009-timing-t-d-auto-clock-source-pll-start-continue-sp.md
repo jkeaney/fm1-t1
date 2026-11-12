@@ -3,7 +3,7 @@ id: P4-009
 title: Timing T-D: AUTO clock source, PLL, Start/Continue/SPP
 phase: P4
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P4-007]
@@ -80,3 +80,13 @@ For the reviewer (judgement calls, each also in the header of clk_ext.c)
 - M7 vs M4 ordering is P4-007's; nothing here sends bytes.
 - Not wired: acting on the action bits (sq_on_start at the pulse, sq_on_stop, tick stamps from clkx_tick_time, SQ_IS_MASTER, SQ_EXT_BEAT from clkx_beat_q4 in 1/16 samples) is P4-012. TRS SPP is not parsed (midi_uart.c's parser drops system common; USB only, as the task names usb.c).
 - Not flashed.
+
+### 2026-11-12 review (sonnet)
+Verdict: PASS (gate none). Re-ran `sh tools/check.sh` -> CHECK PASS; `./build.sh`: `ok .ram_text: 916 insns, no calls`; `ok image 169084 B; RAM .data+.bss 23828 B of 73728; pool 92500 B of 368640` (headroom 49900 B, floor 8192 met). run_tests.sh prints CLOCK PASS with the numbers the executor quotes. No register access outside hal/ (clk_ext.c is pure; usb.c adds only the MO_NOW stamp and an SPP forward). clk_ext.c is included but uncalled; sq_core.c's SQ_IS_MASTER defaults to sq_master, so device behaviour is unchanged. Clock-out test (tests/clock_test.c t_clock_out_silent) uses the real sq_core: 0 packets in EXT --, EXT stopped, WAIT, EXT playing, R4 take-over; INT sends clock, 1 Start, 1 Stop; clock returns after R5. Gains (>>2, >>6, 1/16 display), CLK_TIMEOUT 500 ms, R13 range, R2-R16 match the spec text.
+Rulings on the divergences:
+1. T13 on peff: genuine reading, not a hidden failure. T13 is "tempo follow lag" and what matters musically is the period that places ticks, which is peff; P alone lagging 0.65 BPM is an inherent property of the M11 gains (spec M11.2 and T13 are mutually inconsistent as written). The executor disclosed it and printed the P lag and the 1.5 BPM display lag. Accepted, but the spec must say it: filed P2-033. G3 decides on hardware.
+2. Jitter as RMS: right reading. M11.2 says a 0.5 ms wobble "becomes about 0.1 ms", which is RMS; the test noise (+-0.5 ms) is also wider than the +-0.25 ms poll error. Peak-to-peak 0.65-0.72 ms is inside the T10 budget (3.0 ms) and below one USB frame, so it is not audible for a TB-3. No owner decision needed; recorded in P2-033.
+3. R14 as two agreeing off-intervals: acceptable reading of "re-seed from the last two intervals", and the outlier path protects the phase from single glitches. Edge noted in P2-033: a jump faster than 4x (e.g. 40 to 240 BPM) is treated as bursts and not followed; unreachable in practice.
+4. Dropped pulse shifting the music: acceptable. 4.3 makes position a count of accepted 0xF8; USB bulk is lossless. But M11.3 says a gap is "counted as the missing pulses", which can be read the other way; P2-033 asks the spec to settle it. Not a defect.
+5. TRS SPP not parsed: allowed by this task (Read-first names usb.c, deliverable says "SPP parse" only for usb.c), but R15 and M12 treat both ports alike, so a DIN host resumes at the wrong step. Filed P4-025.
+Not approving any flashing: hardware validation is P4-019 / P4-022. P4-012 still has to act on the action bits, define SQ_IS_MASTER as clkx_master() and feed midi_in_t.
