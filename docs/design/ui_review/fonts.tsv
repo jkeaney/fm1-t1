@@ -1,0 +1,129 @@
+FONT	S	line_h=15	baseline=12	first=32	last=126	extras=10	phases=4	cap_ink_rows=AF_S_CAP
+EXTRAS	S	169 176 183 196 214 220 228 246 252 133 
+GLYPHS	S	ascii_present=95	widest_adv_px=11(@)	mean_adv_px(non-space)=6.20
+SAMPLE	S	H	ink_top=3	ink_bot=11	ink_h=9	ink_w=8	adv=8.31
+SAMPLE	S	E	ink_top=3	ink_bot=11	ink_h=9	ink_w=7	adv=6.62
+SAMPLE	S	X	ink_top=3	ink_bot=11	ink_h=9	ink_w=7	adv=7.12
+SAMPLE	S	x	ink_top=5	ink_bot=11	ink_h=7	ink_w=6	adv=5.94
+SAMPLE	S	d	ink_top=3	ink_bot=12	ink_h=10	ink_w=7	adv=6.75
+SAMPLE	S	l	ink_top=3	ink_bot=11	ink_h=9	ink_w=2	adv=2.31
+SAMPLE	S	g	ink_top=5	ink_bot=14	ink_h=10	ink_w=7	adv=6.75
+SAMPLE	S	p	ink_top=5	ink_bot=14	ink_h=10	ink_w=7	adv=6.75
+SAMPLE	S	y	ink_top=5	ink_bot=14	ink_h=10	ink_w=6	adv=6.12
+SAMPLE	S	q	ink_top=5	ink_bot=14	ink_h=10	ink_w=7	adv=6.75
+SAMPLE	S	0	ink_top=3	ink_bot=12	ink_h=10	ink_w=7	adv=7.00
+SAMPLE	S	1	ink_top=3	ink_bot=11	ink_h=9	ink_w=4	adv=7.00
+SAMPLE	S	5	ink_top=3	ink_bot=12	ink_h=10	ink_w=7	adv=7.00
+SAMPLE	S	9	ink_top=3	ink_bot=12	ink_h=10	ink_w=7	adv=7.00
+SAMPLE	S	.	ink_top=10	ink_bot=11	ink_h=2	ink_w=3	adv=3.00
+SAMPLE	S	,	ink_top=10	ink_bot=13	ink_h=4	ink_w=2	adv=3.00
+SAMPLE	S	:	ink_top=5	ink_bot=11	ink_h=7	ink_w=3	adv=2.88
+SAMPLE	S	;	ink_top=5	ink_bot=14	ink_h=10	ink_w=3	adv=3.00
+SAMPLE	S	'	ink_top=3	ink_bot=6	ink_h=4	ink_w=1	adv=3.00
+SAMPLE	S	!	ink_top=3	ink_bot=11	ink_h=9	ink_w=3	adv=3.00
+SAMPLE	S	~	ink_top=7	ink_bot=9	ink_h=3	ink_w=7	adv=7.38
+SAMPLE	S	<	ink_top=5	ink_bot=11	ink_h=7	ink_w=7	adv=7.38
+SAMPLE	S	>	ink_top=5	ink_bot=11	ink_h=7	ink_w=7	adv=7.38
+SAMPLE	S	=	ink_top=6	ink_bot=10	ink_h=5	ink_w=6	adv=7.38
+SAMPLE	S	+	ink_top=5	ink_bot=11	ink_h=7	ink_w=7	adv=7.38
+SAMPLE	S	-	ink_top=7	ink_bot=8	ink_h=2	ink_w=5	adv=4.94
+SAMPLE	S	/	ink_top=2	ink_bot=13	ink_h=12	ink_w=4	adv=3.69
+SAMPLE	S	(	ink_top=2	ink_bot=13	ink_h=12	ink_w=3	adv=3.75
+SAMPLE	S	)	ink_top=2	ink_bot=13	ink_h=12	ink_w=3	adv=3.75
+SAMPLE	S	%	ink_top=3	ink_bot=12	ink_h=10	ink_w=9	adv=9.19
+SAMPLE	S	[	ink_top=2	ink_bot=13	ink_h=12	ink_w=3	adv=3.75
+SAMPLE	S	]	ink_top=2	ink_bot=13	ink_h=12	ink_w=3	adv=3.75
+SAMPLE	S	#	ink_top=3	ink_bot=11	ink_h=9	ink_w=7	adv=7.00
+SAMPLE	S	*	ink_top=3	ink_bot=8	ink_h=6	ink_w=5	adv=5.44
+MEAN_ADV	S	A-Z	7.51	(26 glyphs)
+MEAN_ADV	S	a-z	5.84	(26 glyphs)
+MEAN_ADV	S	0-9	7.00	(10 glyphs)
+PRESENT	S	 !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+TEXT_W	S	HELLO WORLD=79	ACCENT=46	0=7	W=11	i=2
+FONT	M	line_h=19	baseline=15	first=32	last=126	extras=10	phases=4	cap_ink_rows=AF_M_CAP
+EXTRAS	M	169 176 183 196 214 220 228 246 252 133 
+GLYPHS	M	ascii_present=95	widest_adv_px=14(W)	mean_adv_px(non-space)=7.98
+SAMPLE	M	H	ink_top=4	ink_bot=14	ink_h=11	ink_w=10	adv=10.50
+SAMPLE	M	E	ink_top=4	ink_bot=14	ink_h=11	ink_w=8	adv=8.44
+SAMPLE	M	X	ink_top=4	ink_bot=14	ink_h=11	ink_w=10	adv=9.38
+SAMPLE	M	x	ink_top=6	ink_bot=14	ink_h=9	ink_w=8	adv=7.62
+SAMPLE	M	d	ink_top=4	ink_bot=15	ink_h=12	ink_w=8	adv=8.62
+SAMPLE	M	l	ink_top=4	ink_bot=14	ink_h=11	ink_w=3	adv=3.12
+SAMPLE	M	g	ink_top=6	ink_bot=18	ink_h=13	ink_w=8	adv=8.62
+SAMPLE	M	p	ink_top=6	ink_bot=18	ink_h=13	ink_w=9	adv=8.62
+SAMPLE	M	y	ink_top=6	ink_bot=18	ink_h=13	ink_w=8	adv=7.88
+SAMPLE	M	q	ink_top=6	ink_bot=18	ink_h=13	ink_w=8	adv=8.62
+SAMPLE	M	0	ink_top=3	ink_bot=15	ink_h=13	ink_w=9	adv=9.00
+SAMPLE	M	1	ink_top=4	ink_bot=14	ink_h=11	ink_w=5	adv=9.00
+SAMPLE	M	5	ink_top=4	ink_bot=15	ink_h=12	ink_w=9	adv=9.00
+SAMPLE	M	9	ink_top=3	ink_bot=15	ink_h=13	ink_w=9	adv=9.00
+SAMPLE	M	.	ink_top=13	ink_bot=15	ink_h=3	ink_w=2	adv=4.00
+SAMPLE	M	,	ink_top=13	ink_bot=17	ink_h=5	ink_w=3	adv=4.12
+SAMPLE	M	:	ink_top=7	ink_bot=15	ink_h=9	ink_w=3	adv=3.88
+SAMPLE	M	;	ink_top=7	ink_bot=17	ink_h=11	ink_w=4	adv=4.06
+SAMPLE	M	'	ink_top=4	ink_bot=8	ink_h=5	ink_w=2	adv=4.06
+SAMPLE	M	!	ink_top=4	ink_bot=15	ink_h=12	ink_w=3	adv=4.06
+SAMPLE	M	~	ink_top=9	ink_bot=12	ink_h=4	ink_w=9	adv=9.38
+SAMPLE	M	<	ink_top=6	ink_bot=14	ink_h=9	ink_w=8	adv=9.38
+SAMPLE	M	>	ink_top=6	ink_bot=14	ink_h=9	ink_w=8	adv=9.38
+SAMPLE	M	=	ink_top=8	ink_bot=13	ink_h=6	ink_w=8	adv=9.38
+SAMPLE	M	+	ink_top=7	ink_bot=14	ink_h=8	ink_w=8	adv=9.38
+SAMPLE	M	-	ink_top=9	ink_bot=11	ink_h=3	ink_w=6	adv=6.31
+SAMPLE	M	/	ink_top=3	ink_bot=16	ink_h=14	ink_w=5	adv=4.88
+SAMPLE	M	(	ink_top=3	ink_bot=17	ink_h=15	ink_w=4	adv=4.88
+SAMPLE	M	)	ink_top=3	ink_bot=17	ink_h=15	ink_w=4	adv=4.88
+SAMPLE	M	%	ink_top=3	ink_bot=15	ink_h=13	ink_w=11	adv=11.81
+SAMPLE	M	[	ink_top=3	ink_bot=17	ink_h=15	ink_w=4	adv=4.88
+SAMPLE	M	]	ink_top=3	ink_bot=17	ink_h=15	ink_w=4	adv=4.88
+SAMPLE	M	#	ink_top=4	ink_bot=14	ink_h=11	ink_w=9	adv=8.94
+SAMPLE	M	*	ink_top=4	ink_bot=10	ink_h=7	ink_w=7	adv=7.19
+MEAN_ADV	M	A-Z	9.58	(26 glyphs)
+MEAN_ADV	M	a-z	7.52	(26 glyphs)
+MEAN_ADV	M	0-9	9.00	(10 glyphs)
+PRESENT	M	 !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+TEXT_W	M	HELLO WORLD=100	ACCENT=58	0=9	W=14	i=3
+FONT	L	line_h=35	baseline=28	first=32	last=32	extras=40	phases=2	cap_ink_rows=AF_L_CAP
+EXTRAS	L	35 43 45 46 47 48 49 50 51 52 53 54 55 56 57 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 
+GLYPHS	L	ascii_present=1	widest_adv_px=6( )	mean_adv_px(non-space)=0.00
+SAMPLE	L	H	ink_top=7	ink_bot=27	ink_h=21	ink_w=18	adv=19.75
+SAMPLE	L	E	ink_top=7	ink_bot=27	ink_h=21	ink_w=14	adv=15.94
+SAMPLE	L	X	ink_top=7	ink_bot=27	ink_h=21	ink_w=18	adv=18.25
+SAMPLE	L	x	absent
+SAMPLE	L	d	absent
+SAMPLE	L	l	absent
+SAMPLE	L	g	absent
+SAMPLE	L	p	absent
+SAMPLE	L	y	absent
+SAMPLE	L	q	absent
+SAMPLE	L	0	ink_top=7	ink_bot=28	ink_h=22	ink_w=16	adv=18.00
+SAMPLE	L	1	ink_top=7	ink_bot=27	ink_h=21	ink_w=10	adv=18.00
+SAMPLE	L	5	ink_top=7	ink_bot=28	ink_h=22	ink_w=15	adv=18.00
+SAMPLE	L	9	ink_top=7	ink_bot=28	ink_h=22	ink_w=16	adv=18.00
+SAMPLE	L	.	ink_top=23	ink_bot=28	ink_h=6	ink_w=6	adv=8.00
+SAMPLE	L	,	absent
+SAMPLE	L	:	absent
+SAMPLE	L	;	absent
+SAMPLE	L	'	absent
+SAMPLE	L	!	absent
+SAMPLE	L	~	absent
+SAMPLE	L	<	absent
+SAMPLE	L	>	absent
+SAMPLE	L	=	absent
+SAMPLE	L	+	ink_top=13	ink_bot=26	ink_h=14	ink_w=14	adv=17.81
+SAMPLE	L	-	ink_top=18	ink_bot=20	ink_h=3	ink_w=10	adv=12.00
+SAMPLE	L	/	ink_top=6	ink_bot=31	ink_h=26	ink_w=10	adv=9.56
+SAMPLE	L	(	absent
+SAMPLE	L	)	absent
+SAMPLE	L	%	absent
+SAMPLE	L	[	absent
+SAMPLE	L	]	absent
+SAMPLE	L	#	ink_top=7	ink_bot=27	ink_h=21	ink_w=19	adv=16.94
+SAMPLE	L	*	absent
+MEAN_ADV	L	A-Z	18.31	(25 glyphs)
+MEAN_ADV	L	a-z	0.00	(0 glyphs)
+MEAN_ADV	L	0-9	18.00	(10 glyphs)
+PRESENT	L	 
+TEXT_W	L	HELLO WORLD=190	ACCENT=111	0=18	W=27	i=7
+CAPS	S	cap_y=3	cap_h=9
+CAPS	M	cap_y=4	cap_h=11
+CAPS	L	cap_y=7	cap_h=21
