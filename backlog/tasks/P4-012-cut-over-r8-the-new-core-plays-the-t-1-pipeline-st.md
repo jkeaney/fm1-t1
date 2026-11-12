@@ -23,6 +23,8 @@ Switch the device to the new sequencer: `events_block` calls `sq_block`, keys an
 - Delete torso_t1_pipeline.c/.h, torso_t1_state.c/.h, torso_t1_ui.c/.h, ui_t1.c, t1_glue.c, torso_t1.c/.h (micro queue, rings) and the `t1_mode`/`t1_off_req` plumbing; keep torso_t1_algo.c only for the functions ADR-0003 §13 marks Reuse (bjorklund, rotate, pace curve, scale masks, fixed phrase contour) and torso_t1_port.c
 - torso_phase4/5 tests deleted; phase1-3 tests deleted or replaced by the sq_* tests (Log lists which); tests/t1_link_test.c replaced by tests/sq_link_test.c (2 bars of ACID on channel 1 reach midi_out_event; STOP sends offs then CC123)
 
+- (P4-009 review) define `SQ_IS_MASTER()` as `clkx_master()` (clk_ext.c) and act on the clk_ext action bits (Start/Continue/SPP, source changes) in the cut-over; `grep -n SQ_IS_MASTER firmware/src` shows the new definition
+
 ## Acceptance criteria
 - [ ] `grep -n sq_half_begin firmware/src/audio.c` shows the call in the half-buffer interrupt
 - [ ] `grep -rn 't1_block\|t1_mode\|ui_t1' firmware/src` returns nothing
