@@ -186,6 +186,13 @@ sq_acid_desc() { sed -n '/ALGODESC-BEGIN/,/ALGODESC-END/p' docs/design/algorithm
 run "ACID algorithm: the descriptor in sq_algo_acid.c equals SPEC.md section 5 (modulo the macro backslashes)" sq_acid_desc
 run "ACID algorithm: firmware copy of the prototype, plain golden matrix equals acid/golden.txt before H-INERT, purity (a)-(g) and table tests" sq_acid_cmp
 
+# Sequencer UI framework (P4-011): firmware ui_sq.c on the real gfx.c / sq_core.c / sq_chan.c and build/gen/ui_tables.h: zone table tiles 240x240, every label
+# fits its zone by the real text_w (header slots, channel cells, band, tag column, every Z4 cell of every page, legend, cue, widths.tsv), redraw by
+# signature, the 2 s toast; renders every page and zone to build/ui_sq/*.png
+mkdir -p build/ui_sq
+${CC%% *} -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/ui_sq_test" tests/ui_sq_test.c -lm
+run "sequencer UI framework: ui_sq.c zones Z0-Z7, labels fit (real text_w), redraw by signature, toast; PNGs in build/ui_sq" "$OUT/ui_sq_test" build/ui_sq
+
 # Timing T-C (P4-007, TIMING_SPEC 6.3): the real usb.c release ring + sq_core.c stamps: tick position, stamp, ordering, clock out count,
 # release, tempo constant; then the same rows with the M3 fallback (TIMER5 releases only between audio interrupts)
 ${CC%% *} $SQC -o "$OUT/timing_test" tests/timing_test.c
