@@ -3,7 +3,7 @@ id: P4-028
 title: Screen v2 elements: header, knob tiles, status line, music row
 phase: P4
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P4-026, P4-027]
@@ -71,3 +71,11 @@ Pixel comparison (tests/v12_compare.py; region = header, knob tiles, status line
 - Not done here, by scope: buttons, keybed, footer, message slot (P4-029); the per-state wiring of `uisq_used`, `uisq_clock`, `uisq_rec*`, `ui_sq_diced_set`
   (set by the lifecycle / clock / REC / dice tasks; defaults: 4 channels in use, INT clock). ui_sq.c has no caller before the cut-over (P4-012).
 
+
+### 2026-11-13 review (sonnet)
+Verdict: PASS. Re-ran `sh tools/check.sh` -> CHECK PASS, `RAM .data+.bss 23844 B of 73728` (headroom 49884 B, above 8192; ui_sq.c still not in felucca.c). Re-ran `python3 tests/v12_compare.py` -> 44 scenes/sheets, 0 failed.
+- Per-algorithm branch grep (ui_sq.c): none. Only the `uisq_short[]` name table (read by gen_ui_tables.py) and generic `uisq_algo_ok` / descriptor reads.
+- (1) T_CHF 1-LSB on CH2/CH4: ACCEPTED. SCREEN_SPEC_V2 section 2 defines the token as "channel colour x 120/255" and the firmware uses the token; the mock's per-RGB565-channel mix is the outlier. Difference is confined to the meter fill of the selected tile (tolerance check is bounded: sel 2/4, y 24-76, <= 10/channel).
+- (2) Goldens: NOT re-rendered. The compare script already proves the drift is glyph anti-aliasing only (largest connected group 40 px, fails if a group > 150 px), and the firmware is checked against a fresh v12.py render, so the goldens are not the gate. Leaving the committed design artefacts untouched avoids churn; the font file is regenerated per build so the goldens would drift again.
+- (3) Mock quirks: ACCEPTED as copied. Note for P4-030/later: the past_length behaviour that hides other channels' strips past the selected channel's LENGTH is a mock artefact; if a longer channel should still show, fix spec and code together (not blocking). v12_chan_remove.png is a stale golden with no scene; ignored by the compare.
+Scope: only ui_sq.c, tests and tools changed. Gate none, UX gate Gate B covered by the pixel-equality to the locked mock.
