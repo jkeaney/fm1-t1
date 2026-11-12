@@ -3,7 +3,7 @@ id: P4-029
 title: Screen v2 elements: button picture, keybed footer, message slot (toasts, hold hints, touched names, setup cue)
 phase: P4
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P4-026]
@@ -61,3 +61,11 @@ Verification
 - `sh tools/check.sh` -> `RAM .data+.bss 23844 B of 73728` ... `CHECK PASS`
 Notes for the reviewer: the past_length quirk (other strips hidden past the selected channel's LENGTH) was left untouched, as instructed. `uisq_draw_frame` is kept (ui_sq_test checks the
 empty frame through it). ui_sq.c is still not in felucca.c, so firmware size/RAM is unchanged.
+
+### 2026-11-13 review (sonnet)
+Verdict: PASS (gate none). Re-ran `sh tools/check.sh` -> CHECK PASS; `./build.sh` -> `RAM .data+.bss 23844 B of 73728` (headroom 49884 B, > 8192).
+- Toast 1000 ms: SCREEN_SPEC_V2 5.1 says "Toast (~1 s)"; ui_sq_test.c updated consistently (1000 ms boundary, 500/950/40 ms walk). Diced hatch keeps 2000 ms separately. OK.
+- icons_v12.py gained left/right/rst only (2 lines); no proposals/v12/out render changed; v12_compare 44 scenes 0 failed on the whole frame. OK.
+- Hold bars: ui_hold_rows[] generated from the PERF hold rows of button_modes.tsv / key_map.tsv (0.4/0.7 s); uisq_msg_pick order hold > touch > toast > page title, matches spec 5.5. No per-algorithm branch in the diff (only descriptor fields, ALGOS[].layer[].n for dim).
+- UISQ_REMOVE_MS 1.5 s constant pending P4-030 key_map rows: accepted, spec 6 states 1.5 s and names P4-030. uisq_draw_frame kept (ui_sq_test uses it): accepted.
+- Minor note: the past_length quirk left as instructed. UX gate Gate B: element-level task, ui_sq.c not yet in felucca.c (cut-over P4-012), so nothing user-reachable yet; no sections 7-9 walk possible beyond the host scene renders, which match the mock.
