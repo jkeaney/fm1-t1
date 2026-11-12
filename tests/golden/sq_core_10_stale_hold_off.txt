@@ -1,0 +1,7 @@
+    0 MIDI ch= 1 ON  n= 60 v=100
+   96 MIDI ch= 1 ON  n= 57 v=100
+  127 MIDI ch= 1 OFF n= 57
+  128 MIDI ch= 1 OFF n= 60
+  128 MIDI ch= 1 ON  n= 60 v=100
+  143 MIDI ch= 1 OFF n= 60
+  144 MIDI ch= 1 ON  n= 60 v=100

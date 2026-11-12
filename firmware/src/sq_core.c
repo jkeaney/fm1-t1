@@ -209,6 +209,13 @@ static void sq_evq_purge_off(uint8_t c, uint8_t note)     /* the OFFs still queu
 {   for (int i = 0; i < SQ_EVQ_N; i++)
         if (sq_evq[i].kind == 1 && ((sq_evq[i].chan >> 5) & 3u) == c && sq_evq[i].note == note) sq_evq[i].kind = 0; }
 
+/* BUG-006. A ratchet repeat of this pitch will end whatever instance of it still sounds when the repeat's ON falls due (sq_emit's
+ * same-pitch guard), so an OFF queued earlier for that pitch and due AFTER the ON (a HOLD's) is stale and would cut the repeat short.
+ * Purged when the repeat is scheduled, before its own OFF is queued; a purge at emit time could not tell the repeat's own OFF from it. */
+static void sq_evq_purge_off_after(uint8_t c, uint8_t note, uint32_t on_t)
+{   for (int i = 0; i < SQ_EVQ_N; i++)
+        if (sq_evq[i].kind == 1 && ((sq_evq[i].chan >> 5) & 3u) == c && sq_evq[i].note == note && sq_evq[i].tick > on_t) sq_evq[i].kind = 0; }
+
 /* Emit what is due: ALL NOTE_OFFs first, then all NOTE_ONs, each pass by tick then slot (so the order is a function of the queue,
  * not of which slot a pair happened to land in). Overdue events (after a stall) fire at once. An OFF the ring cannot take stays
  * queued and stops the whole dispatch (the ONs wait behind it: an ON must never overtake the OFF of the same note). */
@@ -334,6 +341,7 @@ static void sq_step_start(uint8_t c, uint32_t now, uint8_t L)
             for (uint8_t j = 0; j < nr; j++) {
                 uint8_t note = out.note;
                 if (a->sub_note) note = (uint8_t)(a->sub_note(k, p, (uint8_t)(j + 1u), hcp) & 0x7Fu);
+                sq_evq_purge_off_after(c, note, S + rr[j].off);
                 (void)sq_sched_pair(chan, S + rr[j].off, S + rr[j].off + rr[j].len, note, rr[j].vel);
             }
         }

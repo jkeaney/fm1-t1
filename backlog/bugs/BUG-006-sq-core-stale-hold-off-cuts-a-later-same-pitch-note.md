@@ -3,7 +3,7 @@ id: BUG-006
 title: sq_core stale queued OFF of a HOLD note can cut a later same-pitch note short
 phase: P4
 type: bug
-status: todo
+status: review
 priority: 2
 executor: sonnet
 depends_on: [P4-004]
@@ -34,10 +34,10 @@ The later note sounds for its full length.
 `sq_emit` (kind 1) matches by pitch and ends the later note early. Invariants still hold (ON == OFF per channel and note).
 
 ## Acceptance criteria
-- [ ] The new test fails on the old code and passes on the new.
-- [ ] All nine existing sq_core goldens are unchanged unless the log explains why.
-- [ ] The 100000-tick fuzz still passes under ASan/UBSan on at least 3 seeds.
-- [ ] `sh tools/check.sh` ends with `CHECK PASS`; the RAM line is pasted into the Log with headroom of at least 8192 B.
+- [x] The new test fails on the old code and passes on the new.
+- [x] All nine existing sq_core goldens are unchanged unless the log explains why.
+- [x] The 100000-tick fuzz still passes under ASan/UBSan on at least 3 seeds.
+- [x] `sh tools/check.sh` ends with `CHECK PASS`; the RAM line is pasted into the Log with headroom of at least 8192 B.
 
 ## Verification
 ```sh
@@ -51,3 +51,10 @@ n/a, scheduler internals; no control or screen change.
 - Ratchet velocity slope (currently 0) and no ratchet on slide, hold or tie steps: the ADR is silent and the locked prototypes' `sq_ratchet` defines the behaviour. P4-006 and P5-001 confirm the core matches the prototypes.
 
 ## Log
+
+### 2026-11-12 executor (sonnet)
+Test first: added g10_stale_hold_off + tests/golden/sq_core_10_stale_hold_off.txt (algo 5, HOLD 3 on P=60 with off queued at 142, step 2 on 57 with 1 repeat whose sub_note is 60, gate 100 %). On the unmodified code it FAILED: "no stale HOLD OFF at tick 142 cutting the repeat" (log: ON 60 @0, ON 57 @96, OFF 57 @127, OFF 60 @128, ON 60 @128, OFF 60 @142).
+Fix (deviates from the suggested one, deliberately): a purge in the sq_emit guard FIRST attempted, but it also removes the incoming repeat's own queued OFF (sq_sched_pair queues the pair at schedule time, so the stale and own OFF are indistinguishable at emit time; golden showed the repeat ending only by the next pass's ON at 144, a hang risk). An instance id needs a SeqEvent/ChanRT layout change (ADR-0003 locked sizes 8 and 24). So: new `sq_evq_purge_off_after(c, note, on_t)` called in `sq_step_start`'s ratchet loop before each repeat's `sq_sched_pair`: it drops queued OFFs of that channel/pitch due strictly AFTER the repeat's ON (the repeat's ON will end the sounding instance anyway). OFFs due before the ON are kept (a HOLD that ends before the repeat still ends normally). Known residual: an earlier-scheduled pair of the same pitch whose ON is later than this repeat's ON loses its own OFF and is ended by the repeat's OFF instead (shorter, no hang); not reachable from one step's primary + repeats.
+After fix: golden 10 = ... OFF 60 @128, ON 60 @128, OFF 60 @143 (repeat plays its full length), ON 60 @144.
+Verification: the 9 existing goldens report ok (unchanged, git shows no golden modified); fuzz 100000 ticks under ASan/UBSan, seeds 0x1234567, 7, 99: SQ_CORE PASS each.
+`sh tools/check.sh`: CHECK PASS. RAM line: "RAM .data+.bss 23828 B of 73728" (headroom 49900 B).

@@ -318,6 +318,22 @@ static void g9_preset_bar(void)
     CHECK(sq_rt[0].p == (uint8_t)((900 / 48 + 1) % 5), "the playhead did not jump");
     golden("sq_core_9_preset_bar.txt"); }
 
+/* BUG-006: a HOLD on pitch P (off queued at 3 * 48 - 2 = 142) and, inside its span, a ratchet whose repeat is also P (algo 5 sub_note:
+ * note + 3k, so step 2 on P - 3 repeats on P). The repeat's ON ends the HOLD (off before on); the HOLD's own queued OFF must go with
+ * it, or at 142 it ends the repeat early. Gate 100 % so the repeat is still sounding when the stale OFF falls due. */
+static void g10_stale_hold_off(void)
+{   Tbl *t; int offs = 0; const char *p; reset_all();
+    t = tbl_of(0, 0, 5, 3);
+    put(t, 0, 1, 60, 100, 50, PO_HOLD, 3);
+    put(t, 1, 0, 0, 80, 50, 0, 0);
+    put(t, 2, 1, 57, 100, 100, (uint8_t)(1u << PO_REP_SHIFT), 0);
+    sq_ch[0].midi_ch = 0; sq_gdb[0].s.gate = 100;
+    start(); run(0, 160);
+    for (p = logbuf; (p = strstr(p, "OFF n= 60")) != NULL; p += 9) offs++;
+    CHECK(offs == 2, "pitch 60 gets exactly its HOLD end and its repeat's own end (%d OFFs)\n%s", offs, logbuf);
+    CHECK(!strstr(logbuf, "  142 MIDI ch= 1 OFF n= 60"), "no stale HOLD OFF at tick 142 cutting the repeat\n%s", logbuf);
+    golden("sq_core_10_stale_hold_off.txt"); }
+
 /* ---- sq_block: the accumulator runs 192 ticks per beat from the first block ---- */
 static void t_block(void)
 {   reset_all(); log_on = 0;
@@ -417,7 +433,7 @@ static void fuzz(long nticks)
 int main(int argc, char **argv)
 {   if (argc > 1) fz_seed = (uint32_t)strtoul(argv[1], NULL, 0);
     printf("sq_core scheduler\n");
-    g1_slide(); g2_swing(); g3_ratchet(); g4_hold(); g5_mute(); g6_stop(); g7_queue_full(); g8_midi_change(); g9_preset_bar();
+    g1_slide(); g2_swing(); g3_ratchet(); g4_hold(); g5_mute(); g6_stop(); g7_queue_full(); g8_midi_change(); g9_preset_bar(); g10_stale_hold_off();
     t_block(); t_reserve();
     fuzz(100000);
     printf("%s\n", fails ? "SQ_CORE FAIL" : "SQ_CORE PASS");
