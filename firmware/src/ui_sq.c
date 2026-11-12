@@ -137,6 +137,60 @@ static int8_t uisq_layer_of(uint8_t ctl)
 static const char *uisq_page_cue(uint8_t p);
 static uint8_t uisq_algo_ok(uint8_t a) { return a < SQ_NALGO && ALGOS[a].name[0] != 0; }   /* a row not yet written by its algorithm task is zero */
 
+/* ---- the algorithm descriptor as the screen reads it (ADR-0007, P4-027): the screen names no algorithm ---- */
+/* the header short name: AlgoDesc.short_name; the placeholder table above serves a row whose P5 task has not filled it yet */
+static const char *uisq_short_of(uint8_t a) { a %= SQ_NALGO; return ALGOS[a].short_name[0] ? ALGOS[a].short_name : uisq_short[a]; }
+
+/* The text of a knob tile value: the algorithm's hook, else the zero word, else the value name, else the number (+ " " + unit). */
+static void uisq_morph_text(char *d, uint32_t n, const AlgoDesc *a, uint8_t id, uint8_t v, const void *cache)
+{   const MorphDesc *m = &a->morph[id];
+    char b[SQ_VTEXT_MAX];
+    d[0] = 0;
+    b[0] = 0;
+    if (a->value_text && a->value_text(id, v, cache, b) && b[0]) { uisq_cat(d, n, b); return; }
+    if (v == 0 && m->zero) { uisq_cat(d, n, m->zero); return; }
+    if (m->names && v >= m->min && v <= m->max) { uisq_cat(d, n, m->names[v - m->min]); return; }
+    uisq_catu(d, n, v);
+    if (m->unit) { uisq_cat(d, n, " "); uisq_cat(d, n, m->unit); } }
+
+/* ONE font per knob for its whole range, so the value never jumps size while turning: AF_L when every value except the zero word is
+ * digits / capitals / spaces and fits 54 px, else AF_M (the zero word is a mode change: it may drop to AF_M by itself). */
+static const aafont_t *uisq_morph_font(const AlgoDesc *a, uint8_t id)
+{   const MorphDesc *m = &a->morph[id];
+    char t[16];
+    for (uint32_t v = m->min; v <= m->max; v++) {
+        if (v == 0 && m->zero) continue;
+        uisq_morph_text(t, sizeof t, a, id, (uint8_t)v, 0);
+        if (text_w(&AF_L, t) > 54) return &AF_M;
+        for (const char *c = t; *c; c++) if (!((*c >= '0' && *c <= '9') || (*c >= 'A' && *c <= 'Z') || *c == ' ')) return &AF_M; }
+    return &AF_L; }
+
+/* position dots for a value list (<= SQ_NAMES_MAX entries), else 0 = a meter */
+static uint8_t uisq_morph_dots(const AlgoDesc *a, uint8_t id)
+{   const MorphDesc *m = &a->morph[id];
+    const uint32_t n = (uint32_t)m->max - m->min + 1u;
+    return (uint8_t)(m->names && n <= SQ_NAMES_MAX ? n : 0); }
+
+/* One knob tile of tile column k (0..3) from the descriptor alone: label band (AF_M, T_MID), value (one font, T_ACCENT when hot), then the
+ * position dots or the meter under the value. slot = row * 4 + k indexes knob_morph[]. morph[] = the channel's current morph values. */
+static void uisq_knob_tile(uint32_t k, const AlgoDesc *a, uint8_t slot, const uint8_t morph[SQ_NMORPH], const void *cache, uint8_t hot)
+{   const int32_t x = 1 + 60 * (int32_t)k, vy = UISQ_KNOB_Y + UISQ_KNOB_LAB + 1;
+    const uint8_t id = a->knob_morph[slot & 7u], v = morph[id];
+    const MorphDesc *m = &a->morph[id];
+    const aafont_t *f = uisq_morph_font(a, id);
+    const uint8_t dots = uisq_morph_dots(a, id);
+    char t[16];
+    cv_rect(x, UISQ_KNOB_Y, UISQ_KNOB_W, UISQ_KNOB_LAB, T_SURF);
+    cv_rect(x, vy, UISQ_KNOB_W, UISQ_KNOB_VAL, T_SURF);
+    cv_text_in(x, UISQ_KNOB_Y + 1, UISQ_KNOB_W, &AF_M, m->label, T_MID, T_SURF);
+    uisq_morph_text(t, sizeof t, a, id, v, cache);
+    cv_text_in(x, vy + 4, UISQ_KNOB_W, (v == 0 && m->zero) ? &AF_M : f, t, hot ? T_ACCENT : T_TEXT, T_SURF);
+    if (dots) {                                                          /* a list: one dot per entry, the current one lit */
+        for (uint32_t i = 0; i < dots; i++)
+            cv_rect(x + (UISQ_KNOB_W - 6 * (int32_t)dots) / 2 + 6 * (int32_t)i, vy + UISQ_KNOB_VAL - 7, 4, 4, i == (uint32_t)(v - m->min) ? T_ACCENT : T_DIM); }
+    else if (m->max > m->min)                                            /* a meter: (v - min) / (max - min) of 50 px */
+        cv_rect(x + 4, vy + UISQ_KNOB_VAL - 6, 50 * (int32_t)(v - m->min) / (m->max - m->min), 3, hot ? T_ACCENT : T_MID); }
+
 /* ---- per-page data: the stub pages (P4-013..P4-018 replace the entries) ---- */
 typedef struct {
     void       (*input)(void);        /* the page's frame input; stubs do nothing */
@@ -196,14 +250,14 @@ static void ui_sq_toast(const char *s)
 /* ---- Z0 strings (also used by the width test) ---- */
 static void uisq_h4_text(char *d, uint32_t n, uint8_t ch)         /* `1 ACID M1`, `1 ACID MOFF` (no CH prefix: SCREEN_SPEC 2.1) */
 {   d[0] = 0;
-    uisq_catu(d, n, (uint32_t)ch + 1u); uisq_cat(d, n, " "); uisq_cat(d, n, uisq_short[sq_ch[ch].algo % SQ_NALGO]); uisq_cat(d, n, " ");
+    uisq_catu(d, n, (uint32_t)ch + 1u); uisq_cat(d, n, " "); uisq_cat(d, n, uisq_short_of(sq_ch[ch].algo)); uisq_cat(d, n, " ");
     if (sq_ch[ch].midi_ch >= SQ_MIDI_OFF) uisq_cat(d, n, "MOFF"); else { uisq_cat(d, n, "M"); uisq_catu(d, n, (uint32_t)sq_ch[ch].midi_ch + 1u); } }
 static void uisq_h2_text(char *d, uint32_t n)                      /* H2 placeholder: the INT state only (the clock states are P4-012/P4-019) */
 {   d[0] = 0; uisq_cat(d, n, "INT "); uisq_catu(d, n, sq_bpm); }
 static void uisq_h3_text(char *d, uint32_t n)
 {   d[0] = 0; uisq_cat(d, n, "P"); if (uisq_preset < 10u) uisq_cat(d, n, "0"); uisq_catu(d, n, uisq_preset); if (uisq_preset_pend) uisq_cat(d, n, "?"); }
 static void uisq_cell_l1(char *d, uint32_t n, uint8_t ch)          /* Z1 line 1: `1 ACID` */
-{   d[0] = 0; uisq_catu(d, n, (uint32_t)ch + 1u); uisq_cat(d, n, " "); uisq_cat(d, n, uisq_short[sq_ch[ch].algo % SQ_NALGO]); }
+{   d[0] = 0; uisq_catu(d, n, (uint32_t)ch + 1u); uisq_cat(d, n, " "); uisq_cat(d, n, uisq_short_of(sq_ch[ch].algo)); }
 static void uisq_cell_l2(char *d, uint32_t n, uint8_t ch)          /* Z1 line 2: `MIDI 2`, `MIDI OFF`, `MUTE 2`, `MUTE -` */
 {   const uint8_t m = sq_ch[ch].midi_ch;
     d[0] = 0; uisq_cat(d, n, sq_ch[ch].muted ? "MUTE " : "MIDI ");
@@ -289,7 +343,7 @@ static void uisq_cue_text(char *d, uint32_t n)
             const uint8_t cur = (uint8_t)(a == sq_ch[uisq_sel].algo);
             if (a) uisq_cat(d, n, " ");
             if (cur) uisq_cat(d, n, "[");
-            uisq_cat(d, n, uisq_short[a]);
+            uisq_cat(d, n, uisq_short_of(a));
             if (cur) uisq_cat(d, n, "]"); }
         return; }
     if (uisq_page == UI_PG_PERF && sq_playing) { uisq_cat(d, n, "TAP STEP=ON/OFF  HOLD=EDIT NOTE"); return; }

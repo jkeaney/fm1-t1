@@ -155,7 +155,7 @@ run "shared primitives: firmware sq_prims.c dump equals tests/sq_prims_golden.tx
 
 # Scheduler (P4-004): firmware sq_core.c against mock hooks and a mock ALGOS table: the nine event goldens of ADR-0003 section 14
 # (tests/golden/sq_core_*.txt) and the 100000-tick invariant fuzz, under ASan + UBSan when the compiler has them
-SQC="-std=c11 -Wall -Wextra -Werror -Wno-unused-function -O1 -fno-strict-aliasing -Ifirmware/src"
+SQC="-std=c11 -Wall -Wextra -Werror -Wno-unused-function -Wno-missing-field-initializers -O1 -fno-strict-aliasing -Ifirmware/src"
 printf 'int main(void){return 0;}\n' > "$OUT/sq_san_probe.c"
 if ${CC%% *} -fsanitize=address,undefined -o "$OUT/sq_san_probe" "$OUT/sq_san_probe.c" 2>/dev/null && "$OUT/sq_san_probe"; then
     SQC="$SQC -g -fsanitize=address,undefined -fno-sanitize-recover=undefined"
@@ -193,6 +193,10 @@ mkdir -p build/ui_sq
 python3 tools/gen_sq_icons.py --ref build/gen/sq_icons_ref.txt || { echo ">>> STEP FAILED: gen_sq_icons --ref <<<"; fail=1; }
 ${CC%% *} -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/ui_sq_test" tests/ui_sq_test.c -lm
 run "sequencer UI framework: ui_sq.c screen v2 bands + two-strip plan + empty frame, colour tokens, icons pixel-identical to the mock, labels fit (real text_w), redraw by signature, toast; PNGs in build/ui_sq" "$OUT/ui_sq_test" build/ui_sq
+
+# Algorithm UI descriptor (P4-027, ADR-0007): the real ui_sq.c draws the knob tiles of ACID (real row) and a dummy DEMO row through the descriptor alone
+${CC%% *} -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/sq_algodesc_test" tests/sq_algodesc_test.c -lm
+run "algorithm UI descriptor: value text / one font / dots / short name from AlgoDesc, a dummy algorithm's knob tiles through ui_sq.c unchanged" "$OUT/sq_algodesc_test"
 
 # Timing T-C (P4-007, TIMING_SPEC 6.3): the real usb.c release ring + sq_core.c stamps: tick position, stamp, ordering, clock out count,
 # release, tempo constant; then the same rows with the M3 fallback (TIMER5 releases only between audio interrupts)

@@ -22,7 +22,14 @@ cut by design (section 5), so no px limit applies to them beyond 51. Knob contex
 sq_types.h. Widths are measured with the real text_w (tests/design/width_probe.sh, needs build/gen/ui_fonts.h from ./build.sh);
 without fonts the pixel step is skipped with a note (--check insists on it).
 
-Usage: gen_ui_tables.py [OUT.h]   (default build/gen/ui_tables.h)    gen_ui_tables.py --check
+P4-027 (ADR-0007) adds the algorithm-descriptor check, run by --check and a normal run: the knob_map.tsv PERF rows of every algorithm
+(and, where its firmware row exists, the AlgoDesc row of sq_algo_*.c, which must agree with the TSV) are measured on the real fonts the way the
+mock's check() does (docs/design/ui_review/proposals/v12/algos_v12.py): short name <= 6 chars and fits the header slot, every one of the 8 knob
+slots filled, label <= 6 chars and <= 58 px in AF_M, the widest value fits 54 px in AF_L (else 58 px in AF_M), a value list's names equal its range.
+Every SCREEN_SPEC_V2 section 5 message (MESSAGES of proposals/v12/v12.py) must fit the 136 px message slot. `--selftest` proves the check fails on
+a deliberately too-wide label, short name and message.
+
+Usage: gen_ui_tables.py [OUT.h]   (default build/gen/ui_tables.h)    gen_ui_tables.py --check    gen_ui_tables.py --selftest
 The output is deterministic (TSV order, no timestamps)."""
 import csv, os, re, subprocess, sys
 
@@ -259,6 +266,283 @@ def build():
                 labels=labels)
 
 
+# ---- P4-027 (ADR-0007): the algorithm-descriptor check -------------------------------------------------------------------------------------
+TILE_LABEL_PX = 58    # SCREEN_SPEC_V2 2: the knob tile and its label band are 58 px wide
+VALUE_L_PX = 54       # a value in AF_L must fit 54 px (SCREEN_SPEC_V2 section 3)
+HEADER_PX = 60        # the header slot of the algorithm short name (mock check())
+SHORT_CHARS = 6
+MSG_X, SCREEN_W = 104, 240   # the message slot (SCREEN_SPEC_V2 section 5)
+SRC = os.path.join(ROOT, "firmware", "src")
+MOCK_V12 = os.path.join(D, "ui_review", "proposals", "v12", "v12.py")
+PATT_TAGS = ("ACD", "HSE", "FNK", "TEC", "DUB", "MEL")   # docs/design/algorithms/patterns/SPEC.md section 1
+# algorithm-only value text (AlgoDesc.value_text): the strings the hook can produce, to be measured (the P5 hooks must stay within these)
+HOOK_TEXTS = {("PATTERNS", "PICK"): lambda mn, mx: ["%s %d" % (PATT_TAGS[(v - 1) // 20], (v - 1) % 20 + 1) for v in range(max(mn, 1), mx + 1)],
+              ("STAGE", "TOTAL"): lambda mn, mx: ["%d" % v for v in range(mn, mx + 1)] + ["%d(%d)" % (mx, mx - 1)]}
+
+
+def parse_value(spec):
+    """'den 0..16 def 12; 0 = KEYS ONLY (the cell value reads KEYS)' -> dict(min, max, def, names, fmt, zero) (mock algos_v12.parse_value)"""
+    d = {"min": 0, "max": 0, "def": 0, "names": None, "fmt": None, "zero": None}
+    head = spec.split(";")[0]
+    m = re.search(r"(-?\d+)\.\.(-?\d+)", head)
+    if m:
+        d["min"], d["max"] = int(m.group(1)), int(m.group(2))
+        md = re.search(r"\bdef (\w+)", head)
+        d["def"] = int(md.group(1)) if md and md.group(1).lstrip("-").isdigit() else d["min"]
+        after = re.sub(r"\bdef \S+", "", head[m.end():])
+        after = re.sub(r"\(.*?\)|\bfast\b.*", "", after)
+        names = [t for t in after.split() if re.fullmatch(r"[A-Z0-9/+\-]{1,6}", t) and not t.isdigit()]
+        if len(names) == d["max"] - d["min"] + 1:
+            d["names"] = names
+    else:                                             # 'dir FWD BWD PEND' / '... def UP'
+        md = re.search(r"\bdef (\w+)", head)
+        body = re.sub(r"\bdef \S+", "", head).split()
+        names = [t for t in body[1:] if re.fullmatch(r"[A-Z0-9/+\-]{1,6}", t)]
+        d["names"], d["min"], d["max"] = names, 0, len(names) - 1
+        d["def"] = names.index(md.group(1)) if md and md.group(1) in names else 0
+    fm = re.search(r"cell reads (\d+) (\w+)\.\.", spec)
+    if fm:
+        d["fmt"] = "%d " + fm.group(2)
+    if re.search(r"0 = KEYS ONLY", spec):
+        d["zero"] = "KEYS"
+    if "CAT nn" in spec:
+        d["fmt"] = "CAT %d"
+    return d
+
+
+def algo_order():
+    try:
+        txt = open(ALGO_H, encoding="utf-8").read()
+    except OSError:
+        return []
+    return [n for _, n in sorted((int(v), n) for n, v in re.findall(r"^#define SQ_ALGO_([A-Z]+)\s+(\d+)", txt, re.M))]
+
+
+def placeholder_shorts(order):
+    """ui_sq.c's uisq_short[] (the header names until an algorithm row fills short_name) by algorithm index"""
+    try:
+        txt = open(os.path.join(SRC, "ui_sq.c"), encoding="utf-8").read()
+    except OSError:
+        return {}
+    m = re.search(r"uisq_short\[SQ_NALGO\]\s*=\s*\{([^}]*)\}", txt)
+    sh = re.findall(r'"([^"]*)"', m.group(1)) if m else []
+    return {order[i]: sh[i] for i in range(min(len(order), len(sh)))}
+
+
+def firmware_row(name):
+    """the ALGO_<NAME>_ROW macro of firmware/src/sq_algo_*.c as {short, knob_morph, morph[8] of (label, min, max, def, names, unit, zero)}, or None"""
+    for fn in sorted(os.listdir(SRC)):
+        if not (fn.startswith("sq_algo_") and fn.endswith(".c")):
+            continue
+        txt = open(os.path.join(SRC, fn), encoding="utf-8").read()
+        m = re.search(r"#define ALGO_%s_ROW \{(.*?)/\* ALGODESC-END" % name, txt, re.S)
+        if not m:
+            continue
+        body = m.group(1).replace("\\\n", "\n")
+        arrays = {a: re.findall(r'"([^"]*)"', v) for a, v in re.findall(r"const char \*const (\w+)\[\d*\]\s*=\s*\{([^}]*)\}", txt)}
+        r = {"file": fn, "short": None, "knob_morph": None, "morph": []}
+        sm = re.search(r'\.short_name\s*=\s*"([^"]*)"', body)
+        r["short"] = sm.group(1) if sm else None
+        km = re.search(r"\.knob_morph\s*=\s*\{([^}]*)\}", body)
+        r["knob_morph"] = [int(x) for x in km.group(1).split(",") if x.strip()] if km else None
+        mm = re.search(r"\.morph\s*=\s*\{(.*?)\n\s*\},", body, re.S)
+        for e in re.findall(r"\{\s*\"(\w+)\"\s*,([^{}]*)\}", mm.group(1) if mm else ""):
+            f = [x.strip() for x in e[1].split(",")]
+            names = arrays.get(f[5]) if len(f) > 5 and f[5] != "0" else None
+            unit = f[6].strip('"') if len(f) > 6 and f[6] != "0" else None
+            zero = f[7].strip('"') if len(f) > 7 and f[7] != "0" else None
+            r["morph"].append((e[0], int(f[0]), int(f[1]), int(f[2]), names, unit, zero))
+        return r
+    return None
+
+
+def collect_algos(km):
+    """-> (algos, order, problems): per algorithm {short, rows[2][4], fw}; rows from the knob_map.tsv PERF rows; short from the firmware row, else the placeholder"""
+    order = algo_order()
+    shorts = placeholder_shorts(order)
+    algos, probs = {}, []
+    for r in km:
+        if r["page"] != "PERF" or r["context"] == "*" or not re.fullmatch(r"[KS][1-4]", r["knob"]):
+            continue
+        a = algos.setdefault(r["context"], {"rows": [[None] * 4, [None] * 4]})
+        a["rows"]["KS".index(r["knob"][0])][int(r["knob"][1]) - 1] = dict(label=r["label"], at=r["_at"], **parse_value(r["range_default"]))
+    for n, a in algos.items():
+        a["fw"] = firmware_row(n)
+        a["short"] = (a["fw"] or {}).get("short") or shorts.get(n, n)
+        for row in a["rows"]:
+            for k in row:
+                if k and (n, k["label"]) in HOOK_TEXTS:
+                    k["hook"] = HOOK_TEXTS[(n, k["label"])]
+    for n in algos:
+        if order and n not in order:
+            probs.append("knob_map.tsv: PERF context %r is not an SQ_ALGO_ name" % n)
+    return algos, [n for n in order if n in algos] + [n for n in algos if n not in order], probs
+
+
+def value_strings(k, zero=True):
+    """every text the tile can show for knob k"""
+    if k.get("hook"):
+        return k["hook"](k["min"], k["max"])
+    out = []
+    for v in range(k["min"], k["max"] + 1):
+        if v == 0 and k["zero"]:
+            if zero:
+                out.append(k["zero"])
+        elif k["names"]:
+            out.append(k["names"][v - k["min"]])
+        elif k["fmt"]:
+            out.append(k["fmt"] % v)
+        else:
+            out.append(str(v))
+    return out
+
+
+def load_messages():
+    import ast
+    try:
+        tree = ast.parse(open(MOCK_V12, encoding="utf-8").read())
+    except OSError:
+        return None
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(getattr(t, "id", "") == "MESSAGES" for t in node.targets):
+            return ast.literal_eval(node.value)
+    return None
+
+
+def probe_measure(font, strings):
+    """{string: px} in AF_<font> by the real text_w (tests/design/width_probe.sh)"""
+    strings = sorted({x for x in strings if x})
+    if not strings:
+        return {}
+    lines = "\n".join("%s\t9999\t%s\tm" % (font, x) for x in strings) + "\n"
+    p = subprocess.run(["sh", PROBE, "-"], input=lines, text=True, capture_output=True)
+    W = {}
+    for l in p.stdout.splitlines():
+        m = re.match(r"\s*(\d+)\s*/\s*\d+\s+(OK|OVER)\s+`(.*)`\s", l)
+        if m:
+            W[m.group(3)] = int(m.group(1))
+    miss = [x for x in strings if x not in W]
+    if miss:
+        raise RuntimeError("width probe did not measure %r: %s" % (miss[:3], (p.stderr or p.stdout).strip()[:200]))
+    return W
+
+
+def algo_check(algos, order, messages, measure=probe_measure):
+    """the mock's check() over every algorithm row, plus the SCREEN_SPEC_V2 section 5 messages; returns the problems"""
+    bad = []
+    need = {"S": set(), "M": set(), "L": set()}
+    for n in order:
+        a = algos[n]
+        need["M"].add(a["short"])
+        for row in a["rows"]:
+            for k in row:
+                if k:
+                    need["M"].add(k["label"])
+                    for t in value_strings(k):
+                        need["M"].add(t)
+                        need["L"].add(t)
+    for kind, x, y in messages or []:
+        need["S"].update((x, y)); need["M"].update((x, y))
+    W = {f: measure(f, need[f]) for f in need}
+    for n in order:
+        a = algos[n]
+        if len(a["short"]) > SHORT_CHARS or W["M"][a["short"]] > HEADER_PX:
+            bad.append("%s: short name %r does not fit the header (%d chars, %d px of %d)" % (n, a["short"], len(a["short"]), W["M"][a["short"]], HEADER_PX))
+        for r, row in enumerate(a["rows"]):
+            for i, k in enumerate(row):
+                slot = "%s%d" % ("KS"[r], i + 1)
+                if k is None:
+                    bad.append("%s %s: missing (every algorithm fills all 8 knob slots)" % (n, slot))
+                    continue
+                at = k.get("at", n)
+                if len(k["label"]) > SHORT_CHARS or W["M"][k["label"]] > TILE_LABEL_PX:
+                    bad.append("%s: %s %s label %r too wide (%d chars, %d px of %d in AF_M)" % (at, n, slot, k["label"], len(k["label"]), W["M"][k["label"]], TILE_LABEL_PX))
+                if k["names"] and len(k["names"]) != k["max"] - k["min"] + 1:
+                    bad.append("%s: %s %s has %d value names for the range %d..%d" % (at, n, k["label"], len(k["names"]), k["min"], k["max"]))
+                vals = value_strings(k)
+                wl = max([W["L"][t] for t in value_strings(k, zero=False)] or [0])
+                wm = max([W["M"][t] for t in vals] or [0])
+                if wl > VALUE_L_PX and wm > TILE_LABEL_PX:
+                    bad.append("%s: %s %s widest value %r is %d px in AF_L and %d px in AF_M, the tile holds %d" % (at, n, k["label"], max(vals, key=lambda t: W["M"][t]), wl, wm, TILE_LABEL_PX))
+        fw = a.get("fw")
+        if fw:
+            km_ = fw["knob_morph"] or []
+            if len(km_) != 8 or len(fw["morph"]) != 8:
+                bad.append("%s: %s row has %d knob_morph / %d morph entries, wants 8 / 8" % (n, fw["file"], len(km_), len(fw["morph"])))
+                continue
+            if not fw["short"]:
+                bad.append("%s: %s row has no .short_name" % (n, fw["file"]))
+            for s in range(8):
+                k = a["rows"][s // 4][s % 4]
+                lab, mn, mx, df, names, unit, zero = fw["morph"][km_[s]]
+                if k and (lab, mn, mx, df, names, zero) != (k["label"], k["min"], k["max"], k["def"], k["names"], k["zero"]):
+                    bad.append("%s: %s %s (slot %d -> morph %d) disagrees with knob_map.tsv %s: row %r, TSV %r" % (
+                        n, fw["file"], lab, s, km_[s], k.get("at", ""), (lab, mn, mx, df, names, zero), (k["label"], k["min"], k["max"], k["def"], k["names"], k["zero"])))
+    room = SCREEN_W - MSG_X
+    for kind, x, y in messages or []:
+        if kind == "enc":
+            w = W["S"][x] + 6 + 8 + min(W["M"][y], W["S"][y]) if y else W["S"][x] + 14
+        elif kind == "hold":
+            w = 22 + min(W["M"][x], W["S"][x])
+        else:
+            w = 3 + 17 + min(W["M"][x], W["S"][x]) + 6 + (W["S"][y] if y else 0) + 3
+        if w > room:
+            bad.append("SCREEN_SPEC_V2 message (%s, %r, %r) needs %d px, the slot has %d" % (kind, x, y, w, room))
+    return bad
+
+
+def algo_check_run(km, strict):
+    if not os.path.exists(FONTS):
+        if strict:
+            bad("no build/gen/ui_fonts.h: run ./build.sh once, the algorithm widths are measured on its fonts")
+        else:
+            sys.stderr.write("gen_ui_tables: note: no build/gen/ui_fonts.h yet, algorithm widths not measured\n")
+        return 0
+    algos, order, probs = collect_algos(km)
+    for p in probs:
+        bad(p)
+    msgs = load_messages()
+    if msgs is None:
+        bad("MESSAGES not found in %s" % os.path.relpath(MOCK_V12, ROOT))
+    for p in algo_check(algos, order, msgs):
+        bad(p)
+    return len(order)
+
+
+def selftest():
+    """the check passes on the real rows and FAILS on a deliberately too-wide label, short name, value and message"""
+    km = rd("knob_map")
+    if err or not os.path.exists(FONTS):
+        sys.stderr.write("selftest needs build/gen/ui_fonts.h (./build.sh) and a clean knob_map.tsv\n" + "\n".join(err) + "\n")
+        return 1
+    import copy
+    algos, order, probs = collect_algos(km)
+    msgs = load_messages()
+    clean = probs + algo_check(algos, order, msgs)
+    fails = []
+    if clean:
+        fails.append("the real rows should pass, got: %s" % clean[:3])
+    cases = []
+    a = copy.deepcopy(algos); a["ACID"]["rows"][0][0]["label"] = "TOOWIDE"; cases.append(("label of 7 chars", a, msgs, "label 'TOOWIDE' too wide"))
+    a = copy.deepcopy(algos); a["ACID"]["rows"][1][3]["label"] = "WWWWWW"; cases.append(("label of 6 wide chars", a, msgs, "label 'WWWWWW' too wide"))
+    a = copy.deepcopy(algos); a["ACID"]["short"] = "ABCDEFG"; cases.append(("short name of 7 chars", a, msgs, "short name 'ABCDEFG'"))
+    a = copy.deepcopy(algos); a["ACID"]["rows"][0][1]["names"] = ["WWWWWW"] * 3; a["ACID"]["rows"][0][1].update(min=0, max=2, zero=None)
+    cases.append(("value too wide in both fonts", a, msgs, "widest value"))
+    cases.append(("message too long", algos, list(msgs) + [("toast", "WWWWWWWWWWWW", "EDIT=UNDO")], "needs"))
+    a = copy.deepcopy(algos); a["ACID"]["rows"][1][3] = None; cases.append(("missing knob slot", a, msgs, "missing"))
+    for what, al, ms, want in cases:
+        got = algo_check(al, order, ms)
+        if not any(want in g for g in got):
+            fails.append("a %s was not caught (wanted %r in %s)" % (what, want, got[:2]))
+        else:
+            print("gen_ui_tables selftest: %s -> caught: %s" % (what, [g for g in got if want in g][0]))
+    if fails:
+        sys.stderr.write("gen_ui_tables selftest FAILED:\n  " + "\n  ".join(fails) + "\n")
+        return 1
+    print("gen_ui_tables selftest: OK (%d algorithms, %d messages; 6 deliberate misfits caught)" % (len(order), len(msgs)))
+    return 0
+
+
 def emit(t):
     L = ["/* generated by tools/gen_ui_tables.py from the docs/design TSVs (P4-010, ADR-0004): do not edit.",
          "   Flash-resident const tables only; ids are enum values, rows keep the order of their TSV. */",
@@ -318,20 +602,23 @@ def emit(t):
 
 def main(argv):
     check = "--check" in argv
+    if "--selftest" in argv:
+        return selftest()
     args = [a for a in argv if not a.startswith("--")]
     out = args[0] if args else os.path.join(ROOT, "build", "gen", "ui_tables.h")
     t = build()
     if not err:
         text = emit(t)
         width_check(t["labels"], check, t["bm"])
+        t["n_algo"] = algo_check_run(t["km"], check)
     if err:
         sys.stderr.write("gen_ui_tables: %d error(s)\n" % len(err))
         for e in err[:60]:
             sys.stderr.write("  " + e + "\n")
         return 1
     if check:
-        print("gen_ui_tables: OK (%d pages, %d controls, %d knobs; rows: control %d, button %d, knob %d, key %d, help %d)"
-              % (len(t["pages"]), len(t["ctls"]), len(t["knobs"]), len(t["cm"]), len(t["bm"]), len(t["km"]),
+        print("gen_ui_tables: OK (%d algorithms, widths measured; %d pages, %d controls, %d knobs; rows: control %d, button %d, knob %d, key %d, help %d)"
+              % (t["n_algo"], len(t["pages"]), len(t["ctls"]), len(t["knobs"]), len(t["cm"]), len(t["bm"]), len(t["km"]),
                  len(t["ky"]), len(t["ht"])))
         return 0
     os.makedirs(os.path.dirname(out), exist_ok=True)

@@ -59,9 +59,20 @@ typedef struct {
 #define PO_TIE        0x80   /* PATTERNS: the gate holds into the next sounding step (P2-017; the stored T flag of a library pattern) */
 _Static_assert(sizeof(PulseOut) == 6, "PulseOut");
 
-typedef struct { char label[7]; uint8_t min, max, def, step, fast; } MorphDesc;  /* label <= 6 chars + NUL; step per slow detent, fast per detent under 40 ms; 12 B */
+/* ADR-0007 (P4-027): the descriptor also carries what the screen needs, so the screen code names no algorithm. The UI fields of MorphDesc:
+ * names = value names indexed by (value - min) (NULL = a number; up to SQ_NAMES_MAX entries get position dots on the tile), unit = the
+ * suffix of a number ("OCT" -> "2 OCT"), zero = the word shown for value 0 (DENS 0 -> "KEYS"). All three are NULL for a plain number.
+ * Const data in flash. */
+#define SQ_NAMES_MAX  10         /* a value list longer than this gets a meter, not dots (the dots would be < 3 px) */
+#define SQ_VTEXT_MAX  8          /* bytes the value_text hook may write, NUL included */
+#define SQ_LANE_PITCHED 0        /* AlgoDesc.lane: the music row draws pitch bars */
+#define SQ_LANE_SINGLE  1        /* one pitch: the music row draws a fixed hit block (EUCLID) */
+typedef struct { char label[7]; uint8_t min, max, def, step, fast; const char *const *names; const char *unit; const char *zero; } MorphDesc;  /* label <= 6 chars + NUL; step per slow detent, fast per detent under 40 ms; 12 B + 3 pointers */
 typedef struct { uint8_t n; uint8_t seed[2]; } LayerDesc;                        /* n = 0: layer absent (dimmed); 3 B */
-_Static_assert(sizeof(MorphDesc) == 12, "MorphDesc");
+/* ADR-0003 amendment (ADR-0007): MorphDesc was 12 B, is 24 B on the device (32-bit pointers; 40 B on a 64-bit host, where the pointer
+ * alignment pads the 12 B head to 16). The table is const in flash; no stored layout changes. */
+_Static_assert(sizeof(MorphDesc) == (sizeof(void *) == 4 ? 24u : 40u), "MorphDesc");
+_Static_assert(offsetof(MorphDesc, names) == (sizeof(void *) == 4 ? 12u : 16u), "MorphDesc layout");
 _Static_assert(sizeof(LayerDesc) == 3, "LayerDesc");
 
 /* Global performance settings. 6 B saved + 12 B derived = 18 B */
@@ -214,12 +225,18 @@ typedef struct AlgoDesc {
     MorphDesc  morph[SQ_NMORPH];           /* label / min / max / def / steps, indexed by MORPH ID (build()'s m[]) */
     LayerDesc  layer[SQ_NLAYER];           /* shared layer -> seed ids (n = 0 absent). THE dice remap table */
     char       sub[SQ_NLAYER][8];          /* dice sub-labels; "-" for an absent layer */
+    char       short_name[7];              /* ADR-0007: the header slot, <= 6 chars + NUL ("PATT" for PATTERNS); "" = use name */
+    uint8_t    lane;                       /* ADR-0007: SQ_LANE_PITCHED or SQ_LANE_SINGLE */
     void     (*build)(const uint8_t m[SQ_NMORPH], const uint16_t seed[SQ_NSEED], const SeqGlobal *g, void *cache);
     uint8_t  (*loop_len)(const void *cache);                          /* positions of the visible loop, 2..64 */
     void     (*step)(const void *cache, uint32_t g, const HarmChord *hc, PulseOut *out);  /* hc is NULL unless AF_CHORD */
     uint8_t  (*hi)(const uint8_t m[SQ_NMORPH]);                       /* highest semitone above the base the algorithm can emit (ADR-0003 section 20) */
     uint8_t  (*sub_note)(const void *cache, uint32_t g, uint8_t k, const HarmChord *hc);   /* ARP repeat pitch; NULL for the others */
     void     (*mod)(const void *cache, uint32_t g, const HarmChord *hc, const PulseOut *o, ModIdx *out);   /* the mod lanes' indices; pure like step() */
+    uint8_t  (*value_text)(uint8_t morph, uint8_t value, const void *cache, char *buf);   /* ADR-0007, optional: algorithm-only tile text (PATTERNS PICK "HSE 3", STAGE TOTAL "48(32)"); writes <= SQ_VTEXT_MAX B incl. NUL, returns the length, 0 = none (use names / unit / zero / number). cache may be NULL */
 } AlgoDesc;
+/* ADR-0003 amendment (ADR-0007): AlgoDesc grows by short_name[7] + lane, the value_text pointer and 8 x (MorphDesc + 12 B). Device (32-bit) 312 B,
+ * 64-bit host 472 B. ALGOS[] is const (flash): no RAM, no stored layout. */
+_Static_assert(sizeof(AlgoDesc) == (sizeof(void *) == 4 ? 312u : 472u), "AlgoDesc");
 
 #endif /* SQ_TYPES_H */

@@ -133,6 +133,8 @@ static void acid_mod(const void *cache, uint32_t g, const HarmChord *hc, const P
 /* Highest semitone above the base: pitch class 11 (or 12, the next key note, when the scale snaps up) plus octave +2 once JUMP > 0 */
 static uint8_t acid_hi(const uint8_t m[SQ_NMORPH]) { return (uint8_t)(m[M_JUMP] ? 36 : 12); }
 
+static const char *const acid_dir_names[3] = { "FWD", "BWD", "PEND" };   /* ADR-0007: MorphDesc.names of DIR (knob_map.tsv: dir FWD BWD PEND) */
+
 /* The descriptor, SPEC.md section 5, line for line. It is the macro ALGO_ACID_ROW (each line ends in a backslash, the only edit) instead of
  * `const AlgoDesc ALGO_ACID = {...}`: C does not accept a const object as an element of the const ALGOS[] initializer (sq_algos.c, error
  * "initializer element is not a compile-time constant" on the device clang), so the table row is this brace list itself. */
@@ -142,17 +144,18 @@ static uint8_t acid_hi(const uint8_t m[SQ_NMORPH]) { return (uint8_t)(m[M_JUMP] 
     .knob_morph = { 0, 5, 2, 3, 4, 1, 6, 7 }, \
     .seed_k = { 1, 2, 3, 4, 5, 6 }, \
     .morph = { \
-        { "DENS",   0, 16, 12, 1, 1 }, \
+        { "DENS",   0, 16, 12, 1, 1, 0, 0, "KEYS" }, \
         { "PEDAL",  0, 12,  6, 1, 1 }, \
         { "JUMP",   0, 20,  5, 1, 1 }, \
         { "ACCNT",  0,  8,  3, 1, 1 }, \
         { "OFFSET", 0, 15,  0, 1, 1 }, \
         { "SLIDE",  0,  8,  4, 1, 1 }, \
         { "PUNCH",  0, 47, 40, 1, 4 }, \
-        { "DIR",    0,  2,  0, 1, 1 }, \
+        { "DIR",    0,  2,  0, 1, 1, acid_dir_names }, \
     }, \
     .layer = { {1, {0}}, {1, {1}}, {1, {4}}, {2, {3, 5}}, {2, {2, SQ_SEED_MOD}} }, \
     .sub = { "NOTES", "HITS", "ACCNT", "GT+SLD", "OCTAVE" }, \
+    .short_name = "ACID", .lane = SQ_LANE_PITCHED, \
     .build = acid_build, .loop_len = acid_loop_len, .step = acid_step, .hi = acid_hi, .sub_note = 0, .mod = acid_mod, \
 }
 /* ALGODESC-END */

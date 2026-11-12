@@ -16,7 +16,7 @@ CMN="$ALG/common"
 T=$(mktemp -d "${TMPDIR:-/tmp}/protos.XXXXXX")
 trap 'rm -rf "$T"' EXIT
 CC=${CC:-cc}
-CF="-std=c11 -Wall -Wextra -Werror -O1 -fno-strict-aliasing"
+CF="-std=c11 -Wall -Wextra -Werror -Wno-missing-field-initializers -O1 -fno-strict-aliasing"
 fail() { echo "PROTOS FAIL: $1" >&2; exit 1; }
 
 # 1. only stdint / stddef / stdbool / stdarg in the firmware-bound files
