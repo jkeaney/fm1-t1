@@ -105,9 +105,9 @@ only in specs and in the diced-layer toast, never as the button label. At most 5
 | `HITS` | `s_hits` (HITS) | `s_rot` (ROT, the phase of the evenly spaced hits) | `s_gates` (GATES) | `s_rests` (RESTS) |
 | `ACCNT` | `s_acc` (ACCNT) | `s_acc` (ACCNT) | `s_vel` (VEL) | `s_vel` (VEL) |
 | `ARTIC` | `s_gate` (GATE) **and** `s_slide` (SLIDE), one press re-rolls both | `s_rat` (RATCH) | - | `s_mode` (MODE: which stages ratchet or hold) |
-| `SHAPE` | `s_oct` (OCT, register jumps) | - | `s_poly` (POLY, velocity-lane length) | `s_lens` (LENS, which stages are long) |
+| `SHAPE` | `s_oct` (OCT, register jumps) | `s_mod` only (MOD, the mod lanes; P2-022) | `s_poly` (POLY, velocity-lane length) | `s_lens` (LENS, which stages are long) |
 | Seeds in the algorithm | 6 | 4 | 4 | 5 |
-| Layers present of 5 | 5 | 4 | 4 | 5 |
+| Layers present of 5 | 5 | 5 | 4 | 5 |
 
 Coverage check: every assessed layer maps to exactly one shared layer (ACID 6 of 6, EUCLID 4 of 4, SNAKE 4 of 4,
 STAGE 5 of 5, no orphans). MELODY, ARP and RHYTHM layers also map (deferred check): MELODY NOTES/RESTS/OCT/GATE/ACCNT ->
@@ -119,7 +119,7 @@ HITS, ALT -> NOTES, VEL -> ACCNT, ROLL -> ARTIC. So adding the deferred three ne
 | Action | Effect | Per algorithm |
 | --- | --- | --- |
 | Dice layer L | Replace the seed(s) bound to L with the low 16 bits of the audio sample counter at the press (EUCLID ROT: forced to 1 if 0). Store the old seed as the "previous" seed. | A layer bound to 2 seeds (ACID `ARTIC`) re-rolls both with two different counter reads (second read XOR 0x5A5A) and stores both previous seeds. |
-| Dice all | Dice every layer present for the active algorithm in the order NOTES, HITS, ACCNT, ARTIC, SHAPE. Skips absent layers. | ACID 6 seeds, EUCLID 4, SNAKE 4, STAGE 5. |
+| Dice all | Dice every layer present for the active algorithm in the order NOTES, HITS, ACCNT, ARTIC, SHAPE. Skips absent layers (today only SNAKE ARTIC). | ACID 6 seeds, EUCLID 4 (+ the mod seed), SNAKE 4, STAGE 5. |
 | Undo dice | Recall each seed's previous seed once (one level). A second undo does nothing (previous == current). | Per seed, so undoing ACID `ARTIC` restores GATE and SLIDE together. Undo of a dice-all restores all layers. |
 | Physical buttons (P1-014 revision, B2) | NOTES = SCL, HITS = SEQ, ACCNT = ENV, ARTIC = ARP, SHAPE = LFO, dice-all = FX, all on press. Undo = EDIT tap (a second tap redoes: undo swaps each seed with its previous seed; it also covers pin edits, written REC notes and resets). Reset = hold EDIT, then FX (whole algorithm), a dice button (that layer's seeds), a knob (one morph), OCT- / OCT+ (a row). Source: PERFORMANCE_DESIGN.md 2 and 4.1. |
 
@@ -132,8 +132,8 @@ second binding row (for example `ARTIC` long press = SLIDE only), which costs no
 
 | Case | Behaviour (normative) |
 | --- | --- |
-| Algorithm lacks layer L (EUCLID `SHAPE`; SNAKE `ARTIC`) | The button label is drawn dimmed with a dash after it (`SHAPE -`). Pressing it changes nothing: no seed changes, no undo entry, no sound change. A 0.5 s toast reads `NO SHAPE IN EUCLID`. LED unchanged. Dice-all and undo skip it. |
-| Sub-label (P1-012, S2) | Under every dice button's shared name the screen draws the algorithm's own layer name, max 6 characters: ACID `NOTES HITS ACCNT GT+SLD OCTAVE`; EUCLID `NOTES ROTATE ACCNT RATCH -`; SNAKE `NOTES GATES VELO - DRIFT`; STAGE `NOTES RESTS VELO RT+HLD LONG`; ARP `VARY RESTS VELO LENGTH PHASE`. A sub-label equal to the main label is drawn once. |
+| Algorithm lacks layer L (today only SNAKE `ARTIC`; EUCLID `SHAPE` is the live `MOD` layer since P2-022) | The button label is drawn dimmed with a dash after it (`ARTIC -`). Pressing it changes nothing: no seed changes, no undo entry, no sound change. A 0.5 s toast reads `NO ARTIC IN SNAKE`. LED unchanged. Dice-all and undo skip it. |
+| Sub-label (P1-012, S2) | Under every dice button's shared name the screen draws the algorithm's own layer name, max 6 characters: ACID `NOTES HITS ACCNT GT+SLD OCTAVE`; EUCLID `NOTES ROTATE ACCNT RATCH MOD`; SNAKE `NOTES GATES VELO - DRIFT`; STAGE `NOTES RESTS VELO RT+HLD LONG`; ARP `VARY RESTS VELO LENGTH PHASE`. A sub-label equal to the main label is drawn once. The SHAPE sub-labels keep the primary names (owner 2026-11-12, LOCK 6 item 4): `OCTAVE DRIFT LONG PHASE UP/DN`, `MOD` for EUCLID; the dice toast adds `+ MOD` when the mod seed moves too. |
 | Why not hide or remap it | Rule 1: a control keeps its position and meaning; a missing layer is honest and learnable. Never remap a button to a different layer per algorithm. |
 | Switching algorithm while a layer is dimmed | The label un-dims when the new algorithm has the layer. The layer table is the only thing read (`layer_present[algo][layer]`). |
 
@@ -212,7 +212,7 @@ Applied by the P2-008 prototype task or a doc-edit task after the owner approves
 | sting.md | 6.1 + section 6 bullets | Knob slots: `den` becomes K1, `typ` becomes K2 (swap); `jmp` K3 and `acc` K4 unchanged. Label order in text: K1 `DENS`, K2 `TYPE`, K3 `JUMP`, K4 `ACCNT`. |
 | sting.md | 3, 6, 6.6 | Add a column "Shared layer": NOTES->`NOTES`, HITS->`HITS`, OCT->`SHAPE`, GATE and SLIDE->`ARTIC` (one press dices both seeds), ACCNT->`ACCNT`. |
 | sting.md | 6.1, 6.5 | Pins: store `pin_note[16]` (semitone offset from base, 0..96) instead of `pin_pitch[16]` pitch class 0..11, to match SNAKE/STAGE/EUCLID (primitive SP8). The pin plays as its pitch class in octave 0 by default; octave comes from the key, as in the others. |
-| t1.md | 3, 6 | Add the shared-layer column: ROT->`HITS`, NOTES->`NOTES`, ACCENT->`ACCNT`, RATCH->`ARTIC`; `SHAPE` absent. Knobs unchanged. |
+| t1.md | 3, 6 | Add the shared-layer column: ROT->`HITS`, NOTES->`NOTES`, ACCENT->`ACCNT`, RATCH->`ARTIC`; `SHAPE` is the mod seed only (`MOD`, P2-022). Knobs unchanged. |
 | t1.md | 6.8, 7.7 | Change the shared snap from "down only" to nearest with ties to the lower pitch class (primitive SP6); `t1_harmony_quantize` is changed once for all algorithms. |
 | snake.md | 6.1, section 6 | Knob slots: `den` K1 (was K3), `len` K2 (unchanged), `rng` K3 (was K4), `shp` K4 (was K1). |
 | snake.md | 6.1 | `rng` default 24 becomes **12** (question 5: a bass-sized default; one octave). |
@@ -261,7 +261,7 @@ order. Each step ends with its golden test passing before the next starts.
 | --- | --- | --- | --- |
 | 0 | Shared primitives SP1, SP2, SP3, SP4, SP6, SP7, SP8, SP9, SP12, SP13, SP14, SP15 with golden tests. | ADR-0003, locked global controls (P2-001, P2-004) | Everything else is built on them; settles the scale (F1, F2) and quantise direction once. |
 | 1 | `ACID` | step 0 | Reference workflow, uses all 5 layers and 6 seeds, so it validates the layer table, undo, the slide overlap and the 5-button model. Fixes the display and scenario shape for the rest. |
-| 2 | `EUCLID` (+ SP5, SP10 SHAPES, SP11) | step 1; F3 fixed first | Smallest delta: existing verified code, rhythm-first alternative to ACID's random-order hits, first test of an absent layer (`SHAPE -`). |
+| 2 | `EUCLID` (+ SP5, SP10 SHAPES, SP11) | step 1; F3 fixed first | Smallest delta: existing verified code, rhythm-first alternative to ACID's random-order hits, first algorithm whose SHAPE layer is the mod seed only (`MOD`; it was the first absent-layer test before P2-022). |
 | 3 | `SNAKE` (+ 14 traversal tables) | step 1 | Adds table data and lane lengths, no new core mechanism; second absent-layer case (`ARTIC -`). |
 | 4 | `STAGE` | steps 1 to 3 | Most complex: variable loop length 8 to 64, cumulative-sum lookup, long holds, TOTAL knob step sizes, SP5 as pulse re-fire, within-one-pulse commit. Built last on a proven core. |
 | 5 | `ARP` (P2-013) | HARMONY (P2-012) and core additions AM-1 to AM-4 | Reads the chord through the HARMONY query interface, so it follows the four algorithms; adds only a `step` argument, a sub-note hook and the always-on chord chip. Stateless, cache 48 B. |

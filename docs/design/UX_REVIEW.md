@@ -326,7 +326,7 @@ detent, 4 per detent when turned fast on ranges over 32 values): FULL_CONTROL.md
 > P1-014 revision: the button positions in this section are the P1-012 / P1-013 ones and are **current again** (scheme B2): `FX` ALL, `SCL` NOTES, `SEQ` HITS, `ENV` ACCNT, `ARP` ARTIC, `LFO` SHAPE (all press-only), `EDIT` tap = UNDO. (The first P1-014 version had moved them into layer order; withdrawn.) Layer meanings, seeds and sub-labels below are unchanged.
 
 Main label (always the shared name) / sub-label (the algorithm's own layer, max 6 characters) / seeds diced.
-`-` = absent: the button is drawn dimmed as `SHAPE -`, a press changes nothing and shows `NO SHAPE IN EUCLID` for
+`-` = absent: the button is drawn dimmed as `ARTIC -` (SNAKE only), a press changes nothing and shows `NO ARTIC IN SNAKE` for
 0.5 s (ALGORITHM_SET 4.4).
 
 | Button (printed) | Layer | ACID | EUCLID | SNAKE | STAGE | Score |
@@ -355,7 +355,7 @@ Main label (always the shared name) / sub-label (the algorithm's own layer, max 
 | File | Edit |
 | --- | --- |
 | sting.md 6, 6.1 | Knob slots K1 `DENS`, K2 `PEDAL` (rename of `TYPE`), K3 `JUMP`, K4 `ACCNT`; `den` range 0..16. Shared-layer column; ARTIC = GATE + SLIDE (one press); sub-labels `GT+SLD`, `OCTAVE`. Pins as `pin_note[16]` (ALGORITHM_SET 5.4). |
-| t1.md 6, 6.1 | `hit` range 0..16 (0 = keys only). Sub-labels `ROTATE` (HITS), `RATCH` (ARTIC); SHAPE absent. |
+| t1.md 6, 6.1 | `hit` range 0..16 (0 = keys only). Sub-labels `ROTATE` (HITS), `RATCH` (ARTIC), `MOD` (SHAPE, the mod seed only; P2-022). |
 | snake.md 6, 6.1 | Slots K1 `DENS` 0..16, K2 `LEN`, K3 `RANGE` default 12, K4 `PATH`. Sub-labels `GATES`, `VELO`, `DRIFT`; ARTIC absent. |
 | ml185.md 6, 6.1 | Slots K1 `DENS` 0..8, K2 `TOTAL`, K3 `RANGE`, K4 `RATCH`. Sub-labels `RESTS`, `VELO`, `RT+HLD`, `LONG`. |
 | all four 6.5 | Step entry gesture is now specified (P1-014): white key = step (no REC tap), hold + K1 = pitch by scale degree, OCT+ then K4 = octave (this document W4). Pins are snapped at output (S4). |

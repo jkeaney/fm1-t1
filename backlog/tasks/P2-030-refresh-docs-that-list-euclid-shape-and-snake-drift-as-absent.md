@@ -3,7 +3,7 @@ id: P2-030
 title: Refresh the docs that still list EUCLID SHAPE and SNAKE DRIFT as absent layers
 phase: P2
 type: task
-status: todo
+status: review
 priority: 2
 executor: sonnet
 depends_on: [P2-017]
@@ -21,9 +21,9 @@ After P2-022 made EUCLID SHAPE and SNAKE DRIFT real MOD layers, make every desig
 - Generated tables regenerated with their generators (gen_help.py, gen_sweeps.py), not hand-edited.
 
 ## Acceptance criteria
-- [ ] `grep -rniE "SHAPE.*absent|absent.*SHAPE|DRIFT.*absent|absent.*DRIFT" docs/design` finds no remaining stale claim
-- [ ] `python3 tests/design/check_scenarios.py`, `check_help.py` and `sh tests/design/width_probe.sh` pass
-- [ ] `python3 tools/backlog.py check` reports 0 errors
+- [x] `grep -rniE "SHAPE.*absent|absent.*SHAPE|DRIFT.*absent|absent.*DRIFT" docs/design` finds no remaining stale claim
+- [x] `python3 tests/design/check_scenarios.py`, `check_help.py` and `sh tests/design/width_probe.sh` pass
+- [x] `python3 tools/backlog.py check` reports 0 errors
 
 ## Verification
 ```sh
@@ -38,3 +38,7 @@ n/a, documentation consistency only; it records a layer change already designed 
 - Firmware; ADR-0003 and HARMONY.md (P2-029).
 
 ## Log
+
+### 2026-11-12 executor (sonnet)
+Edited: ALGORITHM_SET.md (4.2 matrix, layers-present row, dice-all, 4.4 rows, sub-labels with `MOD` and the `+ MOD` toast rule, t1 row, build-order row), SCREEN_SPEC 2.7, UX_REVIEW (329, 358), SEQUENCER_UX row 22, PERFORMANCE_DESIGN (89, 130, 312), CONTROL_MAP.md, control_map.tsv, button_modes.tsv (B_LFO row: "never dim: every algorithm has it"), hardware/TB3_PROFILE, HW_SUPPORT_LOWLEVEL, HW_SUPPORT_HIGHLEVEL, scenarios/FINDINGS, widths.tsv (dead `NO SHAPE IN EUCLID` removed; `NO ARTIC IN SNAKE` added, 106 of 240 px), gen_help.py (B_LFO line 2). Regenerated help_text.tsv (gen_help.py) and S09..S22 sweeps (gen_sweeps.py). SNAKE DRIFT was never listed absent; SNAKE ARTIC stays absent (correct). Left as history: P2-016/P2-017 feature files and change notes. The grep still matches only correct statements (SNAKE ARTIC absent, "no longer absent" notes, history).
+Results: check_scenarios `0 with no scenario`; check_help `OK: 392 help rows`; width_probe `297 strings, 0 over`; backlog check `134 items, 0 errors`.

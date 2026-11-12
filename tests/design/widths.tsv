@@ -95,7 +95,6 @@ S	240	ONE PAGE: K1 = SHORTER	toast (2.7): 240 px
 S	240	ONE ROW HERE	toast (2.7): 240 px
 S	240	VIEW P2 . FOLLOW OFF	toast (2.7): 240 px
 S	240	ACID REPEATS EVERY 16	toast (2.7): 240 px
-S	240	NO SHAPE IN EUCLID	toast (2.7): 240 px
 S	240	LOAD UNDONE: P03	toast (2.7): 240 px
 S	240	LOAD REDONE: P02	toast (2.7): 240 px
 S	240	SAVED P05	toast (2.7): 240 px
@@ -301,3 +300,4 @@ S	56	CUE 12	Z1 cell line 2, MIDI gate closed and PREVIEW on
 S	56	CUE OFF	Z1 cell line 2, MIDI OFF and PREVIEW on
 # ---- P2-017 (EUCLID SHAPE is alive: sub-label MOD; the six-name picker is already above, P2-013 / P2-014)
 S	42	MOD	EUCLID dice sub-label under LFO (P2-017; was `-`)
+S	240	NO ARTIC IN SNAKE	toast (2.7): 240 px

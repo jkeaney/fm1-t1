@@ -36,7 +36,7 @@ put("B_SCL", "RESET", "RST NT: notes seeds to factory", "edits stay; EDIT = undo
 put("B_ENV", DICE + " REC", "ACCNT: re-roll which are loud", "ENV; VELO edits stay")
 put("B_ENV", "NOTE_EDIT", "ENV: accent on this step", "120 or back; EDIT = undo")
 put("B_ENV", "RESET", "RST AC: accent seeds to factory", "edits stay; EDIT = undo")
-put("B_LFO", DICE + " REC", "SHAPE: re-roll the register", "LFO; dim if this algo has none")
+put("B_LFO", DICE + " REC", "SHAPE: re-roll the register", "LFO; every algo has it")
 put("B_LFO", "NOTE_EDIT", "LFO: chance 100% / 50%", "same draw every pass")
 put("B_LFO", "RESET", "RST SH: shape seeds to factory", "edits stay; EDIT = undo")
 put("B_EDIT", DICE, "EDIT: tap = undo / redo", "hold 0.4 s: RESET what you touch")

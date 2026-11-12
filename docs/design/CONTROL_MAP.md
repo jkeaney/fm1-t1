@@ -31,7 +31,7 @@ Inputs: [VISION.md](../project/VISION.md), [ADR-0004](../project/decisions/ADR-0
   (0.3, 0.4, 0.5 or 0.6 s; default **0.4 s**); HOME, SAVE and the two scene keys use a fixed **0.7 s** hold. A button with a hold role
   acts on **release** when tapped; every other control acts on **press**. The six dice buttons have **no hold role**, so they act on press
   (up to 0.4 s earlier than the approved tap-on-release NOTES dice). HOME's hold-plus-control (HELP) cancels the menu hold.
-- **Dice sub-labels.** The five layer dice show a shared main label and the selected algorithm's own layer name as a sub-label (`NOTES +sub`); a layer the algorithm lacks is dimmed, inert, and toasts `NO SHAPE IN EUCLID` for 0.5 s.
+- **Dice sub-labels.** The five layer dice show a shared main label and the selected algorithm's own layer name as a sub-label (`NOTES +sub`); a layer the algorithm lacks is dimmed, inert, and toasts (today only SNAKE ARTIC: `NO ARTIC IN SNAKE`) for 0.5 s.
 - **Next-step commit.** Morphs, dice, algorithm and scale changes are heard from the next step. A preset load or a scene recall is heard at the next bar (768 ticks).
 - **Momentary state.** SOLO, FILL and ROLL are held controls: they act on press and the state returns on release. They are never latched. (MUTATE was removed by the P1-014 revision.)
 
@@ -209,12 +209,12 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `B_ENV` | `RESET` | tap: press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (ACCENT); RESET closes; EDIT tap undoes // hold: no hold role: acted once on press | `RST AC` |
 | `B_ENV` | `HELP` | tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens | `?` |
 | `B_ENV` | `MENU` | tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `close` |
-| `B_LFO` | `PERF` | tap: press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent; algorithm sub-label under it // hold: no hold role: acted once on press | `SHAPE` |
+| `B_LFO` | `PERF` | tap: press: dice the SHAPE layer (register jumps, slot lengths, drift, mod lanes); never dim: every algorithm has it; algorithm sub-label under it // hold: no hold role: acted once on press | `SHAPE` |
 | `B_LFO` | `NOTE_EDIT` | tap: press: toggle PROB on the edited step: 100 % / 50 % (PROB_LOW), drawn deterministically per pass; EDIT tap undoes // hold: no hold role: acted once on press | `PROB` |
-| `B_LFO` | `CHAN` | tap: press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent; algorithm sub-label under it // hold: no hold role: acted once on press | `SHAPE` |
-| `B_LFO` | `SET` | tap: press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent; algorithm sub-label under it // hold: no hold role: acted once on press | `SHAPE` |
+| `B_LFO` | `CHAN` | tap: press: dice the SHAPE layer (register jumps, slot lengths, drift, mod lanes); never dim: every algorithm has it; algorithm sub-label under it // hold: no hold role: acted once on press | `SHAPE` |
+| `B_LFO` | `SET` | tap: press: dice the SHAPE layer (register jumps, slot lengths, drift, mod lanes); never dim: every algorithm has it; algorithm sub-label under it // hold: no hold role: acted once on press | `SHAPE` |
 | `B_LFO` | `SCALE` | tap: press: BARS, the phrase length: 1..8 bars, one step per press, wrapping after 8 to the chord count (never fewer bars than chords); heard at the next phrase start // hold: no hold role: acted once on press | `BARS` |
-| `B_LFO` | `REC` | tap: press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent (performing while recording is allowed) // hold: no hold role: acted once on press | `SHAPE` |
+| `B_LFO` | `REC` | tap: press: dice the SHAPE layer (register jumps, slot lengths, drift, mod lanes); never dim: every algorithm has it (performing while recording is allowed) // hold: no hold role: acted once on press | `SHAPE` |
 | `B_LFO` | `RESET` | tap: press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (PROB); RESET closes; EDIT tap undoes // hold: no hold role: acted once on press | `RST SH` |
 | `B_LFO` | `HELP` | tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens | `?` |
 | `B_LFO` | `MENU` | tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `close` |

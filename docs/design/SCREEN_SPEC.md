@@ -137,7 +137,7 @@ dash. A button whose tap label differs from the printed word (RST, CANCEL, BACK)
 
 ### 2.7 Toasts (the transient message, F-03)
 
-About 35 locked behaviours answer with a toast (`SAVED P03`, `UNDO: <what>`, `NO SHAPE IN EUCLID`, `ONE ROW HERE`,
+About 35 locked behaviours answer with a toast (`SAVED P03`, `UNDO: <what>`, `NO ARTIC IN SNAKE`, `ONE ROW HERE`,
 `PAST THE END: CHAN K1 = LENGTH`, `64 STEPS = MAX`, ...). There is **no separate toast zone**: a toast is drawn in the Z6
 rectangle (0,224,240,12) and temporarily replaces the cue strip.
 

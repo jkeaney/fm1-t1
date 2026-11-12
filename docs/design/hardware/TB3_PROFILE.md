@@ -160,7 +160,7 @@ What the profile does about it, whatever the unknowns turn out to be (LOWLEVEL 9
 | HITS | HITS | ROTATE | GATES | RESTS | RESTS | ORDER |
 | ACCNT | ACCNT | ACCNT | VELO | VELO | VELO | ACCNT |
 | ARTIC | GT+SLD | RATCH | **absent** | RT+HLD | LENGTH | SLIDES |
-| SHAPE | OCTAVE | **absent** | DRIFT | LONG | PHASE | UP/DN |
+| SHAPE | OCTAVE | **MOD** | DRIFT | LONG | PHASE | UP/DN |
 
 ### 13.2 What each dice button re-rolls on the device (default lanes)
 
@@ -170,7 +170,7 @@ What the profile does about it, whatever the unknowns turn out to be (LOWLEVEL 9
 | HITS | **SCTYP** (new scatter flavour at the next bar line) | yes (HITS exists in all six) |
 | ACCNT | **CUT, PAD-Z, SCDEP** (the ACC lanes follow the accents) | yes |
 | ARTIC | **RESO** (and EFFEC if the player gave it a lane) | SNAKE has no ARTIC: the button is dim; set application writes SHAPE instead |
-| SHAPE | **ENV-X, PAD-Y** | EUCLID has no SHAPE: set application writes HITS instead (ENV-X then re-aims with the rhythm) |
+| SHAPE | **ENV-X, PAD-Y** | EUCLID SHAPE is `MOD` (the mod seed only, P2-022), so ENV-X and PAD-Y ride the mod lanes there and re-roll with that seed |
 | ALL | every wire with a layer | yes |
 
 ### 13.3 Suggested RIDE per family (the morph that scales MOVE; **default is none**, so S21's numbers hold)

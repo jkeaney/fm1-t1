@@ -86,7 +86,7 @@ under the table. The per-context detail (six contexts, 294 rows) is control_map.
 | `FX` | effect: all layers | press: DICE ALL | `ALL` |
 | `SCL` | pitch layer | press: dice NOTES | `NOTES` + algorithm sub-label |
 | `ENV` | accent layer | press: dice ACCNT | `ACCNT` + sub |
-| `LFO` | shape layer | press: dice SHAPE (dim if absent) | `SHAPE` + sub |
+| `LFO` | shape layer | press: dice SHAPE (never dim: every algorithm has it) | `SHAPE` + sub |
 | `EDIT` | take back | tap: UNDO / REDO (dice, pin edit, written note, reset); hold: the RESET layer | `UNDO` |
 | `GLO` | global | tap: SET page (latched); hold: while held | `SET` |
 | `HOME` | home | tap: back to this screen from anywhere; hold: `touch = HELP, let go = MENU`; release after 0.7 s with nothing touched: MENU | `HOME`, `BACK` |
@@ -127,7 +127,7 @@ dimming) does; the layer order of the screen's button picture is the panel's own
 | `SEQ` | HITS | `HITS` | `ROTATE` | `GATES` | `RESTS` | HITS seed to factory |
 | `ENV` | ACCNT | `ACCNT` | `ACCNT` | `VELO` | `VELO` | ACCNT seed to factory |
 | `ARP` | ARTIC | `GT+SLD` | `RATCH` | dim `-` | `RT+HLD` | ARTIC seed to factory |
-| `LFO` | SHAPE | `OCTAVE` | dim `-` | `DRIFT` | `LONG` | SHAPE seed to factory |
+| `LFO` | SHAPE | `OCTAVE` | `MOD` | `DRIFT` | `LONG` | SHAPE seed to factory |
 
 (Sub-labels from ALGORITHM_SET 4.4; the layer-to-seed matrix 4.2 is unchanged.) The cue strip names the dice only as they are used and HELP explains any of them, which is why their L is 2 and not 3 (section 7).
 
@@ -309,7 +309,7 @@ Rules: **any other control also counts as dismissing** (the strip clears and the
 | 8 | "A key does nothing" (past the pattern length) | the key is dim; toast `PAST THE END: hold PAGE + key` |
 | 9 | "Where is the rest of my pattern?" (more than 16 steps) | lane header `PG 1/4`, page map, `> P3` playhead marker; PAGE |
 | 10 | "I pressed REC and the keys play notes instead of setting steps" | banner `REC`, LED lit, strip `REC: PLAY KEYS TO WRITE  REC=done`; tap REC or HOME |
-| 11 | "The dice button does nothing" (layer absent) | dimmed label `SHAPE -` and toast `NO SHAPE IN EUCLID` |
+| 11 | "The dice button does nothing" (layer absent) | dimmed label `ARTIC -` and toast `NO ARTIC IN SNAKE` (SNAKE is the only algorithm with an absent layer; EUCLID SHAPE is the live `MOD` layer) |
 | 12 | "Nothing at all on screen changes" (SCREEN OFF / wake) | any control wakes the screen without acting (existing MENU > MIDI SCREEN WAKE) |
 | 13 | "I am in the menu" | the menu has its own title; every button reads `close`; all 27 keys are inert; HOME tap leaves |
 | 14 | "I held a step key and the knobs changed meaning" | the step band replaces the knob band and the strip says `STEP n: KEY=PITCH  K=EDIT` |

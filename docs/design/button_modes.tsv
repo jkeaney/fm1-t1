@@ -53,17 +53,17 @@ HELP	B_ENV	tap	explain this control on the page beneath (help box + cue strip); 
 HELP	B_ENV	hold	as tap (explain while HOME stays down); nothing else happens	?	HELP: touch to learn, nothing acts
 MENU	B_ENV	tap	press: closes the menu (no other action)	close	Felucca menu rule (unchanged)
 MENU	B_ENV	hold	as tap (the menu has no hold roles; HOME hold 0.7 s also closes)	close	Felucca menu rule (unchanged)
-PERF	B_LFO	tap	press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent; algorithm sub-label under it	SHAPE	printed LFO = movement: shape and chance
+PERF	B_LFO	tap	press: dice the SHAPE layer (register jumps, slot lengths, drift, mod lanes); never dim: every algorithm has it; algorithm sub-label under it	SHAPE	printed LFO = movement: shape and chance
 PERF	B_LFO	hold	no hold role: acted once on press	SHAPE	dice buttons act on press (B2)
 NOTE_EDIT	B_LFO	tap	press: toggle PROB on the edited step: 100 % / 50 % (PROB_LOW), drawn deterministically per pass; EDIT tap undoes	PROB	printed LFO = movement: shape and chance (NOTE EDIT: the same layer, for this one step)
 NOTE_EDIT	B_LFO	hold	no hold role: acted once on press	PROB	dice buttons act on press (B2)
-CHAN	B_LFO	tap	press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent; algorithm sub-label under it	SHAPE	printed LFO = movement: shape and chance
+CHAN	B_LFO	tap	press: dice the SHAPE layer (register jumps, slot lengths, drift, mod lanes); never dim: every algorithm has it; algorithm sub-label under it	SHAPE	printed LFO = movement: shape and chance
 CHAN	B_LFO	hold	no hold role: acted once on press	SHAPE	dice buttons act on press (B2)
-SET	B_LFO	tap	press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent; algorithm sub-label under it	SHAPE	printed LFO = movement: shape and chance
+SET	B_LFO	tap	press: dice the SHAPE layer (register jumps, slot lengths, drift, mod lanes); never dim: every algorithm has it; algorithm sub-label under it	SHAPE	printed LFO = movement: shape and chance
 SET	B_LFO	hold	no hold role: acted once on press	SHAPE	dice buttons act on press (B2)
 SCALE	B_LFO	tap	press: BARS, the phrase length: 1..8 bars, one step per press, wrapping after 8 to the chord count (never fewer bars than chords); heard at the next phrase start	BARS	LFO = movement over time: the length of the chord loop; the label is on screen
 SCALE	B_LFO	hold	no hold role: acted once on press	BARS	buttons act on press (B2)
-REC	B_LFO	tap	press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent (performing while recording is allowed)	SHAPE	printed LFO = movement: shape and chance
+REC	B_LFO	tap	press: dice the SHAPE layer (register jumps, slot lengths, drift, mod lanes); never dim: every algorithm has it (performing while recording is allowed)	SHAPE	printed LFO = movement: shape and chance
 REC	B_LFO	hold	no hold role: acted once on press	SHAPE	dice buttons act on press (B2)
 RESET	B_LFO	tap	press: from PERF/CHAN/SET/SCALE: that layer's seeds to factory; from NOTE_EDIT: that property of the edited step to AUTO (PROB); RESET closes; EDIT tap undoes	RST SH	hold EDIT then touch = back to default (one rule)
 RESET	B_LFO	hold	no hold role: acted once on press	RST SH	one shot
@@ -259,7 +259,7 @@ RIG	B_SCL	tap	press: dice the NOTES layer (new pitches in the scale; edited pitc
 RIG	B_SCL	hold	no hold role: acted once on press	NOTES	dice buttons act on press (B2)
 RIG	B_ENV	tap	press: dice the ACCNT layer (which generated steps are loud; VELO edits kept); algorithm sub-label under it; the RIG wires that ride this layer (the LAYER column of the wire list) re-roll in the same press	ACCNT	printed ENV = envelope: the accent layer
 RIG	B_ENV	hold	no hold role: acted once on press	ACCNT	dice buttons act on press (B2)
-RIG	B_LFO	tap	press: dice the SHAPE layer (register jumps, slot lengths, drift); dim if absent; algorithm sub-label under it; the RIG wires that ride this layer (the LAYER column of the wire list) re-roll in the same press	SHAPE	printed LFO = movement: shape and chance
+RIG	B_LFO	tap	press: dice the SHAPE layer (register jumps, slot lengths, drift, mod lanes); never dim: every algorithm has it; algorithm sub-label under it; the RIG wires that ride this layer (the LAYER column of the wire list) re-roll in the same press	SHAPE	printed LFO = movement: shape and chance
 RIG	B_LFO	hold	no hold role: acted once on press	SHAPE	dice buttons act on press (B2)
 RIG	B_EDIT	tap	UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel, or the last HARMONY change when that came later (PROG dice, typed progression, BARS, VOICE, MOVE, DRONE); seeds only: LEVEL, MOVE, state, parameter and form edits made on this page are not undone (decision 100)	UNDO	EDIT = take back, everywhere
 RIG	B_EDIT	hold	no hold role on this page (RESET is opened from PERF)	UNDO	hold = open the page of that button; named on PERF by the sub-label h:RST

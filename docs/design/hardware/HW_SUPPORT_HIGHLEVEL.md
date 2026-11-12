@@ -56,7 +56,7 @@ knobs and dice (4); a plain sequencer with no device chosen is unchanged.
 exactly as locked (goldens unchanged). The rig is evaluated *beside* `sq_eval` (SEQUENCER_UX 9.2) from the **same layer seeds** that
 ALGORITHM_SET 4.2 already binds to the five dice buttons. A wire "rides" a layer by hashing that layer's seed with the wire number and
 the generator position `g(p)`. So **dice ACCNT re-rolls the accent steps and, in the same press, whatever wire rides ACCNT** with no
-algorithm change and no new seed. A layer an algorithm lacks (EUCLID has no SHAPE) is dimmed (ALGORITHM_SET 4.4): a wire riding it freezes
+algorithm change and no new seed. A layer an algorithm lacks (today only SNAKE ARTIC; EUCLID SHAPE is the live `MOD` layer) is dimmed (ALGORITHM_SET 4.4): a wire riding it freezes
 its lane, honestly, and the sub-label shows it.
 
 ### 2.2 The three control states (the answer to "what is in control")
