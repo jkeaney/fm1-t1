@@ -3,7 +3,7 @@ id: P2-031
 title: ADR-0003 doc fixes from the P4-005 review (bad preset rejects, sq_chan_sync, dice entropy)
 phase: P2
 type: task
-status: review
+status: done
 priority: 2
 executor: sonnet
 depends_on: [P4-005]
@@ -51,3 +51,9 @@ Findings:
 
 ### 2026-11-12 executor (sonnet), review fix
 Dropped CRC from the reject list (sections 10; 12 step 6 only refers to section 10): sq_preset_load rejects a wrong version or algo id; the storage layer (P7-002) checks the CRC first. Section 3.1 now says the counter's low 16 bits folded with its high 16 bits. Section 22 unchanged.
+
+### 2026-11-12 review (sonnet), re-review
+Verdict: PASS. Docs only; no build run (P4-023 owns it). `python3 tools/backlog.py check`: 149 items, 0 errors.
+- Section 10 (ADR line ~573) now rejects on wrong `version` or out-of-range algo id only, matching sq_preset_load (sq_chan.c:301-302); CRC is the storage layer's (line 576; sq_chan.c:14; line 159).
+- Section 3.1 matches sq_entropy (sq_chan.c:85-86: ctr ^ ctr>>16 mixed with ++sq_dice_n).
+- Section 22 unchanged (no diff hunk past line 684).
