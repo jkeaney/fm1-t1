@@ -74,6 +74,7 @@
 #include "torso_t1_port.c"
 #include "torso_t1.c"
 #include "torso_t1_algo.c"
+#include "sq_types.h"            /* the sequencer core's data model (ADR-0003 section 14): types and constants only, no code */
 #include "torso_t1_pipeline.c"
 #include "torso_t1_state.c"
 #include "torso_t1_ui.c"

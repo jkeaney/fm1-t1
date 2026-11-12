@@ -3,7 +3,7 @@ id: P4-001
 title: sq_types.h: constants, structs and static asserts
 phase: P4
 type: task
-status: todo
+status: review
 priority: 2
 executor: haiku
 depends_on: [P3-012, P2-017, P2-029]
@@ -23,10 +23,10 @@ Land the locked data model in firmware, unchanged from the locked prototype head
 - tests/sq_types_test.c: compiles the header with `cc -std=c11 -Wall -Werror` and prints `sizeof` of ChanSave, ChanRT, UndoRec, SeqPreset, HarmonySave; run_tests.sh step
 
 ## Acceptance criteria
-- [ ] `diff <(tail -n +3 firmware/src/sq_types.h) <(tail -n +3 docs/design/algorithms/common/sq_types.h)` shows only the SPDX/comment header lines
-- [ ] sq_types_test prints ChanRT 24, HarmonySave 8, SeqPreset 1396 (or the P2-017 LOCK.md values)
-- [ ] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
-- [ ] The build line `image ... RAM .data+.bss N of 73728; pool ...` is pasted into the Log; RAM headroom (73728 - N) is at least 8192 B, else stop and file an FB (E9 trigger)
+- [x] `diff <(tail -n +3 firmware/src/sq_types.h) <(tail -n +3 docs/design/algorithms/common/sq_types.h)` shows only the SPDX/comment header lines
+- [x] sq_types_test prints ChanRT 24, HarmonySave 8, SeqPreset 1396 (or the P2-017 LOCK.md values)
+- [x] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
+- [x] The build line `image ... RAM .data+.bss N of 73728; pool ...` is pasted into the Log; RAM headroom (73728 - N) is at least 8192 B, else stop and file an FB (E9 trigger)
 
 ## Verification
 ```sh
@@ -42,3 +42,46 @@ n/a, internal work (tooling, plumbing, docs, process); no producer-visible contr
 - Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).
 
 ## Log
+
+### 2026-11-12 executor (claude-haiku-5-5)
+
+Pre-checks: header matches ADR-0003 section 22 (SeqPreset 1556 B, ChanSave 384, UndoRec 94, PO_TIE 0x80, ModIdx, AlgoDesc.mod).
+The task's "SeqPreset 1396" is the superseded figure; the criterion allows the LOCK.md value, 1556 (LOCK.md section 5). No
+identifier of the header collides with firmware/src or tests (typedefs and SQ_/PO_/HR_/AF_/SE_/HARM_ macros; the font macros
+are AF_S/AF_M/AF_L, no clash with AF_PAIRING/AF_CHORD). The header has no functions, so no `static` was needed.
+
+Changes: `firmware/src/sq_types.h` (byte-identical copy of docs/design/algorithms/common/sq_types.h, which already carries the
+GPL SPDX line); `firmware/src/felucca.c` (one include line after `torso_t1_algo.c`, before `torso_t1_pipeline.c`, which is
+before `audio.c`, per ADR-0003 section 14); `tests/sq_types_test.c` (new; prints sizes, exits non-zero on a size change);
+`tests/run_tests.sh` (one step: `cc -std=c11 -Wall -Werror`, then run).
+
+Commands and output:
+```
+$ cmp docs/design/algorithms/common/sq_types.h firmware/src/sq_types.h && echo COPY-IDENTICAL
+COPY-IDENTICAL
+$ diff <(tail -n +3 firmware/src/sq_types.h) <(tail -n +3 docs/design/algorithms/common/sq_types.h) && echo TAIL-DIFF-EMPTY
+TAIL-DIFF-EMPTY
+$ cc -std=c11 -Wall -Werror -Ifirmware/src -o /tmp/sq_types_test tests/sq_types_test.c && /tmp/sq_types_test
+ChanSave 384
+ChanRT 24
+UndoRec 94
+SeqPreset 1556
+HarmonySave 8
+SQ_TYPES PASS
+$ sh tools/check.sh
+== build (log: build/check/build.log)
+== ram headroom
+RAM .data+.bss 23316 B of 73728
+== tests (log: build/check/tests.log)
+== backlog (log: build/check/backlog.log)
+CHECK PASS
+$ grep 'RAM .data' build/check/build.log     # the ./build.sh run inside check.sh (same output as ./build.sh | grep RAM)
+  ok    image 168876 B; RAM .data+.bss 23316 B of 73728; pool 92500 B of 368640
+$ grep -c 'STEP FAILED' build/check/tests.log
+0
+$ tail -n 1 build/check/tests.log
+ALL HOST TESTS PASSED
+```
+RAM headroom = 73728 - 23316 = 50412 B, above 8192 B; no FB needed. The known "web pages" failure did not occur.
+Criteria 1 to 4 verified and ticked; `sq_types_test` prints SeqPreset 1556 (the LOCK.md value, see above).
+Not flashed; no device touched.

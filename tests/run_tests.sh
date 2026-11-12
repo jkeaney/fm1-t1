@@ -138,6 +138,10 @@ done
 $CC -o "$OUT/usb_ring_test" tests/usb_ring_test.c
 run "USB MIDI out ring: 128 entries, reserve rule (ONs dropped first, offs and clock kept), order, drop counter" "$OUT/usb_ring_test"
 
+# Sequencer data model (P4-001, ADR-0003 section 22): sq_types.h compiles as C11 with -Wall -Werror and its locked sizes hold
+cc -std=c11 -Wall -Werror -Ifirmware/src -o "$OUT/sq_types_test" tests/sq_types_test.c
+run "sequencer data model: sq_types.h as C11 (-Wall -Werror), locked sizes (ChanSave 384, ChanRT 24, UndoRec 94, SeqPreset 1556, HarmonySave 8)" "$OUT/sq_types_test"
+
 [ -f build/felucca.fwsc ] || { echo "run ./build.sh first"; exit 1; }
 
 $CC -DOWN_PKG=1 -o "$OUT/ota_test" tests/ota_test.c
