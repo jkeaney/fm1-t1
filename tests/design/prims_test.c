@@ -5,14 +5,16 @@
 #include <string.h>
 #include "sq_types.h"
 #include "sq_prims.h"
+#include "../sq_prims_dump.h"     /* --dump: the golden lines of P4-002 (FB-009) */
 
 static int fails;
 #define CHECK(c, ...) do { if (!(c)) { fails++; fprintf(stderr, "FAIL prims: "); fprintf(stderr, __VA_ARGS__); fputc('\n', stderr); } } while (0)
 
-int main(void)
+int main(int argc, char **argv)
 {   SqRng r; uint8_t a[16], rank[16], ord[16]; SeqGlobal g;
     static const uint8_t want_shuf[16] = { 5, 7, 0, 13, 6, 9, 11, 3, 2, 14, 10, 1, 12, 8, 15, 4 };
     static const uint8_t want_rnd[6] = { 4, 37, 55, 6, 65, 12 };
+    if (argc > 1 && strcmp(argv[1], "--dump") == 0) { sq_prims_dump(); return 0; }   /* stdout only; the normal run prints nothing new */
     /* SP1 */
     sq_rng_init(&r, (uint16_t)(0x3A5Du * 7u), 0x5A17C3E1u);
     for (int i = 0; i < 6; i++) CHECK(sq_rnd(&r, 100) == want_rnd[i], "rnd %d", i);

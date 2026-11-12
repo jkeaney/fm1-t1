@@ -3,7 +3,7 @@ id: P4-002
 title: sq_prims.c with golden tests
 phase: P4
 type: task
-status: todo
+status: review
 priority: 2
 executor: sonnet
 depends_on: [P4-001, BUG-002, P2-029]
@@ -24,10 +24,10 @@ Land the shared primitives (SP1-SP9, SP11 wrappers) exactly as prototyped.
 - Orchestrator decision 2026-11-12 (resolves FB-009, option a): the prototype harness gets a deterministic dump mode. Add `--dump` to `tests/design/prims_test.c` (stdout only, one line per primitive case: `<function> <inputs> -> <outputs>`, covering every function in sq_prims.h with the cases it already checks, fixed seeds, no timestamps). Check `tests/design/run_protos.sh` still passes (the normal run prints nothing new). Generate `tests/sq_prims_golden.txt` from `--dump`; the firmware test `tests/sq_prims_test.c` includes `firmware/src/sq_prims.c` and prints the same dump format, compared byte for byte.
 
 ## Acceptance criteria
-- [ ] sq_prims_test output equals tests/sq_prims_golden.txt byte for byte
-- [ ] sq_prims.c includes only `<stdint.h>`/`<stddef.h>`/`<stdbool.h>` and sq_types.h
-- [ ] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
-- [ ] The build line `image ... RAM .data+.bss N of 73728; pool ...` is pasted into the Log; RAM headroom (73728 - N) is at least 8192 B, else stop and file an FB (E9 trigger)
+- [x] sq_prims_test output equals tests/sq_prims_golden.txt byte for byte
+- [x] sq_prims.c includes only `<stdint.h>`/`<stddef.h>`/`<stdbool.h>` and sq_types.h
+- [x] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
+- [x] The build line `image ... RAM .data+.bss N of 73728; pool ...` is pasted into the Log; RAM headroom (73728 - N) is at least 8192 B, else stop and file an FB (E9 trigger)
 
 ## Verification
 ```sh
@@ -63,3 +63,17 @@ the source, not printed. A golden built from this would be empty or invented. Pe
 
 Not run: `sh tools/check.sh` and `./build.sh` (no code changed, so there is no RAM result to report yet).
 Needed from the owner: FB-009 decision (print mode, exit-code stand-in, or other). Then P4-002 goes back to `todo`.
+
+### 2026-11-12 executor (claude-sonnet-5-5)
+Done per the orchestrator decision (FB-009 option a). Files: firmware/src/sq_prims.h, sq_prims.c (prototype copies, `static` added, SPDX kept;
+the only other change: `extern const SQ_SCALE_MASKS` dropped from the header, the table is `static const` in the .c); felucca.c includes both after
+sq_types.h; tests/sq_prims_dump.h (shared dump, line format `<function> <inputs> -> <outputs>`, 179 lines, every function of sq_prims.h);
+tests/design/prims_test.c gets `--dump` (normal run unchanged); tests/sq_prims_test.c; tests/sq_prims_golden.txt = `prims --dump` of the
+prototype; run_tests.sh step. The dump's SP1 lines equal the independent Python vectors (rnd 4 37 55 ...).
+
+    prims --dump > tests/sq_prims_golden.txt   (179 lines);  prims (no flag): "prims: primitive checks OK", exit 0
+    fw test | cmp - tests/sq_prims_golden.txt  -> identical
+    sh tests/design/run_protos.sh              -> PROTOS PASS
+    sh tools/check.sh                          -> CHECK PASS (tests.log: "== shared primitives ..." ran, no STEP FAILED)
+    ./build.sh | grep RAM  ->  ok    image 168860 B; RAM .data+.bss 23316 B of 73728; pool 92500 B of 368640
+RAM headroom 73728 - 23316 = 50412 B (>= 8192). Includes: sq_prims.c only sq_prims.h; sq_prims.h only sq_types.h (stdint etc. via it).

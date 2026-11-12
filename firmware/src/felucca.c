@@ -75,6 +75,8 @@
 #include "torso_t1.c"
 #include "torso_t1_algo.c"
 #include "sq_types.h"            /* the sequencer core's data model (ADR-0003 section 14): types and constants only, no code */
+#include "sq_prims.h"
+#include "sq_prims.c"           /* the shared sequencer primitives SP1..SP9, SP16..SP20 (P4-002); static, pure */
 #include "torso_t1_pipeline.c"
 #include "torso_t1_state.c"
 #include "torso_t1_ui.c"

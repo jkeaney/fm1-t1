@@ -142,6 +142,11 @@ run "USB MIDI out ring: 128 entries, reserve rule (ONs dropped first, offs and c
 cc -std=c11 -Wall -Werror -Ifirmware/src -o "$OUT/sq_types_test" tests/sq_types_test.c
 run "sequencer data model: sq_types.h as C11 (-Wall -Werror), locked sizes (ChanSave 384, ChanRT 24, UndoRec 94, SeqPreset 1556, HarmonySave 8)" "$OUT/sq_types_test"
 
+# Shared primitives (P4-002): the firmware copy (static) prints the dump of the prototype (tests/design/prims_test --dump), byte for byte
+cc -std=c11 -Wall -Wextra -Werror -O1 -fno-strict-aliasing -Ifirmware/src -Itests -o "$OUT/sq_prims_test" tests/sq_prims_test.c
+sq_prims_cmp() { "$OUT/sq_prims_test" > "$OUT/sq_prims_out.txt" && cmp "$OUT/sq_prims_out.txt" tests/sq_prims_golden.txt; }
+run "shared primitives: firmware sq_prims.c dump equals tests/sq_prims_golden.txt byte for byte" sq_prims_cmp
+
 [ -f build/felucca.fwsc ] || { echo "run ./build.sh first"; exit 1; }
 
 $CC -DOWN_PKG=1 -o "$OUT/ota_test" tests/ota_test.c
