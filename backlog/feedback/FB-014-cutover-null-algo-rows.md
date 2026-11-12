@@ -32,4 +32,7 @@ P5-001 leaves rows 1-5 zero. Nothing dereferences them today because sq_core.c a
 python3 tools/backlog.py check
 ```
 
+## UX gate
+n/a, internal robustness; no producer-facing change.
+
 ## Log
