@@ -3,7 +3,7 @@ id: P4-010
 title: tools/gen_ui_tables.py: compile the design TSVs into C tables
 phase: P4
 type: task
-status: review
+status: done
 priority: 2
 executor: haiku
 depends_on: [P3-012]
@@ -55,3 +55,12 @@ sh tools/check.sh -> CHECK PASS   (ui_tables_test: OK (0 failures))
 build line: ok    image 169100 B; RAM .data+.bss 23828 B of 73728; pool 92500 B of 368640
 ```
 RAM headroom = 73728 - 23828 = 49900 B (>= 8192).
+
+### 2026-11-12 review (sonnet)
+Verdict: PASS (gate none), after three fixes made in tools/gen_ui_tables.py by the reviewer.
+Verified: two runs byte-identical (cmp) and equal to build/gen/ui_tables.h; `--check` OK (14 pages, 49 controls, 15 knobs; rows 490/282/122/359/392 = TSV line counts); spot-checked rows of every table against the TSVs via ui_tables_test; generated header includes only stdint/stddef/stdbool, tables are `static const`, not included in felucca.c so no flash/RAM effect. build.sh runs the generator before tools/build.py (which only unlinks two old headers in build/gen, no ordering trap); gen_help.py/gen_sweeps.py are not run by build.sh, so there is no cycle; help_text.tsv is a committed input.
+Error paths, in a scratch copy: unknown page, unknown control, duplicate row, over-length help line all fail with file and line. FOUND: an over-width label named only the string (no file/line); FIXED, now lists up to 3 TSV lines.
+(c) 51 px: correct for knob cells (SCREEN_SPEC 2.4, 5). Wrong as the button/key rule: button cells are per-page data (24..51 px, SCREEN_SPEC 2.5) and black-key labels are allowed to exceed their 20 px cell (cut with an ellipsis, section 5). The real rules are: 6 characters max for knob/button/black-key labels, and each page's two button rows must fit 240 px. FIXED: added the 6-char limit and a per-page row-sum check (widest label + 6 px hold mark where a hold label differs + 1 px per cell, <= 240); current data passes (worst row 209 + 12). Tested with scratch TSVs: 7-char label and a 252 px PERF row both fail with a message.
+(d) Knob context was an open set; FIXED: must be `*` or an SQ_ALGO_* name read from firmware/src/sq_types.h (ACID EUCLID SNAKE STAGE ARP PATTERNS); `ACIDD` fails with file and line.
+(e) First build: build/gen/ui_fonts.h is absent, the pixel step is skipped with a note (exit 0), build.py then makes the fonts; run_tests.sh runs `--check` after the build, which insists on fonts. Not a trap for a clean checkout via check.sh (build precedes tests); a bare ./build.sh on a clean tree defers the pixel check to the next run. Accepted.
+Build line: `ok    image 169084 B; RAM .data+.bss 23828 B of 73728; pool 92500 B of 368640`; headroom 49900 B (>= 8192). `sh tools/check.sh` -> CHECK PASS after my changes.

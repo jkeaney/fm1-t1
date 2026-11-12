@@ -15,8 +15,11 @@ Only ids, labels and help text are compiled in; the prose columns (action, princ
 
 Fails with a message naming the file, line and value when: an id is unknown or does not agree between the tables, a
 row is duplicated, a label is over its width, a help line is over 34 characters, or a width in widths.tsv is over.
-Label width: every label must fit the 51 px knob/button cell (SCREEN_SPEC 2.4, the "knob cell value / label" rows of
-widths.tsv), measured with the real text_w (tests/design/width_probe.sh, needs build/gen/ui_fonts.h from ./build.sh);
+Label limits (SCREEN_SPEC 5): every knob, button and black-key label is at most 6 characters; 51 px (the knob cell,
+SCREEN_SPEC 2.4) is the ceiling for any one label. Button cells are data per page (2.5), so the real button limit is
+that each page's two rows of six cells fit 240 px (widest label + hold mark + 1 px); black-key labels over 20 px are
+cut by design (section 5), so no px limit applies to them beyond 51. Knob contexts must be * or an SQ_ALGO_ name of
+sq_types.h. Widths are measured with the real text_w (tests/design/width_probe.sh, needs build/gen/ui_fonts.h from ./build.sh);
 without fonts the pixel step is skipped with a note (--check insists on it).
 
 Usage: gen_ui_tables.py [OUT.h]   (default build/gen/ui_tables.h)    gen_ui_tables.py --check
@@ -103,7 +106,48 @@ def width_lines(extra):
     return out + extra
 
 
-def width_check(labels, strict):
+ROW1 = ["B_FX", "B_SCL", "B_ENV", "B_LFO", "B_EDIT", "B_GLO"]
+ROW2 = ["B_HOME", "B_SAVE", "B_ARP", "B_SEQ", "B_PLAY", "B_REC"]
+HOLD_MARK = 6         # SCREEN_SPEC 2.5: the hold mark plus its gap, counted in a cell that has a hold sub-label
+ROW_PX = 240
+LABEL_CHARS = 6       # SCREEN_SPEC 5: knob label, button tap/sub-label and black-key label are at most 6 characters
+# The knob contexts: "*" (every algorithm) or an algorithm name; they must equal the SQ_ALGO_* ids of sq_types.h.
+ALGO_H = os.path.join(ROOT, "firmware", "src", "sq_types.h")
+
+
+def algo_names():
+    try:
+        txt = open(ALGO_H, encoding="utf-8").read()
+    except OSError:
+        return None
+    return set(re.findall(r"^#define SQ_ALGO_([A-Z]+)\s+\d+", txt, re.M))
+
+
+def row_sums(bm, W):
+    """per page and button row: widest label of each cell (+ hold mark when a hold label differs from its tap label)
+    plus 1 px padding; the six cells must fit 240 px (SCREEN_SPEC 2.5). Returns [(page, row, sum)] over."""
+    cell, tap = {}, {}
+    for r in bm:
+        if r["mode"] == "tap":
+            tap[(r["page"], r["control"])] = r["label"]
+    for r in bm:
+        k = (r["page"], r["control"])
+        w = W.get(r["label"])
+        if w is None:
+            continue
+        if r["mode"] != "tap" and r["label"] != tap.get(k):
+            w += HOLD_MARK
+        cell[k] = max(cell.get(k, 0), w)
+    out = []
+    for pg in sorted({r["page"] for r in bm}):
+        for name, row in (("row 1", ROW1), ("row 2", ROW2)):
+            tot = sum(cell.get((pg, c), 0) + 1 for c in row)
+            if tot > ROW_PX:
+                out.append((pg, name, tot))
+    return out
+
+
+def width_check(labels, strict, bm=()):
     if not os.path.exists(FONTS):
         if strict:
             bad("no build/gen/ui_fonts.h: run ./build.sh once, the label widths are measured on its fonts")
@@ -112,12 +156,22 @@ def width_check(labels, strict):
         return
     lines = width_lines(["S\t%d\t%s\tlabel" % (LABEL_PX, s) for s in sorted(labels)])
     p = subprocess.run(["sh", PROBE, "-"], input="\n".join(lines) + "\n", text=True, capture_output=True)
+    W = {}
+    for l in p.stdout.splitlines():
+        m = re.match(r"\s*(\d+)\s*/\s*\d+\s+(OK|OVER)\s+`(.*)`\s", l)
+        if m:
+            W[m.group(3)] = int(m.group(1))
     if p.returncode != 0:
         for l in p.stdout.splitlines():
             if " OVER " in l:
-                bad("label/string over its width: " + l.strip())
+                m = re.search(r"`(.*)`\s+label\s*$", l)
+                where = ", ".join(labels[m.group(1)][:3]) if m and m.group(1) in labels else "widths.tsv"
+                bad("%s: label over its width: %s" % (where, l.strip()))
         if p.returncode != 1 or not any(" OVER " in l for l in p.stdout.splitlines()):
             bad("width probe failed (%d): %s" % (p.returncode, (p.stderr or p.stdout).strip()))
+    else:
+        for pg, row, tot in row_sums(bm, W):
+            bad("button_modes.tsv: page %s %s needs %d px of cells, the screen has %d (SCREEN_SPEC 2.5)" % (pg, row, tot, ROW_PX))
 
 
 def build():
@@ -188,12 +242,19 @@ def build():
             if "EN_" + k not in CT:
                 bad("%s: knob %s has no control EN_%s in control_map.tsv" % (r["_at"], k, k))
     # label widths: every label of the three tables must fit the knob / button cell
-    labels = set()
+    labels = {}
     for rows in (bm, km, ky):
         for r in rows:
             if not r["label"].strip():
                 bad("%s: empty label" % r["_at"])
-            labels.add(r["label"])
+            elif len(r["label"]) > LABEL_CHARS:
+                bad("%s: label %r is %d characters, the limit is %d (SCREEN_SPEC 5)" % (r["_at"], r["label"], len(r["label"]), LABEL_CHARS))
+            labels.setdefault(r["label"], []).append(r["_at"])
+    names = algo_names()
+    ok_ctx = {"*"} | (names or set())
+    for r in km:
+        if names is not None and r["context"] not in ok_ctx:
+            bad("%s: unknown context %r (not * or an SQ_ALGO_ name of sq_types.h: %s)" % (r["_at"], r["context"], " ".join(sorted(names))))
     return dict(ps=ps, cm=cm, bm=bm, km=km, ky=ky, ht=ht, pages=pages, ctls=ctls, knobs=knobs, ctxs=ctxs,
                 labels=labels)
 
@@ -262,7 +323,7 @@ def main(argv):
     t = build()
     if not err:
         text = emit(t)
-        width_check(t["labels"], check)
+        width_check(t["labels"], check, t["bm"])
     if err:
         sys.stderr.write("gen_ui_tables: %d error(s)\n" % len(err))
         for e in err[:60]:
