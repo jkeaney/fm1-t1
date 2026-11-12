@@ -3,7 +3,7 @@ id: P4-005
 title: Channel state API, defaults, undo and RAM presets with the invariant fuzz
 phase: P4
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P4-004]
@@ -73,3 +73,16 @@ Decisions the reviewer should look at:
 - Not done (outside the Deliverable list): sq_select, pin/edit writers, reset family, sq_global_set, sq_scene, live keys.
 - Finding for P2-024/preview work: a preset load (or any change of ChanSave.pad[0] bit 7) while a preview note sounds makes sq_emit skip the trk_note_off, so
   the preview note hangs and a later ON reports "double ON" in the host mock. The fuzz keeps pad[0] constant across loads for that reason. sq_emit untouched (BUG-006).
+
+### 2026-11-12 review (sonnet)
+Verdict: PASS (gate none). Re-ran: `sh tools/check.sh` -> CHECK PASS; `./build.sh` -> `image 168860 B; RAM .data+.bss 23316 B of 73728; pool 92500 B of 368640` (headroom 50412 B, above 8192; unchanged because sq_chan.c is not in felucca.c yet). sq_chan_test built with -Wall -Wextra -Werror -fsanitize=address,undefined: fuzz seeds 1, 42, 777, 31337, 0xBEEF each SQ_CHAN PASS (100000 ticks, 740-805 notes).
+Checked against code: defaults field by field match ADR-0003 12 (CH1-4 MIDI 1-4, ACID/EUCLID/SNAKE/STAGE, CH2-4 muted, C/MINPEN/oct 0/gate 50/div 2/swing 50/BPM 120, morph defs, 3.1 seed formula with ROT = 0); unique MIDI rule with one UndoMidi record, undo = redo swap; epoch guard retries up to 4 times with the compare and flip under IRQ off; queued load stages into inactive buffers, sets pending last; round trip and corrupt-preset rejection tested. The test uses a mock ALGOS table carrying the v1 tables (real algorithms are not in the firmware until P5); acceptable.
+Rulings on the seven points:
+1. Reject wins over load-defaults (ADR s12 and the safer behaviour; caller can load sq_defaults()). Doc-fix filed: FB-012.
+2. sq_chan_sync() is sound (UndoRec is main-loop memory; the ISR only bumps the epoch). Two follow-ups: it must be named in P4-011/P4-012, and sq_undo/sq_dice should call it first, since a stale UndoRec/UndoMidi could otherwise be swapped onto a just-landed preset for up to one frame. FB-011, FB-012.
+3. Pending-load behaviour (no rebuild, edit stays in sq_ch and is then replaced by the load) is acceptable. The UI (P4-011) should toast or ignore edits while a load is pending, since a dice then gives no sound and is lost.
+4. Entropy: the sample counter runs while stopped and the result is stored, so still the only non-deterministic moment; ADR 3.1 should drop fm1_ms. FB-012.
+5. P4-023 does NOT exist in the backlog and SeqPreset has no s_mod field, so s_mod is lost on a preset round trip. FB-011 asks for the task.
+6. Preview hang is real once any writer of pad[0] bit 7 exists (sq_emit gates the trk_note_off on the current bit). FB-013.
+7. sq_select, reset family, sq_global_set, preview writer and live/solo hooks have no owner in any P4/P6/P7 Deliverable (P4-006 has only step_set/clear/len/page). FB-011.
+Nit: sq_undo_new (sq_chan.c:95) is unused and trips -Wunused-function; delete at cut-over (in FB-012). No scope creep; nothing outside the Deliverable changed.
