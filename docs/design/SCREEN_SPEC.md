@@ -1,3 +1,5 @@
+> **Superseded for PERF, CHAN, REC and the overlays by [SCREEN_SPEC_V2.md](SCREEN_SPEC_V2.md) (ADR-0006).** Kept for the pages not yet redrawn: NOTE_EDIT, SET, SCALE, RESET, HELP, MENU, RIG.
+
 # SCREEN_SPEC: the 240x240 screen, zone by zone (P2-003)
 
 Status: **proposed**, for the owner's human-review gate. P2-011 applied the scenario findings F-01..F-19 (FINDINGS.md, scenarios/): the header slots H4 / H5, the Z1 cell line, the toast zone (2.7), the band status lines (7.1), the MENU roles (3) and the cue rows (6.6) changed; every string was re-measured by `tests/design/width_probe.sh`. Nothing here is approved until the owner writes it in the

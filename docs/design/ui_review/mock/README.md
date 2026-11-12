@@ -94,3 +94,7 @@ perf_snake_mute.png` (exit 0 = 0 differing pixels). `build/ui_sq/*.png` are only
 newer they differ by glyph anti-aliasing; `--regen` recompiles and runs `tests/ui_sq_test.c` into a temp dir (not `tools/check.sh`,
 not `build.sh`) and compares against that. Not reproduced: keycaps (`cv_keycap`, KC_ data), the icon sets (ui_icons.h), `cv_flip`, the
 ramp cache's 6 slots (a cache; no pixel effect) and the CUSTOM palette. None is used by `ui_sq.c`'s PERF screen.
+
+## Palette parser fix and the v2 base palette
+
+The palette parser used to skip `HI-CON` and mis-index `MONO`; both are fixed. `HI-CON` is the base palette of screen v2 (SCREEN_SPEC_V2, ADR-0006); the v12 reference renders use it.

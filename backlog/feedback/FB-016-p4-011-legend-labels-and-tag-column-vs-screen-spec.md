@@ -3,7 +3,7 @@ id: FB-016
 title: P4-011: key_map black-key labels (MUTE1..4, CHAN, RESTRT) and the PERF OCT tag text differ from SCREEN_SPEC and do not fit the legend
 phase: P4
 type: feedback
-status: todo
+status: dropped
 priority: 2
 executor: human
 depends_on: []
@@ -46,3 +46,4 @@ n/a, triage item; any resulting label change goes through its own task with Gate
 3. **Cue strip generator gap, FIXED.** gen_ui_tables.py now emits `cue` in `ui_page_rows`; ui_sq.c draws it (`uisq_page_cue`), keeping its own text only for HELP, MENU, FIRST_RUN, ALGO_PICK where the column is prose. ui_sq_test asserts the PERF and RIG cues come from it.
 4. **Z6 drawn 3 px up: acceptable, a spec note not a defect.** AF_S ink is 12 rows (line-top +3..+14) in a 12 px slot, so it must start at the slot top; the render shows the legend ink ending at row 223 and cue ink 224..232, Z7 blank. Add "Z6 text is drawn 3 px above the line top" to SCREEN_SPEC 5 whenever it is next edited.
 
+- 2026-11-13: dropped, obsolete: SCREEN_SPEC_V2 / ADR-0006 has no legend or tag column (icons only, keybed footer), so the 20 px legend and ROW-tag questions no longer exist.
