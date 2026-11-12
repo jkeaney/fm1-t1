@@ -124,9 +124,26 @@ CHAN_ROW = [dict(label="LENGTH", min=1, max=64, names=None, fmt=None, zero=None,
             dict(label="FOLLOW", min=0, max=1, names=["OFF", "ON"], fmt=None, zero=None, **{"def": 1})]
 
 
+def _kd(label, lo, hi, d, names=None, fmt=None):
+    return dict(label=label, min=lo, max=hi, names=names, fmt=fmt, zero=None, **{"def": d})
+
+
+# SET (GLO tap, P4-016; knob_map SET rows): BPM SWING GATE DIV, all channels. While an external clock runs K1 is a read-only mirror: label HOST,
+# no fill, a dashed frame, the host tempo (or -- while it is unknown) in MID.
+SET_ROW = [_kd("BPM", 40, 240, 120), _kd("SWING", 50, 75, 50, fmt="%d%%"), _kd("GATE", 10, 100, 50, fmt="%d%%"),
+           _kd("DIV", 0, 5, 2, names=["1/32", "1/16T", "1/16", "1/8T", "1/8", "1/4"])]
+HOST_TILE = _kd("HOST", 40, 240, 120)
+
+
+def ext(S):
+    return S.get("clock", "INT") != "INT"
+
+
 def knob_row(S):
     if S.get("rec"):
         return REC_ROW
+    if S.get("page") == "SET":
+        return [HOST_TILE] + SET_ROW[1:] if ext(S) else SET_ROW
     if S.get("page") == "CHAN":
         return CHAN_ROW
     if S.get("row", 0) == 2:
@@ -135,9 +152,16 @@ def knob_row(S):
 
 
 def knobs(p, S):
+    S0 = S
     sel = S["sel"]
     row = knob_row(S)
     vals = S.get("vals", {})
+    if S.get("page") == "SET":
+        vals = {0: S.get("bpm", 120), **vals}         # K1 shows the tempo
+        if ext(S):
+            vals = {k: v for k, v in vals.items() if k}
+            if S.get("turning") and S["turning"][0] == 0:
+                S = dict(S, turning=None)                   # the white frame of a touched mirror is drawn below
     tr = S.get("turning")
     y = S.get("ky", 24)
     col = WHITE if S.get("rec") else CH[sel]
@@ -177,9 +201,50 @@ def knobs(p, S):
                 oh = 36 * tr[1] // 100
                 p.rect(x + 1, y + 53 - oh - 1, 6, 2, WHITE)
                 p.rect(x + 51, y + 53 - oh - 1, 6, 2, WHITE)
+    if S.get("page") == "SET" and ext(S):
+        host_tile(p, S0)
+
+
+def host_tile(p, S):
+    """SET, external clock: K1 is a mirror, not a control (the shape changes, not only the colour)"""
+    x, y = 1, S.get("ky", 24)
+    p.rect(x, y + 17, 58, 36, T.SURF)
+    for i in range(0, 58, 6):                           # a dashed frame: nothing to turn here
+        p.rect(x + i, y + 17, 3, 1, T.MID)
+        p.rect(x + i, y + 52, 3, 1, T.MID)
+    for j in range(17, 53, 6):
+        p.rect(x, y + j, 1, 3, T.MID)
+        p.rect(x + 57, y + j, 1, 3, T.MID)
+    host = str(S.get("bpm", 120)) if S["clock"] == "EXT" else "--"
+    p.text_c(x, 58, y + 24, AF_L, host, T.MID, T.SURF)
+    tr = S.get("turning")
+    if tr and tr[0] == 0:                               # K1 touched: a white frame (it is not a channel value)
+        p.frame(x - 1, y - 1, 60, 55, WHITE)
+        p.frame(x, y, 58, 53, WHITE)
 
 
 # ------------------------------------------------------------------ status line (y 79..90): preset | knob row | page
+def clock_out(S):
+    """the clock-out word (SCREEN_SPEC 6.4): MASTER only while playing on the own clock; ON PLAY when stopped; FOLLOW on any external source"""
+    if ext(S):
+        return "FOLLOW"
+    return "MASTER" if S.get("playing", True) else "ON PLAY"
+
+
+def status_set(p, S, y):
+    """SET: [preset] [EXT USB] OUT word ... OCT n (ROW and PAGE mean nothing here)"""
+    blocks = ([("EXT", S.get("port", "USB"))] if ext(S) else []) + [("OUT", clock_out(S))]
+    x = 42
+    for a, b in blocks:                                  # label AF_S MID + word AF_M: the pairing of `MIDI n` and `PAGE v/n`
+        xa = p.text(x, y + 2, AF_S, a, T.MID, T.BG)
+        x = p.text(xa + 3, y, AF_M, b, T.TEXT, T.BG) + 7
+    o = S.get("octave", 0)
+    ot = "%+d" % o if o else "0"
+    assert x - 7 < 236 - text_w(AF_M, ot) - text_w(AF_S, "OCT") - 4, "clock-out blocks run into the OCT readout"
+    p.text_r(238, y, AF_M, ot, T.TEXT, T.BG)
+    p.text_r(236 - text_w(AF_M, ot), y + 2, AF_S, "OCT", T.MID, T.BG)
+
+
 def status(p, S):
     y = 80
     if S.get("pend"):
@@ -188,6 +253,9 @@ def status(p, S):
         p.text(4, y, AF_M, "P%02d?" % S["pend"], INK, WHITE)
     else:
         p.text(3, y, AF_M, "P%02d" % S.get("preset", 1), T.TEXT, T.BG)
+    if S.get("page") == "SET":
+        status_set(p, S, y)
+        return
     if not S.get("rec"):
         nrow = 3 if S.get("rig") else 2              # ROW 3 exists only when the channel has a RIG wire
         rm = S.get("row", 0)
@@ -360,6 +428,15 @@ def keybed(p, S):
     if rec:
         p.text(2, ym, AF_M, "PLAY KEYS TO WRITE", T.TEXT, T.BG)      # page_states.tsv REC cue_strip (REC is in the header)
         p.text_r(238, ym + 1, AF_S, "REC = DONE", T.MID, T.BG)
+    elif S.get("page") == "SET":                      # SET: the clock state is the footer (INT: the keys line + the way back)
+        c = S.get("clock", "INT")
+        left = {"INT": "KEYS = STEPS", "EXT": "HOST SETS TEMPO", "WAIT": "WAIT FOR HOST START", "LOST": "CLOCK LOST: STOPPED"}[c]
+        right = {"INT": "GLO = BACK", "EXT": "GLO = BACK", "WAIT": "PLAY=CANCEL", "LOST": "PLAY=START"}[c]
+        fl = AF_M if c in ("INT", "EXT") else AF_S
+        fr = AF_M if c in ("INT", "EXT") else AF_S
+        assert text_w(fl, left) + text_w(fr, right) + 12 <= W, (left, right)
+        p.text(2, ym + (0 if fl is AF_M else 2), fl, left, T.REC if c == "LOST" else T.TEXT, T.BG)
+        p.text_r(238, ym + (0 if fr is AF_M else 2), fr, right, T.MID, T.BG)
     elif S.get("page") == "CHAN":
         p.text(2, ym, AF_M, "K2 = MIDI", T.TEXT, T.BG)
         p.text_r(238, ym, AF_M, "CHN = BACK", T.MID, T.BG)
@@ -388,6 +465,8 @@ def topbar(p, S):
     h = S.get("hold")
     if not (t or h) and S.get("page") == "CHAN":     # a page names itself in the message slot while it is open
         t = ("enc", "CHN", "CH%d SETUP" % (S["sel"] + 1))
+    if not (t or h) and S.get("page") == "SET":
+        t = ("enc", "GLO", "ALL CHANNELS")
     if not (t or h):
         return
     x0, w = TB_X, W - TB_X
@@ -429,7 +508,8 @@ MESSAGES = [  # (kind, name-or-word, text-or-hint): every top-bar message; check
     ("enc", "ALGO", "EUCLID AT STEP"), ("enc", "PRESETS", "P16 AT BAR"), ("enc", "PRESETS", "P16 IN 1.5S"),
     ("enc", "OCT+", "ROW 2 OF 2"), ("enc", "OCT+", "ROW 3 TB-3"), ("enc", "OCT-", "ROW 1"),
     ("enc", "SOLO", "CH1 SOLO"), ("enc", "FILL", "60%  LET GO"), ("enc", "ROLL", "3X  LET GO"),
-    ("enc", "CHN", "CH2 SETUP"),
+    ("enc", "CHN", "CH2 SETUP"), ("enc", "GLO", "ALL CHANNELS"), ("enc", "K1", "HOST SETS TEMPO"),
+    ("enc", "OCT+", "OCTAVE +1"), ("enc", "OCT-", "OCTAVE -2"),
     ("hold", "RESET", ""), ("hold", "HARMONY", ""), ("hold", "UNDO LOAD", ""), ("hold", "HELP / MENU", ""),
     ("hold", "REMOVE CH4", ""), ("hold", "PREVIEW CH4", ""),
 ]
@@ -540,6 +620,15 @@ STATE = {"scenes": {
     "arp_row2": with_algo(base(used=[0, 1], row=1), 0, "ARP"),
     "demo_algo": with_algo(base(used=[0, 1, 3]), 0, "DEMO"),
     "stage_heard": with_algo(base(used=[0, 1], vals={1: 48}, algo_state={"heard": 32}), 0, "STAGE"),
+    # ---- SET (P4-016, owner-approved 2026-11-13)
+    "set_int": base(used=[0, 1, 3], page="SET"),
+    "set_int_stopped": base(used=[0, 1, 3], page="SET", playing=False),
+    "set_turn_swing": base(used=[0, 1, 3], page="SET", turning=(1, 40), vals={1: 62}),
+    "set_octave": base(used=[0, 1, 3], page="SET", octave=1, toast=("enc", "OCT+", "OCTAVE +1")),
+    "set_ext_live": base(used=[0, 1, 3], page="SET", clock="EXT", bpm=124),
+    "set_ext_k1_turned": base(used=[0, 1, 3], page="SET", clock="EXT", bpm=124, turning=(0, 40), toast=("enc", "K1", "HOST SETS TEMPO")),
+    "set_ext_wait": base(used=[0, 1, 3], page="SET", clock="WAIT", playing=False),
+    "set_ext_lost": base(used=[0, 1, 3], page="SET", clock="LOST"),
     "sheet_row1_a": {"sheet": True, "row": 0, "algos": ["ACID", "EUCLID", "SNAKE", "STAGE"]},
     "sheet_row1_b": {"sheet": True, "row": 0, "algos": ["ARP", "PATTERNS", "DEMO"]},
     "sheet_row2_a": {"sheet": True, "row": 1, "algos": ["ACID", "EUCLID", "SNAKE", "STAGE"]},

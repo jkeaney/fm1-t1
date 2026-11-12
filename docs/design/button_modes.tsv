@@ -222,7 +222,7 @@ NOTE_EDIT	B_OCTDN	tap	release: the edited step one octave down (OCT -2..+2), aud
 NOTE_EDIT	B_OCTDN	hold	as tap (no hold role on this page)	OCT-	printed OCT = octave
 CHAN	B_OCTDN	tap	release: LENGTH to the page boundary below (20 -> 16, 48 -> 32; at 16 or less inert, toast ONE PAGE: K1 = SHORTER); the hidden steps keep their edits	-PAGE	minus / plus a page
 CHAN	B_OCTDN	hold	as tap (no hold role on this page)	-PAGE	minus / plus a page
-SET	B_OCTDN	tap	release: global OCTAVE -1 (-2..+2); the tag column reads OCT -2..+2 (moved here from the SCALE page, which uses OCT- / OCT+ for DRONE)	OCT-	printed OCT = octave
+SET	B_OCTDN	tap	release: global OCTAVE -1 (-2..+2); the status line reads OCT -2..+2 and the slot names OCT+ / OCT- OCTAVE n while touched (moved here from the SCALE page, which uses OCT- / OCT+ for DRONE; v12 has no tag column, P4-016)	OCT-	printed OCT = octave
 SET	B_OCTDN	hold	as tap (no hold role on this page)	OCT-	printed OCT = octave
 SCALE	B_OCTDN	tap	release: DRONE walks one candidate down (0 = OFF); the status line names the degree and marks clashes	OCT-	printed OCT override (owner decision 48), as on PERF; the pedal walk is shown beside it
 SCALE	B_OCTDN	hold	as tap (no hold role on this page)	OCT-	printed OCT override (owner decision 48)
@@ -241,7 +241,7 @@ NOTE_EDIT	B_OCTUP	tap	release: the edited step one octave up (OCT -2..+2), audit
 NOTE_EDIT	B_OCTUP	hold	as tap (no hold role on this page)	OCT+	printed OCT = octave
 CHAN	B_OCTUP	tap	release: LENGTH to the page boundary above (20 -> 32, 32 -> 48, max 64): a partial page is completed, a new page is a copy of the page before it (edits and source), a hidden page comes back as stored	+PAGE	minus / plus a page
 CHAN	B_OCTUP	hold	as tap (no hold role on this page)	+PAGE	minus / plus a page
-SET	B_OCTUP	tap	release: global OCTAVE +1 (-2..+2); the tag column reads OCT -2..+2 (moved here from the SCALE page, which uses OCT- / OCT+ for DRONE)	OCT+	printed OCT = octave
+SET	B_OCTUP	tap	release: global OCTAVE +1 (-2..+2); the status line reads OCT -2..+2 and the slot names OCT+ / OCT- OCTAVE n while touched (moved here from the SCALE page, which uses OCT- / OCT+ for DRONE; v12 has no tag column, P4-016)	OCT+	printed OCT = octave
 SET	B_OCTUP	hold	as tap (no hold role on this page)	OCT+	printed OCT = octave
 SCALE	B_OCTUP	tap	release: DRONE walks one candidate up (14 = top); the status line names the degree and marks clashes	OCT+	printed OCT override (owner decision 48), as on PERF; the pedal walk is shown beside it
 SCALE	B_OCTUP	hold	as tap (no hold role on this page)	OCT+	printed OCT override (owner decision 48)

@@ -57,7 +57,7 @@ def px(img):
 
 
 def main():
-    out = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "build", "ui_sq", "v12")
+    out = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.join(ROOT, "build", "ui_sq", "v12")   # absolute: the mock below runs with cwd = V12, a relative ref dir would land there and this script would read a STALE copy (P4-016)
     ref = os.path.join(os.path.dirname(out), "v12_ref")
     os.makedirs(ref, exist_ok=True)
     r = subprocess.run([sys.executable, os.path.join(V12, "..", "..", "mock", "mock.py"), "render", os.path.join(V12, "v12.py"), "--out", ref],

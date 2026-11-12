@@ -132,6 +132,7 @@ static void scene_view(UisqView *v, const V12Scene *s)
 {   const int dm = s->algo[s->sel] == 6;                                  /* the DEMO algorithm takes slot 5 for this scene */
     const AlgoDesc *a;
     memset(v, 0, sizeof *v);
+    uisq_set_init();
     if (dm) ALGOS[5] = ALGO_DEMO;
     v->playing = s->playing; v->rec = s->rec; v->clock = s->clock; v->used = s->used; v->sel = s->sel; v->bpm = s->bpm;
     for (int i = 0; i < 4; i++) { v->ch_algo[i] = s->algo[i] == 6 ? 5 : s->algo[i]; v->ch_midi[i] = s->midi[i]; v->ch_muted[i] = s->muted[i]; }
@@ -142,9 +143,10 @@ static void scene_view(UisqView *v, const V12Scene *s)
         v->val[k] = s->val[k];
         if (v->band == UISQ_BAND_REC) v->tile[k] = &uisq_rec_row[k];
         else if (v->band == UISQ_BAND_CHAN) v->tile[k] = &uisq_chan_row[k];
+        else if (v->band == UISQ_BAND_SET) v->tile[k] = &uisq_set_row[k];
         else if (v->row == 2) v->tile[k] = &V12_RIG[k];
         else { v->tile_id[k] = a->knob_morph[(v->row * 4 + k) & 7]; v->tile[k] = &a->morph[v->tile_id[k]]; } }
-    v->turn = s->turn; v->turn_old = s->turn_old;
+    v->turn = s->turn; v->turn_old = s->turn_old; v->octave = s->octave; v->port = s->port;
     heard_byte = s->heard; v->cache = &heard_byte;
     uisq_view_texts(v);
     v->preset = s->preset; v->pend = s->pend; v->pages = s->pages; v->vpage = s->vpage; v->ppage = s->ppage; v->follow_off = s->follow_off;

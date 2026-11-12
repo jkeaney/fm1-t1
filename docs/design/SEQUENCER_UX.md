@@ -264,7 +264,7 @@ for the six dice buttons and the hold role, prefixed `h:`, for the buttons that 
 
 ```
 +----------------------------------------+
-|> 120 P01  CH1 ACID M1  [1][2]. .  L32  |  header: play state, clock dot + BPM (tempo source: INT, or EXT n, WAIT, 2.8), preset, channel, algorithm, MIDI, page map, LENGTH
+|> 120 P01  CH1 ACID M1  [1][2]. .  L32  |  header: play state, BPM (v12: no clock dot) (tempo source: INT, or EXT n, WAIT, 2.8), preset, channel, algorithm, MIDI, page map, LENGTH
 | [1 ACID] 2 EUCL m  3 SNAK m  4 STAG m  |  channel band: selected inverted, m = muted, activity dot
 | PG 1/2  FOLLOW  hold=EDIT        >P2   |  lane header: viewed page / pages, FOLLOW, the white-key hold, playhead page
 | #  .  #' #  .  #! .  #~ #  .  #  .  #x2 . |  16 lane cells = white keys 1..16 (# on, . off, ' edited, ! ~ x2 glyphs)
@@ -314,6 +314,23 @@ for the six dice buttons and the hold role, prefixed `h:`, for the buttons that 
 ```
 
 ### 2.4 SET (tap GLO) and HARMONY (hold GLO; table id SCALE)
+
+**SET as built (P4-016, owner-approved 2026-11-13; pixels in SCREEN_SPEC_V2 4.7, renders `proposals/v12/out/v12_set_*.png`).** The v12 bands with the music
+row, button icons and keybed as PERF (steps, mutes and moves stay live):
+
+```
++----------------------------------------+
+|> 120 [1][2]+[4]  GLO ALL CHANNELS      |  header: tempo (EXT n / EXT WAIT / EXT -- when external), chips; slot names the page
+| BPM   | SWING | GATE  | DIV            |  4 tiles (the tile is the meter): 120 | 50% | 50% | 1/16 (dots)
+|  120  |  50%  |  50%  |  1/16          |  K1 = HOST n (dashed, read-only) while an external clock runs
+| P01      OUT MASTER              OCT 0 |  status: preset, [EXT USB] OUT MASTER / ON PLAY / FOLLOW, OCTAVE -2..+2
+|  lane as PERF, buttons as PERF         |
+| KEYS = STEPS              GLO = BACK   |  footer: INT; EXT HOST SETS TEMPO; WAIT WAIT FOR HOST START / PLAY=CANCEL; lost CLOCK LOST: STOPPED / PLAY=START
++----------------------------------------+
+```
+
+OCT- / OCT+ = OCTAVE -/+1 (named in the slot while touched). GLO or HOME = back; hold GLO = HARMONY (P5-006). The older mock-up this replaces
+(a lane header `SET (all channels)`, a tag column and two `TEMPO` / `OUT` status lines) is kept below for HARMONY's picture only.
 
 ```
 +----------------------------------------+   +----------------------------------------+
@@ -397,10 +414,10 @@ FIRST_RUN, ADD_PAGE and MOVE_HELD are overlays that only change the cue strip an
 
 ### 2.8 Tempo source and clock out (added by FB-001 / P2-003, finalised by P2-010 to the owner rulings of 2026-11-10; adds, changes nothing above)
 
-The header and the SET page always say where the tempo comes from and whether the FM-1 sends clock, and a **clock dot**
-blinks on the beat. No new control and no new MENU row. The source is AUTO: the FM-1 runs on its own clock; a MIDI
+The header and the SET page always say where the tempo comes from and whether the FM-1 sends clock, and (in the older design) a **clock dot**
+blinking on the beat; the v12 header has no dot (SCREEN_SPEC_V2 4.1, owner 2026-11-13: the source is text). No new control and no new MENU row. The source is AUTO: the FM-1 runs on its own clock; a MIDI
 clock it hears (USB or the TRS jack) becomes the tempo source; when that clock stops it returns to its own tempo, which
-the host never overwrites. Pixels, strings and colours: [SCREEN_SPEC.md](SCREEN_SPEC.md) section 6; mechanisms, rules
+the host never overwrites. Pixels and strings: [SCREEN_SPEC_V2.md](SCREEN_SPEC_V2.md) 4.1 and 4.7 (the v12 header carries the source as text, no dot; SET as built, P4-016); the older [SCREEN_SPEC.md](SCREEN_SPEC.md) section 6 words (clock dot, two status lines) are superseded; mechanisms, rules
 and tests: [TIMING_SPEC.md](TIMING_SPEC.md).
 
 | State | Condition | Header | Dot | Clock out |

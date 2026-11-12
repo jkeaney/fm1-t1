@@ -2,7 +2,7 @@
 # SCREEN_SPEC_V2: the main (PERF) screen and its states
 
 **Design locked: James Keaney 2026-11-12** (owner, on the full state set; ADR-0004). Replaces `SCREEN_SPEC.md` for the
-PERF screen and the pages drawn here (CHAN, REC band, overlays). Architecture: ADR-0006. Algorithm interface: ADR-0007.
+PERF screen and the pages drawn here (CHAN, SET (4.7), REC band, overlays). Architecture: ADR-0006. Algorithm interface: ADR-0007.
 
 Reference renders (pixel-exact, real fonts and palettes): `docs/design/ui_review/proposals/v12/` (`v12.py` is the
 reference implementation in the mock tool; `out/v12_<scene>.png` 1x, `_4x`, `_grid`; sheets `out/S_v12_states_1.png`,
@@ -69,7 +69,7 @@ Contrast (evidence B v11): every text pair >= 4.73:1 on its background. Accepted
 - ROW 3 (only when the channel has a RIG device): the device profile's wire-set names (e.g. TB-3 BITE: CUT RESO
   ENV-X ENV-Y; `HwSet`, HW_SUPPORT_LOWLEVEL 9), never `WIRE1..4`.
 ### 4.3 Status line
-Preset `Pnn` (AF_M); pending = inverted pill `Pnn?`. `ROW` (AF_S) + numbered boxes 11 x 13 (2, or 3 with a RIG), the
+Preset `Pnn` (AF_M); pending = inverted pill `Pnn?` (on SET too, 4.7). `ROW` (AF_S) + numbered boxes 11 x 13 (2, or 3 with a RIG), the
 live row filled in channel colour. `PAGE v/n` (AF_S + AF_M); FOLLOW off = the viewed page boxed + `PLAY p` (AF_S).
 ### 4.4 Music row
 - Selected channel: per step a 13 px bar, height 6..max by pitch within the lane's range (descriptor `lane = single`:
@@ -91,6 +91,20 @@ colour (muted = grey X; held = inverted key), CHN = the MIDI glyph (lit white un
 arrow), SOL/FIL/ROL = AF_S letters (held = inverted), PG-/PG+ = arrows, RST = |<. REC: all keys plain (they play notes).
 Footer line: `KEYS = STEPS` / `HOLD = EDIT`; REC `PLAY KEYS TO WRITE` / `REC = DONE`; CHAN `K2 = MIDI` / `CHN = BACK`.
 
+### 4.7 The SET page (GLO tap; P4-016, owner-approved 2026-11-13 "Good enough, build it")
+Every band of PERF stays: header, message slot, music row, button icons, keybed (steps, mutes and moves live). What differs:
+- Slot while open (page title, lowest priority): `GLO` + `ALL CHANNELS` (every value here is global).
+- Tiles (knob_map SET rows): K1 BPM 40..240 (AF_L, meter), K2 SWING 50..75 % and K3 GATE 10..100 % (AF_M, meter), K4 DIV 1/32 1/16T 1/16 1/8T 1/8 1/4 (AF_M, six dots).
+  Meters use the selected channel's colour. K1 under an external clock (EXT, WAIT or lost): label `HOST`, no fill, a dashed MID frame, the host tempo (`--` until
+  known) in MID (AF_L); a turn only frames it white and names why in the slot (`K1 HOST SETS TEMPO`); the own tempo is kept and is back in the tile the frame the source is INT.
+- Status line (replaces ROW and PAGE): preset `Pnn` (or the `Pnn?` pill) left; `EXT USB` / `EXT TRS` (external only) then `OUT MASTER` (own clock, playing) /
+  `OUT ON PLAY` (own clock, stopped) / `OUT FOLLOW` (external); `OCT -2..+2` right (OCT- / OCT+ change it and are named in the slot while touched: `OCT+ OCTAVE +1`).
+- Footer: INT `KEYS = STEPS` / `GLO = BACK`; EXT `HOST SETS TEMPO` / `GLO = BACK`; WAIT `WAIT FOR HOST START` / `PLAY=CANCEL` and lost `CLOCK LOST: STOPPED` (T_REC) / `PLAY=START`, both AF_S.
+- Header tempo source on every page (4.1): INT `n`; EXT `EXT` over `n`; waiting `EXT` over `WAIT`; lost `EXT` over `--` in `T_REC`. No clock dot (owner 2026-11-13). The first
+  seven pulses of a new host clock (`EXT --`) are not a separate state: the header already shows `EXT` over the tempo, the SET tile reads `HOST --` until it is known.
+- Exits: GLO or HOME tap; CHN opens CHAN; a held step key opens NOTE_EDIT; REC is inert-armed (GLO does nothing in REC). Hold GLO = HARMONY is P5-006.
+Renders (`proposals/v12/out/`): `v12_set_int`, `_int_stopped`, `_turn_swing`, `_octave`, `_ext_live`, `_ext_k1_turned`, `_ext_wait`, `_ext_lost`.
+
 ## 5. The message slot (x104-239, y0-21)
 Every string is in `MESSAGES` (`v12.py`); `check_messages()` proves each fits (AF_M, else AF_S, never cut). Firmware: a
 string table with a width check in `tools/gen_ui_tables.py` (P4-029).
@@ -101,7 +115,7 @@ string table with a width check in `tools/gen_ui_tables.py` (P4-029).
    `OCT+ ROW 2 OF 2`, `OCT+ ROW 3 TB-3`, held moves `SOLO CH1 SOLO`, `FILL 60%  LET GO`, `ROLL 3X  LET GO`.
 3. **Hold hint** (from 0.25 s): the held button's icon + its hold action (`RESET`, `HARMONY`, `UNDO LOAD`, `HELP / MENU`,
    `REMOVE CH4`); a 2 px bar fills to the fire time (EDIT/GLO 0.4 s, SAVE 0.7 s, M-key remove 1.5 s).
-4. **Page title**: the CHAN page shows `CHN CHn SETUP` while open.
+4. **Page title**: the CHAN page shows `CHN CHn SETUP` while open; SET shows `GLO ALL CHANNELS`.
 5. Priority: hold hint > touched control > toast > page title.
 6. **Setup cue** (footer, inverted; the one standing cue): when the selected channel is new (incl. CH1 at first run) or has
    MIDI OFF: `CHN KEY, K2 = MIDI   CHn`, and the CHN key lights. It clears when the channel gets a MIDI channel.
@@ -117,12 +131,12 @@ string table with a width check in `tools/gen_ui_tables.py` (P4-029).
 playing, two_channels, one_channel, sel_muted, dice, turning_k2, turn_select, turn_algo, turn_presets, oct_row2, row3_rig,
 hold_edit, hold_glo, hold_save, hold_home, hold_mute_remove, midi_off, midi_off_after, channel_added, added_after,
 first_run, chan_page, chan_midi_clash, removed, undo, rec_armed, rec_playing, pending_p02, ext_sync, ext_wait, ext_lost,
-follow_off, add_page, past_length, held_solo, held_fill, held_roll, arp_row2, demo_algo (a hypothetical algorithm), stage_heard;
+follow_off, add_page, past_length, held_solo, held_fill, held_roll, arp_row2, demo_algo (a hypothetical algorithm), stage_heard, set_int, set_int_stopped, set_turn_swing, set_octave, set_ext_live, set_ext_k1_turned, set_ext_wait, set_ext_lost (SET, 4.7);
 knob sheets for every algorithm and row.
 
 ## 8. Not covered here (other specs / tasks)
-NOTE_EDIT, SET, SCALE/HARMONY, RESET, HELP and MENU pages keep their current specs until re-drawn on this system (P4-014,
-P4-016, P5-006, P4-018 re-pointed to this spec; SET is proposed in `features/P4-016-*.md` with renders in `proposals/v12/out_set/`, awaiting owner sign-off, then it moves into sections 4 and 5); the RIG page (HW_SUPPORT_LOWLEVEL 9) likewise.
+NOTE_EDIT, SCALE/HARMONY, RESET, HELP and MENU pages keep their current specs until re-drawn on this system (P4-014,
+P5-006, P4-018 re-pointed to this spec; SET is drawn in 4.7, P4-016); the RIG page (HW_SUPPORT_LOWLEVEL 9) likewise.
 
 ## 9. Known gaps accepted at lock (critique v11, owner "good enough, move on")
 Other-channel strips are 3 px (~3.7 arcmin at 35 cm); the playhead column is 2.6:1 on black; the knob fill can read as

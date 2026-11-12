@@ -114,6 +114,8 @@ static uint32_t uisq_hot_until[4];
 static uint8_t  uisq_knob_ref[4];        /* each live knob's value while it was last NOT being turned: the "old level" ticks of the turning frame */
 static uint8_t  uisq_used = 0x0Fu;       /* channels in use, bit n = channel n (lifecycle, SCREEN_SPEC_V2 6: add / remove are P4-029 / the CHAN task) */
 static uint8_t  uisq_clock;              /* tempo source: UISQ_CLK_INT / EXT / WAIT / LOST (the clock task, TIMING_SPEC 5, sets it) */
+static uint8_t  uisq_clock_port;         /* the port an external clock came from: 0 USB, 1 TRS (the SET status line names it; ui_sq_clock_set) */
+static uint16_t uisq_bpm_req;            /* SET K1: the tempo asked for (0 = none); sq_frame (ui_sq_glue.c) hands it to song.g[G_BPM], the one place tempo lives */
 static uint8_t  uisq_rec;                /* REC armed: the header disc, the REC knob band, the cursor (the REC task sets it) */
 static uint8_t  uisq_rec_cursor = 1;     /* REC: the step being written, 1..16 of the viewed page (K1 CURSOR) */
 static uint8_t  uisq_rec_acc, uisq_rec_slide, uisq_rec_oct = 2;   /* REC knobs ACC / SLIDE (0/1) and OCT (0..4 = -2..+2) */
@@ -226,6 +228,27 @@ static const MorphDesc uisq_chan_row[4] = { { "LENGTH", 1, 64, 16, 1, 4 }, { "MI
 static const MorphDesc *uisq_rig_row(uint8_t ch) { (void)ch; return 0; }
 
 
+/* ---- SET (P4-016): the four tiles. Labels come from the knob_map SET rows, value names from set_text.tsv: both are table data read at run time, so the
+ * MorphDesc rows are RAM (4 x 24 B + 6 pointers) filled once by uisq_set_init(). K1 BPM 40..240 (step 1, fast 5), K2 SWING 50..75 %, K3 GATE 10..100 %
+ * (step 1, fast 5), K4 DIV 1/32 1/16T 1/16 1/8T 1/8 1/4 (a list: dots). ---- */
+static const char *uisq_st_w(uint8_t id) { return id < UI_ST_COUNT ? ui_st_text[id] : ""; }
+static MorphDesc    uisq_set_row[4];
+static const char  *uisq_set_names[6];
+static uint8_t      uisq_set_ready;
+static void uisq_set_init(void)
+{   static const uint8_t mn[4] = { 40, 50, 10, 0 }, mx[4] = { 240, 75, 100, 5 }, df[4] = { 120, 50, 50, 2 }, fa[4] = { 5, 1, 5, 1 };
+    if (uisq_set_ready) return;
+    for (uint8_t i = 0; i < 6u; i++) uisq_set_names[i] = uisq_st_w((uint8_t)(UI_ST_DIV0 + i));
+    for (uint8_t k = 0; k < 4u; k++) {
+        MorphDesc *m = &uisq_set_row[k];
+        const char *l = uisq_knob_label(UI_PG_SET, UI_CTX_ANY, k);
+        uint32_t n = 0;
+        memset(m, 0, sizeof *m);
+        while (l[n] && n + 1u < sizeof m->label) { m->label[n] = l[n]; n++; }
+        m->min = mn[k]; m->max = mx[k]; m->def = df[k]; m->step = 1; m->fast = fa[k];
+        if (k == 3u) m->names = uisq_set_names; }
+    uisq_set_ready = 1; }
+
 /* ---- per-page data: the stub pages (P4-013..P4-018 replace the entries) ---- */
 typedef struct {
     void       (*input)(void);        /* the page's frame input; stubs do nothing */
@@ -320,6 +343,9 @@ static void ui_sq_hold_end(void) { uisq_hold_on = 0; }
 static void ui_sq_btn_down(uint8_t i, uint8_t on) { if (i < 12u) { if (on) uisq_btn_down |= (uint16_t)(1u << i); else uisq_btn_down &= (uint16_t)~(1u << i); } }
 static void ui_sq_held_m_set(uint8_t ch1) { uisq_held_m = ch1 <= SQ_NCH ? ch1 : 0u; }
 static void ui_sq_held_mv_set(uint8_t mv) { uisq_held_mv = mv <= 3u ? mv : 0u; }
+/* the tempo source the header and SET show: src UISQ_CLK_INT / EXT / WAIT / LOST, port 0 USB / 1 TRS. P4-031 (the external clock) calls it from the main loop; the
+ * clock task owns the transitions, this file only draws them. A value out of range is INT. */
+static void ui_sq_clock_set(uint8_t src, uint8_t port) { uisq_clock = src <= 3u ? src : 0u; uisq_clock_port = port ? 1u : 0u; }
 static void ui_sq_new_set(uint8_t ch, uint8_t on) { if (ch < SQ_NCH) { if (on) uisq_new |= (uint8_t)(1u << ch); else uisq_new &= (uint8_t)~(1u << ch); } }
 
 /* ---- lane data: the resolved view of the 16 steps of the viewed page (sq_eval, as the scheduler resolves them) ---- */
@@ -487,6 +513,7 @@ static void uisq_cue_text(char *d, uint32_t n)
 #define UISQ_BAND_ROW  0                 /* the knob tiles show the algorithm's live row (view.row) */
 #define UISQ_BAND_REC  1                 /* REC: CURSOR ACC SLIDE OCT, in white */
 #define UISQ_BAND_CHAN 2                 /* CHAN: LENGTH MIDI SOURCE FOLLOW */
+#define UISQ_BAND_SET  4                 /* SET: BPM SWING GATE DIV, all channels (P4-016); K1 is HOST n while an external clock runs */
 #define UISQ_BAND_NOTE 3                 /* NOTE_EDIT: PITCH GATE VELO RATCH of the edited step, each AUTO or set (P4-014) */
 #define UISQ_NO_PH     255               /* view.ph: no playhead column */
 #define UISQ_WHITE     0xFFFFu           /* SCREEN_SPEC_V2 3: pointer, selection bar, accent cap, message slot */
@@ -512,6 +539,8 @@ typedef struct {
     uint8_t  ne_btn;                                   /* the toggle buttons that are ON for the step: bit 0 ENV (accent), 1 LFO (prob), 2 ARP (slide), 3 SEQ (step on) */
     char     ne_chip[4][10];                           /* the step's other set fields, one chip each: ON/OFF, SLIDE, PROB 50, OCT+1 ("" = AUTO, no chip) */
     uint16_t btn_lit, btn_dim;                         /* P4-029: buttons pressed (inverted) and dice buttons whose layer the algorithm lacks (bit = panel index) */
+    int8_t   octave;                                   /* SET: the global OCTAVE -2..+2 (status line) */
+    uint8_t  port;                                     /* SET: the external clock's port, 0 USB, 1 TRS */
     uint8_t  held_m, held_mv, cue;                     /* held mute key (1 + channel), held move key (1 SOL 2 FIL 3 ROL), the setup cue (new channel or MIDI OFF) */
     /* ---- the message slot: hashed by strip 0 only (it lives in y 0-21), so a toast or a filling hold bar never redraws strip 1 ---- */
     UisqMsg  msg;
@@ -524,7 +553,14 @@ typedef struct {
 /* the algorithm whose value_text hook a tile may call: only the algorithm's own rows (ROW 1, ROW 2); REC, CHAN and RIG rows have none */
 static const AlgoDesc *uisq_view_hook(const UisqView *v) { return (v->band == UISQ_BAND_ROW && v->row < 2u) ? v->algo : 0; }
 static void uisq_view_texts(UisqView *v)
-{   for (uint32_t k = 0; k < 4u; k++) uisq_tile_text(v->txt[k], sizeof v->txt[k], uisq_view_hook(v), v->tile_id[k], v->tile[k], v->val[k], v->cache); }
+{   if (v->band == UISQ_BAND_SET) {                                    /* SET: BPM, SWING %, GATE %, DIV name; while an external clock runs K1 mirrors the host */
+        for (uint32_t k = 0; k < 4u; k++) {
+            v->txt[k][0] = 0;
+            if (k == 0u && v->clock != 0u) { if (v->clock == 1u) uisq_catu(v->txt[0], sizeof v->txt[0], v->bpm); else uisq_cat(v->txt[0], sizeof v->txt[0], uisq_st_w(UI_ST_DASH)); }
+            else if (k == 3u) uisq_cat(v->txt[3], sizeof v->txt[3], uisq_set_names[v->val[3] < 6u ? v->val[3] : 5u]);
+            else { uisq_catu(v->txt[k], sizeof v->txt[k], v->val[k]); if (k) uisq_cat(v->txt[k], sizeof v->txt[k], uisq_st_w(UI_ST_PCT)); } }
+        return; }
+    for (uint32_t k = 0; k < 4u; k++) uisq_tile_text(v->txt[k], sizeof v->txt[k], uisq_view_hook(v), v->tile_id[k], v->tile[k], v->val[k], v->cache); }
 
 static uint32_t uisq_view_sig(const UisqView *v)                   /* everything but the message slot: the signature of strip 1 */
 {   const uint8_t *b = (const uint8_t *)v;
@@ -560,6 +596,8 @@ static void uisq_msg_pick(UisqMsg *m, uint32_t now, uint8_t page, uint8_t sel)
         m->kind = UI_MK_TOUCH; uisq_cpy(m->a, sizeof m->a, uisq_touch_a); uisq_cpy(m->b, sizeof m->b, uisq_touch_b); }
     else if (uisq_toast_until && (int32_t)(now - uisq_toast_until) < 0) {
         m->kind = UI_MK_TOAST; m->chip = uisq_toast_chip; uisq_cpy(m->a, sizeof m->a, uisq_toast); uisq_cpy(m->b, sizeof m->b, uisq_toast_hint); }
+    else if (page == UI_PG_SET) {                                      /* SET names itself: GLO  ALL CHANNELS (every value here is global) */
+        m->kind = UI_MK_TOUCH; uisq_cpy(m->a, sizeof m->a, ui_msgs[UI_MSG_ENC_GLO_ALL_CHANNELS].a); uisq_cpy(m->b, sizeof m->b, ui_msgs[UI_MSG_ENC_GLO_ALL_CHANNELS].b); }
     else if (page == UI_PG_CHAN) {                                     /* a page names itself while it is open */
         const char *t = ui_msgs[UI_MSG_ENC_CHN_CH2_SETUP].b;               /* `CH2 SETUP`: the table row with the channel's digit put in */
         m->kind = UI_MK_TOUCH; uisq_cpy(m->a, sizeof m->a, ui_msgs[UI_MSG_ENC_CHN_CH2_SETUP].a);
@@ -644,12 +682,18 @@ static void uisq_view_fill(UisqView *v)
     /* knob tiles */
     v->nrow = rig ? 3u : 2u;
     v->row = uisq_row < v->nrow ? uisq_row : 0u;
-    v->band = uisq_page == UI_PG_NOTE_EDIT ? UISQ_BAND_NOTE : uisq_rec ? UISQ_BAND_REC : uisq_page == UI_PG_CHAN ? UISQ_BAND_CHAN : UISQ_BAND_ROW;
+    v->band = uisq_page == UI_PG_NOTE_EDIT ? UISQ_BAND_NOTE : uisq_rec ? UISQ_BAND_REC : uisq_page == UI_PG_CHAN ? UISQ_BAND_CHAN : uisq_page == UI_PG_SET ? UISQ_BAND_SET : UISQ_BAND_ROW;
+    v->octave = sq_gdb[sq_gidx].s.octave; v->port = uisq_clock_port;
+    uisq_set_init();
     for (uint32_t k = 0; k < 4u; k++) {
         if (v->band == UISQ_BAND_NOTE) { v->tile[k] = &uisq_note_row; v->val[k] = 0; }    /* the NOTE_EDIT tiles are drawn from ne_* below */
         else if (v->band == UISQ_BAND_REC) {
             v->tile[k] = &uisq_rec_row[k];
             v->val[k] = k == 0 ? uisq_rec_cursor : k == 1 ? uisq_rec_acc : k == 2 ? uisq_rec_slide : uisq_rec_oct; }
+        else if (v->band == UISQ_BAND_SET) {
+            const SeqGlobal *g = &sq_gdb[sq_gidx];
+            v->tile[k] = &uisq_set_row[k];
+            v->val[k] = k == 0 ? (uint8_t)(sq_bpm < 40u ? 40u : sq_bpm > 240u ? 240u : sq_bpm) : k == 1 ? g->s.swing : k == 2 ? g->s.gate : g->s.div; }
         else if (v->band == UISQ_BAND_CHAN) {
             v->tile[k] = &uisq_chan_row[k];
             v->val[k] = k == 0 ? c->len : k == 1 ? (uint8_t)((uisq_cm_val <= SQ_MIDI_OFF && uisq_cm_ch == sel ? uisq_cm_val : c->midi_ch) + 1u) : k == 2 ? 0u : sq_follow; }
@@ -718,8 +762,8 @@ static void uisq_draw_header(const UisqView *v)
     else cv_icon(3, y + 5, SQI_STOP_S, T_MID);
     if (v->clock == UISQ_CLK_INT) { uisq_digit(b, sizeof b, v->bpm); uisq_text(16, y + 4, &AF_M, b, T_TEXT, T_BG); }
     else {                                                             /* external: EXT over the tempo, or WAIT, or -- when it is lost */
-        uisq_text(16, y, &AF_S, "EXT", T_MID, T_BG);
-        if (v->clock == UISQ_CLK_EXT) uisq_digit(b, sizeof b, v->bpm); else { b[0] = 0; uisq_cat(b, sizeof b, v->clock == UISQ_CLK_WAIT ? "WAIT" : "--"); }
+        uisq_text(16, y, &AF_S, uisq_st_w(UI_ST_EXT), T_MID, T_BG);
+        if (v->clock == UISQ_CLK_EXT) uisq_digit(b, sizeof b, v->bpm); else { b[0] = 0; uisq_cat(b, sizeof b, uisq_st_w(v->clock == UISQ_CLK_WAIT ? UI_ST_WAIT : UI_ST_DASH)); }
         uisq_text(16, y + 10, &AF_S, b, v->clock == UISQ_CLK_LOST ? T_REC : T_TEXT, T_BG); }
     for (uint32_t i = 0; i < SQ_NCH; i++) {                            /* the chips: one per channel in use, then a `+` in the first free slot */
         const int32_t cx = 46 + 14 * (int32_t)i;
@@ -760,12 +804,19 @@ static void uisq_draw_knobs(const UisqView *v, int32_t y)
         const int32_t x = 1 + 60 * (int32_t)k;
         const MorphDesc *m = v->tile[k];
         const uint8_t dots = uisq_tile_dots(m);
-        const aafont_t *f = (v->val[k] == 0 && m->zero) ? &AF_M : uisq_tile_font(uisq_view_hook(v), v->tile_id[k], m);
+        const uint8_t set = v->band == UISQ_BAND_SET, host = (uint8_t)(set && k == 0u && v->clock != 0u);   /* SET K1 under an external clock: a read-only mirror */
+        const aafont_t *f = set ? (k == 0u ? &AF_L : &AF_M) : (v->val[k] == 0 && m->zero) ? &AF_M : uisq_tile_font(uisq_view_hook(v), v->tile_id[k], m);
         const int32_t span = (int32_t)m->max - m->min, d = (int32_t)v->val[k] - m->min;
         uint16_t bgv = T_SURF;
         cv_rect(x, y, 58, 16, T_SURF);
-        uisq_text_c(x, 58, y + 3, &AF_M, m->label, T_MID, T_SURF);
+        uisq_text_c(x, 58, y + 3, &AF_M, host ? uisq_st_w(UI_ST_HOST) : m->label, T_MID, T_SURF);
         cv_rect(x, y + 17, 58, 36, T_SURF);
+        if (host) {                                                    /* no fill (the shape changes, not only the colour), a dashed frame, the host tempo in MID */
+            for (int32_t i = 0; i < 58; i += 6) { cv_rect(x + i, y + 17, 3, 1, T_MID); cv_rect(x + i, y + 52, 3, 1, T_MID); }
+            for (int32_t j = 17; j < 53; j += 6) { cv_rect(x, y + j, 1, 3, T_MID); cv_rect(x + 57, y + j, 1, 3, T_MID); }
+            uisq_text_c(x, 58, y + 24, &AF_L, v->txt[k], T_MID, T_SURF);
+            if (v->turn == k + 1u) { cv_frame(x - 1, y - 1, 60, 55, UISQ_WHITE); cv_frame(x, y, 58, 53, UISQ_WHITE); }   /* touched: white (it is no channel value) */
+            continue; }
         if (dots) {                                                    /* a value list: position dots, no meter */
             const int32_t dw = (50 - ((int32_t)dots - 1) * 2) / dots < 8 ? (50 - ((int32_t)dots - 1) * 2) / dots : 8;
             const int32_t x0 = x + (58 - ((int32_t)dots * dw + ((int32_t)dots - 1) * 2)) / 2;
@@ -839,6 +890,19 @@ static void uisq_draw_status(const UisqView *v)
     else {
         b[0] = 0; uisq_cat(b, sizeof b, "P"); if (v->preset < 10u) uisq_cat(b, sizeof b, "0"); uisq_catu(b, sizeof b, v->preset);
         uisq_text(3, y, &AF_M, b, T_TEXT, T_BG); }
+    if (v->band == UISQ_BAND_SET) {                                    /* SET: [EXT USB] OUT word, then OCT n (ROW and PAGE mean nothing here) */
+        const uint8_t ext = (uint8_t)(v->clock != UISQ_CLK_INT);
+        char ot[4];
+        int32_t x = 42, xa;
+        if (ext) { xa = uisq_text(x, y + 2, &AF_S, uisq_st_w(UI_ST_EXT), T_MID, T_BG); x = uisq_text(xa + 3, y, &AF_M, uisq_st_w(v->port ? UI_ST_TRS : UI_ST_USB), T_TEXT, T_BG) + 7; }
+        xa = uisq_text(x, y + 2, &AF_S, uisq_st_w(UI_ST_OUT), T_MID, T_BG);
+        (void)uisq_text(xa + 3, y, &AF_M, uisq_st_w(ext ? UI_ST_FOLLOW : v->playing ? UI_ST_MASTER : UI_ST_ON_PLAY), T_TEXT, T_BG);
+        ot[0] = 0;
+        if (v->octave) { uisq_cat(ot, sizeof ot, uisq_ne_w(v->octave > 0 ? UI_NE_PLUS : UI_NE_MINUS)); uisq_catu(ot, sizeof ot, (uint32_t)(v->octave > 0 ? v->octave : -v->octave)); }
+        else uisq_cat(ot, sizeof ot, "0");
+        uisq_text_r(238, y, &AF_M, ot, T_TEXT, T_BG);
+        uisq_text_r(236 - text_w(&AF_M, ot), y + 2, &AF_S, uisq_st_w(UI_ST_OCT), T_MID, T_BG);
+        return; }
     if (!v->rec) {                                                     /* ROW + numbered boxes, the live row filled (a REC has no rows) */
         const int32_t x0 = 128 - (int32_t)v->nrow * 13 / 2;
         uisq_text_r(x0 - 3, y + 2, &AF_S, "ROW", T_MID, T_BG);
@@ -966,6 +1030,15 @@ static void uisq_draw_keybed(const UisqView *v)
       else if (v->band == UISQ_BAND_NOTE) {                           /* NOTE_EDIT: how to move the editor and the way out: on screen in every state (chips, toast) */
           uisq_text(2, ym, &AF_M, uisq_ne_w(UI_NE_HOLD_MOVE), T_TEXT, T_BG);
           uisq_text_r(238, ym, &AF_M, uisq_ne_w(UI_NE_HOME_DONE), T_MID, T_BG); }
+      else if (v->band == UISQ_BAND_SET) {                            /* SET: the clock state is the footer; INT / EXT keep the keys line's size, WAIT and lost are AF_S (too wide with their hint) */
+          char cl[24], cr[24];
+          const uint8_t c = v->clock, small = (uint8_t)(c == UISQ_CLK_WAIT || c == UISQ_CLK_LOST);
+          const aafont_t *ff = small ? &AF_S : &AF_M;
+          const char *l = c == UISQ_CLK_INT ? cl : uisq_st_w(c == UISQ_CLK_EXT ? UI_ST_HOST_SETS : c == UISQ_CLK_WAIT ? UI_ST_WAIT_HOST : UI_ST_CLOCK_LOST);
+          const char *r = c == UISQ_CLK_WAIT ? uisq_st_w(UI_ST_PLAY_CANCEL) : c == UISQ_CLK_LOST ? uisq_st_w(UI_ST_PLAY_START) : cr;
+          uisq_cue_split(uisq_page_cue(UI_PG_SET), cl, sizeof cl, cr, sizeof cr);
+          uisq_text(2, small ? ym + 2 : ym, ff, l, c == UISQ_CLK_LOST ? T_REC : T_TEXT, T_BG);
+          uisq_text_r(238, small ? ym + 2 : ym, ff, r, T_MID, T_BG); }
       else if (chan) { char l[24], r[24]; uisq_cue_split(uisq_page_cue(UI_PG_CHAN), l, sizeof l, r, sizeof r); uisq_text(2, ym, &AF_M, l, T_TEXT, T_BG); uisq_text_r(238, ym, &AF_M, r, T_MID, T_BG); }
       else if (v->cue) {
           b[0] = 'C'; b[1] = 'H'; b[2] = (char)('1' + sel); b[3] = 0;
@@ -1077,6 +1150,9 @@ static uint8_t uisq_view_page(void)                                     /* the v
     uint8_t vp = uisq_vpage;
     if (sq_follow && sq_playing && uisq_page != UI_PG_NOTE_EDIT) vp = (uint8_t)(uisq_playhead(uisq_sel) / SQ_PAGE);   /* NOTE_EDIT stays on the page it was opened on */
     return vp >= pages ? 0u : vp; }
+
+static uint8_t uisq_keys_live(void)                                    /* the pages whose keys are the steps, the M keys and the page keys: PERF, NOTE_EDIT, CHAN, SET */
+{   return (uint8_t)(uisq_page == UI_PG_PERF || uisq_page == UI_PG_NOTE_EDIT || uisq_page == UI_PG_CHAN || uisq_page == UI_PG_SET); }
 
 static uint8_t uisq_next_used(uint8_t from, int8_t dir)                 /* the nearest channel in use after `from` in `dir`, else `from` */
 {   for (int32_t c = (int32_t)from + dir; c >= 0 && c < SQ_NCH; c += dir) if (uisq_used >> c & 1u) return (uint8_t)c;
@@ -1231,7 +1307,7 @@ static void uisq_chan_commit(void)                                      /* no-op
         if (other >= 0) uisq_chan_clash_toast((uint8_t)other, ch, m); } }
 
 static void ui_sq_chan_open(void)                                       /* the hook for the CHN key (P4-032) */
-{   if (uisq_rec || (uisq_page != UI_PG_PERF && uisq_page != UI_PG_NOTE_EDIT) || !(uisq_used >> (uisq_sel % SQ_NCH) & 1u)) return;
+{   if (uisq_rec || (uisq_page != UI_PG_PERF && uisq_page != UI_PG_NOTE_EDIT && uisq_page != UI_PG_SET) || !(uisq_used >> (uisq_sel % SQ_NCH) & 1u)) return;
     if (uisq_page == UI_PG_NOTE_EDIT) uisq_ne_leave();                  /* closes the note-edit session */
     uisq_pg_pend = 0;
     uisq_cm_val = UISQ_CM_NONE;
@@ -1310,14 +1386,23 @@ static void ui_sq_algo_turn(int32_t d)
         ui_sq_touch(ui_msgs[UI_MSG_ENC_ALGO_PATT_AT_STEP].a, b, 0); } }
 
 /* PLAY, GLO, REC, SAVE and the buttons no page owns yet: on CHAN they commit the pending MIDI channel (an exit); their own actions are the later tasks' */
-static void ui_sq_other_button(uint8_t ctl) { (void)ctl; if (uisq_page == UI_PG_CHAN) uisq_chan_commit(); }
+/* GLO (P4-016): a tap opens SET from PERF, NOTE_EDIT or CHAN and closes it again (button_modes GLO rows). Acts on press for now: the hold = HARMONY (P5-006) will move it
+ * to release. Inert in REC. The other buttons here are exits for a pending CHAN MIDI channel. */
+static void ui_sq_other_button(uint8_t ctl)
+{   if (uisq_page == UI_PG_CHAN) uisq_chan_commit();
+    if (ctl != UI_C_B_GLO || uisq_rec) return;
+    if (uisq_page == UI_PG_SET) { uisq_page = UI_PG_PERF; ui.force = 1; }
+    else if (uisq_page == UI_PG_PERF || uisq_page == UI_PG_NOTE_EDIT || uisq_page == UI_PG_CHAN) {
+        if (uisq_page == UI_PG_NOTE_EDIT) uisq_ne_leave();
+        uisq_pg_pend = 0; uisq_page = UI_PG_SET; ui.force = 1; } }
 
 /* HOME (level, once per frame): a tap under 0.7 s leaves NOTE_EDIT or CHAN for PERF; a longer hold is the MENU's (ui_input.c) and does not come here */
 static void ui_sq_home(uint8_t down)
 {   if (down && !uisq_home_dn) { uisq_home_t0 = UISQ_MS(); uisq_chan_commit(); }     /* HOME down commits a pending MIDI channel (a hold goes to the MENU) */
     else if (!down && uisq_home_dn && UISQ_MS() - uisq_home_t0 < 700u) {
         if (uisq_page == UI_PG_NOTE_EDIT) uisq_ne_leave();
-        else if (uisq_page == UI_PG_CHAN) ui_sq_chan_close(); }
+        else if (uisq_page == UI_PG_CHAN) ui_sq_chan_close();
+        else if (uisq_page == UI_PG_SET) { uisq_page = UI_PG_PERF; ui.force = 1; } }
     uisq_home_dn = down ? 1u : 0u; }
 
 /* SELECT (U02): channel CH1..CH4 clamped; one detent past the last channel in use adds the next free one (SCREEN_SPEC_V2 6) */
@@ -1325,13 +1410,13 @@ static void ui_sq_select_turn(int32_t d)
 {   static const char t_space[2] = { 0x20, 0 };
     char b[18];
     if (uisq_page == UI_PG_NOTE_EDIT && d) uisq_ne_leave();             /* SELECT closes NOTE_EDIT (the edited step belongs to the old channel), then moves */
-    if ((uisq_page != UI_PG_PERF && uisq_page != UI_PG_CHAN) || !d) return;
+    if ((uisq_page != UI_PG_PERF && uisq_page != UI_PG_CHAN && uisq_page != UI_PG_SET) || !d) return;
     uisq_chan_commit();                                                 /* CHAN: the pending MIDI channel belongs to the channel being left */
     uisq_pg_pend = 0;
     if (d > 0) {
         const uint8_t nx = uisq_next_used(uisq_sel, 1);
         if (nx != uisq_sel) uisq_sel = nx;
-        else if (uisq_page == UI_PG_PERF) {                             /* (CHAN selects only: clamped, no add) */
+        else if (uisq_page == UI_PG_PERF) {                             /* (CHAN and SET select only: clamped, no add) */
             uint8_t f = SQ_NCH;
             for (uint8_t c = 0; c < SQ_NCH; c++) if (!(uisq_used >> c & 1u)) { f = c; break; }
             if (f < SQ_NCH) {                                           /* add: the next free slot, new (setup cue), unmuted */
@@ -1351,8 +1436,45 @@ static void ui_sq_select_turn(int32_t d)
     ui_sq_touch(ui_msgs[UI_MSG_ENC_SELECT_CH2_EUCLID].a, b, 0); }
 
 /* K1..K4 (U03): one morph of the selected channel's live row; the algorithm owns what the knob means (sq_morph_turn) */
+/* SET K1..K4 (P4-016; knob_map SET rows): BPM 40..240 (a fast turn, 3 or more detents in a frame, steps 5), SWING 50..75, GATE 10..100 (fast 5), DIV 0..5; every
+ * value clamps at its ends (no wrap). K1 is inert while an external clock runs (the own tempo is kept; the slot says why). Globals go through sq_global_set (an
+ * off-side build, one flip: a refused call, a load pending, changes nothing and the tile keeps reading the live value); BPM goes through uisq_bpm_req. */
+static void uisq_set_knob(uint8_t k, int32_t d)
+{   const SeqGlobal *g = &sq_gdb[sq_gidx];
+    const int32_t fast = (d >= 3 || d <= -3);
+    int32_t n;
+    if (!d) return;
+    switch (k) {
+    case 0:
+        ui_sq_knob_touch(0);
+        if (uisq_clock != UISQ_CLK_INT) { ui_sq_touch_id(UI_MSG_ENC_K1_HOST_SETS_TEMPO, 0); return; }
+        n = (int32_t)sq_bpm + (fast ? d * 5 : d);
+        if (n < 40) n = 40;
+        if (n > 240) n = 240;
+        sq_bpm = (uint16_t)n; uisq_bpm_req = (uint16_t)n;
+        return;
+    case 1: n = (int32_t)g->s.swing + d; (void)sq_global_set(SQ_G_SWING, (int16_t)(n < 50 ? 50 : n > 75 ? 75 : n)); break;
+    case 2: n = (int32_t)g->s.gate + (fast ? d * 5 : d); (void)sq_global_set(SQ_G_GATE, (int16_t)(n < 10 ? 10 : n > 100 ? 100 : n)); break;
+    default: n = (int32_t)g->s.div + d; (void)sq_global_set(SQ_G_DIV, (int16_t)(n < 0 ? 0 : n > 5 ? 5 : n)); break; }
+    ui_sq_knob_touch(k); }
+
+/* OCT- / OCT+ on SET: the global OCTAVE -2..+2 (clamped), named in the slot while touched: OCT+ OCTAVE +1 */
+static void uisq_set_oct(uint8_t ctl)
+{   const uint8_t up = (uint8_t)(ctl == UI_C_B_OCTUP);
+    int32_t n = (int32_t)sq_gdb[sq_gidx].s.octave + (up ? 1 : -1);
+    const uint8_t id = up ? UI_MSG_ENC_OCT_OCTAVE_1 : UI_MSG_ENC_OCT_OCTAVE_2;
+    char b[18];
+    if (n < -2) n = -2;
+    if (n > 2) n = 2;
+    (void)sq_global_set(SQ_G_OCTAVE, (int16_t)n);
+    n = sq_gdb[sq_gidx].s.octave;                                       /* what is live now (a refused change keeps the old one) */
+    b[0] = 0; uisq_cat(b, sizeof b, uisq_st_w(UI_ST_OCTAVE)); uisq_cat(b, sizeof b, " ");
+    if (n) { uisq_cat(b, sizeof b, uisq_ne_w(n > 0 ? UI_NE_PLUS : UI_NE_MINUS)); uisq_catu(b, sizeof b, (uint32_t)(n > 0 ? n : -n)); } else uisq_cat(b, sizeof b, "0");
+    ui_sq_touch(ui_msgs[id].a, b, 0); }
+
 static void ui_sq_knob(uint8_t k, int32_t d)
 {   if (uisq_page == UI_PG_NOTE_EDIT) { uisq_ne_knob(k, d); return; }
+    if (uisq_page == UI_PG_SET && k < 4u) { if (d > 127) d = 127; if (d < -127) d = -127; uisq_set_knob(k, d); return; }
     if (uisq_page == UI_PG_CHAN && k < 4u) { if (d > 127) d = 127; if (d < -127) d = -127; uisq_chan_knob(k, d); return; }
     if (uisq_page != UI_PG_PERF || k >= 4u || !d || uisq_rec || uisq_row >= 2u) return;
     uisq_pg_pend = 0;
@@ -1382,7 +1504,8 @@ static void ui_sq_button(uint8_t ctl)
 {   const uint8_t sel = uisq_sel % SQ_NCH;
     const int8_t ly = uisq_layer_of(ctl);
     if (uisq_page == UI_PG_NOTE_EDIT) { uisq_ne_button(ctl); return; }
-    if (uisq_page != UI_PG_PERF && uisq_page != UI_PG_CHAN) return;
+    if (uisq_page != UI_PG_PERF && uisq_page != UI_PG_CHAN && uisq_page != UI_PG_SET) return;
+    if (uisq_page == UI_PG_SET && (ctl == UI_C_B_OCTDN || ctl == UI_C_B_OCTUP)) { uisq_pg_pend = 0; uisq_set_oct(ctl); return; }
     if (uisq_page == UI_PG_CHAN) {
         uisq_chan_commit();                                             /* any button is an exit for the pending MIDI channel */
         if (ctl == UI_C_B_OCTDN || ctl == UI_C_B_OCTUP) { uisq_chan_pages(ctl); return; } }
@@ -1425,7 +1548,7 @@ static void ui_sq_button(uint8_t ctl)
 static void uisq_key_down(uint8_t k)
 {   const uint8_t slot = uisq_key_slot(k);
     uisq_key_t0[k] = UISQ_MS();
-    if (uisq_page != UI_PG_PERF && uisq_page != UI_PG_NOTE_EDIT && uisq_page != UI_PG_CHAN) return;       /* NOTE_EDIT: the white keys and the black keys work as on PERF */
+    if (!uisq_keys_live()) return;       /* NOTE_EDIT: the white keys and the black keys work as on PERF */
     if (!(slot & 0x80u)) { uisq_pg_pend = 0; return; }                  /* a white key: a tap or a hold, decided by the time */
     switch (slot & 0x7Fu) {
     case 0: case 1: case 2: case 3: {                                   /* M1..M4 */
@@ -1457,7 +1580,7 @@ static void uisq_key_up(uint8_t k)
     const uint32_t el = UISQ_MS() - uisq_key_t0[k];
     uisq_key_fired &= ~(1u << k);
     if ((slot & 0x80u) && (slot & 0x7Fu) < 4u) { ui_sq_held_m_set(0); ui_sq_hold_end(); }   /* the M-key hint ends with the key, on any page */
-    if (uisq_page != UI_PG_PERF && uisq_page != UI_PG_NOTE_EDIT && uisq_page != UI_PG_CHAN) return;
+    if (!uisq_keys_live()) return;
     if (!(slot & 0x80u)) {                                              /* a white key released before the hold time: step n ON/OFF (U14) */
         if (!fired) {
             const uint8_t p = (uint8_t)(uisq_view_page() * SQ_PAGE + slot);
@@ -1485,7 +1608,7 @@ static void ui_sq_keys(uint32_t mask)
         if (mask >> k & 1u) uisq_key_down(k); else uisq_key_up(k); }
     uisq_keys = mask; }
 static void uisq_keys_tick(void)
-{   if (uisq_page != UI_PG_PERF && uisq_page != UI_PG_NOTE_EDIT && uisq_page != UI_PG_CHAN) return;
+{   if (!uisq_keys_live()) return;
     for (uint8_t k = 0; k < UISQ_NKEY; k++) {
         const uint8_t slot = uisq_key_slot(k);
         const uint32_t el = UISQ_MS() - uisq_key_t0[k];

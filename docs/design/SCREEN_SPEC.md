@@ -293,7 +293,7 @@ TIMING_SPEC question 1 (AUTO only, or AUTO / INTERNAL ONLY).
 > **Zones superseded (proposal, awaiting owner sign-off, P4-016):** the SET page is redrawn on the v12 system in `docs/design/features/P4-016-set-page-and-tempo-source-visibility-t-e.md` (renders `docs/design/ui_review/proposals/v12/out_set/`). The strings, the K1 EXT rule and the four states below stay; the two status lines, the tag column and the y positions do not.
 
 The SET band (Z3) rows in the four states (strings are table data; widths measured, AF_S). **SET K1 is locked**
-(`knob_map.tsv`: "tempo (internal clock; ignored while an external MIDI clock runs, value shows EXT)"): in every EXT
+(`knob_map.tsv`: "tempo (internal clock; inert while an external MIDI clock runs: the K1 tile reads HOST n, P4-016)"): in every EXT
 state K1 does nothing and its cell is a read-only mirror. The user's own tempo is kept and returns when the host stops.
 
 | State | K1 cell | Status line 1 (y=136) | Status line 2 (y=148) |

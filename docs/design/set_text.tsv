@@ -1,0 +1,25 @@
+id	text	note
+HOST	HOST	K1 label while an external clock runs (read-only mirror of the host tempo)
+OUT	OUT	status line: clock out label
+MASTER	MASTER	status line: OUT MASTER (own clock, playing: clock goes out)
+ON_PLAY	ON PLAY	status line: OUT ON PLAY (own clock, stopped: clock goes out when PLAY starts)
+FOLLOW	FOLLOW	status line: OUT FOLLOW (an external clock: nothing goes out)
+EXT	EXT	status line: label before the clock port
+USB	USB	the port an external clock came from
+TRS	TRS	the port an external clock came from (3.5 mm jack)
+OCT	OCT	status line: OCT -2..+2 (global OCTAVE)
+OCTAVE	OCTAVE	touched OCT- / OCT+: OCTAVE +1
+WAIT	WAIT	header tempo slot while PLAY waits for the host's Start (SCREEN_SPEC_V2 4.1)
+DASH	--	header tempo slot after the host clock vanished (T_REC), and the K1 tile while the host tempo is not known
+PCT	%	unit after the SWING and GATE numbers
+DIV0	1/32	K4 DIV names, step length 0
+DIV1	1/16T	K4 DIV 1
+DIV2	1/16	K4 DIV 2 (default)
+DIV3	1/8T	K4 DIV 3
+DIV4	1/8	K4 DIV 4
+DIV5	1/4	K4 DIV 5
+HOST_SETS	HOST SETS TEMPO	footer while an external clock runs
+WAIT_HOST	WAIT FOR HOST START	footer in WAIT (AF_S)
+CLOCK_LOST	CLOCK LOST: STOPPED	footer after the host clock vanished (AF_S, T_REC)
+PLAY_CANCEL	PLAY=CANCEL	footer hint in WAIT (AF_S)
+PLAY_START	PLAY=START	footer hint after the clock was lost (AF_S)

@@ -20,7 +20,7 @@ import algos_v12 as A                        # noqa: E402
 from icons_v12 import BUTTONS                # noqa: E402
 
 ALGO_ORDER = ["ACID", "EUCLID", "SNAKE", "STAGE", "ARP", "PATTERNS", "DEMO"]   # index 6 = DEMO (the test swaps it into slot 5)
-BAND = {"row": 0, "rec": 1, "chan": 2}   # UISQ_BAND_ROW / REC / CHAN of ui_sq.c
+BAND = {"row": 0, "rec": 1, "chan": 2, "set": 4}   # UISQ_BAND_ROW / REC / CHAN / SET of ui_sq.c
 CLK = {"INT": 0, "EXT": 1, "WAIT": 2, "LOST": 3}
 
 
@@ -65,7 +65,8 @@ def scene_fields(name, S):
     chans = S["chans"]
     rec = bool(S.get("rec"))
     chan_page = S.get("page") == "CHAN"
-    band = "rec" if rec else "chan" if chan_page else "row"
+    set_page = S.get("page") == "SET"
+    band = "rec" if rec else "chan" if chan_page else "set" if set_page else "row"
     row = S.get("row", 0)
     rigged = bool(S.get("rig"))
     krow = v12.knob_row(S)
@@ -74,6 +75,8 @@ def scene_fields(name, S):
     for k in range(4):
         d = krow[k]
         v = vals.get(k, d["def"])
+        if band == "set" and k == 0 and 0 not in vals:
+            v = S.get("bpm", 120)              # SET K1 shows the tempo
         if band == "rec" and d["min"] < 0:
             v -= d["min"]                      # the firmware stores OCT -2..+2 as 0..4
         val.append(v)
@@ -81,7 +84,7 @@ def scene_fields(name, S):
     playing = S.get("playing", True)
     ph = S.get("playhead", 5) if playing and not S.get("follow_off") else 255
     used = sum(1 << i for i in S["used"])
-    msg = bool(S.get("toast") or S.get("hold") or chan_page)
+    msg = bool(S.get("toast") or S.get("hold") or chan_page or set_page)
     # P4-029: buttons (pressed), keybed (held mute / move key, setup cue) and the message slot (the mock's topbar: hold > touched > toast > page title)
     lit = S.get("lit")
     lit_i = [b[0] for b in BUTTONS].index(lit) if lit else -1
@@ -91,6 +94,8 @@ def scene_fields(name, S):
     t, h = S.get("toast"), S.get("hold")
     if not (t or h) and chan_page:
         t = ("enc", "CHN", "CH%d SETUP" % (sel + 1))
+    if not (t or h) and set_page:
+        t = ("enc", "GLO", "ALL CHANNELS")
     if h:
         mk, ma, mb, micon, mfrac, mchip = 3, h[1], "", h[0], h[2], 0
     elif t and t[0] == "enc":
@@ -105,7 +110,8 @@ def scene_fields(name, S):
              preset=S.get("preset", 1), pend=S.get("pend", 0), pages=S.get("pages", 1), vpage=S.get("vpage", 1), ppage=S.get("ppage", 2),
              follow_off=int(bool(S.get("follow_off"))), ph=ph, len16=S.get("length") if S.get("length") is not None else 16,
              cursor=S.get("cursor", 1), diced=sum(1 << i for i in S.get("diced", ())),
-             heard=(S.get("algo_state") or {}).get("heard", 255))
+             heard=(S.get("algo_state") or {}).get("heard", 255),
+             octave=S.get("octave", 0), port=1 if S.get("port") == "TRS" else 0)
     return f, chans
 
 
@@ -119,7 +125,7 @@ def emit_scene(out, f, chans):
     d = dict(f, algo=algo, midi=midi, muted=muted)
     fields = ['.name = "%s"' % f["name"]]
     for k in ("lit", "held_m", "held_mv", "cue", "mk", "mfrac", "mchip", "msg", "playing", "rec", "clock", "bpm", "sel", "row", "nrow", "turn", "turn_old", "preset", "pend", "pages", "vpage", "ppage",
-              "follow_off", "ph", "len16", "cursor", "heard"):
+              "follow_off", "ph", "len16", "cursor", "heard", "octave", "port"):
         fields.append(".%s = %d" % (k, f[k]))
     fields.append('.ma = "%s", .mb = "%s", .micon = %s' % (f["ma"], f["mb"], ("SQI_" + f["micon"].upper()) if f["micon"] else "0"))
     fields.append(".used = 0x%X" % f["used"])
@@ -137,7 +143,7 @@ def main(path):
     emit_algos(out)
     out.append("typedef struct { int8_t note; uint8_t acc, sl; } V12Step;")
     out.append("typedef struct { const char *name; int8_t lit; uint8_t held_m, held_mv, cue, mk, mfrac, mchip; const char *ma, *mb; uint8_t micon; uint8_t msg, playing, rec, clock; uint16_t bpm; uint8_t used, sel; uint8_t algo[4], midi[4], muted[4];")
-    out.append("    uint8_t band, row, nrow, val[4], turn, turn_old, preset, pend, pages, vpage, ppage, follow_off, ph, len16, cursor, heard; uint16_t diced; V12Step lane[4][16]; } V12Scene;")
+    out.append("    uint8_t band, row, nrow, val[4], turn, turn_old, preset, pend, pages, vpage, ppage, follow_off, ph, len16, cursor, heard; int8_t octave; uint8_t port; uint16_t diced; V12Step lane[4][16]; } V12Scene;")
     out.append("static const V12Scene V12_SCENES[] = {")
     n = 0
     sheets = []

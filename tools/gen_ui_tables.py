@@ -9,6 +9,7 @@ Sources (docs/design/, all hand-edited or produced by their own generator; this 
   knob_map.tsv      knob label per page and algorithm context     -> enum ui_knob_t, enum ui_ctx_t, ui_knob_rows
   key_map.tsv       key label per page and gesture                -> ui_key_rows
   note_edit_text.tsv the NOTE_EDIT page's own words (P4-014)     -> enum ui_ne_id_t, ui_ne_text
+  set_text.tsv       the SET page's own words (P4-016)           -> enum ui_st_id_t, ui_st_text
   help_text.tsv     two help lines per control and page (made by tests/design/gen_help.py; checked by
                     tests/design/check_help.py)                   -> ui_help_rows
   tests/design/widths.tsv   pixel limits of UI strings (read by tests/design/width_probe.sh)
@@ -268,7 +269,9 @@ def build():
         bad("MESSAGES not found in %s" % os.path.relpath(MOCK_V12, ROOT))
     ne = rd("note_edit_text")      # P4-014: the words of the NOTE_EDIT page that are in no other table
     uniq(ne, ["id"], "note_edit_text")
-    return dict(ne=ne, ps=ps, cm=cm, bm=bm, km=km, ky=ky, ht=ht, pages=pages, ctls=ctls, knobs=knobs, ctxs=ctxs,
+    st = rd("set_text")            # P4-016: the words of the SET page that are in no other table
+    uniq(st, ["id"], "set_text")
+    return dict(st=st, ne=ne, ps=ps, cm=cm, bm=bm, km=km, ky=ky, ht=ht, pages=pages, ctls=ctls, knobs=knobs, ctxs=ctxs,
                 labels=labels, msgs=msgs or [])
 
 
@@ -621,6 +624,13 @@ def emit(t):
     L += ["    UI_NE_COUNT", "} ui_ne_id_t;"]
     L.append("static const char *const ui_ne_text[UI_NE_COUNT] = {")
     L += ["    %s," % cstr(r["text"]) for r in t["ne"]]
+    L += ["};", ""]
+    # P4-016: the SET page's own words (docs/design/set_text.tsv)
+    L += ["typedef enum {"]
+    L += ["    UI_ST_%s%s" % (ident(r["id"]), " = 0," if i == 0 else ",") for i, r in enumerate(t["st"])]
+    L += ["    UI_ST_COUNT", "} ui_st_id_t;"]
+    L.append("static const char *const ui_st_text[UI_ST_COUNT] = {")
+    L += ["    %s," % cstr(r["text"]) for r in t["st"]]
     L += ["};", ""]
     # hold times: the "0.4 s" of a PERF hold row of button_modes.tsv / key_map.tsv (the hint's bar fills to it); a control without one acts on release
     holds = []

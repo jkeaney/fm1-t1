@@ -5,12 +5,12 @@ octave 0. Notation as S01. Rows with `K1R` on a one-row page use the whole band 
 
 | Step | User action | Exact screen text | MIDI out | Row ids |
 | --- | --- | --- | --- | --- |
-| 1 | Tap GLO | Page SET. K1R `BPM 120` `SWING 50` `GATE 50` `DIV 1/16`; tag column `OCT-` `OCT+` (OCTAVE 0); status line 1 `TEMPO INT 120` and `OUT MASTER`; status line 2 `host clock takes over`; GLO cell `BACK`; CUE `SET: GLO hold=HARM  HOME=back` | none | B_GLO/PERF |
-| 2 | Turn K1 eight detents clockwise | `BPM 128`; HD `INT 128`; status line 1 `TEMPO INT 128` | none (stopped); `beat_samples()` changes at once | EN_K1/SET |
-| 3 | Turn K2 six detents clockwise | `SWING 56` (odd steps late by 12 % of a step) | from the next step on playing | EN_K2/SET |
-| 4 | Turn K3 ten detents counter-clockwise | `GATE 40` (global gate, 50 is neutral) | from the next step on playing | EN_K3/SET |
-| 5 | Turn K4 one detent clockwise | `DIV 1/8T` | step length changes from the next step | EN_K4/SET |
-| 6 | Tap OCT+, then OCT- | tag column reads `OCT +1`, then `OCT 0`; the global OCTAVE moves up one and back (it moved here from the SCALE page) | from the next step the notes are an octave higher, then as before | B_OCTUP/SET, B_OCTDN/SET |
+| 1 | Tap GLO | Page SET (SCREEN_SPEC_V2 4.7, P4-016). Slot `GLO ALL CHANNELS`; tiles `BPM 120` `SWING 50%` `GATE 50%` `DIV 1/16`; status line `P01` `OUT MASTER` (playing; stopped: `OUT ON PLAY`) `OCT 0`; header `120`; footer `KEYS = STEPS` / `GLO = BACK` | none | B_GLO/PERF |
+| 2 | Turn K1 eight detents clockwise | tile `BPM 128`; header `128` | none (stopped); `beat_samples()` changes at once | EN_K1/SET |
+| 3 | Turn K2 six detents clockwise | tile `SWING 56%` (odd steps late by 12 % of a step) | from the next step on playing | EN_K2/SET |
+| 4 | Turn K3 ten detents counter-clockwise | tile `GATE 40%` (global gate, 50 is neutral) | from the next step on playing | EN_K3/SET |
+| 5 | Turn K4 one detent clockwise | tile `DIV 1/8T` (list dots, 4th of 6) | step length changes from the next step | EN_K4/SET |
+| 6 | Tap OCT+, then OCT- | slot `OCT+ OCTAVE +1` and status line `OCT +1` (clamped -2..+2), then slot `OCT- OCTAVE 0` and `OCT 0`; the global OCTAVE moves up one and back (it moved here from the SCALE page) | from the next step the notes are an octave higher, then as before | B_OCTUP/SET, B_OCTDN/SET |
 | 7 | Press FX (dice all) while SET is open | toast `ALL`; lane redraws; the SET page stays open | next step: a new line | B_FX/SET, B_SCL/SET, B_ENV/SET, B_LFO/SET, B_ARP/SET, B_SEQ/SET, B_EDIT/SET |
 | 8 | Press PLAY, then PLAY | the pattern runs, then stops | `FA`, notes, then `FC`, offs, `B1 7B 00` | B_PLAY/SET |
 | 9 | Tap REC | REC opens from SET: see step 15 | none | B_REC/SET |

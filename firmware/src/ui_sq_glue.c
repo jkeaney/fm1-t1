@@ -10,7 +10,7 @@
  *   ui_sq_poll()       every frame from ui_input(): keeps the screen and the selected channel in step (sq_sel is the ISR's copy).
  *   ui_sq_controls()   the frame's input while the sequencer screen has the panel. P4-012 wires the transport (PLAY) and the page
  *                      dispatch (ui_sq_input). P4-015 wires the CHAN page: the CHN key (inside ui_sq_keys), K1-K4 / OCT / SELECT by page, the ALGO encoder (ui_sq_algo_turn) and
- *                      PLAY / GLO / REC / SAVE as exits (ui_sq_other_button). P4-013 wires the PERF page (ui_sq.c): SELECT (channel, one past the last adds), the M keys (tap mute,
+ *                      PLAY / REC / SAVE as exits (ui_sq_other_button); P4-016 adds GLO (a tap opens SET and closes it: ui_sq_other_button), K1 BPM through uisq_bpm_req (sq_frame hands it to song.g[G_BPM]). P4-013 wires the PERF page (ui_sq.c): SELECT (channel, one past the last adds), the M keys (tap mute,
  *                      hold preview, held 1.5 s remove), the white keys (tap step ON/OFF, held 0.4 s NOTE_EDIT), PG-/PG+, K1-K4 (sq_morph_turn),
  *                      the dice buttons, EDIT (undo / redo) and OCT-/OCT+ (the knob row). P4-014 wires the NOTE_EDIT page through the same calls (the buttons and
  *                      knobs route by page inside ui_sq.c) plus ui_sq_home for HOME. The keys stay silent (song.grid 2). ALGO and PRESETS
@@ -21,8 +21,10 @@
 static void sq_frame(void)
 {   const uint8_t seen = sq_seen_epoch;
     SQ_FRAME_SYNC();
-    if (seen != sq_seen_epoch) song.g[G_BPM] = (int16_t)clamp((int32_t)sq_bpm, GP[G_BPM].min, GP[G_BPM].max);   /* a load landed: its tempo wins */
-    else sq_bpm = (uint16_t)song.g[G_BPM]; }
+    if (seen != sq_seen_epoch) { uisq_bpm_req = 0; song.g[G_BPM] = (int16_t)clamp((int32_t)sq_bpm, GP[G_BPM].min, GP[G_BPM].max); }   /* a load landed: its tempo wins (over a SET K1 turn too) */
+    else {
+        if (uisq_bpm_req) { song.g[G_BPM] = (int16_t)clamp((int32_t)uisq_bpm_req, GP[G_BPM].min, GP[G_BPM].max); uisq_bpm_req = 0; }   /* SET K1 (ui_sq.c): the own tempo, the one value song.g[G_BPM] */
+        sq_bpm = (uint16_t)song.g[G_BPM]; } }
 
 static void ui_sq_poll(void)
 {   static uint8_t was_sel = 0xFFu;

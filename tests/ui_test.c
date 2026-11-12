@@ -1787,6 +1787,36 @@ static int test_retired_menu_bits(void)
     return bad;
 }
 
+/* P4-016: the SET page through the real main loop (ui_input -> ui_sq_controls -> sq_frame): GLO opens it, K1 BPM goes through uisq_bpm_req to song.g[G_BPM] (the ONE
+ * tempo value the audio side reads) and the screen shows it, K1 is inert under an external clock (the own tempo is kept), GLO closes it again */
+static int test_set_page_tempo(void)
+{
+    int bad = 0, ok;
+    uint32_t i;
+    ui_power_on();
+    frames(2000);                                       /* (past the boot cue) */
+    song.g[G_BPM] = 120; sq_bpm = 120; ui_sq_clock_set(UISQ_CLK_INT, 0);
+    press(B_GLO); frame();
+    ok = uisq_page == UI_PG_SET;
+    bad += check("P4-016: GLO opens the SET page", ok);
+    for (i = 0; i < 5; i++) { turn(EN_K1, 1); sq_frame(); }        /* (sq_frame is the main loop's once-per-frame call: main.c) */
+    ok = song.g[G_BPM] == 125 && sq_bpm == 125 && uisq_bpm_req == 0;
+    bad += check("P4-016: K1 +5 on SET: song.g[G_BPM] 125 (the request was handed over), the screen value follows", ok);
+    for (i = 0; i < 40; i++) { turn(EN_K1, 100); sq_frame(); }
+    ok = song.g[G_BPM] == 240 && sq_bpm == 240;
+    bad += check("P4-016: K1 stops at 240 (the byte tile value cannot wrap)", ok);
+    song.g[G_BPM] = 128; ui_sq_clock_set(UISQ_CLK_EXT, 0); sq_frame(); frame();
+    for (i = 0; i < 3; i++) { turn(EN_K1, 1); sq_frame(); }
+    ok = song.g[G_BPM] == 128 && uisq_bpm_req == 0;
+    bad += check("P4-016: K1 under an external clock changes nothing (the host's value is mirrored)", ok);
+    ui_sq_clock_set(UISQ_CLK_INT, 0);
+    press(B_GLO); frame();
+    ok = uisq_page == UI_PG_PERF;
+    bad += check("P4-016: GLO closes SET", ok);
+    ui_power_on();
+    return bad;
+}
+
 /* #15 / Discussion #80 MENU > LARGE: OFF by default (and in every older setting); KNOB 1 right ON / left OFF, OCT+
  * toggles, nothing else moves. ON: HOME and the value pages draw tall cards (a K1..K4 pill over each knob's column,
  * the value in L) and the strip under them; the list / graph pages and the layers keep the layout (their labels in
@@ -2181,6 +2211,7 @@ int main(void)
     bad += test_click_menu();
     bad += test_usb_serial();
     bad += test_retired_menu_bits();
+    bad += test_set_page_tempo();
     bad += test_scale_leds();
     bad += test_screen_off();
     bad += test_screen_wake();

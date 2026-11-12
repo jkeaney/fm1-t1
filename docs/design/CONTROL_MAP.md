@@ -293,7 +293,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `B_OCTDN` | `PERF` | tap: release: latch ROW 1 of the knob band // hold: hold and turn a knob: ROW 1 live while held (momentary peek; the tap is the main route; sub-label h:peek; unscored) | `ROW 1` |
 | `B_OCTDN` | `NOTE_EDIT` | tap: release: the edited step one octave down (OCT -2..+2), auditioned // hold: as tap (no hold role on this page) | `OCT-` |
 | `B_OCTDN` | `CHAN` | tap: release: LENGTH to the page boundary below (20 -> 16, 48 -> 32; at 16 or less inert, toast ONE PAGE: K1 = SHORTER); the hidden steps keep their edits // hold: as tap (no hold role on this page) | `-PAGE` |
-| `B_OCTDN` | `SET` | tap: release: global OCTAVE -1 (-2..+2); the tag column reads OCT -2..+2 (moved here from the SCALE page, which uses OCT- / OCT+ for DRONE) // hold: as tap (no hold role on this page) | `OCT-` |
+| `B_OCTDN` | `SET` | tap: release: global OCTAVE -1 (-2..+2); the status line reads OCT -2..+2 and the slot names OCT+ / OCT- OCTAVE n while touched (moved here from the SCALE page, which uses OCT- / OCT+ for DRONE; v12 has no tag column, P4-016) // hold: as tap (no hold role on this page) | `OCT-` |
 | `B_OCTDN` | `SCALE` | tap: release: DRONE walks one candidate down (0 = OFF); the status line names the degree and marks clashes // hold: as tap (no hold role on this page) | `OCT-` |
 | `B_OCTDN` | `REC` | tap: release: the REC keyboard octave -1 (same value as K4 OCT) // hold: as tap (no hold role on this page) | `OCT-` |
 | `B_OCTDN` | `RESET` | tap: from PERF: reset the four morphs of ROW 1; from NOTE_EDIT: the step octave to AUTO; from HARMONY: DRONE OFF; elsewhere inert; RESET closes; EDIT tap undoes // hold: as tap | `RST R1` |
@@ -302,7 +302,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `B_OCTUP` | `PERF` | tap: release: latch ROW 2 of the knob band // hold: hold and turn a knob: ROW 2 live while held (momentary peek; the tap is the main route; sub-label h:peek; unscored) | `ROW 2` |
 | `B_OCTUP` | `NOTE_EDIT` | tap: release: the edited step one octave up (OCT -2..+2), auditioned // hold: as tap (no hold role on this page) | `OCT+` |
 | `B_OCTUP` | `CHAN` | tap: release: LENGTH to the page boundary above (20 -> 32, 32 -> 48, max 64): a partial page is completed, a new page is a copy of the page before it (edits and source), a hidden page comes back as stored // hold: as tap (no hold role on this page) | `+PAGE` |
-| `B_OCTUP` | `SET` | tap: release: global OCTAVE +1 (-2..+2); the tag column reads OCT -2..+2 (moved here from the SCALE page, which uses OCT- / OCT+ for DRONE) // hold: as tap (no hold role on this page) | `OCT+` |
+| `B_OCTUP` | `SET` | tap: release: global OCTAVE +1 (-2..+2); the status line reads OCT -2..+2 and the slot names OCT+ / OCT- OCTAVE n while touched (moved here from the SCALE page, which uses OCT- / OCT+ for DRONE; v12 has no tag column, P4-016) // hold: as tap (no hold role on this page) | `OCT+` |
 | `B_OCTUP` | `SCALE` | tap: release: DRONE walks one candidate up (14 = top); the status line names the degree and marks clashes // hold: as tap (no hold role on this page) | `OCT+` |
 | `B_OCTUP` | `REC` | tap: release: the REC keyboard octave +1 (same value as K4 OCT) // hold: as tap (no hold role on this page) | `OCT+` |
 | `B_OCTUP` | `RESET` | tap: from PERF: reset the four morphs of ROW 2; from NOTE_EDIT: the step octave to AUTO; from HARMONY: DRONE OFF; elsewhere inert; RESET closes; EDIT tap undoes // hold: as tap | `RST R2` |
@@ -338,7 +338,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `EN_K1` | `PERF` | turn: the live row (ROW 1 or ROW 2) morph in this column of the selected channel's algorithm (rows above): ACID DENS/OFFSET, EUCLID HITS/LEN, SNAKE DENS/OFFSET, STAGE DENS/OFFSET | `morph` |
 | `EN_K1` | `NOTE_EDIT` | turn: one scale degree per detent from the current note; every detent sounds the note (MIDI + preview); the first detent turns AUTO into a set pitch | `PITCH` |
 | `EN_K1` | `CHAN` | turn: pattern length of the selected channel; crossing into a new page fills it (copy of the page before, or the stored page); shrinking hides, never deletes | `LENGTH` |
-| `EN_K1` | `SET` | turn: tempo (internal clock; ignored while an external MIDI clock runs, value shows EXT) | `BPM` |
+| `EN_K1` | `SET` | turn: tempo (internal clock). While an external MIDI clock runs K1 is inert: the tile reads HOST n (read-only mirror, no fill, dashed frame; HOST -- while the host tempo is unknown), a turn names why in the slot (K1 HOST SETS TEMPO); the own tempo is kept (P4-016) | `BPM` |
 | `EN_K1` | `SCALE` | turn: global scale (every algorithm and every edited pitch snaps to it) | `SCALE` |
 | `EN_K1` | `REC` | turn: move the write cursor one step per detent (stopped: the step sounds) | `CURSOR` |
 | `EN_K1` | `RESET` | turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE P1 (reads page 1) / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes | `RST` |
