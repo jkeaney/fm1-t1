@@ -11,7 +11,8 @@
  *   ui_sq_controls()   the frame's input while the sequencer screen has the panel. P4-012 wires the transport (PLAY) and the page
  *                      dispatch (ui_sq_input). P4-013 wires the PERF page (ui_sq.c): SELECT (channel, one past the last adds), the M keys (tap mute,
  *                      hold preview, held 1.5 s remove), the white keys (tap step ON/OFF, held 0.4 s NOTE_EDIT), PG-/PG+, K1-K4 (sq_morph_turn),
- *                      the dice buttons, EDIT (undo / redo) and OCT-/OCT+ (the knob row). The keys stay silent (song.grid 2). ALGO and PRESETS
+ *                      the dice buttons, EDIT (undo / redo) and OCT-/OCT+ (the knob row). P4-014 wires the NOTE_EDIT page through the same calls (the buttons and
+ *                      knobs route by page inside ui_sq.c) plus ui_sq_home for HOME. The keys stay silent (song.grid 2). ALGO and PRESETS
  *                      are drained; CHN, SOL, FIL, ROL, RST and the other buttons are the later page tasks'.
  *   ui_sq_screen()     the draw: ui_sq_draw() blits the strips whose signature changed; the force flag is spent here.
  * Included by the unity build and by the host tests (tests/ui_test.c) after ui_input.c. */
@@ -44,6 +45,7 @@ static void ui_sq_controls(uint32_t pressed, uint32_t notes)
     (void)panel_enc(EN_ALGO);                           /* (the ALGO page task) */
     (void)panel_enc(EN_PRESET);
     ui_sq_keys(fm1_in.notes);
+    ui_sq_home((uint8_t)((fm1_in.buttons >> panel.btn[B_HOME]) & 1u));   /* HOME tap leaves NOTE_EDIT (a hold is the MENU's: ui_input.c never gets here) */
     ui_sq_input(); }
 
 static void ui_sq_screen(void)

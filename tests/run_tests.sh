@@ -185,6 +185,10 @@ run "sequencer UI framework: ui_sq.c screen v2 bands + two-strip plan + empty fr
 ${CC%% *} -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/ui_sq_perf_test" tests/ui_sq_perf_test.c -lm
 run "PERF page controls: tap step ON/OFF, hold 0.4 s NOTE_EDIT, M key tap/preview/remove, SELECT adds a channel, K1-K4 morph, dice + EDIT undo, PG-/PG+ with the add prompt, OCT rows; PNGs in build/ui_sq/perf_*" "$OUT/ui_sq_perf_test" build/ui_sq
 
+# NOTE_EDIT page (P4-014): hold a step key opens it, K1-K4 AUTO / set with AUTO at the low end, the layer buttons, OCT-/OCT+, EDIT undo of the one session record, the editor moving, HOME / SELECT leaving and closing the session, bounds; PNGs in build/ui_sq/note_*
+${CC%% *} -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/ui_sq_note_test" tests/ui_sq_note_test.c -lm
+run "NOTE_EDIT page: open by hold, K1-K4 AUTO / set, layer buttons, OCT, EDIT undo / redo, move the editor, HOME / SELECT leave and close the session, field bounds, strings fit; PNGs in build/ui_sq/note_*" "$OUT/ui_sq_note_test" build/ui_sq
+
 # Algorithm UI descriptor (P4-027, ADR-0007): the real ui_sq.c draws the knob tiles of ACID (real row) and a dummy DEMO row through the descriptor alone
 ${CC%% *} -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/sq_algodesc_test" tests/sq_algodesc_test.c -lm
 run "algorithm UI descriptor: value text / one font / dots / short name from AlgoDesc, a dummy algorithm's knob tiles through ui_sq.c unchanged" "$OUT/sq_algodesc_test"

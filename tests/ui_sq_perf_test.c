@@ -206,7 +206,7 @@ int main(int argc, char **argv)
       CHECK(uisq_page == UI_PG_NOTE_EDIT && uisq_edit_step == 7 && sq_ne_state == 1 && sq_ne_p == 7 && sq_ne_ch == 0, "0.45 s: NOTE_EDIT on step 8 (page %d step %d ne %d)", uisq_page, uisq_edit_step, sq_ne_state);
       press(0); frame();
       CHECK(sq_ch[0].ed[6].fl == before, "the hold is no tap");
-      CHECK(uisq_page == UI_PG_PERF, "the stand-in NOTE_EDIT ends with the key (P4-014 replaces it)"); }
+      CHECK(uisq_page == UI_PG_NOTE_EDIT, "NOTE_EDIT stays open after the key is let go (P4-014)"); uisq_ne_leave(); CHECK(uisq_page == UI_PG_PERF && sq_ne_state == 0, "leaving closes the session"); }
     { const uint8_t f = sq_ch[0].ed[7].fl; CHECK((f & 3) == 0, "release after the hold wrote nothing"); }
 
     /* ---- a step past LENGTH: refused ---- */

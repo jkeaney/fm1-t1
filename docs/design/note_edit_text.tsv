@@ -1,0 +1,30 @@
+id	text	note
+AUTO	AUTO	a field that follows the algorithm (the knob tile value; cleared to AUTO at the knob's low end)
+ACC	ACC	VELO at or above ACC_THR 100 reads ACC
+TIE	TIE	GATE top value
+X	X	RATCH suffix: 2X
+GEN	GEN	the generated value under a knob value: GEN F2
+STEP	STEP	status line: STEP 21
+ON	ON	ON field set to ON
+OFF	OFF	ON field set to OFF
+SLIDE	SLIDE	SLIDE field set to ON
+NO_SLIDE	NO SLIDE	SLIDE field set to OFF
+PROB	PROB	PROB field set: PROB 50
+OCT	OCT	OCT field set: OCT+1
+PLUS	+	sign
+MINUS	-	sign
+SET_MARK	= SET BY YOU	legend after the set mark square
+KNOBS_EDIT	KNOBS EDIT	footer, left
+HOME_DONE	HOME = DONE	footer, right
+NOTE_C	C	pitch class 0
+NOTE_CS	C#	pitch class 1
+NOTE_D	D	pitch class 2
+NOTE_DS	D#	pitch class 3
+NOTE_E	E	pitch class 4
+NOTE_F	F	pitch class 5
+NOTE_FS	F#	pitch class 6
+NOTE_G	G	pitch class 7
+NOTE_GS	G#	pitch class 8
+NOTE_A	A	pitch class 9
+NOTE_AS	A#	pitch class 10
+NOTE_B	B	pitch class 11

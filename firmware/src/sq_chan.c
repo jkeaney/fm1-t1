@@ -294,7 +294,7 @@ static uint8_t sq_global_set(uint8_t field, int16_t v)
 #define SQ_F_SLIDE  6
 #define SQ_F_PROB   7
 #define SQ_F_NFIELD 8
-#define SQ_AUTO     (-1)             /* the value that makes a field follow the generated layer */
+#define SQ_AUTO     (-32768)         /* the value that makes a field follow the generated layer (not -1: OCT -1 is a real value; BUG-010) */
 #define SQ_GATE_TIE 101              /* GATE TIE (the other GATE values are 10..100 in steps of 10) */
 
 static uint8_t sq_follow = 1;        /* CHAN K4 FOLLOW (1.5): UI state, one per device, not in presets; the view itself is the UI's */
@@ -412,6 +412,12 @@ static uint8_t sq_note_edit_begin(uint8_t ch, uint8_t p)
     sq_chan_sync();
     sq_ne_ch = ch; sq_ne_p = p; sq_ne_snap = sq_ch[ch].ed[p]; sq_ne_state = 1;
     return 1; }
+
+/* The UI side of the session (P4-014): sq_note_edit_end closes it when NOTE_EDIT is left, so a later PERF tap on the same step takes a record of its
+ * own (an open session would swallow it, and EDIT would undo past it); sq_note_edit_on says whether the session is still on (ch, p), because any
+ * other undoable action, an EDIT undo or a landed preset ends it silently and the page must then open it again before its next write. */
+static void sq_note_edit_end(void) { sq_ne_state = 0; }
+static uint8_t sq_note_edit_on(uint8_t ch, uint8_t p) { return (uint8_t)(sq_ne_state && sq_ne_ch == ch && sq_ne_p == p); }
 
 /* RESET + REC (1.2): the viewed page's edits to AUTO. Its content flag goes too (1.6: a cleared page is copied again when extended),
  * except on page 1, which always holds content. Undoable (one page). */

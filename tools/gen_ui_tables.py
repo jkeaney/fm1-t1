@@ -8,6 +8,7 @@ Sources (docs/design/, all hand-edited or produced by their own generator; this 
   button_modes.tsv  button label per page and gesture             -> ui_button_rows
   knob_map.tsv      knob label per page and algorithm context     -> enum ui_knob_t, enum ui_ctx_t, ui_knob_rows
   key_map.tsv       key label per page and gesture                -> ui_key_rows
+  note_edit_text.tsv the NOTE_EDIT page's own words (P4-014)     -> enum ui_ne_id_t, ui_ne_text
   help_text.tsv     two help lines per control and page (made by tests/design/gen_help.py; checked by
                     tests/design/check_help.py)                   -> ui_help_rows
   tests/design/widths.tsv   pixel limits of UI strings (read by tests/design/width_probe.sh)
@@ -265,7 +266,9 @@ def build():
     msgs = load_messages()
     if msgs is None:
         bad("MESSAGES not found in %s" % os.path.relpath(MOCK_V12, ROOT))
-    return dict(ps=ps, cm=cm, bm=bm, km=km, ky=ky, ht=ht, pages=pages, ctls=ctls, knobs=knobs, ctxs=ctxs,
+    ne = rd("note_edit_text")      # P4-014: the words of the NOTE_EDIT page that are in no other table
+    uniq(ne, ["id"], "note_edit_text")
+    return dict(ne=ne, ps=ps, cm=cm, bm=bm, km=km, ky=ky, ht=ht, pages=pages, ctls=ctls, knobs=knobs, ctxs=ctxs,
                 labels=labels, msgs=msgs or [])
 
 
@@ -612,6 +615,13 @@ def emit(t):
     L += ["    UI_MSG_COUNT", "} ui_msg_id_t;"]
     table("ui_msgs", "ui_msg_row_t", [("", "uint8_t kind"), ("", "const char *a"), ("", "const char *b")],
           [[mk.get(m[0], "UI_MK_NONE"), cstr(m[1]), cstr(m[2])] for m in t["msgs"]], "UI_N_MSG")
+    # P4-014: the NOTE_EDIT page's own words (docs/design/note_edit_text.tsv): an id enum and one string each; the page code names no word
+    L += ["typedef enum {"]
+    L += ["    UI_NE_%s%s" % (ident(r["id"]), " = 0," if i == 0 else ",") for i, r in enumerate(t["ne"])]
+    L += ["    UI_NE_COUNT", "} ui_ne_id_t;"]
+    L.append("static const char *const ui_ne_text[UI_NE_COUNT] = {")
+    L += ["    %s," % cstr(r["text"]) for r in t["ne"]]
+    L += ["};", ""]
     # hold times: the "0.4 s" of a PERF hold row of button_modes.tsv / key_map.tsv (the hint's bar fills to it); a control without one acts on release
     holds = []
     for rows, key in ((t["bm"], "control"), (t["ky"], "key")):
