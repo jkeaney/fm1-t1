@@ -62,6 +62,14 @@ OLD_TO_NEW = {"GREEN": "GREEN", "AMBER": "AMBER", "CYAN": "ICE", "RED": "ROSE", 
 PAL_TAG = 64                       # stored id = PAL_TAG + index; below 20: an old id
 REC_DARK, REC_LIGHT = (255, 72, 72), (190, 24, 40)
 QR_LIGHT, QR_DARK, CRASH_BG, CRASH_INK = (255, 255, 255), (0, 0, 0), (160, 0, 0), (255, 255, 255)
+# SCREEN_SPEC_V2 section 3 tokens (P4-026): the four channel colours (Okabe-Ito), their knob-meter fill (x 120/255 over the
+# background), the playhead column, the dice tile and MIDI OFF. HI-CON is the reference; the dark palettes share it; PAPER
+# (light) darkens the channels; GREY takes their luma (R = G = B); MONO is white with the one grey (BW_GREY).
+OKABE = [(230, 159, 0), (86, 180, 233), (0, 158, 115), (204, 121, 167)]
+CHF_NUM = 120                      # T_CHFn = bg + (T_CHn - bg) * 120 / 255
+PH_RGB, DICE_RGB, OFF_RGB = (80, 80, 80), (72, 72, 72), (220, 40, 40)
+LIGHT_SCALE = 62                   # PAPER: channel colour x 62 % (a light background needs darker marks)
+HICON = "HI-CON"
 PCT = {"MID": 70, "DIM": 42, "LINE": 18, "SEL": 80, "TINT": 12, "KEY": 78}
 RAISE_PCT = 12                     # SURF -> TEXT
 
@@ -115,6 +123,27 @@ def contrast(a, b):
     return (max(la, lb) + 0.05) / (min(la, lb) + 0.05)
 
 
+def ext(name, bg, light, text):
+    """the SCREEN_SPEC_V2 tokens of a palette: ch[4], chf[4], ph, dice, off (RGB565)"""
+    def lu(c):
+        return (c[0] * 54 + c[1] * 183 + c[2] * 19) >> 8
+    if name == BW:
+        w, g = 0xFFFF, to565(BW_GREY)
+        return dict(ch=[w] * 4, chf=[g] * 4, ph=g, dice=g, off=w)
+    bg8 = from565(bg)
+    ch8 = [tuple(v * LIGHT_SCALE // 100 for v in c) if light else c for c in OKABE]
+    if name == "GREY":
+        ch8 = [(lu(c),) * 3 for c in ch8]
+    chf8 = [tuple(b + (c - b) * CHF_NUM // 255 for c, b in zip(col, bg8)) for col in ch8]
+    ph = mix(bg, text, 18) if light else to565(PH_RGB)
+    off = to565(OFF_RGB)
+    if name == "GREY":
+        ph, off = to565((80, 80, 80)), to565((200, 200, 200))
+    ex = name != "GREY"
+    return dict(ch=[to565(c, ex) for c in ch8], chf=[to565(c, ex) for c in chf8], ph=ph,
+                dice=to565(DICE_RGB), off=off)
+
+
 def derive(p):
     name, *cols = p
     bg, surf, text, theme, accent = (to565(c, name == BW) for c in cols)
@@ -130,6 +159,7 @@ def derive(p):
     if name == BW:                     # src/gfx.c palette_set: set, not blended
         grey = to565(BW_GREY)
         d.update(mid=text, sel=theme, key=text, dim=grey, line=grey, raise_=grey, lane=grey, tint=bg, grid=bg)
+    d["x"] = ext(name, bg, d["light"], text)
     return name, d
 
 
@@ -158,18 +188,35 @@ def main():
     for name, d in rows:
         if name == "GREY":
             for k, v in d.items():
-                if k == "light":
+                if k in ("light", "x"):
                     continue
                 if not (v >> 11 == v & 31 and ((v >> 5) & 63) == (v >> 11) << 1):
                     fails.append(f"{name} is not grayscale: {k} = {v:#06x}")
         if name == BW:                 # every token pure black or white, or the one grey (DIM LINE RAISE LANE)
             for k, v in d.items():
-                if k != "light" and v not in (0x0000, 0xFFFF) and not (v == to565(BW_GREY) and k in ("dim", "line", "raise_", "lane")):
+                if k not in ("light", "x") and v not in (0x0000, 0xFFFF) and not (v == to565(BW_GREY) and k in ("dim", "line", "raise_", "lane")):
                     fails.append(f"{name} is not black and white: {k} = {v:#06x}")
         for f, b, lim, why in CHECKS:
             c = contrast(d[f], d[b])
             if c < lim:
                 fails.append(f"{name}: {f}/{b} {c:.2f} < {lim} ({why})")
+    for name, d in rows:               # the SCREEN_SPEC_V2 tokens: every palette has all eleven, and they read on the background
+        x = d["x"]
+        if len(x["ch"]) != 4 or len(x["chf"]) != 4 or len(set(x["ch"])) != (1 if name == BW else 4) and name != "GREY":
+            fails.append(f"{name}: channel tokens missing or not distinct")
+        if name != BW:
+            for i, c in enumerate(x["ch"]):
+                if contrast(c, d["bg"]) < 3.0:
+                    fails.append(f"{name}: T_CH{i + 1}/bg {contrast(c, d['bg']):.2f} < 3.0")
+            if contrast(x["off"], d["bg"]) < 3.0:
+                fails.append(f"{name}: T_OFF/bg {contrast(x['off'], d['bg']):.2f} < 3.0")
+            if contrast(x["ph"], d["bg"]) < 1.25:
+                fails.append(f"{name}: T_PH/bg {contrast(x['ph'], d['bg']):.2f} < 1.25")
+        if name == BW and any(v not in (0x0000, 0xFFFF, to565(BW_GREY)) for v in x["ch"] + x["chf"] + [x["ph"], x["dice"], x["off"]]):
+            fails.append(f"{name}: extension tokens are not black, white or the one grey")
+        if name == "GREY" and any(not (v >> 11 == v & 31 and ((v >> 5) & 63) == (v >> 11) << 1)
+                                  for v in x["ch"] + x["chf"] + [x["ph"], x["dice"], x["off"]]):
+            fails.append(f"{name}: extension tokens are not grayscale")
     if a.report:
         print(f"{'palette':8s} " + " ".join(f"{f}/{b}".ljust(12) for f, b, _, _ in CHECKS))
         for name, d in rows:
@@ -186,8 +233,18 @@ def main():
             out.append(f'    {{"{p[0]}", ' + ", ".join(f"0x{x:04x}" for x in v) + "},")
         out += ["};", f"#define UI_NPALETTES {len(PALETTES)}u", "#define UI_GREY_INDEX 0u",
                 f"#define UI_BW_INDEX {names.index(BW)}u          /* MONO: black and white (src/gfx.c palette_set) */",
+                f"#define UI_HICON_INDEX {names.index(HICON)}u         /* the default palette (SCREEN_SPEC_V2 3) */",
                 f"#define UI_BW_GREY 0x{to565(BW_GREY):04x}u          /* MONO's one grey: DIM LINE RAISE LANE */",
                 f"#define UI_PAL_TAG {PAL_TAG}u          /* stored id = UI_PAL_TAG + index; below 20: an old id */"]
+        out += ["", "/* SCREEN_SPEC_V2 tokens per palette: CH1..CH4, CHF1..CHF4 (meter fill), PH, DICE, OFF (RGB565). The CUSTOM palette uses",
+                "   UI_PAL_X[UI_HICON_INDEX] on a dark background and [PAPER] on a light one (src/gfx.c palette_set) */",
+                f"#define UI_PAL_X_N 11", f"#define UI_PAPER_INDEX {names.index('PAPER')}u",
+                "static const uint16_t UI_PAL_X[UI_NPALETTES][UI_PAL_X_N] = {"]
+        for name, d in rows:
+            x = d["x"]
+            vals = x["ch"] + x["chf"] + [x["ph"], x["dice"], x["off"]]
+            out.append("    {" + ", ".join(f"0x{v:04x}" for v in vals) + f"}},   /* {name} */")
+        out += ["};", ""]
         out += [f"#define UI_{k}_PCT {v}" for k, v in PCT.items()] + [f"#define UI_RAISE_PCT {RAISE_PCT}   /* SURF -> TEXT */"]
         out += [f"#define UI_REC_DARK 0x{to565(REC_DARK):04x}u", f"#define UI_REC_LIGHT 0x{to565(REC_LIGHT):04x}u",
                 f"#define UI_QR_LIGHT 0x{to565(QR_LIGHT):04x}u", f"#define UI_QR_DARK 0x{to565(QR_DARK):04x}u",

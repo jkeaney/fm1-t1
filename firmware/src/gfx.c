@@ -24,6 +24,7 @@ typedef struct { const char *name; uint16_t bg, surf, text, theme, accent; } ui_
 typedef struct { uint16_t off; uint8_t w; const char *label; } kc_t;
 #include "ui_fonts.h"                   /* AF_S 12 px / 400, AF_M 15 px / 500, AF_L 28 px / 600 */
 #include "ui_palettes.h"
+#include "ui_sqicons.h"               /* SQI_*: the 1-bpp icons of screen v2 (tools/gen_sq_icons.py), cv_icon */
 #include "ui_keycaps.h"                 /* KC_*: the keycaps / badges (tools/gen_aa_keycaps.py), KNOB_* arcs */
 #define ELLIPSIS '\x85'                 /* the ellipsis glyph of AF_S and AF_M */
 
@@ -83,6 +84,7 @@ static uint8_t cv_flip;          /* cv_alpha_hc: the cell mirrored left <-> righ
 static struct {
     uint16_t bg, surf, text, theme, accent;
     uint16_t mid, dim, line, sel, tint, ink, rec, raise, key, lane, grid;
+    uint16_t ch[4], chf[4], ph, dice, off;   /* SCREEN_SPEC_V2 3 (P4-026): channel colours, their meter fills, playhead, dice tile, MIDI OFF */
     uint8_t light, mono;
     uint8_t style;               /* MENU > STYLE (ui.c style_apply): ST_FLAT, ST_LINE */
     uint32_t gen;                /* bumped by palette_set (the text ramps follow) */
@@ -109,6 +111,19 @@ static struct {
 #define T_KEY ux.key             /* a keycap's fill (its label: T_INK; unavailable: a T_DIM fill) */
 #define T_LANE ux.lane           /* the piano roll: an in-scale row (SURF -> THEME 10 %) */
 #define T_GRID ux.grid           /* the piano roll: a step line (SURF -> TEXT 6 %; beats and C rows: RAISE) */
+#define T_CH1 ux.ch[0]           /* the four channel colours (Okabe-Ito on HI-CON): chips, bars, strips, key fronts, meters */
+#define T_CH2 ux.ch[1]
+#define T_CH3 ux.ch[2]
+#define T_CH4 ux.ch[3]
+#define T_CH(n) ux.ch[(n) & 3u]  /* channel n = 0..3 */
+#define T_CHF1 ux.chf[0]         /* the channel colour x 120/255 over the background: the knob meter fill */
+#define T_CHF2 ux.chf[1]
+#define T_CHF3 ux.chf[2]
+#define T_CHF4 ux.chf[3]
+#define T_CHF(n) ux.chf[(n) & 3u]
+#define T_PH ux.ph               /* the playhead column */
+#define T_DICE ux.dice           /* dice tiles: neutral, must not read as a channel */
+#define T_OFF ux.off             /* MIDI OFF: cap, chip, hollow bars */
 #define NPALETTES UI_NPALETTES
 
 static inline uint16_t ux_gray(uint32_t x5) { return (uint16_t)((x5 << 11) | (x5 << 6) | x5); }
@@ -170,6 +185,12 @@ static void palette_set(uint32_t i)
         ux.dim = ux.line = ux.raise = ux.lane = UI_BW_GREY;   /* the one grey: inactive, tracks, wells */
         ux.tint = ux.grid = p->bg;
     }
+    {   /* the SCREEN_SPEC_V2 tokens are tabled per palette (UI_PAL_X, tools/gen_ui_palettes.py); CUSTOM takes HI-CON's, or PAPER's on a light background */
+        const uint16_t *x = UI_PAL_X[cust ? (ux.light ? UI_PAPER_INDEX : UI_HICON_INDEX) : i];
+        uint32_t k;
+        for (k = 0; k < 4u; k++) { ux.ch[k] = x[k]; ux.chf[k] = x[4 + k]; }
+        ux.ph = x[8]; ux.dice = x[9]; ux.off = x[10];
+    }
     ux.gen++;                                    /* the text ramps change with the coverage curve */
 }
 
@@ -222,6 +243,20 @@ static inline void cv_pset(int32_t x, int32_t y, uint16_t c)
     y += cv_oy;
     if ((uint32_t)x < cv_w && (uint32_t)y < cv_h)
         cv_px[(uint32_t)y * cv_w + (uint32_t)x] = swap16(c);
+}
+
+/* a 1-bpp icon of screen v2 (SQI_*, ui_sqicons.h): its set pixels in fg, the rest untouched; (x, y) is the top left */
+static void cv_icon(int32_t x, int32_t y, uint32_t id, uint16_t fg)
+{
+    const sqicon_t *ic;
+    uint32_t r, c;
+    if (id >= SQI_N)
+        return;
+    ic = &SQI_TAB[id];
+    for (r = 0; r < ic->h; r++)
+        for (c = 0; c < ic->w; c++)
+            if ((SQI_ROWS[ic->off + r] >> (ic->w - 1u - c)) & 1u)
+                cv_pset(x + (int32_t)c, y + (int32_t)r, fg);
 }
 
 static void cv_rect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t c)

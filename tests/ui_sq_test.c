@@ -2,7 +2,9 @@
 /* ui_sq_test.c (P4-011): the sequencer UI framework firmware/src/ui_sq.c on the host. It includes the real gfx.c (fonts, the canvas,
  * text_w), the real sq_core.c / sq_chan.c / ALGOS (the state the UI reads) and build/gen/ui_tables.h (the generated label tables),
  * captures every blit into a 240x240 frame, writes PNGs to build/ui_sq/ and asserts:
- *   - the zone table tiles 240x240 exactly (SCREEN_SPEC 2) and the three blits are at most 240x124;
+ *   - screen v2 (P4-026): the band table equals SCREEN_SPEC_V2 section 2, the two strips (0-119, 120-239) are at most 240x124, no text band crosses
+ *     y 120; the empty frame of `playing` has the knob tiles, button tiles, white and black keys at the spec's boxes; the 1-bpp icons are pixel-identical
+ *     to the mock's art (build/gen/sq_icons_ref.txt, from tools/gen_sq_icons.py --ref); the new colour tokens are the HI-CON values of the spec;
  *   - every label that can appear in a zone fits it, measured with the real text_w: the header slots, the Z1 cell lines, the knob
  *     labels, the tag column, the status lines, every Z4 cell (all pages x all algorithms; the computed widths sum to 240), the
  *     black-key labels (a label over 20 px is cut by design, SCREEN_SPEC F3: the drawn form must fit), every row of
@@ -27,7 +29,7 @@ static void lcd_power(uint32_t s) { (void)s; }
 static void lcd_wake_now(void) {}
 static void lcd_blit(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const uint16_t *p)
 {   blits++;
-    if (y == 0) blit_a++; else if (y == 108) blit_b++; else if (y == 212) blit_c++;
+    if (y == 0) blit_a++; else if (y == 120) blit_b++;
     if (w > 240 || h > 124) { printf("FAIL: blit %ux%u over 240x124\n", w, h); exit(1); }
     for (uint32_t r = 0; r < h; r++) memcpy(&fb[(y + r) * 240 + x], &p[r * w], w * 2); }
 #include "../firmware/src/gfx.c"
@@ -170,17 +172,67 @@ int main(int argc, char **argv)
 {   char cmd[300];
     if (argc > 1) outdir = argv[1];
     snprintf(cmd, sizeof cmd, "mkdir -p '%s'", outdir); if (system(cmd)) return 1;
-    crc_init(); palette_set(0);
+    crc_init(); palette_set(UI_HICON_INDEX);
     sq_boot();
     fm1_ms = 1000;
 
-    /* ---- the zone table ---- */
-    CHECK(UISQ_Z0_H + UISQ_Z1_H + UISQ_Z2_H + UISQ_Z3_H + UISQ_Z4_H + UISQ_Z5_H + UISQ_Z6_H + UISQ_Z7_H == 240, "the zone heights sum to 240");
-    CHECK(UISQ_Z1_Y == UISQ_Z0_Y + UISQ_Z0_H && UISQ_Z2_Y == UISQ_Z1_Y + UISQ_Z1_H && UISQ_Z3_Y == UISQ_Z2_Y + UISQ_Z2_H &&
-          UISQ_Z4_Y == UISQ_Z3_Y + UISQ_Z3_H && UISQ_Z5_Y == UISQ_Z4_Y + UISQ_Z4_H && UISQ_Z6_Y == UISQ_Z5_Y + UISQ_Z5_H &&
-          UISQ_Z7_Y == UISQ_Z6_Y + UISQ_Z6_H && UISQ_Z7_Y + UISQ_Z7_H == 240, "the rows are contiguous with no gap");
-    CHECK(UISQ_BLIT_A_H <= 124 && UISQ_BLIT_B_H <= 124 && UISQ_BLIT_C_H <= 124, "each blit at most 240x124");
-    CHECK(UISQ_BLIT_A_H + UISQ_BLIT_B_H + UISQ_BLIT_C_H == 240, "the three blits cover the screen");
+    /* ---- the bands (SCREEN_SPEC_V2 2) and the strip plan ---- */
+    CHECK(UISQ_HDR_Y == 0 && UISQ_HDR_H == 22 && UISQ_MSG_X == 104, "header band y0-21, message slot from x104");
+    CHECK(UISQ_KNOB_Y == 24 && UISQ_KNOB_Y + UISQ_KNOB_H - 1 == 76 && UISQ_KNOB_W == 58 && UISQ_KNOB_H == 53, "knob tiles 24-76, 58 x 53");
+    CHECK(UISQ_KNOB_LAB == 16 && UISQ_KNOB_VAL == 36, "knob label band 16, value area 36");
+    CHECK(UISQ_STAT_Y == 77 && UISQ_STAT_Y + UISQ_STAT_H - 1 == 91, "status line 77-91");
+    CHECK(UISQ_MUS_Y == 92 && UISQ_MUS_Y + UISQ_MUS_H - 1 == 141, "music row 92-141");
+    CHECK(UISQ_BTN_Y == 146 && UISQ_BTN_Y + UISQ_BTN_H - 1 == 180 && UISQ_BTN_W == 38 && UISQ_BTN_TH == 17 && 2 * UISQ_BTN_TH + 1 == UISQ_BTN_H, "buttons 146-180, 2 x 6 tiles 38 x 17");
+    CHECK(UISQ_KEY_Y == 186 && UISQ_KEY_Y + UISQ_KEY_H - 1 == 220 && UISQ_WKEY_W == 14 && UISQ_WKEY_H == 33 && UISQ_BKEY_W == 10 && UISQ_BKEY_H == 19, "keybed 186-220");
+    CHECK(UISQ_FOOT_Y == 221 && UISQ_FOOT_Y + UISQ_FOOT_H == 240, "footer 221-239 (caps 225-236)");
+    CHECK(UISQ_HDR_Y + UISQ_HDR_H <= UISQ_KNOB_Y && UISQ_KNOB_Y + UISQ_KNOB_H <= UISQ_STAT_Y && UISQ_STAT_Y + UISQ_STAT_H == UISQ_MUS_Y &&
+          UISQ_MUS_Y + UISQ_MUS_H <= UISQ_BTN_Y && UISQ_BTN_Y + UISQ_BTN_H <= UISQ_KEY_Y && UISQ_KEY_Y + UISQ_KEY_H <= UISQ_FOOT_Y, "the bands are in order and do not overlap");
+    CHECK(UISQ_NSTRIP == 2 && uisq_strip_y[0] == 0 && uisq_strip_y[1] == 120 && UISQ_STRIP_H == 120 && UISQ_W * UISQ_STRIP_H <= (int)CV_MAX, "two strips of 240 x 120 fit CV_MAX");
+    { /* no text band straddles y 120; only the music row (bars, strips) does */
+      const int tb[][2] = { { UISQ_HDR_Y, UISQ_HDR_H }, { UISQ_KNOB_Y, UISQ_KNOB_H }, { UISQ_STAT_Y, UISQ_STAT_H }, { UISQ_BTN_Y, UISQ_BTN_H }, { UISQ_KEY_Y, UISQ_KEY_H }, { UISQ_FOOT_Y, UISQ_FOOT_H } };
+      for (unsigned i = 0; i < sizeof tb / sizeof tb[0]; i++) CHECK(!(tb[i][0] < 120 && tb[i][0] + tb[i][1] > 120), "text band at y%d h%d crosses y 120", tb[i][0], tb[i][1]);
+      CHECK(UISQ_MUS_Y < 120 && UISQ_MUS_Y + UISQ_MUS_H > 120, "the music row is the one band across the strip seam"); }
+
+    /* ---- colour tokens: HI-CON values of SCREEN_SPEC_V2 3 (RGB565 of the spec's RGB), a value on every palette ---- */
+    palette_set(UI_HICON_INDEX);
+    CHECK(T_CH1 == RGB(230,159,0) && T_CH2 == RGB(86,180,233) && T_CH3 == RGB(0,158,115) && T_CH4 == RGB(204,121,167), "HI-CON channel colours are Okabe-Ito");
+    for (int c = 0; c < 4; c++) {
+        const uint16_t f = T_CH(c);
+        const uint32_t r = ((f >> 11) * 255u / 31u) * 120u / 255u, g = (((f >> 5) & 63u) * 255u / 63u) * 120u / 255u, b = ((f & 31u) * 255u / 31u) * 120u / 255u;
+        const uint16_t w = RGB(r, g, b), d = T_CHF(c);
+        CHECK(((d >> 11) - (w >> 11) + 1u) <= 2u && ((((d >> 5) & 63u) - ((w >> 5) & 63u)) + 1u) <= 2u && (((d & 31u) - (w & 31u)) + 1u) <= 2u, "T_CHF%d is the channel colour x 120/255 (%04x vs %04x)", c + 1, d, w); }
+    CHECK(T_PH == RGB(80,80,80) && T_DICE == RGB(72,72,72) && T_OFF == RGB(220,40,40), "T_PH #505050, T_DICE #484848, T_OFF #DC2828");
+    for (uint32_t pi = 0; pi <= NPALETTES; pi++) {
+        palette_set(pi);
+        CHECK(T_CH1 != T_BG || pi == UI_BW_INDEX, "palette %u: CH1 differs from BG", pi);
+        CHECK(T_PH != 0 || pi == UI_BW_INDEX, "palette %u: T_PH set", pi);
+        CHECK(T_DICE != 0 && T_OFF != 0 && T_CH2 != 0 && T_CH3 != 0 && T_CH4 != 0 && T_CHF1 != 0, "palette %u: every new token has a value", pi); }
+    palette_set(UI_BW_INDEX);
+    CHECK((T_CH1 == 0xFFFF && T_CH4 == 0xFFFF && T_OFF == 0xFFFF && T_PH == UI_BW_GREY && T_DICE == UI_BW_GREY && T_CHF3 == UI_BW_GREY), "MONO: channels white, the rest the one grey");
+    palette_set(UI_GREY_INDEX);
+    CHECK(!(T_CH1 >> 11 != (T_CH1 & 31u)) && !(T_CH3 >> 11 != (T_CH3 & 31u)) && !(T_OFF >> 11 != (T_OFF & 31u)), "GREY: the new tokens are grayscale");
+    palette_set(UI_HICON_INDEX);
+
+    /* ---- the icons: every 1-bpp icon equals the mock's art (build/gen/sq_icons_ref.txt) ---- */
+    { FILE *f = fopen("build/gen/sq_icons_ref.txt", "r"); char ln[64], name[32]; int n = 0, w, h;
+      CHECK(f != NULL, "build/gen/sq_icons_ref.txt opens (tests/run_tests.sh writes it with tools/gen_sq_icons.py --ref)");
+      while (f && fgets(ln, sizeof ln, f)) {
+          int bad = 0;
+          if (sscanf(ln, "%31s %d %d", name, &w, &h) != 3) continue;
+          CHECK(n < SQI_N && SQI_TAB[n].w == w && SQI_TAB[n].h == h, "icon %d `%s` size %dx%d vs table %dx%d", n, name, w, h, n < SQI_N ? SQI_TAB[n].w : -1, n < SQI_N ? SQI_TAB[n].h : -1);
+          cv_begin(16, 16, 0x0000);
+          cv_icon(1, 1, (uint32_t)n, 0xFFFFu);                                  /* drawn at (1, 1): a miss of the origin shows */
+          for (int y = 0; y < h; y++) {
+              if (!fgets(ln, sizeof ln, f)) break;
+              for (int x = 0; x < w; x++) {
+                  const int want = ln[x] == '#', got = cv_px[(y + 1) * 16 + x + 1] == swap16(0xFFFFu);
+                  if (want != got) bad++; } }
+          for (int y = 0; y < 16; y++) for (int x = 0; x < 16; x++) if (cv_px[y * 16 + x] == swap16(0xFFFFu) && (x < 1 || y < 1 || x > w || y > h)) bad++;
+          CHECK(!bad, "icon `%s` differs from the mock art in %d pixels", name, bad);
+          n++; }
+      if (f) fclose(f);
+      CHECK(n == SQI_N, "the reference has %d icons, the table %d", n, SQI_N);
+      printf("icons: %d 1-bpp icons pixel-identical to icons_v12.py\n", n); }
 
     /* ---- widths: the header slots, in every state a channel can be in ---- */
     { char b[32];
@@ -256,39 +308,51 @@ int main(int argc, char **argv)
     sq_ch[0].len = 20; sq_ch[0].pg_used = 3; sq_ch[1].muted = 0; sq_ch[2].midi_ch = SQ_MIDI_OFF;
     sq_ch[0].ed[2].vel = 90; sq_ch[0].ed[4].fl = 1; sq_ch[0].ed[7].fl = (uint8_t)(1 | (1 << 2)); sq_ch[0].ed[9].gr = 0x20;
     sq_rebuild(0);
-    uisq_sel = 0; fresh();
-    CHECK(blits == 3, "the first frame draws the three blits, drew %d", blits);
-    shot("perf", 0, 0, 240, 240);
-    shot("z0_head", 0, 0, 240, 20); shot("z1_channels", 0, 20, 240, 28); shot("z2_lane", 0, 48, 240, 60);
-    shot("z3_band", 0, 108, 240, 52); shot("z4_buttons", 0, 160, 240, 52); shot("z5_legend", 0, 212, 240, 12); shot("z6_cue", 0, 224, 240, 12);
-    CHECK(fb[239 * 240 + 100] == swap16(T_BG), "Z7 (the margin) is blank");
-    { int ink = 0, fx = -1; for (int y = 236; y < 240; y++) for (int x = 0; x < 240; x++) if (fb[y * 240 + x] != swap16(T_BG)) { ink++; fx = x; } CHECK(ink == 0, "Z7 has %d inked pixels (last at x=%d)", ink, fx); }
-    { int ink = 0; for (int y = 0; y < 20; y++) for (int x = 0; x < 240; x++) if (fb[y * 240 + x] != swap16(T_BG)) ink++; CHECK(ink > 100, "Z0 header is drawn"); }
+    uisq_sel = 0; uisq_page = UI_PG_PERF; sq_playing = 1; sq_rt[0].p = 6; fresh();
+    CHECK(blits == 2, "the first frame draws the two strips, drew %d", blits);
+    shot("frame_playing", 0, 0, 240, 240);
+    { /* the empty frame of `playing`: the boxes of SCREEN_SPEC_V2 2 hold their colour, their surround is BG */
+      const uint16_t bg = swap16(T_BG), sf = swap16(T_SURF), dc = swap16(T_DICE), rs = swap16(T_RAISE);
+#define PX(x, y) fb[(y) * 240 + (x)]
+      for (int k = 0; k < 4; k++) {
+          const int x = 1 + 60 * k;
+          CHECK(PX(x, 24) == sf && PX(x + 57, 39) == sf && PX(x + 57, 76) == sf && PX(x, 41) == sf, "knob tile %d: label band 24-39 and value area 41-76 are T_SURF", k);
+          CHECK(PX(x + 20, 40) == bg && PX(x + 20, 23) == bg && PX(x + 20, 77) == bg && (x == 1 || PX(x - 1, 50) == bg) && PX(x + 58, 50) == bg, "knob tile %d: 1 px gap and BG surround", k); }
+      for (int i = 0; i < 12; i++) {
+          const int x = 1 + 40 * (i % 6), y = 146 + 18 * (i / 6);
+          const uint16_t want = uisq_btn_dice[i] ? dc : sf;
+          CHECK(PX(x, y) == want && PX(x + 37, y + 16) == want && PX(x + 20, y + 8) == want, "button tile %d is %s", i, uisq_btn_dice[i] ? "T_DICE" : "T_SURF");
+          CHECK(PX(x - 1, y + 8) == bg && PX(x + 38, y + 8) == bg && PX(x + 20, y + 17) == bg, "button tile %d: BG surround (tile 38 x 17, pitch 40 x 18)", i); }
+      CHECK(PX(20, 146) == dc && PX(20 + 120, 146) == dc && PX(1 + 40 * 4 + 5, 146) == sf, "FX SCL ENV LFO dice tiles, EDIT GLO plain");
+      for (int i = 0; i < 16; i++) {
+          const int x = 1 + 15 * i;
+          CHECK(PX(x, 218) == sf && PX(x + 13, 186 + 32) == sf && PX(x, 186 + 33) == bg && PX(x + 13, 185) == bg, "white key %d: 14 x 33 at y 186", i); }
+      for (int i = 0; i < 11; i++) {
+          const int x = uisq_bkey_cx[i] - 5;
+          CHECK(PX(x, 186) == rs && PX(x + 9, 186 + 18) == rs && PX(x + 5, 186 + 19) != rs && PX(x - 1, 186) == bg, "black key %d: 10 x 19 at x centre %d", i, uisq_bkey_cx[i]); }
+      CHECK(PX(5, 22) == bg && PX(120, 100) == bg && PX(120, 230) == bg, "header, music row and footer bands are empty in the frame");
+      /* the strip seam: the same frame drawn as one piece would match; rows 119 and 120 are both BG here (the buttons start at 146) */
+      CHECK(PX(100, 119) == bg && PX(100, 120) == bg, "no mark at the strip seam");
+#undef PX
+    }
+    sq_playing = 0; sq_rt[0].p = 0;
     for (uint8_t p = 0; p < UI_PG_COUNT; p++) {
         char nm[48];
         if (p == UI_PG_MENU) { uisq_page = p; blits = 0; ui.force = 1; frame(); ui.force = 0; CHECK(blits == 0, "MENU draws nothing (ui_menu.c owns the screen)"); continue; }
         uisq_page = p; uisq_edit_step = 20; fresh();
         snprintf(nm, sizeof nm, "page_%02d_%s", p, ui_page_names[p]); shot(nm, 0, 0, 240, 240); }
-    uisq_page = UI_PG_PERF; uisq_row = 1; fresh(); shot("perf_row2", 0, 0, 240, 240); uisq_row = 0;
-    sq_playing = 1; sq_rt[0].p = 6; sq_rt[0].snd[0] = 1; fresh(); shot("perf_playing", 0, 0, 240, 240); sq_playing = 0; sq_rt[0].snd[0] = 0;
-    sq_ch[1].muted = 1; sq_ch[2].midi_ch = 1; sq_set_algo(0, 2); fresh(); shot("perf_snake_mute", 0, 0, 240, 240);
-    sq_ch[1].muted = 0; sq_set_algo(0, 0);
+    uisq_page = UI_PG_PERF;
 
     /* ---- redraw by signature ---- */
     fresh(); blits = blit_a = blit_b = blit_c = 0;
     frame(); frame(); CHECK(blits == 0, "an unchanged state blits nothing, drew %d", blits);
-    ui.force = 1; frame(); ui.force = 0; CHECK(blits == 3, "ui.force redraws all three blits, drew %d", blits);
-    blits = blit_a = blit_b = blit_c = 0; sq_ch[0].muted ^= 1; frame();
-    CHECK(blit_a == 1 && blit_c == 1 && blit_b == 0, "a mute redraws the channel cell and the legend (A and C), not the band: A%d B%d C%d", blit_a, blit_b, blit_c);
-    sq_ch[0].muted ^= 1; frame(); blits = blit_a = blit_b = blit_c = 0;
-    sq_ch[0].st[0].morph[0] ^= 1; frame(); CHECK(blit_b == 1 && blit_c == 0, "a morph turn redraws the band: A%d B%d C%d", blit_a, blit_b, blit_c);
-    sq_ch[0].st[0].morph[0] ^= 1; frame(); blits = blit_a = blit_b = blit_c = 0;
-    uisq_sel = 1; frame(); CHECK(blit_a == 1 && blit_b == 1, "SELECT redraws A and B: A%d B%d", blit_a, blit_b); uisq_sel = 0; frame();
+    ui.force = 1; frame(); ui.force = 0; CHECK(blits == 2, "ui.force redraws both strips, drew %d", blits);
+    blits = blit_a = blit_b = blit_c = 0; palette_set(UI_GREY_INDEX); frame(); CHECK(blit_a == 1 && blit_b == 1, "a palette change redraws both strips: A%d B%d", blit_a, blit_b); palette_set(UI_HICON_INDEX); frame();
+    blits = blit_a = blit_b = blit_c = 0; uisq_sel = 1; frame(); CHECK(blit_a == 1 && blit_b == 1, "SELECT redraws both strips: A%d B%d", blit_a, blit_b); uisq_sel = 0; frame();
 
     /* ---- the toast ---- */
     blits = blit_a = blit_b = blit_c = 0; fm1_ms = 5000;
-    ui_sq_toast("SAVED P05"); frame(); CHECK(blit_c == 1 && blit_a == 0 && blit_b == 0, "a toast redraws Z6 only (blit C): A%d B%d C%d", blit_a, blit_b, blit_c);
-    shot("toast", 0, 224, 240, 12);
+    ui_sq_toast("SAVED P05"); frame(); CHECK(blit_a == 1 && blit_b == 0, "a toast redraws strip 0 (the message slot) only: A%d B%d", blit_a, blit_b);
     { uint16_t id = uisq_toast_id; fm1_ms += 1000; ui_sq_toast("SAVED P05"); CHECK(uisq_toast_id == id, "the same text only restarts the timer");
       ui_sq_toast("UNDO: pattern"); CHECK(uisq_toast_id != id && uisq_streq(uisq_toast, "UNDO: pattern"), "a new text replaces the one showing (no queue)"); }
     fm1_ms += 1950; frame(); CHECK(uisq_toast_until != 0, "the toast is still up 1967 ms after it was raised");
@@ -296,7 +360,7 @@ int main(int argc, char **argv)
     ui_sq_home_held_set(1); ui_sq_toast("HOME"); CHECK(uisq_toast_until == 0, "a toast raised while HOME is held is dropped"); ui_sq_home_held_set(0);
     ui_sq_toast("P3 READS 17-32: NO PAGE PLAYS IT"); frame(); CHECK(W(uisq_toast) <= 236, "the longest locked toast fits");
     uisq_toast_until = 0;
-    ui_sq_algo_pick_touch(); frame(); shot("algo_pick_cue", 0, 224, 240, 12);
+    ui_sq_algo_pick_touch(); frame();
     { char b[64]; uisq_cue_text(b, sizeof b); CHECK(uisq_streq(b, "[ACID] EUCL SNAK STAG ARP PATT"), "ALGO_PICK strip lists the six with ACID bracketed: `%s`", b); fit("pick strip", b, 236); }
     fm1_ms += 2100; frame(); CHECK(uisq_pick_until == 0, "ALGO_PICK ends 2 s after the last detent");
 

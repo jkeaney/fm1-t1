@@ -190,8 +190,9 @@ run "ACID algorithm: firmware copy of the prototype, plain golden matrix equals 
 # fits its zone by the real text_w (header slots, channel cells, band, tag column, every Z4 cell of every page, legend, cue, widths.tsv), redraw by
 # signature, the 2 s toast; renders every page and zone to build/ui_sq/*.png
 mkdir -p build/ui_sq
+python3 tools/gen_sq_icons.py --ref build/gen/sq_icons_ref.txt || { echo ">>> STEP FAILED: gen_sq_icons --ref <<<"; fail=1; }
 ${CC%% *} -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/ui_sq_test" tests/ui_sq_test.c -lm
-run "sequencer UI framework: ui_sq.c zones Z0-Z7, labels fit (real text_w), redraw by signature, toast; PNGs in build/ui_sq" "$OUT/ui_sq_test" build/ui_sq
+run "sequencer UI framework: ui_sq.c screen v2 bands + two-strip plan + empty frame, colour tokens, icons pixel-identical to the mock, labels fit (real text_w), redraw by signature, toast; PNGs in build/ui_sq" "$OUT/ui_sq_test" build/ui_sq
 
 # Timing T-C (P4-007, TIMING_SPEC 6.3): the real usb.c release ring + sq_core.c stamps: tick position, stamp, ordering, clock out count,
 # release, tempo constant; then the same rows with the M3 fallback (TIMER5 releases only between audio interrupts)

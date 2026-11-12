@@ -1,26 +1,26 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
-/* ui_sq.c: the sequencer UI framework (P4-011): the screen zones Z0..Z7 of SCREEN_SPEC 2, the toast (2.7), the always-on control
- * labels (SCREEN_SPEC 3, drawn from the generated tables build/gen/ui_tables.h), redraw by state signature, the page enum and the
- * page dispatch with stub pages. It replaces ui_t1.c's screen at the cut-over (P4-012); until then NOTHING in ui_draw.c, ui_input.c
- * or main.c calls it, and felucca.c does not include it (the host test tests/ui_sq_test.c does, after gfx.c, sq_core.c and sq_chan.c).
+/* ui_sq.c: the sequencer UI framework: the screen v2 bands, the two-strip plan and the empty frame (P4-026, SCREEN_SPEC_V2 2, ADR-0006),
+ * the toast (state only: the message slot is drawn by P4-029), the label lookups of the generated tables build/gen/ui_tables.h,
+ * redraw by state signature, the page enum and the page dispatch with stub pages. It replaces ui_t1.c's screen at the cut-over
+ * (P4-012); until then NOTHING in ui_draw.c, ui_input.c or main.c calls it, and felucca.c does not include it (the host test
+ * tests/ui_sq_test.c does, after gfx.c, sq_core.c and sq_chan.c).
  *
- * Include order (unity build): after gfx.c (cv_*, text_w, AF_*, T_*), ui.c (`ui.force`), sq_core.c and sq_chan.c (the sq_* state and
- * API), and ui_tables.h (build/gen; included here, it is a pragma-once header of flash-resident const tables). Freestanding: no libc.
+ * Include order (unity build): after gfx.c (cv_*, cv_icon, text_w, AF_*, T_*), ui.c (`ui.force`), sq_core.c and sq_chan.c (the sq_*
+ * state and API), and ui_tables.h (build/gen; included here, it is a pragma-once header of flash-resident const tables). Freestanding.
  *
  * State rules. The main loop calls SQ_FRAME_SYNC() (sq_chan.c, ADR-0003 6) ONCE per frame BEFORE ui_sq_input(); everything this file
  * reads is read after that, in ui_sq_input() / ui_sq_draw(). It reads only the sq_* API and the exported state the sq files
- * document for the main loop: sq_ch (the saved model), sq_gdb / sq_cache / sq_cidx (through sq_eval, as sq_gen_hit does), sq_playing,
- * sq_bpm, sq_follow, and ChanRT's `p` and `snd[0]` as READ-ONLY playhead / activity values (single bytes). It writes nothing of the
- * sequencer's; the pages (P4-013..P4-018) write through the sq_* API.
+ * document for the main loop: sq_ch, sq_gdb / sq_cache / sq_cidx (through sq_eval, as sq_gen_hit does), sq_playing, sq_bpm, sq_follow,
+ * and ChanRT's `p` and `snd[0]` as READ-ONLY values (single bytes). It writes nothing of the sequencer's.
  *
- * Data, not logic (ADR-0004 addendum): a label is a table row. The knob labels come from ui_knob_rows (page x algorithm x knob), the
- * button labels from ui_button_rows (page x button x tap/hold), the black-key labels from ui_key_rows; the dice sub-labels of PERF
- * from ALGOS[].sub. The Z4 cell widths are computed from the measured text (SCREEN_SPEC 2.5). What the tables do not carry is
- * kept here as a small static table with its source named: the 4-letter algorithm short names (SCREEN_SPEC 2.2) and the cue text of
- * the four pages whose cue_strip column is prose (the cue of every other page is the generated ui_page_rows[].cue).
+ * Pixel contract (SCREEN_SPEC_V2 2): the screen is drawn in SCREEN coordinates in two strips, 0-119 and 120-239 (CV_MAX = 240 x 124
+ * holds 120 rows); a strip sets cv_oy = -y0, so an element that crosses y 120 (the music row's bars) is drawn by both strips and
+ * clipped by each. No text crosses y 120 (tests/ui_sq_test.c checks the bands). A strip is redrawn only when the signature of its
+ * inputs changed or `ui.force` is set. The element drawing (header, knob tiles, status line, music row, buttons, keybed, footer, message
+ * slot) is P4-028 / P4-029 and draws into these bands; this file draws the empty frame: the tiles and keys the elements sit on.
  *
- * Pixel contract: the zones tile 240x240 (SCREEN_SPEC 2). Three blits, each at most 240x124: A = Z0..Z2 (y 0..108), B = Z3..Z4
- * (y 108..212), C = Z5..Z7 (y 212..240). A blit is redrawn only when the signature of its inputs changed or `ui.force` is set. */
+ * The helpers below the band table (uisq_btn_*, uisq_cell_*, uisq_h4_text, uisq_lane_read ...) are the screen-v1 label and lane
+ * code, kept until P4-028 / P4-029 reuse or delete them (they are not drawn by this file; tests/ui_sq_test.c still measures them). */
 
 #include "ui_tables.h"
 
@@ -29,44 +29,49 @@
 #define UISQ_MS() (fm1_ms)               /* milliseconds, the clock ui_input.c's timers use */
 #endif
 
-/* ---- the zone table (SCREEN_SPEC 2; the rows tile 240x240, tests/ui_sq_test.c checks the area sum) ---- */
+
+
+/* ---- the bands (SCREEN_SPEC_V2 2; y in screen px). The grid: 16 columns of 15 px = the 16 white keys; 4 x 60 for knobs; 6 x 40 for buttons ---- */
 #define UISQ_W        240
-#define UISQ_Z0_Y     0
-#define UISQ_Z0_H     20
-#define UISQ_Z1_Y     20
-#define UISQ_Z1_H     28
-#define UISQ_Z2_Y     48
-#define UISQ_Z2_H     60
-#define UISQ_Z3_Y     108
-#define UISQ_Z3_H     52
-#define UISQ_Z4_Y     160
-#define UISQ_Z4_H     52
-#define UISQ_Z5_Y     212
-#define UISQ_Z5_H     12
-#define UISQ_Z6_Y     224
-#define UISQ_Z6_H     12
-#define UISQ_Z7_Y     236
-#define UISQ_Z7_H     4
-#define UISQ_BLIT_A_H (UISQ_Z0_H + UISQ_Z1_H + UISQ_Z2_H)   /* 108 */
-#define UISQ_BLIT_B_H (UISQ_Z3_H + UISQ_Z4_H)               /* 104 */
-#define UISQ_BLIT_C_H (UISQ_Z5_H + UISQ_Z6_H + UISQ_Z7_H)   /* 28 */
+#define UISQ_H        240
+#define UISQ_HDR_Y    0                  /* header 1-19 + selection bar 20-21; the message slot (x 104-239) shares these rows */
+#define UISQ_HDR_H    22
+#define UISQ_MSG_X    104
+#define UISQ_KNOB_Y   24                 /* four tiles 58 x 53 at x = 1 + 60 k: label band 16 px, value area 36 px (1 px gap) */
+#define UISQ_KNOB_H   53
+#define UISQ_KNOB_W   58
+#define UISQ_KNOB_LAB 16
+#define UISQ_KNOB_VAL 36
+#define UISQ_STAT_Y   77                 /* status line (caps 80) */
+#define UISQ_STAT_H   15
+#define UISQ_MUS_Y    92                 /* music row: pointer 92-94, the selected channel's bars, then a 3 px strip row per channel */
+#define UISQ_MUS_H    50                 /* 92-141 */
+#define UISQ_BTN_Y    146                /* 2 x 6 tiles 38 x 17 at pitch 40 x 18 */
+#define UISQ_BTN_H    35                 /* 146-180 */
+#define UISQ_BTN_W    38
+#define UISQ_BTN_TH   17
+#define UISQ_KEY_Y    186                /* 16 white keys 14 x 33 at a 15 px pitch; 11 black keys 10 x 19 */
+#define UISQ_KEY_H    35                 /* 186-220 (33 + the 2 px playing bar under a key) */
+#define UISQ_WKEY_W   14
+#define UISQ_WKEY_H   33
+#define UISQ_BKEY_W   10
+#define UISQ_BKEY_H   19
+#define UISQ_FOOT_Y   221                /* footer: caps 225-236, the keys' mode line (AF_M) or the setup cue */
+#define UISQ_FOOT_H   19
+/* the firmware strips: two, each at most 240 x 124 (CV_MAX) */
+#define UISQ_NSTRIP   2
+#define UISQ_STRIP_H  120
+static const uint8_t uisq_strip_y[UISQ_NSTRIP] = { 0, 120 };
+/* black key x centres (the 11 black keys, F#3 .. A#5 by panel order) */
+static const uint8_t uisq_bkey_cx[11] = { 15, 30, 45, 75, 90, 120, 135, 150, 180, 195, 225 };
+/* the panel order of the 12 buttons FX SCL ENV LFO EDIT GLO / HOME SAVE ARP SEQ PLAY REC: 1 = a dice tile (T_DICE), 0 = a plain tile (T_SURF) */
+static const uint8_t uisq_btn_dice[12] = { 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0 };
 
 #define UISQ_TOAST_MS 2000u              /* SCREEN_SPEC 2.7: one constant */
 #define UISQ_PICK_MS  2000u              /* ALGO_PICK: the strip lists the algorithms for 2 s after the last detent */
 #define UISQ_HOT_MS   600u               /* a knob stays "hot" (T_ACCENT value) this long after a turn */
 #define UISQ_TOAST_N  40
 
-/* H-slot x positions (SCREEN_SPEC 2.1) */
-#define UISQ_H1_X   2
-#define UISQ_H2_X   12
-#define UISQ_H2T_X  23                   /* the text after the 8x8 clock dot at x=12 */
-#define UISQ_H3_X   68
-#define UISQ_H4_X   96
-#define UISQ_H4_W   76
-#define UISQ_H5_X   174
-#define UISQ_H6_X   214
-
-static const uint8_t uisq_leg_x[11] = { 0, 21, 42, 65, 86, 109, 130, 151, 174, 195, 218 };   /* LEG_X, SCREEN_SPEC 2.6 */
 static const char *const uisq_short[SQ_NALGO] = { "ACID", "EUCL", "SNAK", "STAG", "ARP", "PATT" };   /* SCREEN_SPEC 2.2 */
 
 /* ---- UI state (main loop only) ---- */
@@ -84,7 +89,7 @@ static uint32_t uisq_toast_until;        /* 0 = no toast */
 static uint16_t uisq_toast_id;
 static uint32_t uisq_pick_until;         /* ALGO_PICK overlay end, 0 = off */
 static uint32_t uisq_hot_until[4];
-static uint32_t uisq_sig_a, uisq_sig_b, uisq_sig_c;
+static uint32_t uisq_sig[UISQ_NSTRIP];   /* the strips' signatures */
 static uint8_t  uisq_have_sig;
 
 /* ---- small freestanding string helpers ---- */
@@ -258,99 +263,6 @@ static void uisq_btn_widths(uint8_t page, uint8_t row, uint8_t ch, int16_t w[6])
     spare = UISQ_W - (sum + 6 * pad);
     if (spare > 0) { w[4] = (int16_t)(w[4] + spare / 2); w[5] = (int16_t)(w[5] + spare - spare / 2); } }
 
-/* ---- drawing ---- */
-static void uisq_hold_mark(int32_t x, int32_t y, uint16_t c)       /* 5x7 filled down-triangle */
-{   static const uint8_t wd[7] = { 5, 5, 3, 3, 3, 1, 1 };
-    for (int32_t r = 0; r < 7; r++) cv_rect(x + (5 - wd[r]) / 2, y + r, wd[r], 1, c); }
-
-static void uisq_dot(int32_t x, int32_t y, uint16_t c)             /* the 8x8 clock dot (amber, solid: INT; SCREEN_SPEC 6.3) */
-{   cv_rect(x + 1, y, 6, 8, c); cv_rect(x, y + 1, 8, 6, c); }
-
-static void uisq_draw_z0(uint8_t ch)
-{   char b[24];
-    const uint8_t ph = uisq_playhead(ch);
-    const uint8_t len = sq_ch[ch].len;
-    /* H1 transport */
-    if (uisq_page == UI_PG_REC) cv_text(UISQ_H1_X, 4, &AF_S, "R", T_REC);
-    else cv_text(UISQ_H1_X, 4, &AF_S, sq_playing ? ">" : ".", T_TEXT);
-    /* H2 clock dot + tempo source (placeholder: INT; amber fixed colour, SCREEN_SPEC 6.3) */
-    uisq_dot(UISQ_H2_X, 6, ux.light ? 0xCB80u : 0xFD80u);
-    uisq_h2_text(b, sizeof b); cv_text(UISQ_H2T_X, 4, &AF_S, b, T_TEXT);
-    /* H3 preset */
-    uisq_h3_text(b, sizeof b); cv_text(UISQ_H3_X, 4, &AF_S, b, T_TEXT);
-    /* H4 channel, algorithm, MIDI */
-    uisq_h4_text(b, sizeof b, ch); cv_text_fit(UISQ_H4_X, 4, &AF_S, b, T_TEXT, T_BG, UISQ_H4_W);
-    /* H5 page map as graphics: 4 cells of 9x11 at a 10 px pitch from x=174 */
-    for (uint8_t k = 0; k < 4u; k++) {
-        const int32_t x = UISQ_H5_X + 10 * k, y = 4;
-        const uint8_t shown = (uint8_t)((uint16_t)k * SQ_PAGE < len);
-        const uint8_t used = (uint8_t)((sq_ch[ch].pg_used >> k) & 1u);
-        const uint8_t playing = (uint8_t)(ph != 255u && ph / SQ_PAGE == k);
-        char d[2] = { (char)('1' + k), 0 };
-        if (shown) {
-            const uint8_t partial = (uint8_t)(k == (len - 1u) / SQ_PAGE && (len % SQ_PAGE) != 0u);
-            if (playing) { cv_rect(x, y, 9, 11, T_SEL); cv_text_in(x, y - 1, 9, &AF_S, d, T_INK, T_SEL); }
-            else cv_text_in(x, y - 1, 9, &AF_S, d, T_DIM, T_BG);
-            if (k == uisq_vpage || playing) cv_frame(x, y, 9, 11, T_TEXT);
-            else cv_frame(x, y, 9, 11, T_DIM);
-            if (partial) for (int32_t i = 1; i < 8; i += 2) cv_pset(x + i, y + 10, T_BG);   /* the bottom edge dashed */
-        } else if (used) {                                                                    /* a hidden page that still holds content: dotted outline */
-            for (int32_t i = 0; i < 9; i += 2) { cv_pset(x + i, y, T_DIM); cv_pset(x + i, y + 10, T_DIM); }
-            for (int32_t i = 0; i < 11; i += 2) { cv_pset(x, y + i, T_DIM); cv_pset(x + 8, y + i, T_DIM); }
-        } else cv_rect(x + 3, y + 4, 2, 2, T_DIM); }                                          /* never existed: a 2x2 dot */
-    /* H6 length */
-    b[0] = 0; uisq_cat(b, sizeof b, "L"); uisq_catu(b, sizeof b, len); cv_text(UISQ_H6_X, 4, &AF_S, b, T_TEXT); }
-
-static void uisq_draw_z1(void)
-{   const uint8_t pg = uisq_page;
-    if (pg == UI_PG_NOTE_EDIT || pg == UI_PG_REC) {                   /* a banner replaces the four cells; `CH n` is the SELECT label */
-        char b[40]; b[0] = 0;
-        uisq_cat(b, sizeof b, "CH"); uisq_catu(b, sizeof b, (uint32_t)uisq_sel + 1u);
-        if (pg == UI_PG_NOTE_EDIT) { uisq_cat(b, sizeof b, " NOTE EDIT STEP "); uisq_catu(b, sizeof b, (uint32_t)uisq_edit_step + 1u); }
-        else { uisq_cat(b, sizeof b, " REC writing to page "); uisq_catu(b, sizeof b, (uint32_t)uisq_vpage + 1u); }
-        cv_rect(0, UISQ_Z1_Y, UISQ_W, UISQ_Z1_H, pg == UI_PG_REC ? T_RAISE : T_TINT);
-        cv_text(4, UISQ_Z1_Y + 8, &AF_S, b, pg == UI_PG_REC ? T_REC : T_ACCENT);
-        return; }
-    for (uint8_t c = 0; c < SQ_NCH; c++) {
-        char l1[16], l2[16];
-        const int32_t x = 60 * c, y = UISQ_Z1_Y;
-        const uint8_t sel = (uint8_t)(c == uisq_sel), mut = sq_ch[c].muted;
-        const uint16_t ink = sel ? T_INK : mut ? T_DIM : T_TEXT, ink2 = sel ? T_INK : mut ? T_DIM : T_MID;
-        uisq_cell_l1(l1, sizeof l1, c); uisq_cell_l2(l2, sizeof l2, c);
-        if (sel) cv_rect(x + 1, y, 58, UISQ_Z1_H, T_SEL);
-        cv_text_fit(x + 2, y + 2, &AF_S, l1, ink, sel ? T_SEL : T_BG, 56);
-        cv_text_fit(x + 2, y + 14, &AF_S, l2, (!mut && sq_ch[c].midi_ch >= SQ_MIDI_OFF && !sel) ? T_ACCENT : ink2, sel ? T_SEL : T_BG, 56);
-        if (sq_rt[c].snd[0]) cv_rect(x + 54, y + 4, 4, 4, sel ? T_INK : T_ACCENT); } }   /* the activity dot: a note is sounding */
-
-static void uisq_draw_z2(const UisqStep *L, uint8_t ch)
-{   char b[40];
-    const uint8_t len = sq_ch[ch].len, pages = (uint8_t)((len + SQ_PAGE - 1u) / SQ_PAGE), ph = uisq_playhead(ch);
-    const uint16_t ink = T_MID;
-    if (uisq_page == UI_PG_SCALE) { cv_text(2, UISQ_Z2_Y + 1, &AF_S, "HARMONY", T_TEXT); return; }   /* the progression strip is the SCALE task's */
-    b[0] = 0;
-    uisq_cat(b, sizeof b, "PG "); uisq_catu(b, sizeof b, (uint32_t)uisq_vpage + 1u); uisq_cat(b, sizeof b, "/"); uisq_catu(b, sizeof b, pages);
-    uisq_cat(b, sizeof b, sq_follow ? "  FOLLOW" : "  hold"); uisq_cat(b, sizeof b, "  hold=EDIT");
-    cv_text(2, UISQ_Z2_Y + 1, &AF_S, b, ink);
-    if (ph != 255u) { b[0] = 0; uisq_cat(b, sizeof b, ">P"); uisq_catu(b, sizeof b, (uint32_t)(ph / SQ_PAGE) + 1u); cv_text_r(UISQ_W - 4, UISQ_Z2_Y + 1, &AF_S, b, T_ACCENT, T_BG); }
-    for (uint8_t n = 0; n < SQ_PAGE; n++) {
-        const int32_t x = 15 * n, y = UISQ_Z2_Y + 14;
-        const uint8_t p = (uint8_t)(uisq_vpage * SQ_PAGE + n), live = (uint8_t)(p < len);
-        const uint8_t edited = (uint8_t)(uisq_page == UI_PG_NOTE_EDIT && p == uisq_edit_step);
-        cv_rect(x, y, 14, 46, live ? T_LANE : T_BG);
-        if (live && L[n].on) {                                         /* velocity bar: lit = a step plays, height = velocity */
-            const int32_t hh = 2 + (int32_t)L[n].vel * 30 / 127;
-            cv_rect(x + 1, y + 32 - hh, 12, hh, L[n].acc ? T_ACCENT : T_THEME); }
-        else if (live) cv_rect(x + 1, y + 30, 12, 2, T_GRID);
-        if (live) {                                                    /* the glyph row: `'` edited, `!` accent, `~` slide, `x2` ratchet */
-            char g[4]; g[0] = 0;
-            if (L[n].rep > 1u) { g[0] = 'x'; g[1] = (char)('0' + L[n].rep); g[2] = 0; }
-            else if (L[n].slide) { g[0] = '~'; g[1] = 0; }
-            else if (L[n].on && L[n].acc) { g[0] = '!'; g[1] = 0; }
-            else if (L[n].ed) { g[0] = '\''; g[1] = 0; }
-            if (g[0]) cv_text_in(x, y + 33, 14, &AF_S, g, T_TEXT, T_LANE); }
-        if (edited) cv_frame(x, y, 14, 46, T_ACCENT);
-        if (live && ph != 255u && p == ph) cv_rect(x, y + 44, 14, 2, T_ACCENT); } }   /* the playhead underline */
-
 /* splits `s` at its first space into two lines when it is wider than maxw; returns 1 if it split (l1, l2 filled), else 0 and l1 = s */
 static uint8_t uisq_wrap(const char *s, char *l1, char *l2, uint32_t n, int32_t maxw)
 {   uint32_t k = 0, j = 0;
@@ -369,65 +281,6 @@ static uint8_t uisq_wrap(const char *s, char *l1, char *l2, uint32_t n, int32_t 
 /* a text that must fit: the cut form if it does not (a label over its slot is the test's finding, not a draw overflow) */
 static void uisq_fit(int32_t x, int32_t y, const char *s, uint16_t fg, uint16_t bg, int32_t maxw) { cv_text_fit(x, y, &AF_S, s, fg, bg, maxw); }
 
-static void uisq_draw_z3(uint8_t lp, uint8_t ch)                   /* canvas y = screen y - 108 */
-{   const uint8_t ctx = uisq_ctx(ch), two = uisq_pages[lp].two_rows;
-    const AlgoDesc *a = &ALGOS[sq_ch[ch].algo % SQ_NALGO];
-    const AlgoState *st = &sq_ch[ch].st[sq_ch[ch].algo % SQ_NALGO];
-    /* tag column BT: OCT- (upper) / OCT+ (lower) */
-    for (uint8_t h = 0; h < 2u; h++) {
-        UisqBtn b; const uint8_t ctl = (uint8_t)(h ? UI_C_B_OCTUP : UI_C_B_OCTDN);
-        const int32_t y = 26 * h + 0, hh = two ? 26 : 26;
-        const uint8_t live = (uint8_t)(two && uisq_row == h);
-        char l1[8], l2[8];
-        uisq_btn_get(&b, lp, ctl, ch);
-        if (live) cv_rect(0, y, 36, hh, T_SEL);
-        if (uisq_wrap(b.tap, l1, l2, sizeof l1, 33) && !b.sub[0]) {   /* `ROW 1`, `RST R1` do not fit one line of the 36 px column: two lines (SCREEN_SPEC 2.5 wrap) */
-            uisq_fit(2, y + 1, l1, live ? T_INK : T_TEXT, live ? T_SEL : T_BG, 33);
-            uisq_fit(2, y + 13, l2, live ? T_INK : T_TEXT, live ? T_SEL : T_BG, 33); continue; }
-        uisq_fit(0, y + 1, b.tap, live ? T_INK : T_TEXT, live ? T_SEL : T_BG, 36);   /* `+PAGE` is 36 px: the whole column, no wrap point */
-        if (b.sub[0]) { if (b.sub_mark) uisq_hold_mark(2, y + 15, T_MID); uisq_fit(2 + (b.sub_mark ? UISQ_MARK_W : 0), y + 13, b.sub, T_MID, live ? T_SEL : T_BG, 33 - (b.sub_mark ? UISQ_MARK_W : 0)); } }
-    for (uint8_t k = 0; k < 4u; k++) {
-        const int32_t x = 36 + 51 * k;
-        const uint8_t hot = (uint8_t)(uisq_now < uisq_hot_until[k]);
-        for (uint8_t r = 0; r < (two ? 2u : 1u); r++) {
-            const uint8_t kn = (uint8_t)(r * 4u + k);
-            const char *lab = uisq_knob_label(lp, ctx, kn);
-            const int32_t y = two ? 26 * r : 0, ly = two ? 1 : 2, vy = two ? 13 : 16;
-            const uint8_t live = (uint8_t)(!two || uisq_row == r);
-            char v[12]; v[0] = 0;
-            if (lp == UI_PG_PERF) {                                    /* the morph value (the algorithm's knob remap) */
-                const uint8_t m = uisq_algo_ok(sq_ch[ch].algo) ? a->knob_morph[kn] : kn;
-                uisq_catu(v, sizeof v, st->morph[m % SQ_NMORPH]); }
-            if (two && live) cv_rect(x, y, 51, 26, T_SEL);
-            uisq_fit(x + 2, y + ly, lab, (two && live) ? T_INK : live ? T_MID : T_DIM, (two && live) ? T_SEL : T_BG, 49);
-            uisq_fit(x + 2, y + vy, v, (two && live) ? T_INK : hot ? T_ACCENT : live ? T_THEME : T_DIM, (two && live) ? T_SEL : T_BG, 49); } }
-    if (!two) {                                                        /* the two status lines, x=36..240 (204 px) at y=136 / 148 */
-        uisq_fit(38, 136 - UISQ_Z3_Y, uisq_pages[lp].st1, T_MID, T_BG, 200);
-        uisq_fit(38, 148 - UISQ_Z3_Y, uisq_pages[lp].st2, T_MID, T_BG, 200); } }
-
-static void uisq_draw_z4(uint8_t lp, uint8_t ch)                   /* canvas y = screen y - 108; buttons start at 52 */
-{   for (uint8_t row = 0; row < 2u; row++) {
-        int16_t w[6]; int32_t x = 0;
-        uisq_btn_widths(lp, row, ch, w);
-        for (uint8_t i = 0; i < 6u; i++) {
-            UisqBtn b; const int32_t y = UISQ_Z3_H + 26 * row;
-            uisq_btn_get(&b, lp, (uint8_t)(row * 6u + i), ch);
-            cv_text_in(x, y + 1, w[i], &AF_S, b.tap, b.dim ? T_DIM : b.accent ? T_ACCENT : T_TEXT, T_BG);
-            if (b.sub[0]) {
-                const int32_t sw = text_w(&AF_S, b.sub) + (b.sub_mark ? UISQ_MARK_W : 0), x0 = x + (w[i] - sw) / 2;
-                if (b.sub_mark) uisq_hold_mark(x0, y + 15, T_MID);
-                uisq_fit(x0 + (b.sub_mark ? UISQ_MARK_W : 0), y + 13, b.sub, b.dim ? T_DIM : T_MID, T_BG, w[i]); }
-            x += w[i];
-            if (i < 5u) cv_rect(x - 1, y + 3, 1, 20, T_LINE); } } }
-
-static void uisq_draw_z5(uint8_t lp)                               /* canvas y = 0 */
-{   for (uint8_t i = 0; i < 11u; i++) {
-        const char *lab = uisq_key_label(lp, (uint8_t)(UI_C_KEY_B01_FS3 + i), UI_GEST_TAP);
-        if (!lab[0]) lab = uisq_key_label(lp, (uint8_t)(UI_C_KEY_B01_FS3 + i), UI_GEST_HOLD);   /* SOLO / FILL / ROLL have a hold role only */
-        const uint8_t mut = (uint8_t)(i < SQ_NCH && sq_ch[i].muted);
-        cv_rect(uisq_leg_x[i], 0, 20, UISQ_Z5_H, T_RAISE);
-        cv_text_fit(uisq_leg_x[i] + 1, 0, &AF_S, lab, mut ? T_DIM : T_TEXT, T_RAISE, 18); } }
-
 /* the cue strip text: ALGO_PICK lists the six algorithms with the current one in brackets, else the page's cue (11.2 rows are the pages') */
 static void uisq_cue_text(char *d, uint32_t n)
 {   d[0] = 0;
@@ -442,15 +295,20 @@ static void uisq_cue_text(char *d, uint32_t n)
     if (uisq_page == UI_PG_PERF && sq_playing) { uisq_cat(d, n, "TAP STEP=ON/OFF  HOLD=EDIT NOTE"); return; }
     uisq_cat(d, n, uisq_page_cue(uisq_page)); }
 
-/* AF_S ink runs from line-top + 3 (capitals) to line-top + 14 (descenders), so a line drawn at the top of the 12 px slot spills its
- * descenders into Z7 (which stays blank): the Z6 line is drawn 3 px up, capitals on the slot's top row, descenders on its last */
-#define UISQ_Z6_TEXT_DY (-3)
-static void uisq_draw_z6(void)                                     /* canvas y = 12 */
-{   char b[48];
-    const int32_t y = UISQ_Z5_H, ty = UISQ_Z5_H + UISQ_Z6_TEXT_DY;
-    if (uisq_toast_until) { cv_rect(0, y, UISQ_W, UISQ_Z6_H, T_TINT); uisq_fit(4, ty, uisq_toast, T_ACCENT, T_TINT, 236); return; }
-    uisq_cue_text(b, sizeof b);
-    uisq_fit(0, ty, b, T_TEXT, T_BG, UISQ_W); }
+/* ---- the empty frame (SCREEN_SPEC_V2 2): what the elements of P4-028 / P4-029 sit on ---- */
+static void uisq_draw_frame(void)
+{   for (uint32_t k = 0; k < 4u; k++) {                                 /* knob tiles: the label band, a 1 px gap, the value area (T_SURF) */
+        const int32_t x = 1 + 60 * (int32_t)k;
+        cv_rect(x, UISQ_KNOB_Y, UISQ_KNOB_W, UISQ_KNOB_LAB, T_SURF);
+        cv_rect(x, UISQ_KNOB_Y + UISQ_KNOB_LAB + 1, UISQ_KNOB_W, UISQ_KNOB_VAL, T_SURF); }
+    for (uint32_t i = 0; i < 12u; i++) {                                /* button tiles: dice tiles neutral, the rest T_SURF */
+        const int32_t x = 1 + 40 * (int32_t)(i % 6u), y = UISQ_BTN_Y + (UISQ_BTN_TH + 1) * (int32_t)(i / 6u);
+        cv_rect(x, y, UISQ_BTN_W, UISQ_BTN_TH, uisq_btn_dice[i] ? T_DICE : T_SURF); }
+    for (uint32_t i = 0; i < 16u; i++) cv_rect(1 + 15 * (int32_t)i, UISQ_KEY_Y, UISQ_WKEY_W, UISQ_WKEY_H, T_SURF);   /* white keys */
+    for (uint32_t i = 0; i < 11u; i++) {                                /* black keys, with a 1 px BG surround on both sides */
+        const int32_t x = (int32_t)uisq_bkey_cx[i] - UISQ_BKEY_W / 2;
+        cv_rect(x - 1, UISQ_KEY_Y, UISQ_BKEY_W + 2, UISQ_BKEY_H + 1, T_BG);
+        cv_rect(x, UISQ_KEY_Y, UISQ_BKEY_W, UISQ_BKEY_H, T_RAISE); } }
 
 /* ---- the frame ---- */
 static void ui_sq_input(void)
@@ -462,43 +320,26 @@ static void ui_sq_input(void)
     if (uisq_vpage >= SQ_NSTEP / SQ_PAGE) uisq_vpage = 0;
     if (uisq_page < UI_PG_COUNT && uisq_pages[uisq_page].input) uisq_pages[uisq_page].input(); }
 
-/* Draws the zones whose signature changed (or all when `ui.force`). Returns 1 if anything was blitted. The MENU page is the Felucca menu's. */
+/* Draws the strips whose signature changed (or both when `ui.force`). Returns 1 if anything was blitted. The MENU page is the Felucca menu's.
+ * Signature 0 (rows 0-119): the page, the palette (ux.gen), the selected channel, the toast in the message slot. Signature 1 (rows 120-239):
+ * the same, and the footer line. The elements of P4-028 / P4-029 add their inputs to these hashes. */
 static uint8_t ui_sq_draw(void)
-{   const uint8_t lp = uisq_layout_page(), ch = uisq_sel;
-    UisqStep L[SQ_PAGE];
-    uint32_t sa = 2166136261u, sb = 2166136261u, sc = 2166136261u;
+{   uint32_t sg[UISQ_NSTRIP] = { 2166136261u, 2166136261u };
     uint8_t drew = 0;
     char cue[48];
     if (uisq_page == UI_PG_MENU) return 0;
     uisq_now = UISQ_MS();
-    uisq_lane_read(L, ch, uisq_vpage);
     uisq_cue_text(cue, sizeof cue);
-    /* signatures: every input a zone draws from */
-    sa = uisq_h(sa, uisq_page); sa = uisq_h(sa, ch); sa = uisq_h(sa, uisq_vpage); sa = uisq_h(sa, sq_playing); sa = uisq_h(sa, sq_bpm);
-    sa = uisq_h(sa, uisq_preset); sa = uisq_h(sa, uisq_preset_pend); sa = uisq_h(sa, uisq_edit_step); sa = uisq_h(sa, sq_follow);
-    sa = uisq_h(sa, uisq_playhead(ch)); sa = uisq_h(sa, ux.gen);
-    for (uint8_t c = 0; c < SQ_NCH; c++) {
-        sa = uisq_h(sa, sq_ch[c].midi_ch); sa = uisq_h(sa, sq_ch[c].algo); sa = uisq_h(sa, sq_ch[c].muted); sa = uisq_h(sa, sq_ch[c].len);
-        sa = uisq_h(sa, sq_ch[c].pg_used); sa = uisq_h(sa, sq_rt[c].snd[0] != 0); }
-    for (uint8_t n = 0; n < SQ_PAGE; n++)
-        sa = uisq_h(sa, (uint32_t)L[n].on | (uint32_t)L[n].vel << 1 | (uint32_t)L[n].ed << 9 | (uint32_t)L[n].acc << 10 | (uint32_t)L[n].slide << 11 | (uint32_t)L[n].rep << 12);
-    sb = uisq_h(sb, lp); sb = uisq_h(sb, ch); sb = uisq_h(sb, uisq_row); sb = uisq_h(sb, sq_ch[ch].algo); sb = uisq_h(sb, ux.gen);
-    for (uint8_t i = 0; i < SQ_NMORPH; i++) sb = uisq_h(sb, sq_ch[ch].st[sq_ch[ch].algo % SQ_NALGO].morph[i]);
-    for (uint8_t k = 0; k < 4u; k++) sb = uisq_h(sb, uisq_now < uisq_hot_until[k]);
-    sc = uisq_h(sc, lp); sc = uisq_h(sc, ux.gen); sc = uisq_h(sc, uisq_toast_until ? uisq_toast_id : 0u);
-    for (const char *s = cue; *s; s++) sc = uisq_h(sc, (uint8_t)*s);
-    for (uint8_t c = 0; c < SQ_NCH; c++) sc = uisq_h(sc, sq_ch[c].muted);
-    if (ui.force || !uisq_have_sig || sa != uisq_sig_a) {
-        cv_begin(UISQ_W, UISQ_BLIT_A_H, T_BG);
-        uisq_draw_z0(ch); uisq_draw_z1(); uisq_draw_z2(L, ch);
-        cv_blit(0, UISQ_Z0_Y); uisq_sig_a = sa; drew = 1; }
-    if (ui.force || !uisq_have_sig || sb != uisq_sig_b) {
-        cv_begin(UISQ_W, UISQ_BLIT_B_H, T_BG);
-        uisq_draw_z3(lp, ch); uisq_draw_z4(lp, ch);
-        cv_blit(0, UISQ_Z3_Y); uisq_sig_b = sb; drew = 1; }
-    if (ui.force || !uisq_have_sig || sc != uisq_sig_c) {
-        cv_begin(UISQ_W, UISQ_BLIT_C_H, T_BG);
-        uisq_draw_z5(lp); uisq_draw_z6();
-        cv_blit(0, UISQ_Z5_Y); uisq_sig_c = sc; drew = 1; }
+    for (uint32_t s = 0; s < UISQ_NSTRIP; s++) { sg[s] = uisq_h(sg[s], uisq_page); sg[s] = uisq_h(sg[s], ux.gen); sg[s] = uisq_h(sg[s], uisq_sel); }
+    sg[0] = uisq_h(sg[0], uisq_toast_until ? uisq_toast_id : 0u);
+    for (const char *s = cue; *s; s++) sg[1] = uisq_h(sg[1], (uint8_t)*s);
+    for (uint32_t s = 0; s < UISQ_NSTRIP; s++) {
+        if (!ui.force && uisq_have_sig && sg[s] == uisq_sig[s]) continue;
+        cv_begin(UISQ_W, UISQ_STRIP_H, T_BG);
+        cv_oy = -(int32_t)uisq_strip_y[s];                              /* the elements draw in screen coordinates */
+        uisq_draw_frame();
+        cv_oy = 0;
+        cv_blit(0, uisq_strip_y[s]);
+        uisq_sig[s] = sg[s]; drew = 1; }
     uisq_have_sig = 1;
     return drew; }
