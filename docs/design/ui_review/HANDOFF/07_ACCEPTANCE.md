@@ -5,9 +5,13 @@
 
 **The owner says "good enough" about pictures.** That is the only gate that closes the design. Write the owner's one-line
 definition here once you have it (the last session's: *"Perfect just means that the UX is communicated cleanly to the
-user and the device is usable."*): ______________________________.
+user and the device is usable."*): **"Instant to understand: a producer picks it up and knows what is happening and what each control does, without a manual."** (owner, 2026-11-12, design session interview).
 
 Everything below is evidence you bring so that the owner's "good enough" is well-founded. None of it replaces it.
+
+**Status 2026-11-12:** the owner said **"Good enough, move on"** about the v11 main screen (`proposals/v11/`,
+critique 26/40, no P0, five P1s listed in `critique_v11/ASSESSMENT_A_v11.md`). The owner chose to accept the critique gap
+rather than iterate further. Remaining before "Design locked": the full state set (section B row 8) and the hand-off (C).
 
 ## B. Evidence the design must carry (the design is not ready to show as "final" without it)
 

@@ -6,7 +6,7 @@ type: task
 status: todo
 priority: 1
 executor: sonnet
-depends_on: [P4-006, P4-009, P4-011, P5-001]
+depends_on: [P4-006, P4-009, P4-011, P5-001, P4-026, P4-027, P4-028, P4-029, P4-030]
 gate: none
 ---
 ## Goal
@@ -19,7 +19,7 @@ Switch the device to the new sequencer: `events_block` calls `sq_block`, keys an
 
 ## Deliverable
 - audio.c `fm1_alnk0_irq` calls `sq_half_begin(t0)` once per half buffer with the TIMER4 time at the half start (sq_core.c line 96; P4-007 left it uncalled, so M2 stamps are not filtered until this lands); `fm1_ticks` clock-out and stamped release stay inactive-by-default until then
-- seq.c `events_block` calls `sq_block` in place of `t1_block`; keyboard_block/MIDI IN call `sq_live_on/off`; main.c calls `sq_boot` and the main loop calls `sq_chan_sync()` once per frame, before the UI runs (ADR-0003 section 6); ui_draw_page/ui_input dispatch to ui_sq
+- seq.c `events_block` calls `sq_block` in place of `t1_block`; keyboard_block/MIDI IN call `sq_live_on/off`; main.c calls `sq_boot` and the main loop calls `sq_chan_sync()` once per frame, before the UI runs (ADR-0003 section 6); ui_draw_page/ui_input dispatch to ui_sq (the screen v2 of ADR-0006 / SCREEN_SPEC_V2, built by P4-026..P4-030, not the old zones)
 - Delete torso_t1_pipeline.c/.h, torso_t1_state.c/.h, torso_t1_ui.c/.h, ui_t1.c, t1_glue.c, torso_t1.c/.h (micro queue, rings) and the `t1_mode`/`t1_off_req` plumbing; keep torso_t1_algo.c only for the functions ADR-0003 §13 marks Reuse (bjorklund, rotate, pace curve, scale masks, fixed phrase contour) and torso_t1_port.c
 - torso_phase4/5 tests deleted; phase1-3 tests deleted or replaced by the sq_* tests (Log lists which); tests/t1_link_test.c replaced by tests/sq_link_test.c (2 bars of ACID on channel 1 reach midi_out_event; STOP sends offs then CC123)
 
@@ -49,3 +49,5 @@ n/a, internal work (tooling, plumbing, docs, process); no producer-visible contr
 - Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).
 
 ## Log
+- 2026-11-12: BLOCKED by owner decision (design session): the cut-over would wire the old dense ui_sq layout; blocked until the screen design is locked (docs/design/ui_review/HANDOFF/07_ACCEPTANCE.md section D).
+- 2026-11-12: UNBLOCKED after "Design locked: James Keaney 2026-11-12" (ADR-0006). Re-scoped: it wires the screen v2 (P4-026..P4-030), so it now depends on them; backlog next will not pick it before they are done.

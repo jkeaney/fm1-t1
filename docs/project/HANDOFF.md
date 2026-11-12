@@ -83,3 +83,6 @@ own it is in `docs/design/ui_review/HANDOFF/` (start with `00_START_HERE.md`; pa
 **Hazard:** `python3 tools/backlog.py next` returns P4-012, which would wire the OLD dense layout into the new core:
 do not run it before the owner decides (block it, or split the cut-over: HANDOFF `07_ACCEPTANCE.md` section D).
 
+
+## 2026-11-12: screen design locked
+The main-screen design is locked (James Keaney): docs/design/SCREEN_SPEC_V2.md, ADR-0006 (screen), ADR-0007 (algorithm UI descriptor), renders docs/design/ui_review/proposals/v12/, build tasks P4-026..P4-030; P4-012 depends on them.

@@ -1,6 +1,11 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # FM-1 screen design: handoff package (read this first)
 
+> **STATUS 2026-11-12: DESIGN LOCKED** (James Keaney). The design session is complete: spec `docs/design/SCREEN_SPEC_V2.md`,
+> ADR-0006 (screen) and ADR-0007 (algorithm UI descriptor), renders `proposals/v12/`, use case
+> `docs/design/features/P4-026-screen-v2-main-screen.md`, build tasks P4-026..P4-030 (P4-012 now depends on them). The rest
+> of this package is the history of how it got there; `08_OPEN_QUESTIONS.md` sections 0 / 0b hold every owner answer.
+
 Written 2026-11-12 by the Claude session that ran the UI review, for a Claude design session that will **own the screen
 design from here**. Everything you need is in this folder or linked from it. Paths are relative to the repo root
 (`/Users/jameskeaney/Dev/apps/FM-1 - T1 - Bassline`); the branch is `t1-hardware-bringup`.

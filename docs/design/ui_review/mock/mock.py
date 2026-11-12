@@ -345,7 +345,7 @@ def palettes():
     if _PAL is None:
         src = _read_gen("ui_palettes.h")
         pals = [(m.group(1),) + tuple(int(m.group(i), 16) for i in range(2, 7))
-                for m in re.finditer(r'\{"(\w+)",\s*(0x\w+),\s*(0x\w+),\s*(0x\w+),\s*(0x\w+),\s*(0x\w+)\}', src)]
+                for m in re.finditer(r'\{"([\w-]+)",\s*(0x\w+),\s*(0x\w+),\s*(0x\w+),\s*(0x\w+),\s*(0x\w+)\}', src)]
         defs = {m.group(1): int(m.group(2), 0) for m in re.finditer(r"#define (UI_\w+)\s+(0x[0-9a-fA-F]+|\d+)u?\b", src)}
         _PAL = (pals, defs)
     return _PAL
