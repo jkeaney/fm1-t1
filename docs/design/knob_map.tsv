@@ -83,7 +83,7 @@ PERF	*	K1	morph	turn: the live row (ROW 1 or ROW 2) morph, or on ROW 3 the LEVEL
 PERF	*	K2	morph	turn: the live row (ROW 1 or ROW 2) morph, or on ROW 3 the LEVEL of the RIG wire in this column in this column of the selected channel's algorithm (rows above)	per algorithm
 PERF	*	K3	morph	turn: the live row (ROW 1 or ROW 2) morph, or on ROW 3 the LEVEL of the RIG wire in this column in this column of the selected channel's algorithm (rows above)	per algorithm
 PERF	*	K4	morph	turn: the live row (ROW 1 or ROW 2) morph, or on ROW 3 the LEVEL of the RIG wire in this column in this column of the selected channel's algorithm (rows above)	per algorithm
-PERF	*	SELECT	CH n	turn: select channel CH1..CH4 (clamped, no wrap)	CH1..CH4
+PERF	*	SELECT	CH n	turn: select channel CH1..CH4 (clamped, no wrap); one detent past the last channel in use adds the next free channel (toast [n] NEW  ALGO=PICK, setup cue); never past CH4	CH1..CH4
 PERF	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	6 algorithms
 PERF	*	PRESET	Pnn	turn: choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: on the first 768-tick bar that starts at least SQ_LOAD_SETTLE 1.5 s after the last detent (header Pnn? then Pnn>), so a SAVE tap always has at least 1.5 s; SAVE tap while pending saves there instead (no load); turning back to the current slot cancels	P01..P16
 NOTE_EDIT	*	SELECT	CH n	turn: select channel CH1..CH4; closes NOTE EDIT (the edited step belongs to the old channel)	CH1..CH4

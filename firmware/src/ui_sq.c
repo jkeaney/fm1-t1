@@ -72,7 +72,6 @@ static const uint8_t uisq_btn_dice[12] = { 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0 };
 #define UISQ_DICED_MS 2000u              /* the just-diced hatch on the music row */
 #define UISQ_TOUCH_MS 1000u              /* SCREEN_SPEC_V2 5.2: a touched control stays named ~1 s after the last touch */
 #define UISQ_HINT_MS  250u               /* SCREEN_SPEC_V2 5.3: a hold names itself from 0.25 s */
-#define UISQ_REMOVE_MS 1500u             /* the M-key hold that removes a channel (SCREEN_SPEC_V2 6; the key_map rows come with P4-030) */
 #define UISQ_PICK_MS  2000u              /* ALGO_PICK: the strip lists the algorithms for 2 s after the last detent */
 #define UISQ_HOT_MS   600u               /* a knob stays "hot" (T_ACCENT value) this long after a turn */
 #define UISQ_TOAST_N  40
@@ -291,6 +290,9 @@ static void ui_sq_touch_id(uint8_t id, uint8_t held) { if (id < UI_N_MSG) ui_sq_
 static void ui_sq_touch_end(void) { uisq_touch_held = 0; uisq_touch_until = UISQ_MS() + UISQ_TOUCH_MS; if (!uisq_touch_until) uisq_touch_until = 1u; }
 
 /* a hold hint (5.3): from UISQ_HINT_MS after the press it shows the icon + the action; the bar fills to `fire_ms` (0 = acts on release: full) */
+static uint16_t uisq_remove_ms(uint8_t ctl)                        /* the M-key hold that removes a channel: the "held 1.5 s: REMOVE" clause of key_map.tsv (decision 125) */
+{   for (uint32_t i = 0; i < UI_N_REMOVE; i++) if (ui_remove_rows[i].ctl == ctl) return ui_remove_rows[i].ms;
+    return 0; }
 static uint16_t uisq_hold_ms(uint8_t ctl)                          /* the "0.4 s" of the hold row of button_modes.tsv / key_map.tsv; 0 = none */
 {   for (uint32_t i = 0; i < UI_N_HOLD; i++) if (ui_hold_rows[i].ctl == ctl) return ui_hold_rows[i].ms;
     return 0; }

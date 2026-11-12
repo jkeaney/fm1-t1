@@ -80,7 +80,8 @@ put("B_OCTUP", "REC", "OCT+: keyboard octave up", "same as K4 OCT")
 put("B_OCTDN", "RESET", "RST R1: reset the ROW 1 morphs", "NOTE EDIT: step octave to AUTO")
 put("B_OCTUP", "RESET", "RST R2: reset the ROW 2 morphs", "NOTE EDIT: step octave to AUTO")
 # ---- encoders -----------------------------------------------------------------------------------------------------
-put("EN_SELECT", "PERF CHAN SET SCALE RESET RIG", "SELECT: pick CH1 to CH4", "the channel the knobs act on")
+put("EN_SELECT", "PERF", "SELECT: pick CH1 to CH4", "past the last one adds a channel")
+put("EN_SELECT", "CHAN SET SCALE RESET RIG", "SELECT: pick CH1 to CH4", "the channel the knobs act on")
 put("EN_SELECT", "NOTE_EDIT", "SELECT: pick a channel", "this closes NOTE EDIT")
 put("EN_SELECT", "REC", "SELECT: pick a channel", "the cursor returns to step 1")
 put("EN_ALGO", "PERF NOTE_EDIT CHAN SET SCALE REC", "ALGO: this channel's algorithm", "ACID EUCL SNAK STAG ARP PATT")
@@ -136,7 +137,7 @@ MOVE = {
 for i, nm in enumerate(BLACK, 1):
     c = "KEY_B%02d_%s" % (i, nm)
     if i <= 4:
-        put(c, "PERF NOTE_EDIT CHAN SET RIG", "M%d: mute / unmute CH%d" % (i, i), "its phase keeps running")
+        put(c, "PERF NOTE_EDIT CHAN SET RIG", "M%d: mute CH%d; hold: PREVIEW" % (i, i), "hold 1.5 s: remove the channel")
     else:
         put(c, "PERF NOTE_EDIT SET RIG", MOVE[i][0], MOVE[i][1])
         put(c, "CHAN", *(MOVE[i] if i != 5 else ("CHN: back to PERF", "tap again to leave CHAN")))

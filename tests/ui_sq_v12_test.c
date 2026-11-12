@@ -290,7 +290,7 @@ int main(int argc, char **argv)
       uisq_msg_pick(&v.msg, fm1_ms + 400, uisq_page, 0); CHECK(v.msg.frac == 100, "the bar is full at the fire time");
       ui_sq_hold_end(); ui_sq_hold_ctl(UI_MSG_HOLD_HELP_MENU, SQI_HOME, UI_C_B_HOME);
       uisq_msg_pick(&v.msg, fm1_ms + 300, uisq_page, 0); CHECK(v.msg.kind == UI_MK_HOLD && v.msg.frac == 100, "HOME acts on release: a full bar");
-      ui_sq_hold_end(); ui_sq_hold_begin("REMOVE CH4", SQI_SPKX, UISQ_REMOVE_MS);
+      ui_sq_hold_end(); ui_sq_hold_begin("REMOVE CH4", SQI_SPKX, uisq_remove_ms(UI_C_KEY_B04_CS4));
       uisq_msg_pick(&v.msg, fm1_ms + 750, uisq_page, 0); CHECK(v.msg.frac == 50, "the remove hold's bar is half full at 0.75 s of 1.5 s, got %d", v.msg.frac);
       ui_sq_hold_end(); uisq_touch_until = uisq_toast_until = 0;
       /* the message slot belongs to strip 0 only */

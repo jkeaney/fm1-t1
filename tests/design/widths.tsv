@@ -301,3 +301,19 @@ S	56	CUE OFF	Z1 cell line 2, MIDI OFF and PREVIEW on
 # ---- P2-017 (EUCLID SHAPE is alive: sub-label MOD; the six-name picker is already above, P2-013 / P2-014)
 S	42	MOD	EUCLID dice sub-label under LFO (P2-017; was `-`)
 S	240	NO ARTIC IN SNAKE	toast (2.7): 240 px
+# ---- P4-030 (SCREEN_SPEC_V2 5, 6): the message slot, x104-239 = 136 px; limit is the whole slot (the chip / icon part is checked by gen_ui_tables.py check_messages)
+S	136	[1] NOTES  EDIT=UNDO	message slot, toast
+S	136	[1] UNDO  EDIT=REDO	message slot, toast
+S	136	[4] GONE  EDIT=UNDO	message slot, toast, M-key hold 1.5 s removes the channel (decision 125)
+S	136	[2] NEW  ALGO=PICK	message slot, toast, SELECT past the last channel adds one (decision 125)
+S	136	[1] MIDI OFF  2 TO CH2	message slot, toast, MIDI displacement
+S	136	PAGE 2?  PG+=ADD	message slot, toast
+S	136	SELECT CH2 EUCLID	message slot, touched control
+S	136	ALGO SNAKE AT STEP	message slot, touched control
+S	136	PRESETS P16 IN 1.5S	message slot, touched control
+S	136	OCT+ ROW 3 TB-3	message slot, touched control
+S	136	FILL 60%  LET GO	message slot, touched control
+S	136	CHN CH2 SETUP	message slot, page title
+S	136	REMOVE CH4	message slot, hold hint
+S	136	PREVIEW CH4	message slot, hold hint
+S	136	HELP / MENU	message slot, hold hint

@@ -111,7 +111,7 @@ B_OCTUP	SCALE	OCT+: pedal tone one step up	clash marks show on screen
 B_OCTUP	REC	OCT+: keyboard octave up	same as K4 OCT
 B_OCTUP	RESET	RST R2: reset the ROW 2 morphs	NOTE EDIT: step octave to AUTO
 B_OCTUP	RIG	OCT+: RIDE one morph up	0 = none; the wire's MOVE is fixed
-EN_SELECT	PERF	SELECT: pick CH1 to CH4	the channel the knobs act on
+EN_SELECT	PERF	SELECT: pick CH1 to CH4	past the last one adds a channel
 EN_SELECT	NOTE_EDIT	SELECT: pick a channel	this closes NOTE EDIT
 EN_SELECT	CHAN	SELECT: pick CH1 to CH4	the channel the knobs act on
 EN_SELECT	SET	SELECT: pick CH1 to CH4	the channel the knobs act on
@@ -303,38 +303,38 @@ KEY_W16_G5	SCALE	Key G5: not used here	the key is K2
 KEY_W16_G5	REC	Key G5: plays and writes it	at the cursor or nearest step
 KEY_W16_G5	RESET	Step 16: CLR its edits	back to the generator
 KEY_W16_G5	RIG	Key G5: not used here	keys 1-4 are the wires
-KEY_B01_F#3	PERF	M1: mute / unmute CH1	its phase keeps running
-KEY_B01_F#3	NOTE_EDIT	M1: mute / unmute CH1	its phase keeps running
-KEY_B01_F#3	CHAN	M1: mute / unmute CH1	its phase keeps running
-KEY_B01_F#3	SET	M1: mute / unmute CH1	its phase keeps running
+KEY_B01_F#3	PERF	M1: mute CH1; hold: PREVIEW	hold 1.5 s: remove the channel
+KEY_B01_F#3	NOTE_EDIT	M1: mute CH1; hold: PREVIEW	hold 1.5 s: remove the channel
+KEY_B01_F#3	CHAN	M1: mute CH1; hold: PREVIEW	hold 1.5 s: remove the channel
+KEY_B01_F#3	SET	M1: mute CH1; hold: PREVIEW	hold 1.5 s: remove the channel
 KEY_B01_F#3	SCALE	Key F#3: not used here	the key is K2
 KEY_B01_F#3	REC	Key F#3: plays and writes it	at the cursor or nearest step
 KEY_B01_F#3	RESET	Key F#3: nothing to reset	EDIT cancels RESET
-KEY_B01_F#3	RIG	M1: mute / unmute CH1	its phase keeps running
-KEY_B02_G#3	PERF	M2: mute / unmute CH2	its phase keeps running
-KEY_B02_G#3	NOTE_EDIT	M2: mute / unmute CH2	its phase keeps running
-KEY_B02_G#3	CHAN	M2: mute / unmute CH2	its phase keeps running
-KEY_B02_G#3	SET	M2: mute / unmute CH2	its phase keeps running
+KEY_B01_F#3	RIG	M1: mute CH1; hold: PREVIEW	hold 1.5 s: remove the channel
+KEY_B02_G#3	PERF	M2: mute CH2; hold: PREVIEW	hold 1.5 s: remove the channel
+KEY_B02_G#3	NOTE_EDIT	M2: mute CH2; hold: PREVIEW	hold 1.5 s: remove the channel
+KEY_B02_G#3	CHAN	M2: mute CH2; hold: PREVIEW	hold 1.5 s: remove the channel
+KEY_B02_G#3	SET	M2: mute CH2; hold: PREVIEW	hold 1.5 s: remove the channel
 KEY_B02_G#3	SCALE	Key G#3: not used here	the key is K2
 KEY_B02_G#3	REC	Key G#3: plays and writes it	at the cursor or nearest step
 KEY_B02_G#3	RESET	Key G#3: nothing to reset	EDIT cancels RESET
-KEY_B02_G#3	RIG	M2: mute / unmute CH2	its phase keeps running
-KEY_B03_A#3	PERF	M3: mute / unmute CH3	its phase keeps running
-KEY_B03_A#3	NOTE_EDIT	M3: mute / unmute CH3	its phase keeps running
-KEY_B03_A#3	CHAN	M3: mute / unmute CH3	its phase keeps running
-KEY_B03_A#3	SET	M3: mute / unmute CH3	its phase keeps running
+KEY_B02_G#3	RIG	M2: mute CH2; hold: PREVIEW	hold 1.5 s: remove the channel
+KEY_B03_A#3	PERF	M3: mute CH3; hold: PREVIEW	hold 1.5 s: remove the channel
+KEY_B03_A#3	NOTE_EDIT	M3: mute CH3; hold: PREVIEW	hold 1.5 s: remove the channel
+KEY_B03_A#3	CHAN	M3: mute CH3; hold: PREVIEW	hold 1.5 s: remove the channel
+KEY_B03_A#3	SET	M3: mute CH3; hold: PREVIEW	hold 1.5 s: remove the channel
 KEY_B03_A#3	SCALE	Key A#3: not used here	the key is K2
 KEY_B03_A#3	REC	Key A#3: plays and writes it	at the cursor or nearest step
 KEY_B03_A#3	RESET	Key A#3: nothing to reset	EDIT cancels RESET
-KEY_B03_A#3	RIG	M3: mute / unmute CH3	its phase keeps running
-KEY_B04_C#4	PERF	M4: mute / unmute CH4	its phase keeps running
-KEY_B04_C#4	NOTE_EDIT	M4: mute / unmute CH4	its phase keeps running
-KEY_B04_C#4	CHAN	M4: mute / unmute CH4	its phase keeps running
-KEY_B04_C#4	SET	M4: mute / unmute CH4	its phase keeps running
+KEY_B03_A#3	RIG	M3: mute CH3; hold: PREVIEW	hold 1.5 s: remove the channel
+KEY_B04_C#4	PERF	M4: mute CH4; hold: PREVIEW	hold 1.5 s: remove the channel
+KEY_B04_C#4	NOTE_EDIT	M4: mute CH4; hold: PREVIEW	hold 1.5 s: remove the channel
+KEY_B04_C#4	CHAN	M4: mute CH4; hold: PREVIEW	hold 1.5 s: remove the channel
+KEY_B04_C#4	SET	M4: mute CH4; hold: PREVIEW	hold 1.5 s: remove the channel
 KEY_B04_C#4	SCALE	Key C#4: not used here	the key is K2
 KEY_B04_C#4	REC	Key C#4: plays and writes it	at the cursor or nearest step
 KEY_B04_C#4	RESET	Key C#4: nothing to reset	EDIT cancels RESET
-KEY_B04_C#4	RIG	M4: mute / unmute CH4	its phase keeps running
+KEY_B04_C#4	RIG	M4: mute CH4; hold: PREVIEW	hold 1.5 s: remove the channel
 KEY_B05_D#4	PERF	CHN: tap = settings, hold = RIG	LENGTH MIDI | the device knobs
 KEY_B05_D#4	NOTE_EDIT	CHN: tap = settings, hold = RIG	LENGTH MIDI | the device knobs
 KEY_B05_D#4	CHAN	CHN: back to PERF	tap again to leave CHAN

@@ -297,7 +297,7 @@ int main(int argc, char **argv)
       if (f) fclose(f);
       printf("widths.tsv: %d rows measured, %d over\n", n, over); }
     for (uint8_t p = 0; p < UI_PG_COUNT; p++) fit("page cue", uisq_page_cue(p), 236);
-    CHECK(!strcmp(uisq_page_cue(UI_PG_PERF), "PLAY: start   K1-K4: morph"), "the PERF cue comes from the generated page_states.tsv column: `%s`", uisq_page_cue(UI_PG_PERF));
+    CHECK(!strcmp(uisq_page_cue(UI_PG_PERF), "KEYS = STEPS   HOLD = EDIT"), "the PERF cue comes from the generated page_states.tsv column: `%s`", uisq_page_cue(UI_PG_PERF));
     CHECK(!strcmp(uisq_page_cue(UI_PG_RIG), "RIG: TAP 1-4 = WHO DRIVES  HOLD = PICK"), "the RIG cue is generated");
     { const char *m1 = uisq_key_label(UI_PG_PERF, UI_C_KEY_B01_FS3, UI_GEST_TAP), *m2 = uisq_key_label(UI_PG_PERF, UI_C_KEY_B02_GS3, UI_GEST_TAP);
       CHECK(strcmp(m1, m2) != 0 && W(m1) <= 20 && W(m2) <= 20, "the mute keys M1 / M2 are distinct and fit 20 px: `%s` `%s`", m1, m2); }

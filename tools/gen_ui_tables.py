@@ -620,6 +620,15 @@ def emit(t):
             if r["page"] == "PERF" and r.get("mode", r.get("gesture")) == "hold" and m:
                 holds.append(["UI_C_" + ident(r[key]), str(int(round(float(m.group(1)) * 1000)))])
     table("ui_hold_rows", "ui_hold_row_t", [("", "uint8_t ctl"), ("", "uint16_t ms")], holds, "UI_N_HOLD")
+    # the longer hold that REMOVES a channel (SCREEN_SPEC_V2 6, P4-030): the "held 1.5 s: REMOVE" clause of a PERF M1-M4 hold row of key_map.tsv
+    rms = []
+    for r in t["ky"]:
+        m = re.search(r"held (\d+(?:\.\d+)?) s: REMOVE\b", r["action"])
+        if r["page"] == "PERF" and r["gesture"] == "hold" and m:
+            rms.append(["UI_C_" + ident(r["key"]), str(int(round(float(m.group(1)) * 1000)))])
+    if len(rms) != 4:
+        bad("key_map.tsv: expected 4 PERF M-key hold rows with a 'held N s: REMOVE' clause, found %d" % len(rms))
+    table("ui_remove_rows", "ui_remove_row_t", [("", "uint8_t ctl"), ("", "uint16_t ms")], rms, "UI_N_REMOVE")
     return "\n".join(L)
 
 
