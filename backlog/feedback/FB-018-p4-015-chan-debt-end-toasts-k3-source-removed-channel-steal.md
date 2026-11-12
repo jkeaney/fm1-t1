@@ -34,4 +34,7 @@ Triage the three CHAN gaps left by P4-015 into tasks, or drop them with a reason
 python3 tools/backlog.py check
 ```
 
+## UX gate
+n/a, triage item.
+
 ## Log
