@@ -151,7 +151,7 @@ grid). "FM-1 side" figures come from the device's own counters (section 6.3): re
 | T10 | Following: note-on jitter measured from the host's clock pulse (loop-back), peak-to-peak | **3.0 ms** | 4.5 ms | not measured | two USB hops (host to FM-1 stamped at 0.5 ms resolution, FM-1 to host) + the PLL residual |
 | T11 | Start: first note-on after a host `0xFA` | within **1.5 ms** of its steady-state latency measured from the first `0xF8` after Start | 1 pulse | up to one pulse early ⚠ | step 0 must be the first pulse (1.4, Start row) |
 | T12 | Ordering | **0** note-on before its note-off for the same channel and note at an equal tick, **0** stuck notes after Stop, over 10 min | any | holds (`torso_t1.c:274`) | |
-| T13 | Tempo follow lag | tempo of a host ramp of 1 BPM per beat tracked within **0.3 BPM** | 1 BPM | quantised to 0.5 BPM steps every 6 pulses | PLL gains of M11 |
+| T13 | Tempo follow lag | tempo of a host ramp of 1 BPM per beat tracked within **0.3 BPM**, measured on the period the loop advances its phase by (`peff` = P + e/4, the quantity that places ticks; M11.2). The loop's P alone lags this ramp by about 0.65 BPM and the shown integer BPM may lag up to 1.5 BPM; that display lag is **accepted** (it is a readout, not timing) | 1 BPM | quantised to 0.5 BPM steps every 6 pulses | PLL gains of M11 |
 
 The numbers are chosen so that nothing in T1 is limited by the firmware: the floor is the USB frame and the host.
 If the owner wants less than T2 the only lever is a faster bulk poll on the host side, which a USB device cannot
@@ -297,10 +297,10 @@ more than 50 ppm.
    (period, 1/256 tick). On each accepted pulse at stamp `a`: `e = a - phase`; `phase += P + e/4`; `P += e/64`. `P` is
    clamped to the 40..240 BPM range (62.5 .. 10.4 ms per pulse). The loop has a time constant of about 4 pulses for
    phase and 64 pulses for frequency, so a 0.5 ms wobble becomes about 0.1 ms and a host tempo step is followed within
-   three beats; T13 (a 1 BPM per beat ramp within 0.3 BPM) is checked with the test build.
+   three beats. T13 (a 1 BPM per beat ramp within 0.3 BPM) is asserted on `peff = P + e/4`, the period the loop advances `phase` by, because that is what places ticks (`clkx_tick_time`, `clkx_beat_q4`). With gains 1/4 and 1/64 the loop's `P` alone lags a 1 BPM/beat ramp by about 0.65 BPM (16 pulses of ramp), which is not a timing error; `peff` has no lag (0.002 BPM). The displayed integer BPM (1/16 smoothing plus hysteresis) may lag up to 1.5 BPM on that ramp; this display lag is accepted. **Output jitter** ("under 0.15 ms", section 6.3) is RMS with +-0.5 ms uniform input noise (measured 111-121 us RMS, 0.65-0.72 ms peak-to-peak); the peak-to-peak figure sits inside the T10 budget (3.0 ms), so T10 is the peak-to-peak bound and 0.15 ms is the RMS bound.
 3. **Bursts and gaps.** A pulse arriving less than `P/4` after the previous one is a USB burst (several events in one
    packet share a stamp): it is **counted for position** but excluded from the loop. A gap over `1.5 P` is counted as
-   the missing pulses only if the next stamp shows it; a gap over 500 ms is a lost clock (section 4).
+   the missing pulses only if the next stamp shows it; a gap over 500 ms is a lost clock (section 4). "Counted" here means **loop phase only**, not position: the position stays count-locked to the pulses actually accepted (4.3). So a host that drops a pulse shifts the music by that pulse until its next Start. This is accepted: USB bulk is lossless, and a stalled host is not a pulse the host counted.
 4. **Position is a pulse count, time is the loop.** `pos` still advances by one pulse's worth per accepted `0xF8`
    (`midi_clock.c:73-75`), so the invariant of 1.4 holds: no tempo error can accumulate (T9). The loop only places the
    ticks *between* pulses: `due(tick 8k + j) = phase_k + j * P/8 + LEAD`, replacing the interpolation of
@@ -354,7 +354,7 @@ Together about 24 B. The menu row `CLOCK` keeps its place; its values become the
 | R11 | EXT, SET K1 | inert (locked, `knob_map.tsv`); the cell mirrors the host tempo; `bpm_own` is untouched and returns on R5. |
 | R12 | Clock out | on when the source is `INT` and the FM-1 is playing (M7); off in every EXT state and while stopped. No menu row. |
 | R13 | Host tempo outside 40..240 BPM | not accepted as a clock (treated as no clock). The tempo is first known after 7 pulses, so the header shows `EXT --` for those 7 pulses (about 56 ms at 300 BPM) and then returns to `INT <bpm_own>`; a source that was already `EXT` stops advancing `clk_last`, so R5 / R6 apply after 500 ms. It never stays in `EXT --` (P2-011, F-18). |
-| R14 | A tempo jump over 25 % between pulses | PLL re-seeds `P` from the last two intervals; position is never touched (count-locked), so the sequence continues at the new tempo without a skip. |
+| R14 | A tempo jump over 25 % between pulses | PLL re-seeds `P` after two consecutive intervals that agree with each other (within 25 %) and both disagree with `P`; a lone off interval is an outlier (counted, phase kept), and exactly 25 % is tracked by the loop, not re-seeded. A jump faster than 4x (e.g. 40 to 240 BPM) makes the new intervals shorter than `P/4`, which are treated as bursts (M11.3) and is not followed; position is never touched (count-locked), so the sequence continues at the new tempo without a skip. |
 | R15 | TRS and USB both send clock | the first heard wins (R2); the other is ignored until silent. |
 | R16 | A host `0xFA` (or `0xFB`) arrives while **stopped** on `INT`, before any `0xF8` (P2-011, F-07) | the FM-1 latches a pending start (M12) and the source stays `INT`; the first `0xF8` that follows makes the source `EXT` (R2) and step 0 begins on that pulse. Nothing changes on screen until the pulse. If no `0xF8` arrives within 500 ms the pending start is dropped. |
 
@@ -362,7 +362,7 @@ Together about 24 B. The menu row `CLOCK` keeps its place; its values become the
 
 The chain in the follower is: pulse count (exact) -> `pos` -> tick = `8 * pulses + j` -> `due`. Nothing in it integrates
 a measured tempo, so a wrong tempo estimate moves a tick by at most a fraction of a pulse and resets at the next pulse.
-Start, Continue and SPP set the pulse count; a pulse that is not accepted (R3, ignored source) is not counted.
+Start, Continue and SPP set the pulse count; a pulse that is not accepted (R3, ignored source) is not counted. A pulse the host never sent (or that was dropped upstream of the FM-1) is likewise not counted: M11.3 credits a gap to the loop phase only, so the music stays shifted by that pulse until the next Start (accepted).
 
 ## 5. Visibility: the clock and its source on every screen
 
@@ -475,7 +475,7 @@ All use fake time (`fm1_ticks()` and the `tref` driven by the test), in the styl
 | clock out count | M7: exactly 24 `0xF8` per quarter over 4 bars at 90, 120, 180 BPM; zero in every EXT state; `0xFA`/`0xFB`/`0xFC`/SPP only on the right transitions |
 | release | M3: with a fake `fm1_ticks`, a packet is released within one 100 us tick of its due; 16 per transfer; ring at 128 never reorders; the reserve rule drops ONs before OFFs |
 | tempo constant | M10: 5 minutes of ticks at 40..240 BPM against 44117.65 Hz samples stay within 5 ppm of the ideal |
-| PLL | M11: a pulse train with ±0.5 ms uniform stamp noise has output jitter under 0.15 ms; a burst (4 pulses sharing a stamp) leaves the count right and the phase within 0.2 ms; a 1 BPM per beat ramp is tracked within 0.3 BPM; no pulse is lost or added over 10 minutes (T9) |
+| PLL | M11: a pulse train with ±0.5 ms uniform stamp noise has output jitter under 0.15 ms; a burst (4 pulses sharing a stamp) leaves the count right and the phase within 0.2 ms; a 1 BPM per beat ramp is tracked within 0.3 BPM (on `peff`, M11.2); output jitter under 0.15 ms is RMS (peak-to-peak is held to T10); no pulse is lost or added over 10 minutes (T9) |
 | source rules | section 4: a table-driven test of R1..R16 with events in, state out |
 | start | M12: a Start followed by pulses begins step 0 at the first pulse, not at the Start; SPP then Continue resumes the right step |
 | header strings | the strings of 5.2 and SCREEN_SPEC 6 against the slot widths with the real `text_w` (the measurement SCREEN_SPEC section 5 requires) |

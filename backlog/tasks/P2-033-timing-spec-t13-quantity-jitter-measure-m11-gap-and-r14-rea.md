@@ -3,7 +3,7 @@ id: P2-033
 title: TIMING_SPEC fixes from the P4-009 review (T13 quantity, jitter measure, M11.3 gap, R14 reading)
 phase: P2
 type: task
-status: in_progress
+status: review
 priority: 3
 executor: sonnet
 depends_on: []
@@ -23,7 +23,7 @@ Make docs/design/TIMING_SPEC.md say which quantity each PLL target measures, so 
 - R14: say "two consecutive agreeing intervals (within 25 %)" re-seed P, and that exactly 25 % is tracked by the loop. Note a jump faster than 4x (e.g. 40 to 240 BPM) is treated as bursts (dt < P/4) and is not followed.
 
 ## Acceptance criteria
-- [ ] Each of the four items is written into TIMING_SPEC.md
+- [x] Each of the four items is written into TIMING_SPEC.md
 - [ ] `sh tools/check.sh` ends with `CHECK PASS`
 
 ## Verification
@@ -39,3 +39,6 @@ n/a, internal work (docs); no producer-visible change.
 
 ## Log
 <!-- filed by the P4-009 review -->
+
+### 2026-11-12 executor (sonnet)
+Docs-only edit of docs/design/TIMING_SPEC.md: T13 row + M11.2 (peff quantity, display lag accepted), M11.2 jitter RMS vs T10 peak-to-peak, M11.3 and 4.3 (gap credits loop phase only; dropped pulse shifts music until next Start, accepted), R14 (two agreeing intervals, 25 % tracked, >4x jump not followed), 6.3 PLL row. P2-032 edits kept. `sh tools/check.sh` not run per orchestrator instruction (P4-023 owns the build); its criterion left unticked.
