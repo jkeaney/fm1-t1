@@ -201,6 +201,11 @@ LEAD = HALF_FRAMES * 544 = 69632 ticks = 2.90 ms
 
 - Producer: `midi_out_event_at(pkt, due)` (the audio interrupt). It inserts at the tail; because stamps are produced in
   non-decreasing order the ring stays sorted, and equal stamps keep insertion order (M4).
+  **Accepted limit (P2-032):** "due" is a signed 32-bit difference, so a head packet older than 2^31 ticks (89 s at
+  24 ticks/us) reads as "not due" until the counter wraps. A host that stalls for more than 89 s with a non-empty ring
+  wedges the head for up to another 89 s. Accepted: the ring is cleared on a bus reset (`usb.c`, `mo_r = mo_w`), but not on suspend, so the
+  case is a host that stays configured but stops polling for over 89 s. A fix, if wanted, is to clear the ring when
+  `usb.config` drops outside a bus reset (firmware task, not done here).
 - Consumer: `midi_tx_release()`, called by TIMER5 **every tick (10 kHz), including when it nests inside the audio
   interrupt** (extending the nested branch of `main.c:42-48`). It looks only at the head: if
   `(int32_t)(fm1_ticks() - head.due) >= 0` and the endpoint is free it moves every consecutive due packet (up to 16)
@@ -218,7 +223,9 @@ LEAD = HALF_FRAMES * 544 = 69632 ticks = 2.90 ms
 ### M4. Ordering (what the wire sees at one tick)
 
 Insertion order at a tick: **clock pulse (`0xF8`) first**, then Start/Continue/Stop, then all NOTE_OFFs, then all
-NOTE_ONs, then CCs (ADR-0003 7.3 and 7.4). Equal stamps keep that order through `txr` and through the 16-event packet.
+NOTE_ONs, then CCs (ADR-0003 7.3 and 7.4). **Exception at tick 0 of a start (M7):** `0xFA` first, then the first
+`0xF8`, because MIDI requires Start to precede the first clock; the steady-state order above applies from the next
+tick. Equal stamps keep that order through `txr` and through the 16-event packet.
 Same channel and note: the off precedes the on at the same tick (already true in the T-1 queue, `torso_t1.c:274-277`);
 the new core must keep it, and its host test asserts it for every tick of a 4-bar run (T12).
 
@@ -229,7 +236,9 @@ the new core must keep it, and its host test asserts it for every tick of a 4-ba
   number as ADR-0003 8.3) hold it with margin; the drain is 16 events per 1 ms frame (16000 per second) against a
   worst clock rate of 96 per second.
 - Priority when short on room (ADR-0003 8.3 reserve rule, kept): with fewer than 8 free, new NOTE_ONs are dropped and
-  counted; NOTE_OFFs and clock are never dropped. Clock is `CIN 0xF`, one byte, so a pulse costs one slot.
+  counted; NOTE_OFFs and clock are kept while any slot is free. At a completely full ring (`midi_out_free() == 0`,
+  `usb.c midi_out_event_at`) everything is dropped, OFFs and clock included; the reserve makes that unreachable in
+  normal use (a host that has stopped reading is the only way), and a bus reset clears the ring. Clock is `CIN 0xF`, one byte, so a pulse costs one slot.
 - TIMER5 stays above the audio interrupt in priority (it already nests into it, `main.c:42`); no priority change.
 
 ### M6. Flush frequency
@@ -241,7 +250,8 @@ batched except what the 16-per-packet endpoint transfer batches by itself, and o
 
 - A pulse is due at ticks 0, 8, 16, ... of the sequencer grid. It goes through M1/M2/M3 like a note, so its spacing
   has the same accuracy (T7, T8) and its count is exact (T6): one `0xF8` per 8 ticks, produced by the tick loop itself.
-- `0xFA` is due at tick 0 of a start from step 0 and is followed by the first `0xF8` at the same stamp. `0xFC` on stop
+- `0xFA` is due at tick 0 of a start from step 0 and is followed by the first `0xF8` at the same stamp (so at tick 0 the
+  order is `0xFA`, then `0xF8`: the M4 exception; steady state is `0xF8` first). `0xFC` on stop
   is due at once, before the note-offs of M4's `sq_all_off`. **`0xF2` Song Position Pointer (new)** is sent before
   `0xFB` on a continue, value = `tick / 48` (16th notes; one SPP unit is 6 pulses = 48 ticks), so a DAW follower
   locates. The pulse and the transport bytes are `CIN 0xF` (one byte) except SPP (`CIN 3`, three bytes).
@@ -461,7 +471,7 @@ All use fake time (`fm1_ticks()` and the `tref` driven by the test), in the styl
 | --- | --- |
 | tick position | M1: for BPM 40..240 and every accumulator phase, `s` is within 1 sample of the exact tick time; ticks per block never exceed the bound |
 | stamp | M2: `due` is non-decreasing over 10 minutes at every BPM; equal for events of one tick |
-| ordering | M4: for 4 bars of dense ratchets, at every tick `0xF8`, then offs, then ons; no same-note on before off |
+| ordering | M4: for 4 bars of dense ratchets, at every tick `0xF8`, then offs, then ons; no same-note on before off. **Exception: at tick 0 of a start the order is `0xFA`, then `0xF8`** (M7) |
 | clock out count | M7: exactly 24 `0xF8` per quarter over 4 bars at 90, 120, 180 BPM; zero in every EXT state; `0xFA`/`0xFB`/`0xFC`/SPP only on the right transitions |
 | release | M3: with a fake `fm1_ticks`, a packet is released within one 100 us tick of its due; 16 per transfer; ring at 128 never reorders; the reserve rule drops ONs before OFFs |
 | tempo constant | M10: 5 minutes of ticks at 40..240 BPM against 44117.65 Hz samples stay within 5 ppm of the ideal |
@@ -492,7 +502,8 @@ Equipment: FM-1 on USB to the Mac, Ableton Live 12, `tools/fm1_timing.py`, then 
 | Host's USB bulk poll is slower than 1 ms | T2 is a measured threshold; if G1 fails only on T2 and T1 passes, the limit is the host, reported to the owner and not tuned away |
 | Nested release (M3) proves unsafe | fallback in M3 (release between audio interrupts); T1 becomes the render time; reassess `LEAD` |
 | Real sample rate is not 44117.65 Hz | M10 takes the measured value (a one-line flex row) |
-| Ring overflows (a host that stops reading) | ADR-0003 8.3 reserve rule: ONs dropped and counted, OFFs and clock kept, stuck notes impossible |
+| Ring overflows (a host that stops reading) | ADR-0003 8.3 reserve rule: ONs dropped and counted first, OFFs and clock kept while a slot is free; at a completely full ring all are dropped (M5), so stuck notes are prevented by the reserve, not by an absolute guarantee |
+| Host stalls over 89 s with packets queued | M3 accepted limit: the signed-difference compare wedges the head for up to 89 s more; the ring is cleared on bus reset only |
 | Host sends clock at 300 BPM | R13: not accepted as a clock; header shows `EXT --` for 7 pulses, then `INT` |
 | A host loops our clock back | R3 and R12 (we send only while playing as master and ignore pulses then) |
 
