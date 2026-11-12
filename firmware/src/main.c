@@ -14,7 +14,10 @@ extern uint32_t _pool_start[], _pool_end[], _rt_start[], _rt_end[], _rt_load[];
  * and the time spent nested is handed to the audio ISR so its load figures stay render-only.
  * The USB audio stream cannot wait for the render (one packet per 1 ms frame, a render takes up to
  * ~5 ms): uac_service also runs nested. It touches only EP4 (INDEX is set on every access) and the
- * consumer side of the audio ring, and usb_poll never runs nested, so the two never interleave. */
+ * consumer side of the audio ring, and usb_poll never runs nested, so the two never interleave.
+ * The MIDI out release (usb.c midi_tx_release, TIMING_SPEC M3) runs on every tick, nested too (FELUCCA_TX_NESTED, default 1):
+ * it is in this same handler, so it never interleaves with usb_poll or uac_service either, and a stamp that falls inside a
+ * render is met within 100 us. FELUCCA_TX_NESTED=0 is the fallback: release only between audio interrupts. */
 void fm1_timer5_irq(void)
 {
     static uint32_t sub, owed;
@@ -45,9 +48,11 @@ void fm1_timer5_irq(void)
         if (usb_due)
             uac_service();
 #endif
+        midi_tx_release_nested();               /* due MIDI leaves on time, not at the end of the render (TIMING_SPEC M3) */
         t5_nested_ticks += fm1_ticks() - t0;
         return;
     }
+    midi_tx_release();                          /* every 100 us: a packet is released within one tick of its due time */
     if (owed & 1u)
         usb_poll();
 #if FELUCCA_UART

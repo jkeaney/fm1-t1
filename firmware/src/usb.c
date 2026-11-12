@@ -165,11 +165,25 @@ static uint32_t sx_out_q[SXQ];
 static volatile uint32_t so_w, so_r;
 #endif
 
+#ifndef FELUCCA_TX_NESTED
+#define FELUCCA_TX_NESTED 1                         /* TIMING_SPEC M3: 1 = TIMER5 releases due packets also while it nests in the audio ISR;
+                                                     * 0 = the fallback of section 7: release only between audio interrupts */
+#endif
+#define MO_LEAD_SAMPLES 128u                        /* TIMING_SPEC M2 LEAD: stamps lead the tick by one half buffer (2.90 ms) so MIDI lines up with the preview synth */
+#ifdef FM1_TICKS_PER_US                             /* the device and the loader include hal/fm1_time.h before this file */
+#define MO_NOW() fm1_ticks()
+#else                                               /* host tests that do not drive time: everything is due at once (tests/timing_test.c defines fm1_ticks) */
+#define MO_NOW() 0u
+#endif
+
 /* MIDI rings: 4-byte USB-MIDI event packets. The in ring (MQ) and the out ring (MQO, ADR-0003 8.3) are separate. */
 #define MQ 64u
 #define MQO 128u                                    /* out: the sequencer's note-offs and clock must not wait behind a slow host */
 #define MO_RESERVE 8u                               /* out: below this many free slots, NOTE_ONs are dropped (NOTE_OFF, CC and clock still queue) */
-static uint32_t midi_in_q[MQ], midi_out_q[MQO];
+/* The out ring is the wall-clock release ring of TIMING_SPEC M3 ("txr"): midi_out_q[i] is the packet, midi_out_due[i] the
+ * TIMER4 time (fm1_ticks, 24 per us) at which it may leave. Insertion order is release order (the producer keeps the dues
+ * non-decreasing), so the consumer only ever looks at the head. */
+static uint32_t midi_in_q[MQ], midi_out_q[MQO], midi_out_due[MQO];
 static uint32_t midi_in_ms[MQ];
 static uint8_t midi_in_source[MQ];                    /* 1 USB, 2 TRS */
 static volatile uint32_t fm1_ms;                    /* also declared by core.h; parser-only host tests */
@@ -206,7 +220,10 @@ static int midi_out_is_on(uint32_t pkt)
     return ((pkt >> 8) & 0xF0u) == 0x90u && (pkt >> 24) != 0u;
 }
 
-static void midi_out_event(uint32_t pkt)            /* from the audio ISR */
+/* from the audio ISR. due: when the packet may leave, in fm1_ticks (TIMING_SPEC M2). A due earlier than the newest queued packet
+ * is raised to it, so the ring stays sorted and equal dues keep insertion order (M4); an empty ring takes the due as given (a
+ * stale tail must not be compared across the 179 s wrap of the counter). */
+static void midi_out_event_at(uint32_t pkt, uint32_t due)
 {
     if (!usb.config)
         return;                                     /* no host: nothing is sent, nothing is counted */
@@ -214,9 +231,20 @@ static void midi_out_event(uint32_t pkt)            /* from the audio ISR */
         midi_out_drops++;                           /* reserve rule (ADR-0003 8.3): NOTE_ONs go first, the rest wait for room */
         return;
     }
+    if (mo_w != mo_r) {
+        uint32_t tail = midi_out_due[(mo_w - 1u) % MQO];
+        if ((int32_t)(due - tail) < 0)
+            due = tail;
+    }
     midi_out_q[mo_w % MQO] = pkt;
+    midi_out_due[mo_w % MQO] = due;
     RING_PUBLISH();
     mo_w++;
+}
+
+static void midi_out_event(uint32_t pkt)            /* due at once (the panel keys, the T-1 path until its cut-over) */
+{
+    midi_out_event_at(pkt, MO_NOW());
 }
 
 /* ------------------------------------------------------- descriptors --- */
@@ -932,22 +960,44 @@ static void ota_frame_done(void)
 }
 #endif
 
-static void ep1_tx(void)
+/* the head of the out ring is due (TIMING_SPEC M3); `now` is read once by the caller */
+static int mo_due(uint32_t now)
 {
-    uint32_t csr, n = 0;
-#if FELUCCA_OTA
-    if (mo_w == mo_r && so_w == so_r)
-        return;
-#else
-    if (mo_w == mo_r)
-        return;
-#endif
+    return mo_r != mo_w && (int32_t)(now - midi_out_due[mo_r % MQO]) >= 0;
+}
+
+#ifndef FM1_HOST_SIE                                /* host tests stub the two SIE steps (tests/timing_test.c) */
+static int ep1_tx_ready(void)                       /* 0 while the previous packet is still pending */
+{
+    uint32_t csr;
     sie_wr(S_INDEX, 1);
     csr = sie_rd(S_TXCSR1);
     if (csr & 0x01u)
-        return;                                         /* previous packet still pending */
+        return 0;
     if (csr & 0x80u)
         sie_wr(S_TXCSR1, csr & ~0x80u);
+    return 1;
+}
+
+static void ep1_tx_arm(uint32_t n)
+{
+    fm1_usb_ep_send(1, ep1tx, n);
+    sie_wr(S_TXCSR1, sie_rd(S_TXCSR1) | 0x01u);
+}
+#endif
+
+static void ep1_tx(void)
+{
+    uint32_t n = 0, now = MO_NOW();
+#if FELUCCA_OTA
+    if (!mo_due(now) && so_w == so_r)
+        return;
+#else
+    if (!mo_due(now))
+        return;                                         /* nothing due: the SIE is not touched */
+#endif
+    if (!ep1_tx_ready())
+        return;                                         /* previous packet still pending */
 #if FELUCCA_OTA
     while (so_r != so_w && n < 64u) {                   /* SysEx first, never split by notes */
         uint32_t pkt = sx_out_q[so_r % SXQ];
@@ -958,9 +1008,9 @@ static void ep1_tx(void)
         n += 4u;
         so_r++;
     }
-    while (!sx_busy && so_r == so_w && mo_r != mo_w && n < 64u) {
+    while (!sx_busy && so_r == so_w && mo_due(now) && n < 64u) {
 #else
-    while (mo_r != mo_w && n < 64u) {
+    while (mo_due(now) && n < 64u) {                    /* up to 16 packets that are already due */
 #endif
         uint32_t pkt;
         RING_PUBLISH();                                 /* the audio ISR (producer) can preempt us: */
@@ -975,9 +1025,23 @@ static void ep1_tx(void)
     }
     if (!n)
         return;
-    fm1_usb_ep_send(1, ep1tx, n);
-    sie_wr(S_TXCSR1, sie_rd(S_TXCSR1) | 0x01u);
+    ep1_tx_arm(n);
     usb.tx_pkts++;
+}
+
+/* TIMING_SPEC M3: called by TIMER5 on every 100 us tick (main.c). Idle cost is the head compare. It runs in the same handler as
+ * usb_poll and uac_service, never under itself, so the SIE INDEX register is never shared (usb.c header, risk R1). */
+static void midi_tx_release(void)
+{
+    if (usb.config)
+        ep1_tx();
+}
+
+static void midi_tx_release_nested(void)            /* the call inside the audio ISR's TIMER5 branch; empty in the M3 fallback build */
+{
+#if FELUCCA_TX_NESTED
+    midi_tx_release();
+#endif
 }
 
 #if FELUCCA_CDC

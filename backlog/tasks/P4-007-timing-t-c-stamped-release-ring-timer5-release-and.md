@@ -3,7 +3,7 @@ id: P4-007
 title: Timing T-C: stamped release ring, TIMER5 release and the tempo constant
 phase: P4
 type: task
-status: todo
+status: review
 priority: 1
 executor: sonnet
 depends_on: [P4-004]
@@ -23,11 +23,11 @@ Tight MIDI timing (TIMING_SPEC M1-M7, M9, M10): every outgoing packet carries a 
 - tests/timing_test.c: the TIMING_SPEC 6.3 rows tick position, stamp, ordering, clock out count, release, tempo constant
 
 ## Acceptance criteria
-- [ ] timing_test passes every listed row
-- [ ] The fallback flag builds and passes the same tests
-- [ ] `.ram_text` no-call check in build still passes
-- [ ] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
-- [ ] The build line `image ... RAM .data+.bss N of 73728; pool ...` is pasted into the Log; RAM headroom (73728 - N) is at least 8192 B, else stop and file an FB (E9 trigger)
+- [x] timing_test passes every listed row
+- [x] The fallback flag builds and passes the same tests
+- [x] `.ram_text` no-call check in build still passes
+- [x] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
+- [x] The build line `image ... RAM .data+.bss N of 73728; pool ...` is pasted into the Log; RAM headroom (73728 - N) is at least 8192 B, else stop and file an FB (E9 trigger)
 
 ## Verification
 ```sh
@@ -44,3 +44,47 @@ n/a, internal work (tooling, plumbing, docs, process); no producer-visible contr
 - Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).
 
 ## Log
+
+### 2026-11-12 executor (Sonnet 5.5)
+Done. Commands and decisive output:
+```
+sh tools/check.sh                     -> RAM .data+.bss 23828 B of 73728 ... CHECK PASS
+./build.sh | grep RAM                 -> ok    .ram_text: 916 insns, no calls
+                                         ok    image 169020 B; RAM .data+.bss 23828 B of 73728; pool 92500 B of 368640
+cc ... tests/timing_test.c (ASan+UBSan), FELUCCA_TX_NESTED=1 and =0 -> TIMING PASS (both)
+sq_core_test / sq_chan_test / usb_ring_test -> SQ_CORE PASS, SQ_CHAN PASS, usb_ring_test passed (goldens unchanged)
+```
+RAM headroom 73728 - 23828 = 49900 B (floor 8192 B met). tests/run_tests.sh runs timing_test twice (nested and fallback).
+timing_test rows: tick position (64975 phases x 201 BPM, every tick within 1 sample, at most 1 tick per block); stamp (712960
+packets, 8 tempi, 10 min at 40/120/240, non-decreasing with a jittery and outlier half reference, one stamp per tick, tick 0 due
+at tref + LEAD); ordering (4 dense bars at 90/120/180/240: Start/clock, OFFs, ONs per tick, no wire violation); clock out (exactly
+384 pulses in 16 quarters at 90/120/180, span within 100 ppm, Start/Stop once, nothing when not master, SPP 300 = 44/2 then 0xFB);
+release (within one 100 us tick, never early, order across the 32-bit counter wrap, 16 per transfer, 40 -> 16/16/8, reserve rule,
+no overtaking of an undue head, nested hook empty in the fallback); tempo constant (worst 3.00 ppm over 40..240 BPM; the old 44100
+count is 400 ppm off).
+
+What changed
+- usb.c: `txr` is the pair `midi_out_q[128]` + `midi_out_due[128]` (parallel arrays: the pkt array keeps its name so six existing
+  host tests stay untouched; same 1024 B). `midi_out_event_at(pkt, due)` keeps the ring sorted (a due earlier than the tail is raised
+  to it). `midi_out_event(pkt)` = due now (live keys, T-1 path until cut-over). `ep1_tx` takes only due packets (<= 16); the SIE
+  steps are `ep1_tx_ready` / `ep1_tx_arm` with an `FM1_HOST_SIE` host hook. `midi_tx_release()` + `midi_tx_release_nested()`;
+  `FELUCCA_TX_NESTED` (default 1, 0 = M3 fallback), `MO_LEAD_SAMPLES` 128. Time source `MO_NOW()`: fm1_ticks on device/loader, 0 on
+  host tests that do not define FM1_TICKS_PER_US (so existing tests build unchanged).
+- main.c: `midi_tx_release_nested()` in the nested TIMER5 branch, `midi_tx_release()` every non-nested tick. tools/build.py passes
+  FELUCCA_TX_NESTED; BUILDING.md row added.
+- sq_core.c: M1 `sq_tick_pos` (sample = ceil(need/3072)-1), M2 `sq_half_begin(t0)` filter (1/16 nudge, pull-back < 1 sample, resync
+  over 1 ms), `sq_stamp_tick/now`, `sq_out`; M7 `sq_rt_byte`, clock every 8 ticks, 0xFA at tick 0, 0xFC on stop (stamped now),
+  `sq_clock_continue` (SPP then 0xFB), `sq_master`; M10 `SEQ_FS_Q4` = 705882, `sq_beat_q4`, accumulator in 1/16 samples.
+  sq_emit's pairing logic is untouched (only `midi_out_event` -> `sq_out`).
+- tests: new timing_test.c; sq_core_test / sq_chan_test mocks gained `midi_out_event_at` and the SQ_EXT_BEAT / SQ_BPM hooks.
+
+For the reviewer
+- TIMING_SPEC M4 says "clock first, then Start" but M7 says 0xFA at tick 0 "followed by the first 0xF8 at the same stamp". I
+  followed M7 (MIDI-correct) at tick 0 only; the test treats Start and clock as one rank. Spec text should be reconciled.
+- `sq_half_begin(t0)` is not called from audio.c: sq_core.c is not in felucca.c yet (nothing calls sq_block), so the hook is for
+  P4-012 (call it with `t0` in `fm1_alnk0_irq` at the half start). Until then the unity build only exercises usb.c / main.c.
+- fx.c `beat_samples()` is unchanged (FS = 44100): the preview tracks, click and midi_clock still count 400 ppm slow; sq_core counts
+  its own beat via `SQ_EXT_BEAT()` / `SQ_BPM()` (defaults read `midi_beat_samples`, `song.g[]`). Move fx.c to SEQ_FS_Q4 at cut-over.
+- Nested-release safety (R1) is argued by reading (release runs in the TIMER5 handler beside usb_poll / uac_service, and the audio
+  ISR cannot preempt TIMER5) and is NOT proven; hardware stress at 85 % load is P4-019/P4-022. The fallback flag is the answer.
+- Not flashed.

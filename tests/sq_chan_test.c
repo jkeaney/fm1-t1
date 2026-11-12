@@ -24,13 +24,17 @@ static track_t trk[SQ_NCH];
 static uint32_t mock_free = 128;
 static uint32_t midi_out_free(void) { return mock_free; }
 static uint32_t beat_samples(void) { return 22050; }
+#define SQ_EXT_BEAT() 22050u                         /* P4-007: sq_core counts its own beat (120 BPM at 44100 here) */
+#define SQ_BPM()      120u
 static uint32_t sq_cur_dbg;
 static int midi_cnt[16][128], prv_cnt[SQ_NCH][128];
 static long viol, midi_on_total, midi_off_total;
 static const char *last_what = "";
 static void vio(const char *w, unsigned ch, unsigned n) { if (viol++ < 3) printf("  violation: %s ch=%u n=%u tick %u after %s\n", w, ch, n, (unsigned)sq_cur_dbg, last_what); }
-static void midi_out_event(uint32_t pkt)
+static void midi_out_event_at(uint32_t pkt, uint32_t due)
 {   unsigned st = (pkt >> 8) & 0xF0u, ch = (pkt >> 8) & 0xFu, d1 = (pkt >> 16) & 0xFFu, d2 = pkt >> 24;
+    (void)due;
+    if (st == 0xF0u) return;                         /* clock out (P4-007) */
     if (mock_free) mock_free--;
     if (st == 0x90u && d2) { if (midi_cnt[ch][d1]) vio("double ON", ch, d1); midi_cnt[ch][d1] = 1; midi_on_total++; }
     else if (st == 0x80u || st == 0x90u) { if (!midi_cnt[ch][d1]) vio("OFF without ON", ch, d1); midi_cnt[ch][d1] = 0; midi_off_total++; }

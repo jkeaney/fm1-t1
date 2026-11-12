@@ -163,6 +163,13 @@ run "sequencer scheduler: sq_core.c event goldens 1-9 (tests/golden/sq_core_*.tx
 ${CC%% *} $SQC -o "$OUT/sq_chan_test" tests/sq_chan_test.c
 run "sequencer channel API: sq_chan.c UX 1.2 rows, unique MIDI, undo/redo, defaults, presets + 100000-tick API fuzz" "$OUT/sq_chan_test"
 
+# Timing T-C (P4-007, TIMING_SPEC 6.3): the real usb.c release ring + sq_core.c stamps: tick position, stamp, ordering, clock out count,
+# release, tempo constant; then the same rows with the M3 fallback (TIMER5 releases only between audio interrupts)
+${CC%% *} $SQC -o "$OUT/timing_test" tests/timing_test.c
+run "timing: tick position, stamps, ordering, clock out, release ring, tempo constant (nested TIMER5 release)" "$OUT/timing_test"
+${CC%% *} $SQC -DFELUCCA_TX_NESTED=0 -o "$OUT/timing_test_fb" tests/timing_test.c
+run "timing: the same rows with FELUCCA_TX_NESTED=0 (the M3 fallback)" "$OUT/timing_test_fb"
+
 [ -f build/felucca.fwsc ] || { echo "run ./build.sh first"; exit 1; }
 
 $CC -DOWN_PKG=1 -o "$OUT/ota_test" tests/ota_test.c

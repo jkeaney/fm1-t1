@@ -1,17 +1,25 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
 /* sq_core.c: the sequencer core's scheduler (P4-004; ADR-0003 sections 6, 7, 8 and 14, as amended by section 22).
  *
- * What is here: the 96-slot event queue, sq_emit (the ONLY exit to midi_out_event / trk_note_on / trk_note_off), the
+ * What is here: the 96-slot event queue, sq_emit (the ONLY exit to midi_out_event_at / trk_note_on / trk_note_off), the
  * pairing rule (an ON and its OFF are queued together or not at all), the two-pass dispatch (all OFFs due, then all ONs),
  * sq_step_start (swing, gate, ratchet, slide, tie, hold), sq_tick, sq_all_off, sq_on_start / sq_on_stop, the PLAY
  * accumulator (sq_block) and the ISR half of a queued preset load (sq_apply_bar_boundary). NOT here: the channel state API
  * (P4-005), the edit layer and sq_eval (P4-006: sq_eval below is a bare step() call), the stamped release ring and exact tick
- * position (P4-007), clock out and the clock source (P4-009), HARMONY (an AF_CHORD algorithm gets an inert chord), PO_TIE
+ * position (P4-007: done below, M1/M2/M4/M7/M9/M10 of TIMING_SPEC), the clock source and its PLL (P4-009), HARMONY (an AF_CHORD algorithm gets an inert chord), PO_TIE
  * (P4-006 resolves a TIE together with the edit layer), live keys.
  *
+ * Timing (P4-007, TIMING_SPEC section 3): sq_block finds the sample inside the block where each 192-PPQN tick lands (M1); every
+ * packet sq_emit sends goes out as midi_out_event_at(pkt, due) with due = half reference + (block offset + sample + LEAD) * 544
+ * TIMER4 ticks (M2), so usb.c releases it at that time and not in the audio interrupt's burst; clock out (0xF8 every 8 ticks, 0xFA
+ * at tick 0, 0xFC on stop) goes through the same stamps (M7); the tempo counts in 1/16 samples at the real 44117.65 Hz (M10).
+ * sq_half_begin(t0) is the one hook the audio ISR owes this file once per half buffer (P4-012 wires it into fm1_alnk0_irq).
+ * Hooks the including file may define first (the host tests do): SQ_EXT_BEAT() = samples per beat of an external clock or 0,
+ * SQ_BPM() = the user's tempo. Defaults read fx.c's midi_beat_samples and song.g[].
+ *
  * Included by the unity build AFTER the algorithm table (`static const AlgoDesc ALGOS[SQ_NALGO]`, sq_algos.c) and after
- * usb.c / voice.c / fx.c, which supply midi_out_event, midi_out_free, MO_RESERVE, trk[], trk_note_on / trk_note_off and
- * beat_samples. It is not in felucca.c yet and nothing calls sq_block (cut-over is P4-012); tests/sq_core_test.c includes it
+ * usb.c / voice.c / fx.c, which supply midi_out_event_at, midi_out_free, MO_RESERVE, trk[], trk_note_on / trk_note_off and
+ * the beat length (SQ_EXT_BEAT / SQ_BPM). It is not in felucca.c yet and nothing calls sq_block (cut-over is P4-012); tests/sq_core_test.c includes it
  * against mock hooks and a mock ALGOS table. The ISR owns everything below except the double-buffered caches and the
  * staged preset, which the main loop writes (ADR-0003 6). Freestanding: memset / memcpy only. */
 
@@ -25,6 +33,28 @@
 #define SQ_REQ_STOP    2u
 #define SQ_REQ_PANIC   4u
 #define SQ_REQ_RESTART 8u
+
+#ifndef SEQ_FS_Q4
+#define SEQ_FS_Q4     705882u            /* TIMING_SPEC M10: the real sample rate 24 MHz / 544 = 44117.647 Hz, in 1/16 samples per second (flex row) */
+#endif
+#define SQ_QSTEP      (SQ_PPQN * 16u)    /* sq_acc units per sample: PPQN in the 1/16-sample unit of sq_beat_q4 */
+#ifndef SQ_DAC_TICKS
+#define SQ_DAC_TICKS  544u               /* TIMER4 ticks per I2S frame (audio.c DAC_TICKS) */
+#endif
+#ifndef SQ_HALF_FRAMES
+#define SQ_HALF_FRAMES 128u              /* the half buffer, in samples (core.h HALF_FRAMES) */
+#endif
+#ifndef MO_LEAD_SAMPLES
+#define MO_LEAD_SAMPLES 128u             /* usb.c: LEAD, M2 */
+#endif
+#ifndef SQ_EXT_BEAT
+#define SQ_EXT_BEAT() (song.g[G_CLOCK] ? midi_beat_samples : 0u)
+#endif
+#ifndef SQ_BPM
+#define SQ_BPM()      ((uint32_t)song.g[G_BPM])
+#endif
+#define SQ_NUDGE_MIN  (-512)             /* ticks a half's reference may be pulled back: less than the 544 of one sample, so stamps never go backwards */
+#define SQ_RESYNC     24000              /* ticks (1 ms): a larger error of the reference is a restart of the filter, not a drift */
 
 static const uint8_t SQ_DIV_TICKS[6] = { 24, 32, 48, 64, 96, 192 };      /* ticks per step for DIV 0..5 (ADR-0003 5) */
 static const HarmChord sq_hc_inert;                                       /* active = 0: HARMONY is inert (wired by its own task) */
@@ -44,21 +74,54 @@ static volatile uint8_t sq_req;
 static uint32_t  sq_drops;                /* pairs / events lost to a full queue, NOTE_ONs lost to the reserve rule */
 static uint32_t  sq_now;                  /* next tick sq_block will run (ticks since PLAY) */
 static uint32_t  sq_cur;                  /* the tick of the call in progress: what a host log stamps its lines with */
-static uint32_t  sq_acc;                  /* PPQN * samples against beat_samples() (the T-1 accumulator, t1_glue.c) */
+static uint32_t  sq_acc;                  /* PPQN * 16 * samples against sq_beat_q4() (the T-1 accumulator of t1_glue.c, in 1/16 samples: M10) */
 static uint32_t  sq_entropy_ctr;          /* free-running, also while stopped: the dice seed source (ADR-0003 3.1) */
 static uint8_t   sq_playing;
 static uint8_t   sq_off_stage;            /* 1 while sq_all_off still has note-offs or CC123 to send (the ring was short) */
 static uint16_t  sq_cc_pend;              /* MIDI channels still owed a CC123 */
+static uint32_t  sq_tref;                 /* TIMER4 time at which the current half buffer starts rendering (M2), filtered by sq_half_begin */
+static uint8_t   sq_tref_ok;
+static uint32_t  sq_boff;                 /* samples of the current half already rendered: the block's offset inside it */
+static uint32_t  sq_tick_s;               /* the sample inside the block where the tick in progress lands (M1) */
+static uint32_t  sq_due;                  /* the stamp every packet sq_emit sends right now carries */
+static uint8_t   sq_master = 1;           /* 1 = this unit is the tempo master: clock out is sent (INT source; P4-009 clears it in the EXT states) */
 
 #define SQ_PRV_ON(c)  ((sq_ch[c].pad[0] & 0x80u) != 0u)                   /* PREVIEW.md: prv = on << 7 | snd, one byte in ChanSave */
+
+/* ------------------------------------------------------------------ stamps (TIMING_SPEC M2) */
+
+/* Once per half buffer, from the audio ISR, with t0 = fm1_ticks() read at its start. Raw t0 jitters with interrupt entry, so the
+ * reference runs at the nominal half length and takes a sixteenth of the error each half; an error over 1 ms (a restart, a stall)
+ * resynchronises outright. The pull-back is limited to under one sample so the stamps of one half never precede the previous one's. */
+static void sq_half_begin(uint32_t t0)
+{   if (!sq_tref_ok) { sq_tref = t0; sq_tref_ok = 1; }
+    else {
+        int32_t e;
+        sq_tref += SQ_HALF_FRAMES * SQ_DAC_TICKS;
+        e = (int32_t)(t0 - sq_tref);
+        if (e > SQ_RESYNC || e < -SQ_RESYNC) sq_tref = t0;
+        else { e /= 16; if (e < SQ_NUDGE_MIN) e = SQ_NUDGE_MIN; sq_tref += (uint32_t)e; }
+    }
+    sq_boff = 0; }
+
+static void sq_stamp_now(void)                                        /* a stop, a panic, anything not on a tick: due at once, no LEAD (M8) */
+{   sq_due = sq_tref + sq_boff * SQ_DAC_TICKS; }
+
+static void sq_stamp_tick(uint32_t s)                                 /* sample s of this block, played one half buffer later */
+{   sq_due = sq_tref + (sq_boff + s + MO_LEAD_SAMPLES) * SQ_DAC_TICKS; }
+
+static void sq_out(uint32_t pkt) { midi_out_event_at(pkt, sq_due); }
+
+/* Clock out (M7): one byte, CIN 0xF, through the same stamp as a note. Only while this unit is the master (P4-009 owns the source). */
+static void sq_rt_byte(uint8_t b) { if (sq_master) sq_out(0x0Fu | (uint32_t)b << 8); }
 
 /* ------------------------------------------------------------------ the one exit */
 
 static void sq_emit_cc123(uint8_t m)
-{   midi_out_event(0x0Bu | (0xB0u | (uint32_t)(m & 15u)) << 8 | 123u << 16); }
+{   sq_out(0x0Bu | (0xB0u | (uint32_t)(m & 15u)) << 8 | 123u << 16); }
 
 static void sq_midi_off(uint8_t chan_byte, uint8_t note)
-{   midi_out_event(0x08u | (0x80u | (uint32_t)(chan_byte & 15u)) << 8 | (uint32_t)(note & 0x7Fu) << 16); }
+{   sq_out(0x08u | (0x80u | (uint32_t)(chan_byte & 15u)) << 8 | (uint32_t)(note & 0x7Fu) << 16); }
 
 static void sq_snd_drop(ChanRT *r, uint8_t i)             /* free a sounding slot; slot 0 stays the older one */
 {   r->snd[i] = 0; r->snd_chan[i] = 0;
@@ -92,7 +155,7 @@ static uint8_t sq_emit(uint8_t chan, uint8_t kind, uint8_t note, uint8_t vel)
         i = r->snd[0] ? 1u : 0u;
         r->snd[i] = (uint8_t)(note + 1u);
         r->snd_chan[i] = (uint8_t)((chan & 0x6Fu) | (midi ? 0u : 0x10u));
-        if (midi) midi_out_event(0x09u | (0x90u | (uint32_t)(chan & 15u)) << 8 | (uint32_t)note << 16 | (uint32_t)vel << 24);
+        if (midi) sq_out(0x09u | (0x90u | (uint32_t)(chan & 15u)) << 8 | (uint32_t)note << 16 | (uint32_t)vel << 24);
         if (prv) trk_note_on(&trk[c], note, vel);
         r->act++;
         return 1;
@@ -315,14 +378,24 @@ static uint8_t sq_all_off(void)
     sq_off_stage = 0;
     return 1; }
 
+/* Samples per beat in 1/16 samples (M10): the external clock's measured beat, else the user's tempo at the real sample rate. */
+static uint32_t sq_beat_q4(void)
+{   uint32_t e = (uint32_t)SQ_EXT_BEAT(), b;
+    if (e) return e << 4;
+    b = (uint32_t)SQ_BPM();
+    return b ? (SEQ_FS_Q4 * 60u + b / 2u) / b : 0u; }
+
 static void sq_on_start(void)                                         /* PLAY / external Start: tick 0 runs in the first block (t1_on_start did the same) */
 {   sq_playing = 1;
+    sq_stamp_now();
     sq_now = 0; sq_cur = 0;
     if (sq_all_off()) sq_rt_run(0);                                   /* (a short ring: sq_block finishes it, then runs sq_rt_run(sq_now)) */
-    sq_acc = beat_samples(); }
+    sq_acc = sq_beat_q4(); }
 
 static void sq_on_stop(void)
-{   sq_playing = 0;
+{   sq_stamp_now();
+    if (sq_playing) sq_rt_byte(0xFC);             /* due at once, ahead of the note-offs of sq_all_off */
+    sq_playing = 0;
     (void)sq_all_off(); }
 
 /* The ISR half of a queued preset load (ADR-0003 10): at a 768-tick bar start the staged ChanSaves go live, the caches the main loop
@@ -336,11 +409,22 @@ static void sq_apply_load(void)
 static void sq_apply_bar_boundary(uint32_t now)
 {   if (sq_load_pending && (now % SQ_BAR_TICKS) == 0u) sq_apply_load(); }
 
-/* One 192-PPQN tick (ADR-0003 7.2): every channel whose step is due starts it (muted or not), then the due events go out. */
+/* Song Position then Continue (M7): SPP = tick / 48 sixteenths, 14 bits LSB first. P4-009 calls it when a continue is wired. */
+static void sq_clock_continue(uint32_t tick)
+{   uint32_t spp = tick / 48u;
+    if (!sq_master) return;
+    sq_out(0x03u | 0xF2u << 8 | (spp & 0x7Fu) << 16 | ((spp >> 7) & 0x7Fu) << 24);
+    sq_rt_byte(0xFB); }
+
+/* One 192-PPQN tick (ADR-0003 7.2): every channel whose step is due starts it (muted or not), then the due events go out.
+ * Order on the wire at one tick (M4): clock, then Start, then the OFFs, then the ONs (sq_dispatch), CCs are never on a tick. */
 static void sq_tick(uint32_t now)
 {   const SeqGlobal *g;
     uint8_t L;
     sq_cur = now;
+    sq_stamp_tick(sq_tick_s);
+    if (now == 0u) sq_rt_byte(0xFA);                                  /* a start from step 0, then the first pulse at the same stamp */
+    if ((now & 7u) == 0u) sq_rt_byte(0xF8);                           /* 24 per quarter: every 8th tick of the 192 grid */
     sq_apply_bar_boundary(now);
     g = &sq_gdb[sq_gidx];
     L = SQ_DIV_TICKS[g->s.div > 5u ? 5u : g->s.div];
@@ -358,16 +442,39 @@ static void sq_consume_requests(void)
     if (q & SQ_REQ_RESTART)                                           /* F#5 RESTRT: every channel to step 0 at its next step */
         for (uint8_t c = 0; c < SQ_NCH; c++) { sq_rt[c].p = 0; sq_rt[c].pass = 0; sq_rt[c].nxt_ok = 0; } }
 
-/* Once per control block, n samples (events_block's seq_n, which already follows the internal BPM or an external clock). */
-static void sq_block(uint32_t n)
-{   uint32_t bs;
+/* Where the tick lands inside the block (M1). need = (k+1) beats minus the accumulator before the block, in sq_acc units; one sample
+ * is SQ_QSTEP of them. The tick belongs to sample ceil(need / QSTEP) - 1 (0 when it was already due): exact to one sample. */
+static uint32_t sq_tick_pos(int32_t need, uint32_t n)
+{   uint32_t s;
+    if (need <= 0) return 0u;
+    s = ((uint32_t)need + SQ_QSTEP - 1u) / SQ_QSTEP - 1u;
+    return s >= n ? n - 1u : s; }
+
+static void sq_block_run(uint32_t n)
+{   uint32_t bsq, acc0;
+    int32_t need;
     sq_entropy_ctr += n;
+    sq_stamp_now();
     sq_consume_requests();
     if (sq_off_stage) {                                               /* a stop / panic the ring was too short for finishes first */
         if (!sq_all_off()) return;
         if (sq_playing) sq_rt_run(sq_now);
     }
-    bs = beat_samples();
-    if (!sq_playing || !bs) return;
-    sq_acc += n * SQ_PPQN;
-    while (sq_acc >= bs) { sq_acc -= bs; sq_tick(sq_now); sq_now++; } }
+    bsq = sq_beat_q4();
+    if (!sq_playing || !bsq) return;
+    acc0 = sq_acc;
+    sq_acc += n * SQ_QSTEP;
+    need = (int32_t)bsq - (int32_t)acc0;
+    while (sq_acc >= bsq) {
+        sq_acc -= bsq;
+        sq_tick_s = sq_tick_pos(need, n);
+        sq_tick(sq_now); sq_now++;
+        need += (int32_t)bsq;
+    }
+    sq_tick_s = 0; }
+
+/* Once per control block, n samples (events_block's seq_n, which already follows the internal BPM or an external clock). */
+static void sq_block(uint32_t n)
+{   sq_block_run(n);
+    sq_boff += n;                                                     /* (sq_half_begin zeroes it each half; the wrap only matters if nobody calls it) */
+    if (sq_boff >= SQ_HALF_FRAMES) sq_boff -= SQ_HALF_FRAMES; }

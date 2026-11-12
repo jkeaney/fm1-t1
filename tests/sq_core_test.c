@@ -7,8 +7,8 @@
  *      -o /tmp/sq_core_test tests/sq_core_test.c && /tmp/sq_core_test
  * GOLDEN_UPDATE=1 rewrites the golden files (review the diff: the goldens ARE the specification). Run from the repo root.
  *
- * sq_core.c is the only caller of midi_out_event / trk_note_on / trk_note_off / beat_samples; the mocks below are the host side of
- * those hooks, and the host log is what midi_out_event receives (so sq_emit's output, reserve rule included, is what is checked). */
+ * sq_core.c is the only caller of midi_out_event_at / trk_note_on / trk_note_off / beat_samples; the mocks below are the host side of
+ * those hooks, and the host log is what midi_out_event_at receives (so sq_emit's output, reserve rule included, is what is checked). */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,6 +24,8 @@ static uint32_t mock_free = 128;                     /* free slots of the USB ou
 static uint32_t mock_bs = 22050;                     /* samples per beat: 120 BPM at 44100 */
 static uint32_t midi_out_free(void) { return mock_free; }
 static uint32_t beat_samples(void) { return mock_bs; }
+#define SQ_EXT_BEAT() mock_bs                        /* P4-007: sq_core counts its own beat in 1/16 samples; here the mocked external beat, so 120 BPM = 22050 as before */
+#define SQ_BPM()      120u
 
 static char     logbuf[1 << 18];
 static size_t   logn;
@@ -40,8 +42,11 @@ static void logf_(const char *fmt, unsigned a, unsigned b, unsigned c, unsigned 
 {   if (!log_on) return;
     logn += (size_t)snprintf(logbuf + logn, sizeof logbuf - logn, fmt, a, b, c, d); }
 
-static void midi_out_event(uint32_t pkt)
+static long clk_pkts;                                /* realtime / common packets (clock out, P4-007): counted, not logged: the goldens are about notes */
+static void midi_out_event_at(uint32_t pkt, uint32_t due)
 {   unsigned st = (pkt >> 8) & 0xF0u, ch = (pkt >> 8) & 0xFu, d1 = (pkt >> 16) & 0xFFu, d2 = pkt >> 24;
+    (void)due;
+    if (st == 0xF0u) { clk_pkts++; return; }
     if (mock_free) mock_free--;
     if (st == 0x90u && d2) {
         if (midi_cnt[ch][d1]) vio("double ON", ch, d1);                /* two NOTE_ONs of one note without an OFF between */
