@@ -83,7 +83,12 @@ static void expect(const AlgoDesc *a, uint8_t id, uint8_t v, const char *want)
 static void tiles(const AlgoDesc *a, uint8_t row, const uint8_t morph[SQ_NMORPH])
 {   const uint16_t bg = 0;
     cv_begin(240, 120, T_BG);
-    for (uint32_t k = 0; k < 4; k++) uisq_knob_tile(k, a, (uint8_t)(row * 4 + k), morph, 0, k == 1);
+    UisqView v;
+    memset(&v, 0, sizeof v);
+    v.band = UISQ_BAND_ROW; v.row = row; v.nrow = 2; v.algo = a; v.turn = 0;
+    for (uint32_t k = 0; k < 4; k++) { v.tile_id[k] = a->knob_morph[(row * 4 + k) & 7]; v.tile[k] = &a->morph[v.tile_id[k]]; v.val[k] = morph[v.tile_id[k]]; }
+    uisq_view_texts(&v);
+    uisq_draw_knobs(&v, UISQ_KNOB_Y);
     cv_blit(0, 0);
     for (int y = UISQ_KNOB_Y; y < UISQ_KNOB_Y + UISQ_KNOB_LAB + 1 + UISQ_KNOB_VAL; y++) {
         for (int g = 0; g < 5; g++) {                       /* the gaps between and around the tiles stay background */

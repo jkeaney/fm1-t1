@@ -234,17 +234,15 @@ int main(int argc, char **argv)
       CHECK(n == SQI_N, "the reference has %d icons, the table %d", n, SQI_N);
       printf("icons: %d 1-bpp icons pixel-identical to icons_v12.py\n", n); }
 
-    /* ---- widths: the header slots, in every state a channel can be in ---- */
-    { char b[32];
-      for (uint8_t a = 0; a < SQ_NALGO; a++) for (uint8_t m = 0; m <= SQ_MIDI_OFF; m++) for (uint8_t c = 0; c < SQ_NCH; c++) {
-          sq_ch[c].algo = a; sq_ch[c].midi_ch = m;
-          uisq_h4_text(b, sizeof b, c); fit("H4", b, 76);
-          sq_ch[c].muted = 0; uisq_cell_l1(b, sizeof b, c); fit("Z1 line 1", b, 56);
-          uisq_cell_l2(b, sizeof b, c); fit("Z1 line 2", b, 56);
-          sq_ch[c].muted = 1; uisq_cell_l2(b, sizeof b, c); fit("Z1 line 2 muted", b, 56); sq_ch[c].muted = 0; }
-      sq_bpm = 240; uisq_h2_text(b, sizeof b); fit("H2", b, 45); sq_bpm = 120;
-      uisq_preset = 99; uisq_preset_pend = 1; uisq_h3_text(b, sizeof b); fit("H3", b, 28); uisq_preset = 1; uisq_preset_pend = 0;
-      fit("H6", "L64", 24); }
+    /* ---- widths: the header (SCREEN_SPEC_V2 4.1): the short name, then `MIDI n` or the inverted `MIDI OFF` chip, end inside the 240 px screen ---- */
+    { for (uint8_t a = 0; a < SQ_NALGO; a++) {
+          const char *nm = uisq_short_of(a);
+          const int xe = 105 + (int)text_w(&AF_M, nm);
+          CHECK(strlen(nm) <= 6, "short name `%s` is over 6 characters", nm);
+          CHECK(xe + 5 + W("MIDI") + 2 + (int)text_w(&AF_M, "16") <= 240, "header `%s MIDI 16` runs off the screen", nm);
+          CHECK(xe + 4 + W("MIDI") + (int)text_w(&AF_M, "OFF") + 10 <= 240, "header `%s [MIDI OFF]` runs off the screen", nm); }
+      { char b[16]; b[0] = 0; uisq_catu(b, sizeof b, 240); CHECK(16 + text_w(&AF_M, b) < 46, "the tempo `240` in AF_M ends before the first channel chip at x 46");
+        CHECK(16 + text_w(&AF_S, "WAIT") < 46 && 16 + text_w(&AF_S, "EXT") < 46, "EXT / WAIT in AF_S end before the first channel chip"); } }
     sq_boot();
 
     /* ---- widths: every knob label (51 px cell, drawn with a 2 px margin), the tag column, the status lines ---- */
@@ -316,7 +314,7 @@ int main(int argc, char **argv)
 #define PX(x, y) fb[(y) * 240 + (x)]
       for (int k = 0; k < 4; k++) {
           const int x = 1 + 60 * k;
-          CHECK(PX(x, 24) == sf && PX(x + 57, 39) == sf && PX(x + 57, 76) == sf && PX(x, 41) == sf, "knob tile %d: label band 24-39 and value area 41-76 are T_SURF", k);
+          CHECK(PX(x, 24) == sf && PX(x + 57, 39) == sf && PX(x, 41) == sf && PX(x + 57, 41) == sf, "knob tile %d: label band 24-39 and value area 41-76 are T_SURF (the corners; the meter fills from the bottom)", k);
           CHECK(PX(x + 20, 40) == bg && PX(x + 20, 23) == bg && PX(x + 20, 77) == bg && (x == 1 || PX(x - 1, 50) == bg) && PX(x + 58, 50) == bg, "knob tile %d: 1 px gap and BG surround", k); }
       for (int i = 0; i < 12; i++) {
           const int x = 1 + 40 * (i % 6), y = 146 + 18 * (i / 6);
@@ -331,8 +329,7 @@ int main(int argc, char **argv)
           const int x = uisq_bkey_cx[i] - 5;
           CHECK(PX(x, 186) == rs && PX(x + 9, 186 + 18) == rs && PX(x + 5, 186 + 19) != rs && PX(x - 1, 186) == bg, "black key %d: 10 x 19 at x centre %d", i, uisq_bkey_cx[i]); }
       CHECK(PX(5, 22) == bg && PX(120, 100) == bg && PX(120, 230) == bg, "header, music row and footer bands are empty in the frame");
-      /* the strip seam: the same frame drawn as one piece would match; rows 119 and 120 are both BG here (the buttons start at 146) */
-      CHECK(PX(100, 119) == bg && PX(100, 120) == bg, "no mark at the strip seam");
+      /* the strip seam: the music row draws across it; tests/ui_sq_v12_test.c + v12_compare.py prove the pixels on both sides equal the mock (drawn in the same two strips) */
 #undef PX
     }
     sq_playing = 0; sq_rt[0].p = 0;

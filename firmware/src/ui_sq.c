@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
-/* ui_sq.c: the sequencer UI framework: the screen v2 bands, the two-strip plan and the empty frame (P4-026, SCREEN_SPEC_V2 2, ADR-0006),
+/* ui_sq.c: the sequencer UI: the screen v2 bands, the two-strip plan and the frame (P4-026, SCREEN_SPEC_V2 2, ADR-0006), and the live-state elements
+ * header, knob tiles, status line and music row (P4-028, SCREEN_SPEC_V2 4.1-4.4: drawn from a UisqView, filled from sq_* and the descriptor alone),
  * the toast (state only: the message slot is drawn by P4-029), the label lookups of the generated tables build/gen/ui_tables.h,
  * redraw by state signature, the page enum and the page dispatch with stub pages. It replaces ui_t1.c's screen at the cut-over
  * (P4-012); until then NOTHING in ui_draw.c, ui_input.c or main.c calls it, and felucca.c does not include it (the host test
@@ -16,11 +17,11 @@
  * Pixel contract (SCREEN_SPEC_V2 2): the screen is drawn in SCREEN coordinates in two strips, 0-119 and 120-239 (CV_MAX = 240 x 124
  * holds 120 rows); a strip sets cv_oy = -y0, so an element that crosses y 120 (the music row's bars) is drawn by both strips and
  * clipped by each. No text crosses y 120 (tests/ui_sq_test.c checks the bands). A strip is redrawn only when the signature of its
- * inputs changed or `ui.force` is set. The element drawing (header, knob tiles, status line, music row, buttons, keybed, footer, message
- * slot) is P4-028 / P4-029 and draws into these bands; this file draws the empty frame: the tiles and keys the elements sit on.
+ * inputs changed or `ui.force` is set. P4-028 draws the header, knob tiles, status line and music row (uisq_draw_elements); the buttons, keybed,
+ * footer and message slot are P4-029 and draw into the frame this file lays under them.
  *
- * The helpers below the band table (uisq_btn_*, uisq_cell_*, uisq_h4_text, uisq_lane_read ...) are the screen-v1 label and lane
- * code, kept until P4-028 / P4-029 reuse or delete them (they are not drawn by this file; tests/ui_sq_test.c still measures them). */
+ * The helpers below the band table (uisq_btn_*, uisq_playhead ...) are the screen-v1 button and lane code, kept until P4-029 reuses or deletes
+ * them (tests/ui_sq_test.c still measures the button ones). */
 
 #include "ui_tables.h"
 
@@ -78,7 +79,7 @@ static const char *const uisq_short[SQ_NALGO] = { "ACID", "EUCL", "SNAK", "STAG"
 static uint8_t  uisq_page = UI_PG_PERF;  /* the page shown: ui_page_t */
 static uint8_t  uisq_sel;                /* the selected channel 0..3 */
 static uint8_t  uisq_vpage;              /* the viewed lane page 0..3 */
-static uint8_t  uisq_row;                /* PERF knob band: 0 = ROW 1 live, 1 = ROW 2 live */
+static uint8_t  uisq_row;                /* PERF knob band: 0 = ROW 1 live, 1 = ROW 2, 2 = ROW 3 (a channel with a RIG device only) */
 static uint8_t  uisq_edit_step;          /* NOTE_EDIT: the step being edited, 0..63 */
 static uint8_t  uisq_preset = 1;         /* header H3 slot (the preset layer is P7; a placeholder here) */
 static uint8_t  uisq_preset_pend;        /* 1 = `Pnn?` */
@@ -89,6 +90,14 @@ static uint32_t uisq_toast_until;        /* 0 = no toast */
 static uint16_t uisq_toast_id;
 static uint32_t uisq_pick_until;         /* ALGO_PICK overlay end, 0 = off */
 static uint32_t uisq_hot_until[4];
+static uint8_t  uisq_knob_ref[4];        /* each live knob's value while it was last NOT being turned: the "old level" ticks of the turning frame */
+static uint8_t  uisq_used = 0x0Fu;       /* channels in use, bit n = channel n (lifecycle, SCREEN_SPEC_V2 6: add / remove are P4-029 / the CHAN task) */
+static uint8_t  uisq_clock;              /* tempo source: UISQ_CLK_INT / EXT / WAIT / LOST (the clock task, TIMING_SPEC 5, sets it) */
+static uint8_t  uisq_rec;                /* REC armed: the header disc, the REC knob band, the cursor (the REC task sets it) */
+static uint8_t  uisq_rec_cursor = 1;     /* REC: the step being written, 1..16 of the viewed page (K1 CURSOR) */
+static uint8_t  uisq_rec_acc, uisq_rec_slide, uisq_rec_oct = 2;   /* REC knobs ACC / SLIDE (0/1) and OCT (0..4 = -2..+2) */
+static uint16_t uisq_diced;              /* steps of the viewed page just re-rolled (white with a hatch) until uisq_diced_until */
+static uint32_t uisq_diced_until;
 static uint32_t uisq_sig[UISQ_NSTRIP];   /* the strips' signatures */
 static uint8_t  uisq_have_sig;
 
@@ -141,55 +150,53 @@ static uint8_t uisq_algo_ok(uint8_t a) { return a < SQ_NALGO && ALGOS[a].name[0]
 /* the header short name: AlgoDesc.short_name; the placeholder table above serves a row whose P5 task has not filled it yet */
 static const char *uisq_short_of(uint8_t a) { a %= SQ_NALGO; return ALGOS[a].short_name[0] ? ALGOS[a].short_name : uisq_short[a]; }
 
-/* The text of a knob tile value: the algorithm's hook, else the zero word, else the value name, else the number (+ " " + unit). */
-static void uisq_morph_text(char *d, uint32_t n, const AlgoDesc *a, uint8_t id, uint8_t v, const void *cache)
-{   const MorphDesc *m = &a->morph[id];
-    char b[SQ_VTEXT_MAX];
+/* The text of a knob tile value: the algorithm's hook, else the zero word, else the value name, else the number (+ " " + unit).
+ * `a` may be NULL (a page row: REC, CHAN, RIG) and then there is no hook; `id` is the morph id the hook is asked about. With cache NULL a
+ * hook returns its WIDEST form (ADR-0007), which is what the font choice below measures. */
+static void uisq_tile_text(char *d, uint32_t n, const AlgoDesc *a, uint8_t id, const MorphDesc *m, uint8_t v, const void *cache)
+{   char b[SQ_VTEXT_MAX];
     d[0] = 0;
     b[0] = 0;
-    if (a->value_text && a->value_text(id, v, cache, b) && b[0]) { uisq_cat(d, n, b); return; }
+    if (a && a->value_text && a->value_text(id, v, cache, b) && b[0]) { uisq_cat(d, n, b); return; }
     if (v == 0 && m->zero) { uisq_cat(d, n, m->zero); return; }
     if (m->names && v >= m->min && v <= m->max) { uisq_cat(d, n, m->names[v - m->min]); return; }
     uisq_catu(d, n, v);
     if (m->unit) { uisq_cat(d, n, " "); uisq_cat(d, n, m->unit); } }
+static void uisq_morph_text(char *d, uint32_t n, const AlgoDesc *a, uint8_t id, uint8_t v, const void *cache)
+{   uisq_tile_text(d, n, a, id, &a->morph[id], v, cache); }
 
 /* ONE font per knob for its whole range, so the value never jumps size while turning: AF_L when every value except the zero word is
  * digits / capitals / spaces and fits 54 px, else AF_M (the zero word is a mode change: it may drop to AF_M by itself). */
-static const aafont_t *uisq_morph_font(const AlgoDesc *a, uint8_t id)
-{   const MorphDesc *m = &a->morph[id];
-    char t[16];
+static const aafont_t *uisq_tile_font(const AlgoDesc *a, uint8_t id, const MorphDesc *m)
+{   char t[16];
     for (uint32_t v = m->min; v <= m->max; v++) {
         if (v == 0 && m->zero) continue;
-        uisq_morph_text(t, sizeof t, a, id, (uint8_t)v, 0);
+        uisq_tile_text(t, sizeof t, a, id, m, (uint8_t)v, 0);
         if (text_w(&AF_L, t) > 54) return &AF_M;
         for (const char *c = t; *c; c++) if (!((*c >= '0' && *c <= '9') || (*c >= 'A' && *c <= 'Z') || *c == ' ')) return &AF_M; }
     return &AF_L; }
+static const aafont_t *uisq_morph_font(const AlgoDesc *a, uint8_t id) { return uisq_tile_font(a, id, &a->morph[id]); }
 
 /* position dots for a value list (<= SQ_NAMES_MAX entries), else 0 = a meter */
-static uint8_t uisq_morph_dots(const AlgoDesc *a, uint8_t id)
-{   const MorphDesc *m = &a->morph[id];
-    const uint32_t n = (uint32_t)m->max - m->min + 1u;
+static uint8_t uisq_tile_dots(const MorphDesc *m)
+{   const uint32_t n = (uint32_t)m->max - m->min + 1u;
     return (uint8_t)(m->names && n <= SQ_NAMES_MAX ? n : 0); }
+static uint8_t uisq_morph_dots(const AlgoDesc *a, uint8_t id) { return uisq_tile_dots(&a->morph[id]); }
 
-/* One knob tile of tile column k (0..3) from the descriptor alone: label band (AF_M, T_MID), value (one font, T_ACCENT when hot), then the
- * position dots or the meter under the value. slot = row * 4 + k indexes knob_morph[]. morph[] = the channel's current morph values. */
-static void uisq_knob_tile(uint32_t k, const AlgoDesc *a, uint8_t slot, const uint8_t morph[SQ_NMORPH], const void *cache, uint8_t hot)
-{   const int32_t x = 1 + 60 * (int32_t)k, vy = UISQ_KNOB_Y + UISQ_KNOB_LAB + 1;
-    const uint8_t id = a->knob_morph[slot & 7u], v = morph[id];
-    const MorphDesc *m = &a->morph[id];
-    const aafont_t *f = uisq_morph_font(a, id);
-    const uint8_t dots = uisq_morph_dots(a, id);
-    char t[16];
-    cv_rect(x, UISQ_KNOB_Y, UISQ_KNOB_W, UISQ_KNOB_LAB, T_SURF);
-    cv_rect(x, vy, UISQ_KNOB_W, UISQ_KNOB_VAL, T_SURF);
-    cv_text_in(x, UISQ_KNOB_Y + 1, UISQ_KNOB_W, &AF_M, m->label, T_MID, T_SURF);
-    uisq_morph_text(t, sizeof t, a, id, v, cache);
-    cv_text_in(x, vy + 4, UISQ_KNOB_W, (v == 0 && m->zero) ? &AF_M : f, t, hot ? T_ACCENT : T_TEXT, T_SURF);
-    if (dots) {                                                          /* a list: one dot per entry, the current one lit */
-        for (uint32_t i = 0; i < dots; i++)
-            cv_rect(x + (UISQ_KNOB_W - 6 * (int32_t)dots) / 2 + 6 * (int32_t)i, vy + UISQ_KNOB_VAL - 7, 4, 4, i == (uint32_t)(v - m->min) ? T_ACCENT : T_DIM); }
-    else if (m->max > m->min)                                            /* a meter: (v - min) / (max - min) of 50 px */
-        cv_rect(x + 4, vy + UISQ_KNOB_VAL - 6, 50 * (int32_t)(v - m->min) / (m->max - m->min), 3, hot ? T_ACCENT : T_MID); }
+/* ---- the page rows that belong to no algorithm (knob_map.tsv REC and CHAN rows; SCREEN_SPEC_V2 4.2). Values are stored from `min`, so
+ * OCT -2..+2 is 0..4 with names (a list: dots). ---- */
+static const char *const uisq_n_offon[2] = { "OFF", "ON" };
+static const char *const uisq_n_oct[5]   = { "-2", "-1", "0", "+1", "+2" };
+static const char *const uisq_n_own[1]   = { "OWN" };
+static const char *const uisq_n_midi[17] = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "OFF" };
+static const MorphDesc uisq_rec_row[4]  = { { "CURSOR", 1, 16, 1, 1, 1 }, { "ACC", 0, 1, 0, 1, 1, uisq_n_offon }, { "SLIDE", 0, 1, 0, 1, 1, uisq_n_offon },
+                                            { "OCT", 0, 4, 2, 1, 1, uisq_n_oct } };
+static const MorphDesc uisq_chan_row[4] = { { "LENGTH", 1, 64, 16, 1, 4 }, { "MIDI", 1, 17, 2, 1, 1, uisq_n_midi }, { "SOURCE", 0, 0, 0, 1, 1, uisq_n_own },
+                                            { "FOLLOW", 0, 1, 1, 1, 1, uisq_n_offon } };
+/* ROW 3 exists only for a channel with a RIG device (HwSet, HW_SUPPORT_LOWLEVEL 9): its profile's four wire names. The RIG layer is not in the
+ * firmware yet, so no channel has one; the RIG task returns its four MorphDesc here and nothing else in the screen changes. */
+static const MorphDesc *uisq_rig_row(uint8_t ch) { (void)ch; return 0; }
+
 
 /* ---- per-page data: the stub pages (P4-013..P4-018 replace the entries) ---- */
 typedef struct {
@@ -233,6 +240,7 @@ static void ui_sq_page_set(uint8_t p) { if (p < UI_PG_COUNT) uisq_page = p; }
 static void ui_sq_select(uint8_t ch)  { if (ch < SQ_NCH) uisq_sel = ch; }
 static void ui_sq_home_held_set(uint8_t on) { uisq_home_held = on ? 1u : 0u; }
 static void ui_sq_knob_touch(uint8_t k) { if (k < 4u) uisq_hot_until[k] = UISQ_MS() + UISQ_HOT_MS; }
+static void ui_sq_diced_set(uint16_t steps) { uisq_diced = steps; uisq_diced_until = UISQ_MS() + UISQ_TOAST_MS; if (!uisq_diced_until) uisq_diced_until = 1u; }
 static void ui_sq_algo_pick_touch(void) { uisq_pick_until = UISQ_MS() + UISQ_PICK_MS; }
 
 /* SCREEN_SPEC 2.7: no queue; a new text replaces the one showing and restarts the 2000 ms; the same text only restarts the timer;
@@ -247,24 +255,8 @@ static void ui_sq_toast(const char *s)
     uisq_toast_until = UISQ_MS() + UISQ_TOAST_MS;
     if (!uisq_toast_until) uisq_toast_until = 1u; }
 
-/* ---- Z0 strings (also used by the width test) ---- */
-static void uisq_h4_text(char *d, uint32_t n, uint8_t ch)         /* `1 ACID M1`, `1 ACID MOFF` (no CH prefix: SCREEN_SPEC 2.1) */
-{   d[0] = 0;
-    uisq_catu(d, n, (uint32_t)ch + 1u); uisq_cat(d, n, " "); uisq_cat(d, n, uisq_short_of(sq_ch[ch].algo)); uisq_cat(d, n, " ");
-    if (sq_ch[ch].midi_ch >= SQ_MIDI_OFF) uisq_cat(d, n, "MOFF"); else { uisq_cat(d, n, "M"); uisq_catu(d, n, (uint32_t)sq_ch[ch].midi_ch + 1u); } }
-static void uisq_h2_text(char *d, uint32_t n)                      /* H2 placeholder: the INT state only (the clock states are P4-012/P4-019) */
-{   d[0] = 0; uisq_cat(d, n, "INT "); uisq_catu(d, n, sq_bpm); }
-static void uisq_h3_text(char *d, uint32_t n)
-{   d[0] = 0; uisq_cat(d, n, "P"); if (uisq_preset < 10u) uisq_cat(d, n, "0"); uisq_catu(d, n, uisq_preset); if (uisq_preset_pend) uisq_cat(d, n, "?"); }
-static void uisq_cell_l1(char *d, uint32_t n, uint8_t ch)          /* Z1 line 1: `1 ACID` */
-{   d[0] = 0; uisq_catu(d, n, (uint32_t)ch + 1u); uisq_cat(d, n, " "); uisq_cat(d, n, uisq_short_of(sq_ch[ch].algo)); }
-static void uisq_cell_l2(char *d, uint32_t n, uint8_t ch)          /* Z1 line 2: `MIDI 2`, `MIDI OFF`, `MUTE 2`, `MUTE -` */
-{   const uint8_t m = sq_ch[ch].midi_ch;
-    d[0] = 0; uisq_cat(d, n, sq_ch[ch].muted ? "MUTE " : "MIDI ");
-    if (m >= SQ_MIDI_OFF) uisq_cat(d, n, sq_ch[ch].muted ? "-" : "OFF"); else uisq_catu(d, n, (uint32_t)m + 1u); }
-
 /* ---- lane data: the resolved view of the 16 steps of the viewed page (sq_eval, as the scheduler resolves them) ---- */
-typedef struct { uint8_t on, vel, ed, acc, slide, rep; } UisqStep;
+typedef struct { uint8_t on, vel, ed, acc, slide, rep, note; } UisqStep;
 static void uisq_lane_read(UisqStep *L, uint8_t ch, uint8_t vpage)
 {   const AlgoDesc *a = &ALGOS[sq_ch[ch].algo % SQ_NALGO];
     const uint8_t ci = sq_cidx[ch];
@@ -277,6 +269,7 @@ static void uisq_lane_read(UisqStep *L, uint8_t ch, uint8_t vpage)
         sq_eval(ch, p, 0, a, sq_cache[ch][ci], &sq_gdb[sq_gidx], &o);
         L[n].on = (uint8_t)((o.flags & PO_HIT) != 0u);
         L[n].vel = o.vel;
+        L[n].note = o.note;
         L[n].acc = (uint8_t)(o.vel >= 100u);
         L[n].rep = (uint8_t)(((o.flags & PO_REP_MASK) >> PO_REP_SHIFT) + 1u);
         L[n].slide = (uint8_t)(((sq_ch[ch].ed[p].fl >> 2) & 3u) == 1u);
@@ -349,13 +342,272 @@ static void uisq_cue_text(char *d, uint32_t n)
     if (uisq_page == UI_PG_PERF && sq_playing) { uisq_cat(d, n, "TAP STEP=ON/OFF  HOLD=EDIT NOTE"); return; }
     uisq_cat(d, n, uisq_page_cue(uisq_page)); }
 
-/* ---- the empty frame (SCREEN_SPEC_V2 2): what the elements of P4-028 / P4-029 sit on ---- */
-static void uisq_draw_frame(void)
-{   for (uint32_t k = 0; k < 4u; k++) {                                 /* knob tiles: the label band, a 1 px gap, the value area (T_SURF) */
+/* ---- the view: everything the elements draw from, in one struct (SCREEN_SPEC_V2 4.1-4.4) ----
+ * uisq_view_fill() builds it from the sequencer state (the only reader of sq_* / ChanSave here); the draw functions read nothing else, so the
+ * host test (tests/ui_sq_test.c) can hand them the state of any scene of the v12 mock and compare pixels. The signature of a strip is the hash of
+ * the bytes of the view before its pointers. */
+#define UISQ_CLK_INT  0
+#define UISQ_CLK_EXT  1
+#define UISQ_CLK_WAIT 2
+#define UISQ_CLK_LOST 3
+#define UISQ_BAND_ROW  0                 /* the knob tiles show the algorithm's live row (view.row) */
+#define UISQ_BAND_REC  1                 /* REC: CURSOR ACC SLIDE OCT, in white */
+#define UISQ_BAND_CHAN 2                 /* CHAN: LENGTH MIDI SOURCE FOLLOW */
+#define UISQ_NO_PH     255               /* view.ph: no playhead column */
+#define UISQ_WHITE     0xFFFFu           /* SCREEN_SPEC_V2 3: pointer, selection bar, accent cap, message slot */
+#define UISQ_INK       0x0000u           /* ... and the ink on chips */
+typedef struct {
+    uint8_t  playing, rec, clock, used, sel;           /* transport; tempo source UISQ_CLK_*; channels in use (bit n); selected channel */
+    uint16_t bpm;
+    uint8_t  ch_algo[SQ_NCH], ch_midi[SQ_NCH], ch_muted[SQ_NCH];   /* ch_midi: 0..15, SQ_MIDI_OFF = OFF */
+    uint8_t  band, row, nrow;                          /* knob band UISQ_BAND_*; live row 0..2; rows in the band (2, or 3 with a RIG device) */
+    uint8_t  val[4], tile_id[4];                       /* the four tiles: the value and the morph id (the hook's argument) */
+    uint8_t  turn, turn_old;                           /* 0 = none, else 1 + the knob being turned; its level before the turn, 0..100 % */
+    char     txt[4][12];                               /* the tiles' value texts (uisq_view_texts) */
+    uint8_t  preset, pend, pages, vpage, ppage, follow_off;   /* preset Pnn, pending Pnn (0 = none); pages in use; viewed / playing page (1-based) */
+    uint8_t  ph, len16, cursor;                        /* playhead column 0..15 or UISQ_NO_PH; steps of the viewed page inside LENGTH (16 = all); REC cursor 1..16 */
+    uint16_t diced;                                    /* just-diced steps of the selected channel (bit n = step n of the page) */
+    uint16_t hits[SQ_NCH];                             /* per channel: bit n = a hit at step n of the viewed page (the other channels' strips) */
+    UisqStep lane[SQ_PAGE];                            /* the selected channel's 16 steps: on, note, acc, slide */
+    /* ---- pointers: not in the signature ---- */
+    const AlgoDesc  *algo;                             /* the selected channel's algorithm (value_text hook, lane type, absent layers) */
+    const MorphDesc *tile[4];
+    const void      *cache;                            /* its cache, for the hook */
+} UisqView;
+
+/* the algorithm whose value_text hook a tile may call: only the algorithm's own rows (ROW 1, ROW 2); REC, CHAN and RIG rows have none */
+static const AlgoDesc *uisq_view_hook(const UisqView *v) { return (v->band == UISQ_BAND_ROW && v->row < 2u) ? v->algo : 0; }
+static void uisq_view_texts(UisqView *v)
+{   for (uint32_t k = 0; k < 4u; k++) uisq_tile_text(v->txt[k], sizeof v->txt[k], uisq_view_hook(v), v->tile_id[k], v->tile[k], v->val[k], v->cache); }
+
+static uint32_t uisq_view_sig(const UisqView *v)
+{   const uint8_t *b = (const uint8_t *)v;
+    uint32_t h = 2166136261u;
+    for (uint32_t i = 0; i < offsetof(UisqView, algo); i++) h = uisq_h(h, b[i]);
+    return h; }
+
+static void uisq_view_fill(UisqView *v)
+{   const uint8_t sel = uisq_sel < SQ_NCH ? uisq_sel : 0u;
+    const ChanSave *c = &sq_ch[sel];
+    const uint8_t aidx = c->algo % SQ_NALGO;
+    const AlgoDesc *a = &ALGOS[aidx];
+    const MorphDesc *rig = uisq_rig_row(sel);
+    const uint8_t len = c->len ? c->len : 1u;
+    const uint8_t pp = sq_playing ? (uint8_t)((sq_rt[sel].p + len - 1u) % len) : 255u;     /* the step now sounding */
+    uint8_t vp = uisq_vpage;                                                               /* the viewed page, 0-based */
+    uint32_t best = 0;
+    memset(v, 0, sizeof *v);
+    v->playing = sq_playing; v->rec = uisq_rec; v->clock = uisq_clock; v->used = uisq_used; v->sel = sel; v->bpm = sq_bpm;
+    for (uint8_t i = 0; i < SQ_NCH; i++) { v->ch_algo[i] = sq_ch[i].algo; v->ch_midi[i] = sq_ch[i].midi_ch; v->ch_muted[i] = sq_ch[i].muted; }
+    v->algo = a;
+    v->cache = sq_cache[sel][sq_cidx[sel]];
+    /* knob tiles */
+    v->nrow = rig ? 3u : 2u;
+    v->row = uisq_row < v->nrow ? uisq_row : 0u;
+    v->band = uisq_rec ? UISQ_BAND_REC : uisq_page == UI_PG_CHAN ? UISQ_BAND_CHAN : UISQ_BAND_ROW;
+    for (uint32_t k = 0; k < 4u; k++) {
+        if (v->band == UISQ_BAND_REC) {
+            v->tile[k] = &uisq_rec_row[k];
+            v->val[k] = k == 0 ? uisq_rec_cursor : k == 1 ? uisq_rec_acc : k == 2 ? uisq_rec_slide : uisq_rec_oct; }
+        else if (v->band == UISQ_BAND_CHAN) {
+            v->tile[k] = &uisq_chan_row[k];
+            v->val[k] = k == 0 ? c->len : k == 1 ? (uint8_t)(c->midi_ch + 1u) : k == 2 ? 0u : sq_follow; }
+        else if (v->row == 2u) { v->tile[k] = &rig[k]; v->val[k] = rig[k].def; }
+        else {
+            const uint8_t id = a->knob_morph[(v->row * 4u + k) & 7u];
+            v->tile_id[k] = id; v->tile[k] = &a->morph[id]; v->val[k] = c->st[aidx].morph[id]; }
+        if (uisq_hot_until[k] && (int32_t)(uisq_now - uisq_hot_until[k]) < 0 && (!best || (int32_t)(uisq_hot_until[k] - best) > 0)) { best = uisq_hot_until[k]; v->turn = (uint8_t)(k + 1u); }
+        if (!(uisq_hot_until[k] && (int32_t)(uisq_now - uisq_hot_until[k]) < 0)) uisq_knob_ref[k] = v->val[k]; }   /* not being turned: remember the level */
+    if (v->turn) {
+        const MorphDesc *m = v->tile[v->turn - 1u];
+        const uint8_t r = uisq_knob_ref[v->turn - 1u];
+        v->turn_old = m->max == m->min ? 0u : (uint8_t)(100u * (uint32_t)(r - m->min) / (uint32_t)(m->max - m->min)); }
+    uisq_view_texts(v);
+    /* status line and pages */
+    v->preset = uisq_preset; v->pend = uisq_preset_pend ? uisq_preset : 0u;     /* placeholder: the preset layer is P7 */
+    v->pages = (uint8_t)((len + SQ_PAGE - 1u) / SQ_PAGE);
+    if (sq_follow && pp != 255u) vp = (uint8_t)(pp / SQ_PAGE);                     /* FOLLOW: the view goes where the playing step is */
+    if (vp >= v->pages) vp = 0;
+    v->vpage = (uint8_t)(vp + 1u);
+    v->ppage = pp != 255u ? (uint8_t)(pp / SQ_PAGE + 1u) : v->vpage;
+    v->follow_off = (uint8_t)!sq_follow;
+    /* music row */
+    v->ph = (pp != 255u && pp / SQ_PAGE == vp) ? (uint8_t)(pp % SQ_PAGE) : (uint8_t)UISQ_NO_PH;
+    v->len16 = len - vp * SQ_PAGE >= SQ_PAGE ? SQ_PAGE : (uint8_t)(len - vp * SQ_PAGE);
+    v->cursor = uisq_rec_cursor;
+    v->diced = (uisq_diced_until && (int32_t)(uisq_now - uisq_diced_until) < 0) ? uisq_diced : 0u;
+    uisq_lane_read(v->lane, sel, vp);
+    for (uint8_t i = 0; i < SQ_NCH; i++) {
+        UisqStep L[SQ_PAGE];
+        if (i == sel || !(uisq_used >> i & 1u)) continue;
+        uisq_lane_read(L, i, vp);
+        for (uint8_t n = 0; n < SQ_PAGE; n++) if (L[n].on) v->hits[i] |= (uint16_t)(1u << n); } }
+
+/* ---- text and shape helpers in the mock's terms: a text is placed by its CAP TOP (v12.py P.text), not its line top ---- */
+static int32_t uisq_captop(const aafont_t *f) { return f == &AF_S ? AF_S_CAP_Y : f == &AF_M ? AF_M_CAP_Y : AF_L_CAP_Y; }
+static int32_t uisq_text(int32_t x, int32_t ycap, const aafont_t *f, const char *s, uint16_t fg, uint16_t bg)
+{   cv_text_on(x, ycap - uisq_captop(f), f, s, fg, bg);
+    return x + text_w(f, s); }
+static void uisq_text_c(int32_t x0, int32_t w, int32_t ycap, const aafont_t *f, const char *s, uint16_t fg, uint16_t bg)
+{   uisq_text(x0 + HALF_UP(w - text_w(f, s)), ycap, f, s, fg, bg); }
+static void uisq_text_r(int32_t xr, int32_t ycap, const aafont_t *f, const char *s, uint16_t fg, uint16_t bg) { uisq_text(xr - text_w(f, s), ycap, f, s, fg, bg); }
+static void uisq_hatch(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t c, int32_t step)   /* diagonal lines every `step` px */
+{   for (int32_t j = 0; j < h; j++) for (int32_t i = 0; i < w; i++) if ((i + j) % step == 0) cv_pset(x + i, y + j, c); }
+static uint16_t uisq_mixk(uint16_t c, uint32_t k)                  /* c scaled to k/255 over black, per RGB565 channel (the REC band's white fill) */
+{   return (uint16_t)((((c >> 11) & 31u) * k / 255u) << 11 | (((c >> 5) & 63u) * k / 255u) << 5 | ((c & 31u) * k / 255u)); }
+static void uisq_digit(char *d, uint32_t n, uint32_t v) { d[0] = 0; uisq_catu(d, n, v); }
+
+/* ---- 4.1 header (y 1-19 and the selection bar 20-21) ---- */
+static void uisq_draw_header(const UisqView *v)
+{   const int32_t y = 1;
+    const uint8_t sel = v->sel;
+    char b[12];
+    uint8_t plus = 0;
+    int32_t xe, xx;
+    if (v->rec) {                                                      /* REC: a red disc, with a play mark in it while playing */
+        cv_rect(4, y + 6, 9, 9, T_REC); cv_rect(3, y + 7, 11, 7, T_REC); cv_rect(5, y + 5, 7, 11, T_REC);
+        if (v->playing) { cv_rect(6, y + 8, 2, 5, UISQ_WHITE); cv_rect(8, y + 9, 2, 3, UISQ_WHITE); } }
+    else if (v->playing) cv_icon(3, y + 5, SQI_PLAY_S, UISQ_WHITE);
+    else cv_icon(3, y + 5, SQI_STOP_S, T_MID);
+    if (v->clock == UISQ_CLK_INT) { uisq_digit(b, sizeof b, v->bpm); uisq_text(16, y + 4, &AF_M, b, T_TEXT, T_BG); }
+    else {                                                             /* external: EXT over the tempo, or WAIT, or -- when it is lost */
+        uisq_text(16, y, &AF_S, "EXT", T_MID, T_BG);
+        if (v->clock == UISQ_CLK_EXT) uisq_digit(b, sizeof b, v->bpm); else { b[0] = 0; uisq_cat(b, sizeof b, v->clock == UISQ_CLK_WAIT ? "WAIT" : "--"); }
+        uisq_text(16, y + 10, &AF_S, b, v->clock == UISQ_CLK_LOST ? T_REC : T_TEXT, T_BG); }
+    for (uint32_t i = 0; i < SQ_NCH; i++) {                            /* the chips: one per channel in use, then a `+` in the first free slot */
+        const int32_t cx = 46 + 14 * (int32_t)i;
+        const uint8_t off = v->ch_midi[i] >= SQ_MIDI_OFF;
+        b[0] = (char)('1' + i); b[1] = 0;
+        if (v->used >> i & 1u) {
+            if (v->ch_muted[i]) {                                      /* muted: a dark chip, a grey digit, a diagonal */
+                cv_rect(cx, y, 13, 19, T_SURF);
+                uisq_text_c(cx, 13, y + 4, &AF_M, b, T_MID, T_SURF);
+                cv_line(cx, y + 18, cx + 12, y, T_MID); }
+            else if (i == sel) { cv_rect(cx, y, 13, 19, T_CH(i)); uisq_text_c(cx, 13, y + 4, &AF_M, b, UISQ_INK, T_CH(i)); }
+            else { cv_frame(cx, y, 13, 19, T_CH(i)); uisq_text_c(cx, 13, y + 4, &AF_M, b, T_CH(i), T_BG); }
+            if (i == sel) cv_rect(cx, y + 20, 13, 2, UISQ_WHITE);      /* selection: a white bar under the chip, whatever its state */
+            if (off) cv_rect(cx + 1, y + 1, 11, 3, T_OFF); }           /* MIDI OFF: a red cap */
+        else if (!plus) { plus = 1; uisq_text_c(cx, 13, y + 4, &AF_M, "+", T_MID, T_BG); } }
+    xe = uisq_text(105, y + 4, &AF_M, uisq_short_of(v->ch_algo[sel]), T_CH(sel), T_BG);
+    if (v->ch_midi[sel] >= SQ_MIDI_OFF) {                              /* loud: an inverted red chip that says what is wrong */
+        cv_rect(xe + 4, y, text_w(&AF_S, "MIDI") + text_w(&AF_M, "OFF") + 10, 19, T_OFF);
+        xx = uisq_text(xe + 7, y + 6, &AF_S, "MIDI", UISQ_WHITE, T_OFF);
+        uisq_text(xx + 3, y + 4, &AF_M, "OFF", UISQ_WHITE, T_OFF); }
+    else {
+        xx = uisq_text(xe + 5, y + 6, &AF_S, "MIDI", T_MID, T_BG);
+        uisq_digit(b, sizeof b, (uint32_t)v->ch_midi[sel] + 1u);
+        uisq_text(xx + 2, y + 4, &AF_M, b, UISQ_WHITE, T_BG); } }
+
+/* ---- 4.2 knob tiles: four 58 x 53 tiles at y (the tile is the meter) ---- */
+static void uisq_draw_knobs(const UisqView *v, int32_t y)
+{   const uint16_t col = v->band == UISQ_BAND_REC ? UISQ_WHITE : T_CH(v->sel);
+    const uint16_t fc = v->band == UISQ_BAND_REC ? uisq_mixk(UISQ_WHITE, 120) : T_CHF(v->sel);
+    for (uint32_t k = 0; k < 4u; k++) {
         const int32_t x = 1 + 60 * (int32_t)k;
-        cv_rect(x, UISQ_KNOB_Y, UISQ_KNOB_W, UISQ_KNOB_LAB, T_SURF);
-        cv_rect(x, UISQ_KNOB_Y + UISQ_KNOB_LAB + 1, UISQ_KNOB_W, UISQ_KNOB_VAL, T_SURF); }
-    for (uint32_t i = 0; i < 12u; i++) {                                /* button tiles: dice tiles neutral, the rest T_SURF */
+        const MorphDesc *m = v->tile[k];
+        const uint8_t dots = uisq_tile_dots(m);
+        const aafont_t *f = (v->val[k] == 0 && m->zero) ? &AF_M : uisq_tile_font(uisq_view_hook(v), v->tile_id[k], m);
+        const int32_t span = (int32_t)m->max - m->min, d = (int32_t)v->val[k] - m->min;
+        uint16_t bgv = T_SURF;
+        cv_rect(x, y, 58, 16, T_SURF);
+        uisq_text_c(x, 58, y + 3, &AF_M, m->label, T_MID, T_SURF);
+        cv_rect(x, y + 17, 58, 36, T_SURF);
+        if (dots) {                                                    /* a value list: position dots, no meter */
+            const int32_t dw = (50 - ((int32_t)dots - 1) * 2) / dots < 8 ? (50 - ((int32_t)dots - 1) * 2) / dots : 8;
+            const int32_t x0 = x + (58 - ((int32_t)dots * dw + ((int32_t)dots - 1) * 2)) / 2;
+            for (int32_t i = 0; i < dots; i++) {
+                if (i == d) cv_rect(x0 + i * (dw + 2), y + 47, dw, 3, col); else cv_frame(x0 + i * (dw + 2), y + 47, dw, 3, T_DIM); } }
+        else {
+            const int32_t fh = 36 * (span ? 100 * d / span : 0) / 100;
+            cv_rect(x, y + 53 - fh, 58, fh, fc);
+            if (fh >= 2) { cv_rect(x, y + 53 - fh, 7, 2, col); cv_rect(x + 51, y + 53 - fh, 7, 2, col); }   /* the level edge, clear of the value */
+            if (fh >= 30) bgv = fc; }
+        { const char *t = v->txt[k];
+          const aafont_t *g = text_w(f, t) > 54 ? &AF_S : f;
+          uisq_text_c(x, 58, g == &AF_L ? y + 24 : y + 26, g, t, UISQ_WHITE, bgv); }
+        if (v->turn == k + 1u) {                                       /* being turned: a frame in the channel colour, ticks at the old level */
+            cv_frame(x - 1, y - 1, 60, 55, col);
+            cv_frame(x, y, 58, 53, col);
+            if (!dots) { const int32_t oh = 36 * v->turn_old / 100; cv_rect(x + 1, y + 53 - oh - 1, 6, 2, UISQ_WHITE); cv_rect(x + 51, y + 53 - oh - 1, 6, 2, UISQ_WHITE); } } } }
+
+/* ---- 4.3 status line (caps 80): preset | the knob row | the page ---- */
+static void uisq_draw_status(const UisqView *v)
+{   const int32_t y = 80;
+    char b[16];
+    if (v->pend) {
+        b[0] = 0; uisq_cat(b, sizeof b, "P"); if (v->pend < 10u) uisq_cat(b, sizeof b, "0"); uisq_catu(b, sizeof b, v->pend); uisq_cat(b, sizeof b, "?");
+        cv_rect(1, y - 2, text_w(&AF_M, b) + 6, 14, UISQ_WHITE);
+        uisq_text(4, y, &AF_M, b, UISQ_INK, UISQ_WHITE); }
+    else {
+        b[0] = 0; uisq_cat(b, sizeof b, "P"); if (v->preset < 10u) uisq_cat(b, sizeof b, "0"); uisq_catu(b, sizeof b, v->preset);
+        uisq_text(3, y, &AF_M, b, T_TEXT, T_BG); }
+    if (!v->rec) {                                                     /* ROW + numbered boxes, the live row filled (a REC has no rows) */
+        const int32_t x0 = 128 - (int32_t)v->nrow * 13 / 2;
+        uisq_text_r(x0 - 3, y + 2, &AF_S, "ROW", T_MID, T_BG);
+        for (uint32_t r = 0; r < v->nrow; r++) {
+            const int32_t bx = x0 + 13 * (int32_t)r;
+            b[0] = (char)('1' + r); b[1] = 0;
+            if (r == v->row) { cv_rect(bx, y - 1, 11, 13, T_CH(v->sel)); uisq_text_c(bx, 11, y + 1, &AF_S, b, UISQ_INK, T_CH(v->sel)); }
+            else { cv_frame(bx, y - 1, 11, 13, T_MID); uisq_text_c(bx, 11, y + 1, &AF_S, b, T_MID, T_BG); } } }
+    { char pt[8];
+      pt[0] = 0; uisq_catu(pt, sizeof pt, v->vpage); uisq_cat(pt, sizeof pt, "/"); uisq_catu(pt, sizeof pt, v->pages);
+      if (v->follow_off) {                                             /* FOLLOW off: the viewed page is boxed; the playing page is named */
+          const int32_t w = text_w(&AF_M, pt) + 4;
+          cv_frame(238 - w, y - 2, w + 1, 14, UISQ_WHITE);
+          uisq_text_r(237, y, &AF_M, pt, T_TEXT, T_BG);
+          b[0] = 0; uisq_cat(b, sizeof b, "PLAY "); uisq_catu(b, sizeof b, v->ppage);
+          uisq_text_r(234 - w, y + 2, &AF_S, b, T_TEXT, T_BG); }
+      else {
+          uisq_text_r(238, y, &AF_M, pt, T_TEXT, T_BG);
+          uisq_text_r(236 - text_w(&AF_M, pt), y + 2, &AF_S, "PAGE", T_MID, T_BG); } } }
+
+/* ---- 4.4 music row (y 92-141): the selected channel full width, the others as 3 px strips in a fixed row per channel number ---- */
+static void uisq_draw_music(const UisqView *v)
+{   const int32_t y0 = 96, y1 = 141, strip_h = 3;
+    const uint8_t sel = v->sel, others = (uint8_t)(v->used & ~(1u << sel));
+    const int32_t bh_max = (y1 - y0) - (others ? 4 : 0) * (strip_h + 1) - 1;
+    const uint8_t dim = v->ch_muted[sel] || v->ch_midi[sel] >= SQ_MIDI_OFF;
+    const uint16_t col = T_CH(sel);
+    int32_t lo = 255, hi = 0;
+    for (uint32_t i = 0; i < SQ_PAGE; i++) if (v->lane[i].on) { if (v->lane[i].note < lo) lo = v->lane[i].note; if (v->lane[i].note > hi) hi = v->lane[i].note; }
+    if (lo > hi) { lo = 0; hi = 1; }
+    for (uint32_t i = 0; i < SQ_PAGE; i++) {
+        const int32_t x = 1 + 15 * (int32_t)i;
+        const UisqStep *s = &v->lane[i];
+        if (i >= v->len16) { uisq_hatch(x, y0, 13, y1 - y0, T_LINE, 3); continue; }   /* past LENGTH: a hatched, empty step */
+        if (i == v->ph) {                                              /* the playhead: a lit column and a white pointer */
+            cv_rect(x - 1, y0 - 1, 15, y1 - y0 + 1, T_PH);
+            for (int32_t d = 0; d < 3; d++) cv_rect(x + 3 + d, y0 - 4 + d, 7 - 2 * d, 1, UISQ_WHITE); }
+        if (!s->on) cv_rect(x + 5, y0 + bh_max - 1, 3, 1, T_DIM);      /* a rest: a floor dash */
+        else {
+            const int32_t span = hi - lo > 1 ? hi - lo : 1;
+            const int32_t bh = v->algo->lane == SQ_LANE_SINGLE ? 8 : 6 + (bh_max - 9) * ((int32_t)s->note - lo) / span;
+            const int32_t by = y0 + bh_max - bh;
+            if (dim) cv_frame(x, by, 13, bh, v->ch_muted[sel] ? T_MID : T_OFF);          /* muted or MIDI OFF: hollow, nothing is sounding */
+            else if (v->diced >> i & 1u) { cv_rect(x, by, 13, bh, UISQ_WHITE); uisq_hatch(x, by, 13, bh, col, 2); }
+            else cv_rect(x, by, 13, bh, col);
+            if (s->acc && !dim) cv_rect(x, by - 4, 13, 2, UISQ_WHITE);                    /* accent: a full-width white cap */
+            if (s->slide && i < SQ_PAGE - 1u && v->lane[i + 1].on && !dim) cv_rect(x + 13, by + 2, 2, 3, col); }   /* slide: a bridge into the next step */
+        for (uint32_t c = 0; c < SQ_NCH; c++) {                        /* the other channels: a hit strip in their own fixed row */
+            const int32_t yy = y0 + bh_max + 2 + (int32_t)c * (strip_h + 1);
+            if (!(others >> c & 1u) || !(v->hits[c] >> i & 1u)) continue;
+            if (v->ch_muted[c] || v->ch_midi[c] >= SQ_MIDI_OFF) cv_rect(x, yy, 5, strip_h, T_DIM);   /* a short grey dash: silent */
+            else cv_rect(x, yy, 13, strip_h, T_CH(c)); } }
+    if (v->rec) {                                                      /* REC: the write cursor frames its step */
+        const int32_t x = ((int32_t)v->cursor - 1) * 15 + 1;
+        cv_frame(x - 2, 93, 17, 49, UISQ_WHITE);
+        cv_frame(x - 1, 94, 15, 47, UISQ_WHITE); } }
+
+/* the elements of this task, in the mock's order (the buttons, keybed, footer and message slot are P4-029) */
+static void uisq_draw_elements(const UisqView *v)
+{   uisq_draw_header(v);
+    uisq_draw_knobs(v, UISQ_KNOB_Y);
+    uisq_draw_status(v);
+    uisq_draw_music(v); }
+
+/* ---- the frame of P4-029's elements (SCREEN_SPEC_V2 2): the button tiles and keys they sit on (the knob tiles are drawn by uisq_draw_knobs) ---- */
+static void uisq_draw_frame(void)
+{   for (uint32_t i = 0; i < 12u; i++) {                                /* button tiles: dice tiles neutral, the rest T_SURF */
         const int32_t x = 1 + 40 * (int32_t)(i % 6u), y = UISQ_BTN_Y + (UISQ_BTN_TH + 1) * (int32_t)(i / 6u);
         cv_rect(x, y, UISQ_BTN_W, UISQ_BTN_TH, uisq_btn_dice[i] ? T_DICE : T_SURF); }
     for (uint32_t i = 0; i < 16u; i++) cv_rect(1 + 15 * (int32_t)i, UISQ_KEY_Y, UISQ_WKEY_W, UISQ_WKEY_H, T_SURF);   /* white keys */
@@ -375,16 +627,18 @@ static void ui_sq_input(void)
     if (uisq_page < UI_PG_COUNT && uisq_pages[uisq_page].input) uisq_pages[uisq_page].input(); }
 
 /* Draws the strips whose signature changed (or both when `ui.force`). Returns 1 if anything was blitted. The MENU page is the Felucca menu's.
- * Signature 0 (rows 0-119): the page, the palette (ux.gen), the selected channel, the toast in the message slot. Signature 1 (rows 120-239):
- * the same, and the footer line. The elements of P4-028 / P4-029 add their inputs to these hashes. */
+ * Signature 0 (rows 0-119): the page, the palette (ux.gen), the view (header, knob tiles, status line, the music row's upper part), the toast in the
+ * message slot. Signature 1 (rows 120-239): the same without the toast, and the footer line. The elements of P4-029 add their inputs to these hashes. */
 static uint8_t ui_sq_draw(void)
 {   uint32_t sg[UISQ_NSTRIP] = { 2166136261u, 2166136261u };
     uint8_t drew = 0;
     char cue[48];
+    UisqView view;
     if (uisq_page == UI_PG_MENU) return 0;
     uisq_now = UISQ_MS();
     uisq_cue_text(cue, sizeof cue);
-    for (uint32_t s = 0; s < UISQ_NSTRIP; s++) { sg[s] = uisq_h(sg[s], uisq_page); sg[s] = uisq_h(sg[s], ux.gen); sg[s] = uisq_h(sg[s], uisq_sel); }
+    uisq_view_fill(&view);
+    for (uint32_t s = 0; s < UISQ_NSTRIP; s++) { sg[s] = uisq_h(sg[s], uisq_page); sg[s] = uisq_h(sg[s], ux.gen); sg[s] = uisq_h(sg[s], uisq_view_sig(&view)); }
     sg[0] = uisq_h(sg[0], uisq_toast_until ? uisq_toast_id : 0u);
     for (const char *s = cue; *s; s++) sg[1] = uisq_h(sg[1], (uint8_t)*s);
     for (uint32_t s = 0; s < UISQ_NSTRIP; s++) {
@@ -392,6 +646,7 @@ static uint8_t ui_sq_draw(void)
         cv_begin(UISQ_W, UISQ_STRIP_H, T_BG);
         cv_oy = -(int32_t)uisq_strip_y[s];                              /* the elements draw in screen coordinates */
         uisq_draw_frame();
+        uisq_draw_elements(&view);
         cv_oy = 0;
         cv_blit(0, uisq_strip_y[s]);
         uisq_sig[s] = sg[s]; drew = 1; }

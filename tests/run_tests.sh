@@ -198,6 +198,14 @@ run "sequencer UI framework: ui_sq.c screen v2 bands + two-strip plan + empty fr
 ${CC%% *} -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/sq_algodesc_test" tests/sq_algodesc_test.c -lm
 run "algorithm UI descriptor: value text / one font / dots / short name from AlgoDesc, a dummy algorithm's knob tiles through ui_sq.c unchanged" "$OUT/sq_algodesc_test"
 
+# Screen v2 elements (P4-028, SCREEN_SPEC_V2 4.1-4.4): the real ui_sq.c draws header, knob tiles, status line and music row for every scene of the v12 mock
+# (tests/v12_export.py turns v12.py's scenes into C data); tests/v12_compare.py compares the 240x240 frames with the mock's own render (exact, bar the
+# listed T_CHF rounding) and with the committed goldens (glyph anti-aliasing only). Frames in build/ui_sq/v12, the mock's render in build/ui_sq/v12_ref
+python3 tests/v12_export.py build/gen/v12_scenes.h || { echo ">>> STEP FAILED: v12_export <<<"; fail=1; }
+${CC%% *} -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/ui_sq_v12_test" tests/ui_sq_v12_test.c -lm
+run "screen v2 elements: ui_sq.c draws every v12 scene (header, knob tiles, status line, music row) + view fill + no algorithm named in the screen code" "$OUT/ui_sq_v12_test" build/ui_sq/v12
+run "screen v2 elements: host renders equal the v12 mock pixel for pixel (tests/v12_compare.py)" python3 tests/v12_compare.py build/ui_sq/v12
+
 # Timing T-C (P4-007, TIMING_SPEC 6.3): the real usb.c release ring + sq_core.c stamps: tick position, stamp, ordering, clock out count,
 # release, tempo constant; then the same rows with the M3 fallback (TIMER5 releases only between audio interrupts)
 ${CC%% *} $SQC -o "$OUT/timing_test" tests/timing_test.c
