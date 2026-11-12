@@ -273,7 +273,7 @@ static int route_test(void)
 /* 1.2 (Discussion #143): ROUT CH5-8, CH9-12, CH13-16: tracks 1..4 on those four channels (notes, bend, CCs, the CC map,
  * panic), every other channel ignored, as CH1-4 does with 1..4; a switch between blocks lets go of the old block's
  * notes; the clock (realtime) is not a channel's: it runs whatever ROUT says; the keys send on the block's channel */
-static uint32_t out_last(void) { return mo_w != mo_r ? midi_out_q[(mo_w - 1u) % MQ] : 0u; }
+static uint32_t out_last(void) { return mo_w != mo_r ? midi_out_q[(mo_w - 1u) % MQO] : 0u; }
 static int route_block_test(void)
 {
     static const char *const NAME[6] = {"CH1-4", "SEL", "CH5-8", "CH9-12", "CH13-16", "TRACK"};

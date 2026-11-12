@@ -165,13 +165,16 @@ static uint32_t sx_out_q[SXQ];
 static volatile uint32_t so_w, so_r;
 #endif
 
-/* MIDI rings: 4-byte USB-MIDI event packets */
+/* MIDI rings: 4-byte USB-MIDI event packets. The in ring (MQ) and the out ring (MQO, ADR-0003 8.3) are separate. */
 #define MQ 64u
-static uint32_t midi_in_q[MQ], midi_out_q[MQ];
+#define MQO 128u                                    /* out: the sequencer's note-offs and clock must not wait behind a slow host */
+#define MO_RESERVE 8u                               /* out: below this many free slots, NOTE_ONs are dropped (NOTE_OFF, CC and clock still queue) */
+static uint32_t midi_in_q[MQ], midi_out_q[MQO];
 static uint32_t midi_in_ms[MQ];
 static uint8_t midi_in_source[MQ];                    /* 1 USB, 2 TRS */
 static volatile uint32_t fm1_ms;                    /* also declared by core.h; parser-only host tests */
 static volatile uint32_t mi_w, mi_r, mo_w, mo_r;
+static volatile uint32_t midi_out_drops;                /* out packets refused by midi_out_event while a host is configured */
 static volatile uint8_t midi_in_overflow;               /* audio ISR discards a broken stream and releases notes */
 
 static int midi_enqueue(uint32_t pkt, uint32_t source)
@@ -191,13 +194,29 @@ static int midi_enqueue(uint32_t pkt, uint32_t source)
     return 1;
 }
 
+/* free slots of the out ring (read by the audio ISR before it queues) */
+static uint32_t midi_out_free(void)
+{
+    return MQO - (mo_w - mo_r);
+}
+
+/* a NOTE_ON with a velocity: status 0x9n, velocity != 0 (velocity 0 is a NOTE_OFF and is never dropped) */
+static int midi_out_is_on(uint32_t pkt)
+{
+    return ((pkt >> 8) & 0xF0u) == 0x90u && (pkt >> 24) != 0u;
+}
+
 static void midi_out_event(uint32_t pkt)            /* from the audio ISR */
 {
-    if (usb.config && mo_w - mo_r < MQ) {
-        midi_out_q[mo_w % MQ] = pkt;
-        RING_PUBLISH();
-        mo_w++;
+    if (!usb.config)
+        return;                                     /* no host: nothing is sent, nothing is counted */
+    if (midi_out_free() == 0u || (midi_out_is_on(pkt) && midi_out_free() < MO_RESERVE)) {
+        midi_out_drops++;                           /* reserve rule (ADR-0003 8.3): NOTE_ONs go first, the rest wait for room */
+        return;
     }
+    midi_out_q[mo_w % MQO] = pkt;
+    RING_PUBLISH();
+    mo_w++;
 }
 
 /* ------------------------------------------------------- descriptors --- */
@@ -945,7 +964,7 @@ static void ep1_tx(void)
 #endif
         uint32_t pkt;
         RING_PUBLISH();                                 /* the audio ISR (producer) can preempt us: */
-        pkt = midi_out_q[mo_r % MQ];                    /* slot read strictly between the index checks */
+        pkt = midi_out_q[mo_r % MQO];                   /* slot read strictly between the index checks */
         ep1tx[n] = (uint8_t)pkt;
         ep1tx[n + 1] = (uint8_t)(pkt >> 8);
         ep1tx[n + 2] = (uint8_t)(pkt >> 16);

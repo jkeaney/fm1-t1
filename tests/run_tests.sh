@@ -133,6 +133,11 @@ EOF
         "$OUT/usb_desc_test"
 done
 
+# USB-MIDI out ring (ADR-0003 8.3, P4-003): 128 entries, NOTE_ONs dropped and counted below the reserve of 8,
+# NOTE_OFF / clock / CC kept, order kept across the wrap
+$CC -o "$OUT/usb_ring_test" tests/usb_ring_test.c
+run "USB MIDI out ring: 128 entries, reserve rule (ONs dropped first, offs and clock kept), order, drop counter" "$OUT/usb_ring_test"
+
 [ -f build/felucca.fwsc ] || { echo "run ./build.sh first"; exit 1; }
 
 $CC -DOWN_PKG=1 -o "$OUT/ota_test" tests/ota_test.c

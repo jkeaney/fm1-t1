@@ -3,7 +3,7 @@ id: P4-003
 title: usb.c 128-entry MIDI out ring, midi_out_free and the reserve rule
 phase: P4
 type: task
-status: todo
+status: review
 priority: 2
 executor: haiku
 depends_on: [P3-012]
@@ -22,10 +22,10 @@ ADR-0003 §8.3: a separate 128-entry out ring so note-offs and clock are never d
 - tests/usb_ring_test.c: fill the ring; assert ONs are dropped first, OFFs and 0xF8 are kept, order is preserved, the drop counter counts; run_tests.sh step
 
 ## Acceptance criteria
-- [ ] usb_ring_test passes
-- [ ] uac_test and usb_desc_test still pass
-- [ ] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
-- [ ] The build line `image ... RAM .data+.bss N of 73728; pool ...` is pasted into the Log; RAM headroom (73728 - N) is at least 8192 B, else stop and file an FB (E9 trigger)
+- [x] usb_ring_test passes
+- [x] uac_test and usb_desc_test still pass
+- [x] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
+- [x] The build line `image ... RAM .data+.bss N of 73728; pool ...` is pasted into the Log; RAM headroom (73728 - N) is at least 8192 B, else stop and file an FB (E9 trigger)
 
 ## Verification
 ```sh
@@ -41,3 +41,43 @@ n/a, internal work (tooling, plumbing, docs, process); no producer-visible contr
 - Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).
 
 ## Log
+
+### 2026-11-12 executor (haiku)
+
+Change (firmware/src/usb.c): the out ring is its own `midi_out_q[MQO]`, `MQO = 128` (the in ring stays `MQ = 64`, +256 B).
+`midi_out_free()` returns `MQO - (mo_w - mo_r)`. `midi_out_event` (audio ISR) with a host configured refuses a packet
+when the ring is full, or when it is a NOTE_ON (status 0x9n, velocity != 0) and fewer than `MO_RESERVE = 8` slots are
+free; each refusal increments `midi_out_drops`. NOTE_OFF, velocity-0 NOTE_ON, CC and clock (0xF8) queue while any slot
+is free. With `usb.config = 0` nothing is queued or counted (as before). `ep1_tx` reads `midi_out_q[mo_r % MQO]`.
+Test-side: `tests/t1_link_test.c` and `tests/midi_control_test.c` read the out ring with `% MQO` (were `% MQ`).
+New: `tests/usb_ring_test.c` (includes usb.c as usb_desc_test does; 14 checks: size, no host, reserve boundary at 8 and
+7 free, velocity-0 ON kept, offs/clock kept to full, drop counts, order, a 300-ON flood with 121 accepted, wrap over
+1000 rounds). `tests/run_tests.sh`: one new step after the usb_desc loop.
+
+Verification:
+```
+$ sh tools/check.sh
+== build (log: build/check/build.log)
+== ram headroom
+RAM .data+.bss 23316 B of 73728
+== tests (log: build/check/tests.log)
+== backlog (log: build/check/backlog.log)
+CHECK PASS
+$ ./build.sh | grep 'RAM'
+  ok    image 168860 B; RAM .data+.bss 23316 B of 73728; pool 92500 B of 368640
+$ cc -O1 -Wall -Wno-unused-function -o build/host/usb_ring_test tests/usb_ring_test.c && ./build/host/usb_ring_test
+...
+1000 rounds of ON / OFF / clock across the wrap (mo_w > 128): in order, no drops ok
+usb_ring_test passed (0 failures)
+$ (ASan + UBSan build of usb_ring_test: clean, no reports)
+tests/build log: usb_ring_test passed (0 failures); uac: all ok (x2 and x2 variants); usb_desc: all ok; ALL HOST TESTS PASSED
+$ python3 tools/backlog.py check
+134 items, 0 errors
+```
+
+RAM headroom: 73728 - 23316 = 50412 B (>= 8192 B, so no FB under the E9 trigger).
+
+Notes for the reviewer:
+- `midi_out_drops` counts both reserve drops (NOTE_ON) and full-ring refusals (any packet). The deliverable asks for "the drop counter counts"; a split into ON / full counters was not made.
+- The NOTE_ON test is `status 0x9n and velocity != 0`. Velocity-0 NOTE_ONs are never dropped, matching ADR-0003 8.1 (never sent as NOTE_ON).
+- Timestamps and TIMER5 release (P4-007) not touched. The ADR/doc edits in the working tree (docs/design, ADR-0003, P2-029/P2-030) belong to another agent and are not in this commit.

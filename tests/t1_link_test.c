@@ -18,7 +18,7 @@ static uint32_t n_on[16], n_off[16], n_cc123[16], n_other_cc;
 static void drain(void)                                  /* the captured midi_out_event log */
 {
     while (mo_r != mo_w) {
-        uint32_t pkt = midi_out_q[mo_r % MQ], st = (pkt >> 8) & 0xFFu, ch = st & 0x0Fu, d1 = (pkt >> 16) & 0x7Fu,
+        uint32_t pkt = midi_out_q[mo_r % MQO], st = (pkt >> 8) & 0xFFu, ch = st & 0x0Fu, d1 = (pkt >> 16) & 0x7Fu,
                  d2 = (pkt >> 24) & 0x7Fu;
         mo_r++;
         if ((st & 0xF0u) == 0x90u && d2) n_on[ch]++;
