@@ -47,6 +47,9 @@
 #ifndef MO_LEAD_SAMPLES
 #define MO_LEAD_SAMPLES 128u             /* usb.c: LEAD, M2 */
 #endif
+#ifndef SQ_IS_MASTER
+#define SQ_IS_MASTER() (sq_master)       /* P4-009: the cut-over defines it as clkx_master() (clk_ext.c): clock out is silent in every EXT state (R12) */
+#endif
 #ifndef SQ_EXT_BEAT
 #define SQ_EXT_BEAT() (song.g[G_CLOCK] ? midi_beat_samples : 0u)
 #endif
@@ -113,7 +116,7 @@ static void sq_stamp_tick(uint32_t s)                                 /* sample 
 static void sq_out(uint32_t pkt) { midi_out_event_at(pkt, sq_due); }
 
 /* Clock out (M7): one byte, CIN 0xF, through the same stamp as a note. Only while this unit is the master (P4-009 owns the source). */
-static void sq_rt_byte(uint8_t b) { if (sq_master) sq_out(0x0Fu | (uint32_t)b << 8); }
+static void sq_rt_byte(uint8_t b) { if (SQ_IS_MASTER()) sq_out(0x0Fu | (uint32_t)b << 8); }
 
 /* ------------------------------------------------------------------ the one exit */
 
@@ -412,7 +415,7 @@ static void sq_apply_bar_boundary(uint32_t now)
 /* Song Position then Continue (M7): SPP = tick / 48 sixteenths, 14 bits LSB first. P4-009 calls it when a continue is wired. */
 static void sq_clock_continue(uint32_t tick)
 {   uint32_t spp = tick / 48u;
-    if (!sq_master) return;
+    if (!SQ_IS_MASTER()) return;
     sq_out(0x03u | 0xF2u << 8 | (spp & 0x7Fu) << 16 | ((spp >> 7) & 0x7Fu) << 24);
     sq_rt_byte(0xFB); }
 

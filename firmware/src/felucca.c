@@ -70,6 +70,7 @@
 #if FELUCCA_UART
 #include "midi_uart.c"
 #endif
+#include "clk_ext.c"           /* the clock source model + PLL for following an external clock (P4-009; not wired until the cut-over, P4-012) */
 #include "seq.c"
 #include "torso_t1_port.c"
 #include "torso_t1.c"

@@ -170,6 +170,11 @@ run "timing: tick position, stamps, ordering, clock out, release ring, tempo con
 ${CC%% *} $SQC -DFELUCCA_TX_NESTED=0 -o "$OUT/timing_test_fb" tests/timing_test.c
 run "timing: the same rows with FELUCCA_TX_NESTED=0 (the M3 fallback)" "$OUT/timing_test_fb"
 
+# Timing T-D (P4-009, TIMING_SPEC M11, M12, section 4): the real clk_ext.c (clock source model, PLL, Start / Continue / SPP) with usb.c's in ring and
+# sq_core.c: PLL jitter / burst / ramp / no loss, rules R1..R16, Start-then-pulses, SPP + Continue, clock out silent in every EXT state
+${CC%% *} $SQC -o "$OUT/clock_test" tests/clock_test.c -lm
+run "clock follow: PLL, source rules R1-R16, Start / Continue / SPP, clock out silent in EXT" "$OUT/clock_test"
+
 [ -f build/felucca.fwsc ] || { echo "run ./build.sh first"; exit 1; }
 
 $CC -DOWN_PKG=1 -o "$OUT/ota_test" tests/ota_test.c

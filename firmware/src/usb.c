@@ -185,6 +185,7 @@ static volatile uint32_t so_w, so_r;
  * non-decreasing), so the consumer only ever looks at the head. */
 static uint32_t midi_in_q[MQ], midi_out_q[MQO], midi_out_due[MQO];
 static uint32_t midi_in_ms[MQ];
+static uint32_t midi_in_t[MQ];                       /* the same stamp in TIMER4 ticks (24 per us): clk_ext.c's PLL input (TIMING_SPEC M11). midi_in_ms goes at the cut-over (P4-012) */
 static uint8_t midi_in_source[MQ];                    /* 1 USB, 2 TRS */
 static volatile uint32_t fm1_ms;                    /* also declared by core.h; parser-only host tests */
 static volatile uint32_t mi_w, mi_r, mo_w, mo_r;
@@ -202,6 +203,7 @@ static int midi_enqueue(uint32_t pkt, uint32_t source)
     }
     midi_in_q[at] = pkt;
     midi_in_ms[at] = fm1_ms;
+    midi_in_t[at] = MO_NOW();
     midi_in_source[at] = (uint8_t)source;
     RING_PUBLISH();
     mi_w++;
@@ -867,6 +869,10 @@ static void midi_in_event(uint32_t pkt)                 /* one USB-MIDI event pa
     }
     if (cin == 0xFu && (st == 0xF8u || st == 0xFAu || st == 0xFBu || st == 0xFCu)) {
         midi_enqueue(0xFu | st << 8, 1u);
+        return;
+    }
+    if (cin == 3u && st == 0xF2u && !((pkt >> 16) & 0x80u) && !(pkt & 0x80000000u)) {   /* Song Position Pointer (M12): clk_ext.c reads it while stopped */
+        midi_enqueue(pkt, 1u);
         return;
     }
     if (cin >= 8u && cin <= 0xEu && (st >> 4) == cin && !((pkt >> 16) & 0x80u) &&
