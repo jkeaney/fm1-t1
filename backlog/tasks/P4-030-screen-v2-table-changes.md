@@ -59,3 +59,11 @@ sh tests/design/width_probe.sh         -> 312 strings, 0 over
 3. SELECT add rule: one detent past the last channel in use adds the next free channel on PERF (clamped at CH4); other pages stay clamped, no add.
 4. FIRST_RUN cue wording `CHN KEY, K2 = MIDI   CH1` and PERF/CHAN/REC footer lines as in page_states.tsv.
 Sign-off: ______ (owner, date)
+
+### 2026-11-13 review (sonnet)
+Verdict: PASS on criteria 1; Awaiting owner (human-review gate), left at `review`.
+Re-ran: `sh tools/check.sh` CHECK PASS; `./build.sh` `RAM .data+.bss 23844 B of 73728` (headroom 49884 B, above 8192); gen_ui_tables --check OK; check_help 392 rows OK; check_scenarios 0 unmapped; width_probe 312 strings, 0 over. Generated `ui_remove_rows` in build/gen/ui_tables.h has 4 rows (the four M-key controls, 1500 ms), and the generator fails if the count is not 4.
+Checked vs SCREEN_SPEC_V2 sections 5-6 and v12 strings: SELECT add rule (knob_map PERF SELECT, toast `[n] NEW  ALGO=PICK`, never past CH4) matches; M1-M4 hold rows (hint PREVIEW CHn 0.4 s, release before 1.5 s = PREVIEW on release, 1.5 s REMOVE, toast `[n] GONE  EDIT=UNDO`) match section 6; FIRST_RUN cue `CHN KEY, K2 = MIDI   CH1`, CHAN cue `K2 = MIDI   CHN = BACK`, REC cue `PLAY KEYS TO WRITE   REC = DONE`, page title `CHN CHn SETUP` match spec 4.5/5/6. Widths rows are all 136 px slot strings from the spec, all fit.
+Wording fix made: page_states.tsv PERF row said a mute key "held 0.25 s names PREVIEW CHn"; spec section 6 and key_map say the PREVIEW name appears from 0.4 s (0.25 s is the generic hint start). Changed to "held 0.4 s names PREVIEW CHn (release before 1.5 s toggles it)". Checks re-run green.
+Scope note: firmware behaviour (add/remove, release-fire PREVIEW) is intentionally not implemented here (tables only); the tick box for sign-off stays open.
+Awaiting owner: sign the four items in the executor entry above (M-key timing incl. the 1.5 s remove threshold, SELECT add rule, FIRST_RUN/PERF/CHAN/REC cue wording).
