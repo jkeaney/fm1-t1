@@ -1,0 +1,100 @@
+scene	name	kind	x	y	w	h	x_rem	w_rem	y_rem	h_rem	on_module
+stress	transport	shape	1	5	13	14	0	0	0	0	1
+stress	tempo cell	text	16	5	58	14	0	0	0	0	1
+stress	preset	text	121	5	58	14	0	0	0	0	1
+stress	page box 1	shape	181	5	13	14	0	0	0	0	1
+stress	page bar 1	bar	181	20	13	4	0	0	0	0	1
+stress	page box 2	shape	196	5	13	14	0	0	0	0	1
+stress	page bar 2	bar	196	20	13	4	0	0	0	0	1
+stress	page box 3	shape	211	5	13	14	0	0	0	0	1
+stress	page bar 3	bar	211	20	13	4	0	0	0	0	1
+stress	page box 4	shape	226	5	13	14	0	0	0	0	1
+stress	page bar 4	bar	226	20	13	4	0	0	0	0	1
+stress	chan tile 1	tile	1	25	58	38	0	0	0	0	1
+stress	activity bar 1	bar	1	64	58	4	0	0	0	0	1
+stress	chan tile 2	tile	61	25	58	38	0	0	0	0	1
+stress	activity bar 2	bar	61	64	58	4	0	0	0	0	1
+stress	chan tile 3	tile	121	25	58	38	0	0	0	0	1
+stress	activity bar 3	bar	121	64	58	4	0	0	0	0	1
+stress	chan tile 4	tile	181	25	58	38	0	0	0	0	1
+stress	activity bar 4	bar	181	64	58	4	0	0	0	0	1
+stress	lane col 1	col	1	73	13	70	0	0	0	0	1
+stress	lane col 2	col	16	73	13	70	0	0	0	0	1
+stress	lane col 3	col	31	73	13	70	0	0	0	0	1
+stress	lane col 4	col	46	73	13	70	0	0	0	0	1
+stress	lane col 5	col	61	73	13	70	0	0	0	0	1
+stress	lane col 6	col	76	73	13	70	0	0	0	0	1
+stress	lane col 7	col	91	73	13	70	0	0	0	0	1
+stress	lane col 8	col	106	73	13	70	0	0	0	0	1
+stress	lane col 9	col	121	73	13	70	0	0	0	0	1
+stress	lane col 10	col	136	73	13	70	0	0	0	0	1
+stress	lane col 11	col	151	73	13	70	0	0	0	0	1
+stress	lane col 12	col	166	73	13	70	0	0	0	0	1
+stress	lane col 13	col	181	73	13	70	0	0	0	0	1
+stress	lane col 14	col	196	73	13	70	0	0	0	0	1
+stress	lane col 15	col	211	73	13	70	0	0	0	0	1
+stress	lane col 16	col	226	73	13	70	0	0	0	0	1
+stress	knob tile 1	tile	1	145	58	58	0	0	0	0	1
+stress	knob tile 2	tile	61	145	58	58	0	0	0	0	1
+stress	knob tile 3	tile	121	145	58	58	0	0	0	0	1
+stress	knob tile 4	tile	181	145	58	58	0	0	0	0	1
+stress	row cell 1	tile	1	205	58	14	0	0	0	0	1
+stress	row cell 2	tile	61	205	58	14	0	0	0	0	1
+stress	cue line	cue	0	221	240	14	0	0	0	0	1
+toast_preset_pending	page box 1	shape	226	5	13	14	0	0	0	0	1
+toast_preset_pending	page bar 1	bar	226	20	13	4	0	0	0	0	1
+toast_preset_pending	toast slab	toast	0	196	240	40	0	0	0	0	1
+state_add_page	page box 1	shape	211	5	13	14	0	0	0	0	1
+state_add_page	page bar 1	bar	211	20	13	4	0	0	0	0	1
+state_add_page	page box 2	shape	226	5	13	14	0	0	0	0	1
+state_add_page	page bar 2	bar	226	20	13	4	0	0	0	0	1
+row3	row cell 3	tile	121	205	58	14	0	0	0	0	1
+map_A	map tile MASTER	tile	1	17	58	30	0	0	0	0	1
+map_A	map tile SELECT	tile	61	17	58	30	0	0	0	0	1
+map_A	map tile PRESETS	tile	121	17	58	30	0	0	0	0	1
+map_A	map tile ALGO	tile	181	17	58	30	0	0	0	0	1
+map_A	map tile OCT-	tile	1	49	58	30	0	0	0	0	1
+map_A	map tile OCT+	tile	61	49	58	30	0	0	0	0	1
+map_A	map tile K1	tile	1	81	58	42	0	0	0	0	1
+map_A	map tile K2	tile	61	81	58	42	0	0	0	0	1
+map_A	map tile K3	tile	121	81	58	42	0	0	0	0	1
+map_A	map tile K4	tile	181	81	58	42	0	0	0	0	1
+map_A	map tile FX	tile	1	125	58	30	0	0	0	0	1
+map_A	map tile SCL	tile	61	125	58	30	0	0	0	0	1
+map_A	map tile ENV	tile	121	125	58	30	0	0	0	0	1
+map_A	map tile LFO	tile	181	125	58	30	0	0	0	0	1
+map_A	map tile EDIT	tile	1	157	58	46	0	0	0	0	1
+map_A	map tile GLO	tile	61	157	58	46	0	0	0	0	1
+map_A	map tile HOME	tile	121	157	58	46	0	0	0	0	1
+map_A	map tile SAVE	tile	181	157	58	46	0	0	0	0	1
+map_A	map tile ARP	tile	1	205	58	30	0	0	0	0	1
+map_A	map tile SEQ	tile	61	205	58	30	0	0	0	0	1
+map_A	map tile PLAY	tile	121	205	58	30	0	0	0	0	1
+map_A	map tile REC	tile	181	205	58	30	0	0	0	0	1
+map_B	map black key M1	keybed	11	17	8	14	0	0	0	0	1
+map_B	map black key M2	keybed	26	17	8	14	0	0	0	0	1
+map_B	map black key M3	keybed	41	17	8	14	0	0	0	0	1
+map_B	map black key M4	keybed	71	17	8	14	0	0	0	0	1
+map_B	map black key CHN	keybed	86	17	8	14	0	0	0	0	1
+map_B	map black key SOL	keybed	116	17	8	14	0	0	0	0	1
+map_B	map black key FIL	keybed	131	17	8	14	0	0	0	0	1
+map_B	map black key ROL	keybed	146	17	8	14	0	0	0	0	1
+map_B	map black key PG-	keybed	176	17	8	14	0	0	0	0	1
+map_B	map black key PG+	keybed	191	17	8	14	0	0	0	0	1
+map_B	map black key RST	keybed	221	17	8	14	0	0	0	0	1
+map_B	map white key 1	col	1	81	13	26	0	0	0	0	1
+map_B	map white key 2	col	16	81	13	26	0	0	0	0	1
+map_B	map white key 3	col	31	81	13	26	0	0	0	0	1
+map_B	map white key 4	col	46	81	13	26	0	0	0	0	1
+map_B	map white key 5	col	61	81	13	26	0	0	0	0	1
+map_B	map white key 6	col	76	81	13	26	0	0	0	0	1
+map_B	map white key 7	col	91	81	13	26	0	0	0	0	1
+map_B	map white key 8	col	106	81	13	26	0	0	0	0	1
+map_B	map white key 9	col	121	81	13	26	0	0	0	0	1
+map_B	map white key 10	col	136	81	13	26	0	0	0	0	1
+map_B	map white key 11	col	151	81	13	26	0	0	0	0	1
+map_B	map white key 12	col	166	81	13	26	0	0	0	0	1
+map_B	map white key 13	col	181	81	13	26	0	0	0	0	1
+map_B	map white key 14	col	196	81	13	26	0	0	0	0	1
+map_B	map white key 15	col	211	81	13	26	0	0	0	0	1
+map_B	map white key 16	col	226	81	13	26	0	0	0	0	1
