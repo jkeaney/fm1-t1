@@ -3,7 +3,7 @@ id: P4-001
 title: sq_types.h: constants, structs and static asserts
 phase: P4
 type: task
-status: review
+status: done
 priority: 2
 executor: haiku
 depends_on: [P3-012, P2-017, P2-029]
@@ -24,7 +24,7 @@ Land the locked data model in firmware, unchanged from the locked prototype head
 
 ## Acceptance criteria
 - [x] `diff <(tail -n +3 firmware/src/sq_types.h) <(tail -n +3 docs/design/algorithms/common/sq_types.h)` shows only the SPDX/comment header lines
-- [x] sq_types_test prints ChanRT 24, HarmonySave 8, SeqPreset 1396 (or the P2-017 LOCK.md values)
+- [x] sq_types_test prints ChanSave 384, ChanRT 24, UndoRec 94, SeqPreset 1556, HarmonySave 8 (LOCK.md section 5; 1396 was the superseded figure)
 - [x] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
 - [x] The build line `image ... RAM .data+.bss N of 73728; pool ...` is pasted into the Log; RAM headroom (73728 - N) is at least 8192 B, else stop and file an FB (E9 trigger)
 
@@ -85,3 +85,8 @@ ALL HOST TESTS PASSED
 RAM headroom = 73728 - 23316 = 50412 B, above 8192 B; no FB needed. The known "web pages" failure did not occur.
 Criteria 1 to 4 verified and ticked; `sq_types_test` prints SeqPreset 1556 (the LOCK.md value, see above).
 Not flashed; no device touched.
+
+### 2026-11-12 review (sonnet)
+Verdict: PASS (gate none). Verified: `cmp` firmware/src/sq_types.h vs docs/design/algorithms/common/sq_types.h is identical. Sizes (re-run) ChanSave 384, ChanRT 24, UndoRec 94, SeqPreset 1556, HarmonySave 8 match ADR-0003 section 22 and docs/design/algorithms/LOCK.md section 5 (LOCK.md is at docs/design/algorithms/, not common/). The include (felucca.c:77) sits after torso_t1_algo.c, before torso_t1_pipeline.c and audio.c; it is types-only so no order hazard. run_tests.sh step present; `sh tools/check.sh` ended CHECK PASS (host test links). Scope: only the listed files changed.
+`./build.sh`: `image 168860 B; RAM .data+.bss 23316 B of 73728; pool 92500 B of 368640` (headroom 50412 B, above 8192).
+Correction: acceptance criterion 2 said SeqPreset 1396, a superseded figure (ADR-0003 sections 11.2/20 -> 1556 in section 22); the criterion now lists the five locked sizes. No code change.
