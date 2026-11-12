@@ -203,7 +203,8 @@ amendment, because the preset layout is stored.
   the seed is literally 0 (EUCLID ROT = "no rotation"), else `(0x3A5D * (ch * n_seed + seed_k[k])) & 0xFFFF`, with
   `n_seed` and `seed_k[]` from the algorithm table (ALGORITHM_SET SP13 and each assessment's 6.1).
 - **Dice** gives a seed the value `sq_entropy()` = low 16 bits of a free-running sample counter (incremented by
-  `n` in `sq_block`) XOR `fm1_ms << 3`; if the result equals the old seed, add `0x9E37`. For a layer bound to two seeds
+  `n` in `sq_block`; it runs while stopped too) mixed with a dice counter (`sq_dice_n`, bumped per dice, so two dice at the same
+  sample count differ); there is no `fm1_ms` hook; if the result equals the old seed, add `0x9E37`. For a layer bound to two seeds
   (ACID `ARTIC`) the second seed uses `entropy ^ 0x5A5A`. EUCLID ROT: if the new value is 0 it becomes 1. This is the
   only non-deterministic moment in the system; the value is then stored, so playback after it is deterministic.
 - The **random generator** is SP1 (xorshift32, `rnd(n) = (next() >> 8) % n`, salts per layer). The salts are
@@ -355,8 +356,10 @@ event queue. Shared (written by main, read by ISR) is exactly this list; nothing
 `sq_rebuild(ch)` (main loop): `build(ALGOS[a], st[a].morph, st[a].seed, &sq_gdb[gidx], &sq_cache[ch][cidx^1])`, then flip.
 It is called on every morph detent, dice, undo, algorithm switch, scale change. Cost is a few hundred integer ops
 (assessments 6.4), far under a 16 ms frame, so knobs are unthrottled. An `sq_epoch` byte (incremented by the ISR when
-it applies a preset) guards the one race: `sq_rebuild` records the epoch before building and, if it changed before the
-flip, builds again.
+it applies a preset; the ISR does nothing else to main-loop memory) guards the one race: `sq_rebuild` records the epoch before building and, if it changed before the
+flip, builds again. The `UndoRec`s are main-loop memory, so the ISR cannot clear them: the main loop calls `sq_chan_sync()`
+once per frame (before the UI reads state); when `sq_epoch` differs from the last one it saw, it clears every `UndoRec`, takes
+a queued load's HARMONY and BPM, and rebuilds the caches.
 
 Control-surface API (all main-loop, no ISR calls; returns nonzero if state changed). Signatures are normative so UI
 tasks can be written before the core exists:
@@ -567,15 +570,18 @@ applied after `step()`), so morphs and dice never disturb them.
 - A preset is a `SeqPreset` (420 B). `sq_preset_save()` copies `sq_ch`, `sq_g.s`, BPM. Slot storage (P01..P16 = 6720 B,
   the autosave, the "undo last load" copy) is E7 (project.c becomes the store); this ADR fixes only the byte layout.
   `sq_preset_load()` **validates and clamps every field** (algo < 4, midi_ch <= 16 and unique: if two channels hold the same non-OFF value the lower-numbered keeps it and the others load as OFF, morph within `MorphDesc` min/max,
-  pin_note <= 96, scale < 16, ...); an invalid `version` or CRC loads the power-on defaults.
+  pin_note <= 96, scale < 16, ...); an invalid `version`, CRC or algorithm id **rejects the load**: `sq_preset_load` returns -1
+  and the live state is untouched (loading defaults over the live pattern because a slot is corrupt would destroy the player's
+  work; a caller that wants defaults loads `sq_defaults()` through the same path). What an empty or corrupt slot shows is
+  decided by the storage layer (P7-002).
 - **Queued to the next loop start (owner decision 34):** "loop start" = the next tick where the global bar counter
   `sq_bar` (192-PPQN ticks since PLAY / restart) reaches a multiple of **768 ticks** (always one 4/4 bar, whatever DIV
   and the loop lengths are): data constant `SQ_BAR_TICKS = 768` (owner decision 45, replacing the earlier
   `SQ_BAR_STEPS = 16`). Procedure: the main loop validates the preset into a pool staging copy,
   builds the four caches into the **inactive** buffers `sq_cache[c][cidx^1]` and `sq_gdb[gidx^1]`, then sets
   `sq_load_pending = 1` (last store). At the bar tick `sq_apply_bar_boundary()` (ISR) copies the staged `ChanSave`s and
-  `GlobalSave` over the live ones (<= 400 B), flips every `cidx` and `gidx`, clears every `UndoRec`, increments
-  `sq_epoch`, clears `sq_load_pending`. `rt.t/grid` are untouched (the music does not jump). Stopped: applied at once
+  `GlobalSave` over the live ones (<= 400 B), flips every `cidx` and `gidx`, increments
+  `sq_epoch` (the main loop's `sq_chan_sync()` then clears every `UndoRec`, section 6), clears `sq_load_pending`. `rt.t/grid` are untouched (the music does not jump). Stopped: applied at once
   with the ISR guard `fm1_irq_off()/fm1_irq_on()` (the pattern of `t1u_temp` in ui_t1.c).
   **P1-017 revision 2 (pending slot, SEQUENCER_UX 4.1):** the main loop does none of the above until the pending slot's
   deadline (last PRESETS detent + `SQ_LOAD_SETTLE` 1.5 s, moved on by every detent) has passed; only then does it
@@ -675,7 +681,7 @@ The device boots straight into the sequencer: no mode, no `PREF_T1`, no `MODE` r
 5. `audio_init()` (the ISR may now call `sq_block`; before step 4 completes it is inert because `sq_ready == 0`), `usb_start`,
    `uart_midi_init`, `boot_leds`, `timer5_start`, `fm1_irq_enable_all` (unchanged).
 6. `autosave_boot(boot_clean)`: if the last shutdown was clean and an autosave `SeqPreset` validates, `sq_preset_load(...,0)`
-   (stopped: applied at once). Otherwise the defaults from step 4 stand. After a crash the defaults stand.
+   (stopped: applied at once; a rejected load returns -1 and the step-4 defaults stand, section 10). Otherwise the defaults from step 4 stand. After a crash the defaults stand.
 7. The 400 ms splash, then the main (PERF) screen: channel 1 selected, stopped, no menu. Press PLAY: CH1 plays.
 
 `SQ_DEFAULTS` (a const table; CONTROL_MAP section 0, UX_REVIEW section 2):

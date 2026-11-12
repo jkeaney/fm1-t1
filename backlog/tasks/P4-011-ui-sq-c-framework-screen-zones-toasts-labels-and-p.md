@@ -18,7 +18,7 @@ The new main UI skeleton every page task fills in: zones Z0-Z6 at the SCREEN_SPE
 - firmware/src/ui_t1.c (the pattern being replaced), ui_draw.c (`draw_head`, cv_* canvas), ui_input.c (hold timers)
 
 ## Deliverable
-- firmware/src/ui_sq.c (+ ui_sq.h if needed): zone renderers (header with slot H2 placeholder, channel cells, lane, band, buttons, legend, cue), toast queue (2.7), label drawing from ui_tables.h, page enum and dispatch with stub pages, `ui_sq_input()`/`ui_sq_draw()` entry points; not yet wired into ui_draw/ui_input (P4-012 does it)
+- firmware/src/ui_sq.c (+ ui_sq.h if needed): zone renderers (header with slot H2 placeholder, channel cells, lane, band, buttons, legend, cue), toast queue (2.7), label drawing from ui_tables.h, page enum and dispatch with stub pages, `ui_sq_input()`/`ui_sq_draw()` entry points; not yet wired into ui_draw/ui_input (P4-012 does it); the UI reads channel state only after `sq_chan_sync()` (sq_chan.c; clears the UndoRecs and takes a queued load's HARMONY/BPM once the ISR has bumped `sq_epoch`), which the main loop calls once per frame before `ui_sq_input()` (ADR-0003 section 6)
 - tests/ui_sq_test.c: host render of each zone to PNG via the existing ui_render path; asserts every label fits its zone using the real `text_w`
 
 ## Acceptance criteria
