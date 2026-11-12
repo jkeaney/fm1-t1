@@ -48,3 +48,4 @@ Producer-facing. Use case: `docs/design/features/P4-013-perf-page-lane-step-keys
 
 ## Log
 - 2026-11-12: re-pointed by the screen design lock: draw to docs/design/SCREEN_SPEC_V2.md (ADR-0006) and its v12 renders, not SCREEN_SPEC.md zones; the CHAN band/page is specified there (P4-015).
+- 2026-11-13: from FB-017 item 2, this task must also wire: SELECT adds a channel (PERF only), M-key hold remove/preview via ui_remove_rows, white keys as steps, K1-K4 via sq_morph_turn, the dice buttons, and decide what the keys do (song.grid 2 keeps them silent now).

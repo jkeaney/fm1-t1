@@ -3,7 +3,7 @@ id: FB-017
 title: P4-012 cut-over: the external clock still follows midi_clock.c, and the panel controls are stubs until P4-013
 phase: P4
 type: feedback
-status: todo
+status: done
 priority: 2
 executor: human
 depends_on: [P4-012]
@@ -38,3 +38,4 @@ n/a, triage item; the resulting tasks carry their own Gate A.
 
 ## Log
 - 2026-11-13: filed by the P4-012 executor.
+- 2026-11-13: triaged by the orchestrator. Item 1 -> P4-031 (new). Item 2 -> already P4-013 (SELECT add, M-key remove/preview, white keys, K1-K4, dice) and P4-016 (tempo knob); P4-013 gets a note. Item 3 none.
