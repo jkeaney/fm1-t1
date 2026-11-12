@@ -3,7 +3,7 @@ id: BUG-010
 title: sq_step_set cannot write OCT -1 because SQ_AUTO is -1
 phase: P4
 type: bug
-status: review
+status: done
 priority: 2
 executor: sonnet
 depends_on: []
