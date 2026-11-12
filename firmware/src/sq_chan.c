@@ -12,7 +12,8 @@
  * only), ChanRT, the event queue, sq_emit. Only a preset load replaces the edits.
  *
  * Not modelled here (other tasks): ModSave's device and slots (the MOD tasks; their 13 B are reserved zero), the CRC (storage
- * layer, P7), HARMONY's use of HarmonySave (stored and validated only), the reset family and the edit-layer writers (P4-006 / P6). */
+ * layer, P7), HARMONY's use of HarmonySave (stored and validated only), the MOD slots, and the ADR reset family (sq_reset_*: P6).
+ * The edit-layer writers and the page operations (P4-006) are below, after the algorithm section. */
 
 #ifndef SQ_IRQ_OFF
 #define SQ_IRQ_OFF()  fm1_irq_off()      /* a multi-byte swap the ISR must not see half of (the t1u_temp pattern, ui_t1.c) */
@@ -211,6 +212,158 @@ static void sq_set_algo(uint8_t ch, uint8_t algo)
     memset(&sq_undo_rec[ch], 0, sizeof sq_undo_rec[ch]);
     sq_ch[ch].algo = algo;
     (void)sq_rebuild(ch); }
+
+/* ------------------------------------------------------------------ edit layer and pages (SEQUENCER_UX 1.1-1.6, 9.1; P4-006)
+ * Main loop. Edits never touch a cache: sq_eval (sq_core.c) reads ed[] at play time, so no rebuild is needed. Every writer refuses a
+ * step or page the viewed length does not show (1.6: a hidden step is kept, not edited). One undo record per channel (sq_undo_page). */
+
+#define SQ_F_ON     0                /* sq_step_set fields, SEQUENCER_UX 1.1 */
+#define SQ_F_PITCH  1
+#define SQ_F_OCT    2
+#define SQ_F_GATE   3
+#define SQ_F_VEL    4
+#define SQ_F_RATCH  5
+#define SQ_F_SLIDE  6
+#define SQ_F_PROB   7
+#define SQ_F_NFIELD 8
+#define SQ_AUTO     (-1)             /* the value that makes a field follow the generated layer */
+#define SQ_GATE_TIE 101              /* GATE TIE (the other GATE values are 10..100 in steps of 10) */
+
+static uint8_t sq_follow = 1;        /* CHAN K4 FOLLOW (1.5): UI state, one per device, not in presets; the view itself is the UI's */
+
+static uint8_t sq_page_shown(uint8_t ch, uint8_t k) { return (uint8_t)(k < SQ_NSTEP / SQ_PAGE && (uint16_t)k * SQ_PAGE < sq_ch[ch].len); }
+
+static uint8_t sq_gen_hit(uint8_t ch, uint8_t p)     /* the generated hit of step p, no edit and no chance draw: what a tap compares with */
+{   const uint8_t ci = sq_cidx[ch];
+    const AlgoDesc *a = &ALGOS[sq_calgo[ch][ci]];
+    PulseOut o;
+    if (!a->step) return 0;
+    memset(&o, 0, sizeof o);
+    a->step(sq_cache[ch][ci], sq_gen_pos(&sq_ch[ch], p), (a->flags & AF_CHORD) ? &sq_hc_inert : NULL, &o);
+    return (uint8_t)((o.flags & PO_HIT) != 0u); }
+
+/* Copy page k-1 over page k (edits and source) and mark k as holding content: the whole page, even where LENGTH shows part of it. */
+static void sq_page_copy_before(ChanSave *cs, uint8_t k)
+{   uint8_t s = (uint8_t)((cs->pg_src >> (2u * (k - 1u))) & 3u);
+    memcpy(&cs->ed[k * SQ_PAGE], &cs->ed[(k - 1u) * SQ_PAGE], SQ_PAGE * sizeof(StepEdit));
+    cs->pg_src = (uint8_t)((cs->pg_src & ~(3u << (2u * k))) | ((uint8_t)s << (2u * k)));
+    cs->pg_used |= (uint8_t)(1u << k); }
+
+/* One undo record for a page operation (what = 2 one page of edits, 16 len / page bits). Taken BEFORE the change; sq_undo swaps it. */
+static void sq_undo_page(uint8_t ch, uint8_t k)
+{   UndoRec *u;
+    sq_undo_new(ch);
+    u = &sq_undo_rec[ch];
+    u->what = (uint8_t)(2u | 16u); u->idx = k;
+    u->len = sq_ch[ch].len; u->pg_src = sq_ch[ch].pg_src; u->pg_used = sq_ch[ch].pg_used;
+    memcpy(u->ed, &sq_ch[ch].ed[(uint16_t)k * SQ_PAGE], sizeof u->ed); }
+
+/* One field of one step (1.1 / 1.2: NOTE EDIT, or RESET + that field's control). v = SQ_AUTO clears the field. Returns 1 when written.
+ * ON 0 OFF / 1 ON; PITCH 0..96 semitones above 36 + KEY (unsnapped, SP6 snaps at play); OCT -2..+2 (0 is stored as AUTO's "no shift");
+ * GATE 10..100 in steps of 10, or SQ_GATE_TIE; VEL 1..127; RATCH 1..4 (1x..4x); SLIDE 0 OFF / 1 ON; PROB 100 or 50. A set step
+ * marks its page as holding content (pg_used). */
+static uint8_t sq_step_set(uint8_t ch, uint8_t p, uint8_t field, int16_t v)
+{   StepEdit *e;
+    uint8_t oc;
+    if (ch >= SQ_NCH || field >= SQ_F_NFIELD || p >= SQ_NSTEP || p >= sq_ch[ch].len) return 0;
+    e = &sq_ch[ch].ed[p];
+    if (v != SQ_AUTO) {                                              /* validate before any write */
+        switch (field) {
+        case SQ_F_ON:    if (v < 0 || v > 1) return 0; break;
+        case SQ_F_PITCH: if (v < 0 || v > 96) return 0; break;
+        case SQ_F_OCT:   if (v < -2 || v > 2) return 0; break;
+        case SQ_F_GATE:  if (v != SQ_GATE_TIE && (v < 10 || v > 100 || v % 10 != 0)) return 0; break;
+        case SQ_F_VEL:   if (v < 1 || v > 127) return 0; break;
+        case SQ_F_RATCH: if (v < 1 || v > 4) return 0; break;
+        case SQ_F_SLIDE: if (v < 0 || v > 1) return 0; break;
+        default:         if (v != 100 && v != 50) return 0; break;   /* PROB */
+        }
+    }
+    switch (field) {
+    case SQ_F_ON:    e->fl = (uint8_t)((e->fl & ~3u) | (v == SQ_AUTO ? 0u : v == 1 ? 1u : 2u)); break;
+    case SQ_F_PITCH: e->note = (uint8_t)(v == SQ_AUTO ? 0u : 0x80u | (uint8_t)v); break;
+    case SQ_F_OCT:   oc = (uint8_t)(v == SQ_AUTO ? 0u : (uint8_t)(v + 3)); e->fl = (uint8_t)((e->fl & 0x1Fu) | (uint8_t)(oc << 5)); break;
+    case SQ_F_GATE:  e->gr = (uint8_t)((e->gr & 0xF0u) | (v == SQ_AUTO ? 0u : v == SQ_GATE_TIE ? 11u : (uint8_t)(v / 10))); break;
+    case SQ_F_VEL:   e->vel = (uint8_t)(v == SQ_AUTO ? 0u : v); break;
+    case SQ_F_RATCH: e->gr = (uint8_t)((e->gr & 0x8Fu) | (uint8_t)((v == SQ_AUTO ? 0 : v) << 4)); break;
+    case SQ_F_SLIDE: e->fl = (uint8_t)((e->fl & ~0x0Cu) | (v == SQ_AUTO ? 0u : v == 1 ? 4u : 8u)); break;
+    default:         e->fl = (uint8_t)((e->fl & ~0x10u) | (v == 50 ? 0x10u : 0u)); break;
+    }
+    sq_ch[ch].pg_used |= (uint8_t)(1u << (p / SQ_PAGE));
+    return 1; }
+
+/* A white-key tap (1.1 ON): writes the opposite of what the step plays now (its ON field if set, else the generator). If that equals the
+ * generator the field is AUTO, so two taps never leave a stale edit. Returns 1 when the step exists. */
+static uint8_t sq_step_tap(uint8_t ch, uint8_t p)
+{   StepEdit *e;
+    uint8_t gen, cur, want;
+    if (ch >= SQ_NCH || p >= SQ_NSTEP || p >= sq_ch[ch].len) return 0;
+    e = &sq_ch[ch].ed[p];
+    gen = sq_gen_hit(ch, p);
+    cur = (uint8_t)((e->fl & 3u) == 0u ? gen : (uint8_t)((e->fl & 3u) == 1u));
+    want = (uint8_t)!cur;
+    e->fl = (uint8_t)((e->fl & ~3u) | (want == gen ? 0u : want ? 1u : 2u));
+    sq_ch[ch].pg_used |= (uint8_t)(1u << (p / SQ_PAGE));
+    return 1; }
+
+/* RESET + key (1.2): every field of one step back to AUTO. */
+static uint8_t sq_step_clear(uint8_t ch, uint8_t p)
+{   if (ch >= SQ_NCH || p >= SQ_NSTEP || p >= sq_ch[ch].len) return 0;
+    memset(&sq_ch[ch].ed[p], 0, sizeof(StepEdit));
+    return 1; }
+
+/* RESET + REC (1.2): the viewed page's edits to AUTO. Its content flag goes too (1.6: a cleared page is copied again when extended),
+ * except on page 1, which always holds content. Undoable (one page). */
+static uint8_t sq_page_clear(uint8_t ch, uint8_t k)
+{   if (ch >= SQ_NCH || !sq_page_shown(ch, k)) return 0;
+    sq_undo_page(ch, k);
+    memset(&sq_ch[ch].ed[(uint16_t)k * SQ_PAGE], 0, SQ_PAGE * sizeof(StepEdit));
+    if (k) sq_ch[ch].pg_used &= (uint8_t)~(1u << k);
+    return 1; }
+
+/* RESET + D#4 (1.2): page k <- page k-1, edits and source (1.4). Page 1 has no page before. Undoable. */
+static uint8_t sq_page_recopy(uint8_t ch, uint8_t k)
+{   if (ch >= SQ_NCH || k < 1u || !sq_page_shown(ch, k)) return 0;
+    sq_undo_page(ch, k);
+    sq_page_copy_before(&sq_ch[ch], k);
+    return 1; }
+
+/* 1.4 K3 SOURCE: page k reads generator block src (0..k; src = k is OWN). Shown pages only. Returns 1 when written. */
+static uint8_t sq_page_src_set(uint8_t ch, uint8_t k, uint8_t src)
+{   if (ch >= SQ_NCH || !sq_page_shown(ch, k) || src > k) return 0;
+    sq_ch[ch].pg_src = (uint8_t)((sq_ch[ch].pg_src & ~(3u << (2u * k))) | (uint8_t)(src << (2u * k)));
+    return 1; }
+
+/* 1.6 LENGTH, 1..64. Extend: each page that the new length brings into view and that holds no content is a copy of the page before
+ * (whole page, edits and source); a page that was hidden by a shrink comes back as it was; a page already in view is untouched. Shrink:
+ * LENGTH only, the steps beyond keep their edits, hidden (pg_used stays). The length is written last, after any copy. Not undoable (1.6). */
+static uint8_t sq_len_set(uint8_t ch, uint8_t n)
+{   ChanSave *cs;
+    uint8_t old, k;
+    if (ch >= SQ_NCH) return 0;
+    cs = &sq_ch[ch];
+    if (n < 1u) n = 1u;
+    if (n > SQ_NSTEP) n = SQ_NSTEP;
+    old = cs->len;
+    if (n == old) return 0;
+    for (k = 1u; k < SQ_NSTEP / SQ_PAGE && (uint16_t)k * SQ_PAGE < n; k++)
+        if ((uint16_t)k * SQ_PAGE >= old && !((cs->pg_used >> k) & 1u)) sq_page_copy_before(cs, k);
+    cs->len = n;
+    return 1; }
+
+/* 1.3 PG+ on the last page: complete a partial page (LENGTH to its page boundary, its stored steps come with it), else add the next
+ * page: a copy of the page before, or the hidden page as stored. At 64 it does nothing (the UI toasts 64 STEPS = MAX). Undoable. */
+static uint8_t sq_page_add(uint8_t ch)
+{   uint8_t len, k;
+    if (ch >= SQ_NCH) return 0;
+    len = sq_ch[ch].len;
+    if (len >= SQ_NSTEP) return 0;
+    k = (uint8_t)(len / SQ_PAGE);
+    sq_undo_page(ch, k);
+    return sq_len_set(ch, (uint8_t)((k + 1u) * SQ_PAGE)); }
+
+/* CHAN K4 FOLLOW (1.5): the flag only. */
+static void sq_follow_set(uint8_t on) { sq_follow = on ? 1u : 0u; }
 
 /* ------------------------------------------------------------------ defaults (ADR-0003 12) */
 

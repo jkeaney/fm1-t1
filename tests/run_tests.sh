@@ -163,6 +163,11 @@ run "sequencer scheduler: sq_core.c event goldens 1-9 (tests/golden/sq_core_*.tx
 ${CC%% *} $SQC -o "$OUT/sq_chan_test" tests/sq_chan_test.c
 run "sequencer channel API: sq_chan.c UX 1.2 rows, unique MIDI, undo/redo, defaults, presets + 100000-tick API fuzz" "$OUT/sq_chan_test"
 
+# Edit layer, pages and step resolution (P4-006): sq_eval (SEQUENCER_UX 9.2) over the generated layer, the UX 1.2 rows, the 1.3-1.6 examples,
+# slide and TIE timing in the scheduler; the resolved tables and event logs are tests/golden/sq_edit.txt
+${CC%% *} $SQC -o "$OUT/sq_edit_test" tests/sq_edit_test.c
+run "sequencer edit layer: sq_eval 9.2, UX 1.2 rows, pages and length 1.3-1.6, slide / TIE scheduling (tests/golden/sq_edit.txt)" "$OUT/sq_edit_test"
+
 # ACID in firmware (P5-001): firmware sq_algo_acid.c + the ALGOS[] row of sq_algos.c: the plain golden matrix of docs/design/algorithms/acid/golden.txt (everything
 # before its H-INERT line; the harm sections belong to P5-005), the purity tests (a)-(g) and the table tests of ADR-0003 section 14
 ${CC%% *} $SQC -o "$OUT/sq_algo_acid_test" tests/sq_algo_acid_test.c

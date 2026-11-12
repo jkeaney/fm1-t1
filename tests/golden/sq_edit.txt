@@ -1,0 +1,111 @@
+== 1.2 rows
+dice NOTES: step 6 PITCH 7 set, the rest AUTO (steps 1-8)
+ p00 g00 hit1 n039 v082 gt030 r0 t0
+ p01 g01 hit0 n045 v089 gt048 r0 t0
+ p02 g02 hit0 n039 v072 gt054 r0 t0
+ p03 g03 hit0 n046 v109 gt079 r0 t0
+ p04 g04 hit0 n041 v085 gt065 r0 t0
+ p05 g05 hit1 n043 v080 gt043 r0 t0
+ p06 g06 hit1 n040 v121 gt022 r0 t0
+ p07 g07 hit0 n043 v109 gt071 r0 t0
+dice HITS x40: forced OFF silent 0, forced ON silent 0, generator would sound step 4 on 29 dice
+morph DENS 12 -> 0: AUTO hits 8 -> 0, forced ON step 7 kept
+page 2 after the re-copy (steps 17..24)
+ p16 g00 hit1 n042 v082 gt030 r0 t0
+ p17 g01 hit0 n039 v089 gt048 r0 t0
+ p18 g02 hit0 n042 v072 gt054 r0 t0
+ p19 g03 hit0 n041 v060 gt079 r0 t0
+ p20 g04 hit0 n037 v085 gt065 r0 t0
+ p21 g05 hit1 n041 v080 gt043 r0 t0
+ p22 g06 hit1 n042 v121 gt022 r0 t0
+ p23 g07 hit0 n040 v109 gt071 r0 t0
+== 1.3 pages, 1.4 sources, 1.6 length
+page 1 and its copy (the loop is the same 32 steps)
+ p00 g00 hit1 n042 v082 gt030 r0 t0
+ p01 g01 hit0 n039 v089 gt048 r0 t0
+ p02 g02 hit0 n042 v072 gt054 r0 t0
+ p03 g03 hit0 n041 v109 gt079 r0 t0
+ p04 g04 hit0 n037 v085 gt065 r0 t0
+ p05 g05 hit1 n041 v080 gt043 r0 t0
+ p06 g06 hit1 n042 v110 gt022 r0 t0
+ p07 g07 hit0 n040 v109 gt071 r0 t0
+ p08 g08 hit0 n037 v110 gt054 r1 t0
+ p09 g09 hit1 n041 v105 gt093 r2 t0
+ p10 g10 hit1 n038 v056 gt078 r0 t0
+ p11 g11 hit1 n037 v111 gt095 r0 t0
+ p12 g12 hit0 n043 v059 gt029 r0 t0
+ p13 g13 hit1 n036 v118 gt076 r0 t0
+ p14 g14 hit1 n043 v085 gt088 r0 t0
+ p15 g15 hit1 n044 v119 gt012 r1 t0
+sources: pg_src 0xA4, g(33)=33 g(49)=33
+== 1.6 shrink past the playhead
+shrink past the playhead: next p = 1
+== scheduler: slides and TIE
+S1 TIE over a rest (len 4: steps 1 and 3 sound)
+  t00000 ON  ch1 n036
+  t00096 OFF ch1 n036
+  t00096 ON  ch1 n039
+  t00120 OFF ch1 n039
+  t00192 ON  ch1 n036
+  t00288 OFF ch1 n036
+  t00288 ON  ch1 n039
+  t00312 OFF ch1 n039
+  t00384 ON  ch1 n036
+S2 TIE into the same pitch (len 2)
+  t00000 ON  ch1 n036
+  t00048 OFF ch1 n036
+  t00048 ON  ch1 n036
+  t00072 OFF ch1 n036
+  t00096 ON  ch1 n036
+  t00144 OFF ch1 n036
+  t00144 ON  ch1 n036
+  t00168 OFF ch1 n036
+  t00192 ON  ch1 n036
+S3 TIE across the loop end (len 3)
+  t00000 ON  ch1 n039
+  t00024 OFF ch1 n039
+  t00096 ON  ch1 n036
+  t00144 OFF ch1 n036
+  t00144 ON  ch1 n039
+  t00168 OFF ch1 n039
+  t00240 ON  ch1 n036
+  t00288 OFF ch1 n036
+  t00288 ON  ch1 n039
+  t00312 OFF ch1 n039
+  t00384 ON  ch1 n036
+S4 TIE with no other sounding step (len 4)
+  t00000 ON  ch1 n036
+  t00192 OFF ch1 n036
+  t00192 ON  ch1 n036
+  t00384 OFF ch1 n036
+  t00384 ON  ch1 n036
+S5 SLIDE into the next step (PLAIN, len 2)
+  t00000 ON  ch1 n036
+  t00048 ON  ch1 n039
+  t00054 OFF ch1 n036
+  t00072 OFF ch1 n039
+  t00096 ON  ch1 n036
+  t00144 ON  ch1 n039
+  t00150 OFF ch1 n036
+  t00168 OFF ch1 n039
+  t00192 ON  ch1 n036
+S6 SLIDE across the loop end (PLAIN, len 2)
+  t00000 ON  ch1 n039
+  t00024 OFF ch1 n039
+  t00048 ON  ch1 n036
+  t00096 ON  ch1 n039
+  t00102 OFF ch1 n036
+  t00120 OFF ch1 n039
+  t00144 ON  ch1 n036
+  t00192 ON  ch1 n039
+  t00198 OFF ch1 n036
+PROB 50 %: 4 of 16 passes sound
+S7 PROB 50 % (len 1)
+  t00048 ON  ch1 n036
+  t00072 OFF ch1 n036
+  t00144 ON  ch1 n036
+  t00168 OFF ch1 n036
+  t00240 ON  ch1 n036
+  t00264 OFF ch1 n036
+  t00672 ON  ch1 n036
+  t00696 OFF ch1 n036

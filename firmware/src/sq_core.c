@@ -4,10 +4,11 @@
  * What is here: the 96-slot event queue, sq_emit (the ONLY exit to midi_out_event_at / trk_note_on / trk_note_off), the
  * pairing rule (an ON and its OFF are queued together or not at all), the two-pass dispatch (all OFFs due, then all ONs),
  * sq_step_start (swing, gate, ratchet, slide, tie, hold), sq_tick, sq_all_off, sq_on_start / sq_on_stop, the PLAY
- * accumulator (sq_block) and the ISR half of a queued preset load (sq_apply_bar_boundary). NOT here: the channel state API
- * (P4-005), the edit layer and sq_eval (P4-006: sq_eval below is a bare step() call), the stamped release ring and exact tick
- * position (P4-007: done below, M1/M2/M4/M7/M9/M10 of TIMING_SPEC), the clock source and its PLL (P4-009), HARMONY (an AF_CHORD algorithm gets an inert chord), PO_TIE
- * (P4-006 resolves a TIE together with the edit layer), live keys.
+ * accumulator (sq_block) and the ISR half of a queued preset load (sq_apply_bar_boundary). The edit layer's resolver is here too
+ * (P4-006: sq_eval resolves StepEdit over the generated layer, sq_slide_out and sq_tie_end place the slide and the TIE). NOT here: the
+ * channel state API and the edit writers (P4-005 / P4-006, sq_chan.c), the stamped release ring and exact tick position (P4-007: done
+ * below, M1/M2/M4/M7/M9/M10 of TIMING_SPEC), the clock source and its PLL (P4-009), HARMONY (an AF_CHORD algorithm gets an inert chord),
+ * live keys.
  *
  * Timing (P4-007, TIMING_SPEC section 3): sq_block finds the sample inside the block where each 192-PPQN tick lands (M1); every
  * packet sq_emit sends goes out as midi_out_event_at(pkt, due) with due = half reference + (block offset + sample + LEAD) * 544
@@ -233,14 +234,70 @@ static void sq_dispatch(uint32_t now)
 
 /* ------------------------------------------------------------------ stepping */
 
-/* The generated layer only (P4-006 replaces this with the edit layer of SEQUENCER_UX 9.2). hc is NULL unless AF_CHORD. */
-static void sq_eval(const AlgoDesc *a, const void *k, uint8_t p, PulseOut *o)
-{   a->step(k, p, (a->flags & AF_CHORD) ? &sq_hc_inert : NULL, o);
+/* SEQUENCER_UX 1.4 / 9.2: the generator position of step p. Page k = p / 16 reads block src(k) = (pg_src >> 2k) & 3 (0..k; k = OWN). */
+static uint32_t sq_gen_pos(const ChanSave *cs, uint8_t p)
+{   uint8_t k = (uint8_t)(p / SQ_PAGE), s = (uint8_t)((cs->pg_src >> (2u * k)) & 3u);
+    if (s > k) s = k;                                                 /* a stored source beyond the page is OWN */
+    return (uint32_t)SQ_PAGE * s + (uint32_t)(p % SQ_PAGE); }
+
+/* SEQUENCER_UX 9.3: the chance draw, SP1 seeded from ch * 0x9E37 ^ p * 0x45D9 ^ pass * 0x2C1B (the constants are the spec's). */
+static uint32_t sp1_hash(uint8_t c, uint8_t p, uint16_t pass)
+{   SqRng r;
+    sq_rng_init(&r, (uint16_t)((uint32_t)c * 0x9E37u ^ (uint32_t)p * 0x45D9u ^ (uint32_t)pass * 0x2C1Bu), 0u);
+    return sq_rng_next(&r); }
+
+#define SQ_PROB_LOW_256 128u      /* PROB 50 %: a PROB step is silent when its draw (0..255) is 128 or more (9.2 names the test, not the value) */
+
+/* SEQUENCER_UX 9.2: the resolved step p of channel c at `pass`. The generated layer at g(p) gives note, vel, gate, repeats and the
+ * generated flags; the edit at ed[p] overrides each field it sets (AUTO fields keep the generated value). Output flags: PO_HIT resolved
+ * (ON / OFF edit, then PROB), PO_TIE set on a hit whose GATE is TIE (or whose GATE is AUTO and the generator says TIE), PO_REP from RATCH,
+ * PO_HOLD / PO_PACE_DEC / PO_SLIDE_IN as generated. The SLIDE of step p is not here: sq_slide_out() decides it. hc is NULL unless AF_CHORD. */
+static void sq_eval(uint8_t c, uint8_t p, uint16_t pass, const AlgoDesc *a, const void *k, const SeqGlobal *g, PulseOut *o)
+{   const StepEdit *e = &sq_ch[c].ed[p];
+    const uint8_t on = (uint8_t)(e->fl & 3u), gt = (uint8_t)(e->gr & 15u), rt = (uint8_t)((e->gr >> 4) & 7u);
+    const uint8_t oc = (uint8_t)(e->fl >> 5);
+    uint8_t tie, hit;
+    a->step(k, sq_gen_pos(&sq_ch[c], p), (a->flags & AF_CHORD) ? &sq_hc_inert : NULL, o);
     o->note &= 0x7Fu;
+    if (e->note & 0x80u) o->note = sq_note(g, (int16_t)(e->note & 0x7Fu));       /* PITCH set: unsnapped semitones, snapped now (SP6) */
+    if (oc >= 1u && oc <= 5u) {                                                  /* OCT: value - 3 octaves; 0 = AUTO / no shift */
+        int16_t nt = (int16_t)o->note + 12 * ((int16_t)oc - 3);
+        o->note = (uint8_t)(nt < 0 ? 0 : nt > 127 ? 127 : nt); }
+    if (e->vel) o->vel = e->vel;
+    if (gt >= 1u && gt <= 10u) o->gate = (uint8_t)(gt * 10u);                    /* GATE 1..10 = 10..100 %; 11 = TIE */
+    if (rt >= 1u) {                                                              /* RATCH 1x..4x: repeats - 1 in the PO_REP field */
+        uint8_t r4 = rt > 4u ? 4u : rt;
+        o->flags = (uint8_t)((o->flags & ~PO_REP_MASK) | ((uint8_t)(r4 - 1u) << PO_REP_SHIFT)); }
+    tie = (uint8_t)(gt == 11u || (gt == 0u && (o->flags & PO_TIE) != 0u));
+    hit = on == 0u ? (uint8_t)((o->flags & PO_HIT) != 0u) : (uint8_t)(on == 1u);   /* ON / OFF edit overrides the generator's hit */
+    if (((e->fl >> 4) & 1u) && (sp1_hash(c, p, pass) & 0xFFu) >= SQ_PROB_LOW_256) hit = 0;   /* PROB 50 % */
+    o->flags = (uint8_t)((o->flags & ~(PO_HIT | PO_TIE)) | (hit ? PO_HIT : 0u) | ((hit && tie) ? PO_TIE : 0u));
     if (o->vel < 1) o->vel = 1;
     if (o->vel > 127) o->vel = 127;
     if (o->gate < 1) o->gate = 1;
     if (o->gate > 100) o->gate = 100; }
+
+/* SEQUENCER_UX 9.2 slideout(p): SLIDE ON / OFF from the edit of step p; AUTO follows the generated PO_SLIDE_IN of the next step, and only
+ * an algorithm that pairs (AF_PAIRING) has one. The caller still requires the next step to sound. */
+static uint8_t sq_slide_out(uint8_t c, uint8_t p, uint8_t pairing, uint8_t gen_next_slide_in)
+{   const uint8_t sl = (uint8_t)((sq_ch[c].ed[p].fl >> 2) & 3u);
+    if (sl == 1u) return 1u;
+    if (sl == 2u) return 0u;
+    return (uint8_t)(pairing && gen_next_slide_in); }
+
+/* SEQUENCER_UX 9.2, TIE: the tick at which a tied note ends = the start of the next sounding step, searched forward with the same wrap as n
+ * (free-running step count tf + d, so the pass moves at the wrap). At most one loop: when no other step sounds before the tied step comes
+ * round again, the note ends at that start. o = this step's swing offset, G / L as in sq_step_start. */
+static uint32_t sq_tie_end(uint8_t c, uint8_t p, uint16_t pass, uint8_t len, const AlgoDesc *a, const void *k, const SeqGlobal *g,
+                           uint32_t G, uint32_t L, uint32_t o)
+{   const uint32_t tf = (uint32_t)pass * len + p;
+    uint32_t d, hd = len;
+    for (d = 1; d < len; d++) {
+        PulseOut q;
+        const uint32_t t = tf + d;
+        sq_eval(c, (uint8_t)(t % len), (uint16_t)(t / len), a, k, g, &q);
+        if (q.flags & PO_HIT) { hd = d; break; } }
+    return G + hd * L + (((tf + hd) & 1u) ? o : 0u); }
 
 static uint8_t sq_chan_byte(uint8_t c)
 {   uint8_t m = sq_ch[c].midi_ch;
@@ -277,17 +334,17 @@ static void sq_step_start(uint8_t c, uint32_t now, uint8_t L)
     const uint8_t chan = sq_chan_byte(c);
     const uint8_t pairing = (uint8_t)(a->flags & AF_PAIRING);
     PulseOut out, out1;
-    uint8_t slideout = 0, tie = 0, hold, gate_eff, ok = 1, nr = 0, nsl;
+    uint8_t slideout = 0, tie = 0, tiehold, hold, gate_eff, ok = 1, nr = 0, nsl;
     int li;
-    uint32_t off_t = 0;
+    uint32_t off_t = 0, hold_t = 0;
     SqRep rr[3];
 
-    sq_eval(a, k, p, &out);                                           /* 2. */
+    sq_eval(c, p, r->pass, a, k, g, &out);                            /* 2. */
     if (pairing && r->nxt_ok && r->nxt.pad == (uint8_t)(a->id + 1u)) {   /*    pairing fields come from the snapshot taken one step ago */
         out.flags = (uint8_t)((out.flags & ~(PO_HIT | PO_SLIDE_IN)) | (r->nxt.flags & (PO_HIT | PO_SLIDE_IN)));
         out.note = r->nxt.note;
     }
-    sq_eval(a, k, n, &out1);                                          /* 3. */
+    sq_eval(c, n, (uint16_t)(r->pass + (n == 0u ? 1u : 0u)), a, k, g, &out1);   /* 3. the wrap belongs to the next pass (9.2, 9.3) */
     if (pairing) { r->nxt = out1; r->nxt.pad = (uint8_t)(a->id + 1u); r->nxt_ok = 1; }
 
     if (!(out.flags & PO_HIT)) {                                      /* 4. a rest (mute is NOT tested here: it closes the MIDI gate in sq_emit) */
@@ -297,7 +354,9 @@ static void sq_step_start(uint8_t c, uint32_t now, uint8_t L)
         goto advance;
     }
 
-    slideout = (uint8_t)(pairing && (out1.flags & PO_HIT) && (out1.flags & PO_SLIDE_IN));      /* 5. a slide crosses the loop end */
+    slideout = (uint8_t)(sq_slide_out(c, p, pairing, (uint8_t)((out1.flags & PO_SLIDE_IN) != 0u)) && (out1.flags & PO_HIT));   /* 5. a slide crosses the loop end */
+    tiehold = (uint8_t)((out.flags & PO_TIE) != 0u);
+    if (tiehold) slideout = 0;                                        /*    a TIE holds this step; it does not also glide (not in 9.2: see the task Log) */
     li = r->snd[1] ? 1 : 0;                                           /*    the newest sounding note */
     tie = (uint8_t)(r->slide_in && r->snd[li] && out.note == (uint8_t)(r->snd[li] - 1u));
     if (r->open && !tie && r->snd[li]) sq_off_now(c, (uint8_t)li, now);   /* the announced tie did not happen */
@@ -307,14 +366,16 @@ static void sq_step_start(uint8_t c, uint32_t now, uint8_t L)
         gate_eff = (uint8_t)(ge > 100u ? 100u : ge < 1u ? 1u : ge); }
     hold = (uint8_t)((out.flags & PO_HOLD) ? (out.hold < 1u ? 1u : out.hold > 8u ? 8u : out.hold) : 0u);
     nsl = (uint8_t)(slideout && out1.note == out.note);               /* the next step ties onto this note */
+    if (tiehold) hold_t = sq_tie_end(c, p, r->pass, len, a, k, g, G, L, o);   /* 9.2 TIE: to the next sounding step (wrap included) */
 
-    if (!slideout && !hold && !tie && (out.flags & PO_REP_MASK)) {    /* 7. ratchet: SP5 repeats inside [S, S1 - 1] */
+    if (!slideout && !hold && !tie && !tiehold && (out.flags & PO_REP_MASK)) {   /* 7. ratchet: SP5 repeats inside [S, S1 - 1] (a TIE holds: no repeats) */
         uint32_t w = S1 - S;
         nr = sq_ratchet((uint8_t)(w > 255u ? 255u : w), (uint8_t)(((out.flags & PO_REP_MASK) >> PO_REP_SHIFT) + 1u),
                         (out.flags & PO_PACE_DEC) ? 1 : -1, out.vel, 0, gate_eff, rr);
     }
 
     if (slideout) { if (!nsl) off_t = S1 + D; }                       /* the off is the next step's start + D; a tie into the same note has none yet */
+    else if (tiehold) off_t = hold_t;                                 /* the next sounding step's start (sq_tie_end) */
     else if (hold) off_t = G + (uint32_t)hold * L - SQ_GAP;           /* ignores GATE */
     else if (nr) {                                                    /* the first trigger ends inside its own cell */
         uint32_t sp = rr[0].off, fl = sp * gate_eff / 100u;
