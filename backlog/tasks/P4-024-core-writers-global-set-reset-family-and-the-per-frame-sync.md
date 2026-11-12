@@ -3,7 +3,7 @@ id: P4-024
 title: Core writers: sq_global_set, the reset family, and the per-frame sq_chan_sync call
 phase: P4
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P4-005, P4-006]
@@ -81,3 +81,12 @@ RAM .data+.bss 23828 B of 73728; pool 92500 B of 368640   (headroom 49900 B)
 ```
 - `-Wunused-function` (tests build with `-Wno-unused-function`; I also compiled without it): sq_chan_test reports only functions that test does not call (sq_page_*, sq_follow_set: tested by sq_edit_test), sq_edit_test only sq_set_midi, sq_set_mute, sq_global_set, sq_defaults (tested by sq_chan_test). Nothing is dead across the two; sq_chan.c is not in felucca.c yet, so the firmware build is unaffected.
 - Notes for the reviewer: (1) `sq_global_set` is refused (returns 0) while a queued load is pending, because the inactive gdb/cache buffers then hold the staged load. (2) An undo of a step edit does not clear `pg_used` bits that the write set (harmless content flag). (3) Writes made without `sq_note_edit_begin` are one record each, so the UI should call begin on key-down for the one-record-per-session behaviour. (4) The task's "ADR-0003 9.2" is SEQUENCER_UX 9.2 (ADR section 9 is the retired pin model); the line was added there and summarised in ADR section 22 row 9. (5) A LENGTH change inside the first part of the tied step cuts one step late at most (the step start), as FB-015 allowed.
+
+### 2026-11-12 review (sonnet)
+Verdict: PASS (gate none, UX gate n/a).
+- build: `sh tools/check.sh` -> CHECK PASS; `RAM .data+.bss 23828 B of 73728` (headroom 49900 B >= 8192). sq_chan.c/sq_core.c are not in felucca.c, so no firmware change; the unused-function warnings are test-program only (build.log shows none for sq_*).
+- (a) TIE cut: sq_core.c:345-348 compares `r->tie` with `len` at each step start; the rest branch jumps to `advance` before `r->tie` is rewritten, so the stored length survives silent steps (a LENGTH change late in a long hold still cuts). Uses `sq_evq_purge_off` + `sq_off_now` (BUG-006/007 paths untouched; snd_chan bit 7 handling intact). Change in the OFF's own tick: snd[] is already empty, no-op. Growing LENGTH also cuts (mismatch rule of FB-015, acceptable). Two changes that return to the scheduled LENGTH cause no cut (benign). Page boundary: len unchanged, no cut. ChanRT is still 24 B (sq_types_test). C1-C5 pass; with the old sq_core.c C1 and C3 FAIL.
+- (b) sq_global_set: caches built off to the side; the interrupt-off window holds only the epoch compare and 5 byte flips, no calls. A load cannot be applied by the ISR mid-build because pending is refused at entry (the only way for the ISR to flip caches); the epoch retry is belt and braces. Returns 0 for both "no change" and "load pending": fine, the load replaces every global (noted in P4-013, no toast needed).
+- (c) What=8 undo/redo works (sq_undo handled it already); sync/epoch bump clears records and the session. Added a line to P4-013 (hold must call sq_note_edit_begin; frame hook; sq_global_set return) since it did not say so. Minor: after an undo the session closes, so further writes in the same NOTE_EDIT become one record each.
+- (d) SLIDE-on-TIE rule and `SQ_PROB_LOW_256` with _Static_assert present and tested. (e) SQ_FRAME_SYNC defined, not wired; docs edits accurate.
+- (f) No golden file changed in the commit. Re-ran under ASan/UBSan: sq_edit PASS, sq_chan fuzz seeds 3, 99, 2024, 31337 PASS, sq_core seeds 5, 77 PASS.
