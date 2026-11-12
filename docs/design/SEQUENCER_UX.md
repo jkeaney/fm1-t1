@@ -546,9 +546,9 @@ each channel whose PREVIEW is ON plays the same notes on its own preview part (a
 | U07-U11 | SCL / SEQ / ENV / ARP / LFO press | `sq_dice_layer(ch,L)`: new seed, UndoRec | next step (AF_PAIRING hit/note one step later) | toast `NOTES` + sub-label, lane redraw, strip `EDIT takes it back` |
 | U12 | FX press | `sq_dice_all(ch)` | next step | toast `ALL`, lane redraw |
 | U13 | EDIT tap | `sq_undo(ch)` swaps UndoRec | next step | toast `UNDO` / `REDO` + what |
-| U14 | white key tap | `sq_step_toggle(ch,p,vel)`: `ON` = opposite of now, AUTO if equal to the generator | stopped: the step sounds once now (note-on, off after its gate); playing: at its next pass | cell filled / hollow, corner tick if edited |
+| U14 | white key tap | `sq_step_tap(ch,p)`: `ON` = opposite of now, AUTO if equal to the generator | stopped: the step sounds once now (note-on, off after its gate); playing: at its next pass | cell filled / hollow, corner tick if edited |
 | U15 | hard tap (F3..C5) turning a step on (FORCE not OFF) | landing force >= the key's HARD bin -> `VELO` 120 written with `ON` | as U14, at velocity 120 (TB-3 accent) | `ACC` in the cell while the key is down, `!` glyph after; with FORCE on the playing strip alternates in `HARD TAP = ACCENT` |
-| U16 | white key held 0.4 s | open NOTE_EDIT on `p`; snapshot the step into UndoRec (bit3) | the step sounds once (audition) | NOTE_EDIT band, step boxed, banner `STEP p` |
+| U16 | white key held 0.4 s | open NOTE_EDIT on `p`; `sq_note_edit_begin(ch,p)` remembers the step; the first write that changes it takes the UndoRec (bit3), later writes of the session share it (P4-024) | the step sounds once (audition) | NOTE_EDIT band, step boxed, banner `STEP p` |
 | U17 | NOTE_EDIT K1 | `sq_step_set(ch,p,PITCH, degree +- 1)` (first detent: AUTO -> set at the generated note) | every detent: note-on/off of the new pitch on the channel (audition, 120 ms); playing: also at the next pass | `PITCH G2*`, lane glyph |
 | U18 | NOTE_EDIT OCT- / OCT+ | `OCT` -1 / +1 (clamp -2..+2) | audition | `OCT+1` on the OCT cell, `^` glyph |
 | U19 | NOTE_EDIT K2 | `GATE` 10..100 %, TIE | next pass (tie: no note-off until the next step's start; 7.3 step 7) | `GATE 70%*` / `TIE`, `-` glyph |
@@ -564,12 +564,12 @@ each channel whose PREVIEW is ON plays the same notes on its own preview part (a
 | U29 | EDIT hold, white key | `sq_step_clear(ch,p)` -> all AUTO; UndoRec bit3 | next pass | tick gone, toast `STEP 5 CLEARED  EDIT=undo` |
 | U30 | NOTE_EDIT: EDIT hold, a control | that field -> AUTO | next pass | cell reads `AUTO` |
 | U31 | EDIT hold, REC | `sq_page_clear(ch,page)`; UndoRec holds the 16 records | next pass | every tick on the page gone |
-| U32 | EDIT hold, D#4 | `sq_page_copy(ch,page-1 -> page)` (page 1: clear) | next pass | page redrawn |
+| U32 | EDIT hold, D#4 | `sq_page_recopy(ch,page)` (page k <- page k-1; page 1 has none) | next pass | page redrawn |
 | U33 | (look) | - | - | corner ticks and glyphs (1.2) |
 | U34 | PG- / PG+ tap | `view_page[ch]` +-1, FOLLOW off | none | lane shows the page, `PG 2/4`, toast `FOLLOW OFF` |
 | U35 | PG+ on the last page, PG+ | `sq_page_add(ch)`: partial last page -> LENGTH to its end; else LENGTH 64 -> nothing (toast `64 STEPS = MAX`, no prompt); else a hidden next page -> shown as stored; else copy the page before (16 edits + `src`), LENGTH = 16 x pages | none audible (a copy reads the same generator block with the same edits) | the prompt of 1.3, ghost cell, then the page in view, `L48` |
-| U36 | D#4, K1 | `sq_set_length(ch,L)` | the loop ends at L from the next step | `LENGTH 24`, page map |
-| U37 | D#4, K3 | the UI steps through the offered list of 1.4 (distinct `src(j)`, `j < page`, labelled by the first page that plays each; then OWN; plus the current value while no earlier page plays it); `sq_set_source(ch,page,src)` writes the 2-bit `pg_src` field of the viewed page | from the next pass of that page | `SOURCE P1` / `SOURCE P2` / `SOURCE OWN` / dim `SOURCE 17-32`; heard-span cue on the algorithm's loop knob (1.4); ACID toast `ACID REPEATS EVERY 16` |
+| U36 | D#4, K1 | `sq_len_set(ch,L)` | the loop ends at L from the next step | `LENGTH 24`, page map |
+| U37 | D#4, K3 | the UI steps through the offered list of 1.4 (distinct `src(j)`, `j < page`, labelled by the first page that plays each; then OWN; plus the current value while no earlier page plays it); `sq_page_src_set(ch,page,src)` writes the 2-bit `pg_src` field of the viewed page | from the next pass of that page | `SOURCE P1` / `SOURCE P2` / `SOURCE OWN` / dim `SOURCE 17-32`; heard-span cue on the algorithm's loop knob (1.4); ACID toast `ACID REPEATS EVERY 16` |
 | U38 | D#4, K4 | UI FOLLOW | none | `FOLLOW ON` |
 | U39 | (look) | - | - | header page map, `PG n/m`, `>P3`, `L32` |
 | U40 | D#4, K2 | `sq_set_midi(ch,m)` on the settled value (4.4): if another channel `o` holds `m`, `o` is set to OFF in the same call and ONE `UndoMidi` record keeps both old values | notes after it go to the new channel; sounding notes end on the old one (decision 47); the displaced channel stops sending at once, its sounding notes end by their queued offs | `MIDI 2`, header `M2`; the displaced channel's cell `MIDI OFF`; toast `CH2 IS MIDI OFF: CH1 TAKES 2` |
@@ -1007,6 +1007,9 @@ vel  = e.vel ? e.vel : o.vel;
 gate = GATE(e) ? table[GATE(e)] : o.gate;  TIE -> hold until the next sounding step, searched with the same wrap as n
        // (after the last step, from step 1): a TIE crosses the loop end like a slide; it ends at the latest when the
        // tied step itself comes round again (at most one loop); cut only by STOP or a LENGTH change while it holds
+       // (the ISR stores the LENGTH the hold was scheduled under in ChanRT.tie and ends the note at the next step start if it differs).
+       // TIE + SLIDE on one step (P4-024): a SET SLIDE ON whose next step sounds wins (slide overlap, S1 + D); otherwise TIE.
+       // TIE always cancels RATCH (as SLIDE and HOLD do)
 rep  = RATCH(e) ? RATCH(e) : o.rep;
 n    = (p + 1 >= len) ? 0 : p + 1;                       // THE next step: after the last step, step 1
 slideout(p) = (SLIDE(e) == AUTO ? (generated PO_SLIDE_IN of step n, read at g(n)) : SLIDE(e) == ON)

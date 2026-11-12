@@ -47,7 +47,7 @@ static int irq_depth, irq_bad;                       /* SQ_IRQ_OFF / ON must nes
 #define SQ_IRQ_ON()  (irq_depth-- > 0 ? 0 : irq_bad++)
 
 /* ---- the test ALGOS table ---- */
-typedef struct { uint8_t m[SQ_NMORPH]; uint16_t seed[SQ_NSEED + 1]; uint8_t id, key; } Cache;   /* what build() was handed */
+typedef struct { uint8_t m[SQ_NMORPH]; uint16_t seed[SQ_NSEED + 1]; uint8_t id, key; GlobalSave gs; uint8_t snap0; } Cache;   /* what build() was handed */
 _Static_assert(sizeof(Cache) <= SQ_CACHE_MAX, "Cache fits");
 static int  builds;                                  /* build() calls since the last reset */
 static void (*build_hook)(void);                     /* run once inside the next build() (the epoch race) */
@@ -58,7 +58,7 @@ static void t_build(const uint8_t m[SQ_NMORPH], const uint16_t seed[SQ_NSEED], c
     if (build_hook) { void (*h)(void) = build_hook; build_hook = NULL; h(); }
     memcpy(c->m, m, SQ_NMORPH);
     memcpy(c->seed, seed, sizeof c->seed);           /* seed[6] is s_mod: the core hands build() a seventh slot */
-    c->id = cur_id_for_build; c->key = g->s.key;
+    c->id = cur_id_for_build; c->key = g->s.key; c->gs = g->s; c->snap0 = g->snap[1];
     builds++; }
 static uint8_t t_len(const void *k) { (void)k; return 16; }
 static void t_step(const void *k, uint32_t g, const HarmChord *hc, PulseOut *o)
@@ -124,7 +124,8 @@ static int cache_matches(uint8_t c)
 {   const Cache *k = live(c); const ChanSave *cs = &sq_ch[c]; uint16_t sd[SQ_NSEED + 1];
     for (int i = 0; i < SQ_NSEED; i++) sd[i] = cs->st[cs->algo].seed[i];
     sd[SQ_SEED_MOD] = sq_smod[c][cs->algo];
-    return sq_calgo[c][sq_cidx[c]] == cs->algo && !memcmp(k->m, cs->st[cs->algo].morph, SQ_NMORPH) && !memcmp(k->seed, sd, sizeof sd); }
+    return sq_calgo[c][sq_cidx[c]] == cs->algo && !memcmp(k->m, cs->st[cs->algo].morph, SQ_NMORPH) && !memcmp(k->seed, sd, sizeof sd) &&
+           !memcmp(&k->gs, &sq_gdb[sq_gidx].s, sizeof k->gs) && k->snap0 == sq_gdb[sq_gidx].snap[1]; }   /* P4-024: and built from the live global */
 
 /* build() records the algorithm id the core asked for: the mock cannot see it, so the table sets it from the call order. */
 static void boot_mock(void)
@@ -301,6 +302,76 @@ static void t_rebuild(void)
     sq_load_pending = 0;
     CHECK(sq_rebuild(9) == 0, "bad channel");
     CHECK(irq_bad == 0 && irq_depth == 0, "ISR guards balanced"); }
+
+
+/* ---- P4-024: sq_global_set, the per-frame sync, the sync-first rule of sq_undo / dice ---- */
+static uint8_t hook_gidx, hook_cidx[SQ_NCH]; static int hook_seen, hook_split;
+static void spy_build(void)                           /* inside the first build() of a global change: the ISR's view must still be the old one whole */
+{   hook_seen++; if (sq_gidx != hook_gidx) hook_split++;
+    for (int c = 0; c < SQ_NCH; c++) if (sq_cidx[c] != hook_cidx[c]) hook_split++; }
+static void spy_arm(void) { hook_gidx = sq_gidx; for (int c = 0; c < SQ_NCH; c++) hook_cidx[c] = sq_cidx[c]; hook_seen = hook_split = 0; build_hook = spy_build; }
+
+static void t_global(void)
+{   static const struct { uint8_t f; int16_t v; } w[] = { { SQ_G_KEY, 7 }, { SQ_G_SCALE, 3 }, { SQ_G_OCTAVE, -2 }, { SQ_G_GATE, 80 }, { SQ_G_DIV, 4 }, { SQ_G_SWING, 62 } };
+    uint32_t eh0[SQ_NCH];
+    boot_mock();
+    for (int i = 0; i < SQ_NCH; i++) eh0[i] = edhash((uint8_t)i);
+    for (unsigned i = 0; i < sizeof w / sizeof w[0]; i++) {
+        uint8_t g0 = sq_gidx; SeqGlobal ref;
+        spy_arm();
+        CHECK(sq_global_set(w[i].f, w[i].v) == 1, "global field %u: written", w[i].f);
+        CHECK(hook_seen == 1 && hook_split == 0, "global field %u: while building, gidx and every cidx were still the old ones (%d)", w[i].f, hook_split);
+        CHECK(sq_gidx == (uint8_t)(g0 ^ 1u), "global field %u: gidx flipped once", w[i].f);
+        { const GlobalSave *g = &sq_gdb[sq_gidx].s;
+          int got = w[i].f == SQ_G_KEY ? g->key : w[i].f == SQ_G_SCALE ? g->scale : w[i].f == SQ_G_OCTAVE ? g->octave : w[i].f == SQ_G_GATE ? g->gate : w[i].f == SQ_G_DIV ? g->div : g->swing;
+          CHECK(got == w[i].v, "global field %u: value %d is live (got %d)", w[i].f, w[i].v, got); }
+        ref = sq_gdb[sq_gidx]; sq_gbuild(&ref);
+        CHECK(!memcmp(&ref, &sq_gdb[sq_gidx], sizeof ref), "global field %u: the derived snap[] is rebuilt", w[i].f);
+        for (uint8_t c = 0; c < SQ_NCH; c++) CHECK(cache_matches(c), "global field %u: CH%d cache built from the new global", w[i].f, c + 1);
+        { int b = builds; CHECK(sq_global_set(w[i].f, w[i].v) == 0 && builds == b && sq_gidx == (uint8_t)(g0 ^ 1u), "global field %u: the same value changes and builds nothing", w[i].f); }
+    }
+    for (int i = 0; i < SQ_NCH; i++) CHECK(eh0[i] == edhash((uint8_t)i), "global changes never touch the edit layer");
+    /* clamping and refusal */
+    sq_global_set(SQ_G_KEY, 99);    CHECK(sq_gdb[sq_gidx].s.key == 11, "KEY clamps to 11");
+    sq_global_set(SQ_G_SWING, 10);  CHECK(sq_gdb[sq_gidx].s.swing == 50, "SWING clamps to 50");
+    sq_global_set(SQ_G_GATE, 5);    CHECK(sq_gdb[sq_gidx].s.gate == 10, "GATE clamps to 10");
+    sq_global_set(SQ_G_OCTAVE, 9);  CHECK(sq_gdb[sq_gidx].s.octave == 2, "OCTAVE clamps to +2");
+    CHECK(sq_global_set(SQ_G_NFIELD, 1) == 0, "an unknown field is refused");
+    /* the epoch race: a preset lands while the caches are built; the work starts again from the state that landed */
+    boot_mock(); builds = 0; build_hook = race;
+    CHECK(sq_global_set(SQ_G_KEY, 5) == 1, "race: written after the retry");
+    CHECK(builds >= 2 * SQ_NCH && sq_gdb[sq_gidx].s.key == 5, "race: built again (%d builds)", builds);
+    CHECK(live(0)->m[0] == 9, "race: the state that landed is what the cache holds");
+    for (uint8_t c = 0; c < SQ_NCH; c++) CHECK(cache_matches(c), "race: CH%d cache matches state and global", c + 1);
+    /* a queued load pending: the inactive buffers are the staged ones, so the call is refused and nothing moves */
+    boot_mock(); sq_load_pending = 1; builds = 0;
+    { uint8_t g0 = sq_gidx, k0 = sq_gdb[sq_gidx].s.key;
+      CHECK(sq_global_set(SQ_G_KEY, 3) == 0 && builds == 0 && sq_gidx == g0 && sq_gdb[sq_gidx].s.key == k0, "load pending: refused, nothing built or flipped"); }
+    sq_load_pending = 0;
+    CHECK(irq_bad == 0 && irq_depth == 0, "ISR guards balanced"); }
+
+static void t_sync_first(void)
+{   uint16_t s0[SQ_NSEED];
+    boot_mock();
+    /* FB-012: a dice record exists, a preset lands in the ISR (epoch moves) and the main loop has not synced yet */
+    memcpy(s0, sq_ch[0].st[0].seed, sizeof s0);
+    sq_dice_layer(0, 0);
+    sq_epoch++;
+    CHECK(sq_undo(0) == 0, "sq_undo after a load landed: the stale record is gone, nothing is swapped");
+    CHECK(sq_epoch == sq_seen_epoch, "sq_undo synced first");
+    sq_dice_layer(0, 1); sq_epoch++; sq_dice_layer(0, 0);
+    CHECK(sq_undo(0) == 1, "a dice after the load keeps its own, fresh record");
+    boot_mock();
+    sq_dice_layer(1, 0); sq_epoch++; sq_dice_all(1);                   /* dice ALL syncs first: the record it leaves is the new one */
+    { uint16_t now[SQ_NSEED]; memcpy(now, sq_ch[1].st[1].seed, sizeof now); CHECK(sq_undo(1) == 1 && memcmp(now, sq_ch[1].st[1].seed, sizeof now) != 0, "dice ALL after a load: its record is the one undone"); }
+    boot_mock();
+    sq_set_midi(0, 5); sq_epoch++;
+    CHECK(sq_undo(0) == 0 && sq_ch[0].midi_ch == 5, "a MIDI record from before the load is not swapped either");
+    boot_mock();
+    sq_step_set(0, 3, SQ_F_VEL, 70); sq_epoch++;
+    CHECK(sq_undo(0) == 0 && sq_ch[0].ed[3].vel == 70, "a step-edit record from before the load is not swapped");
+    /* the documented hook is the same call */
+    boot_mock(); sq_epoch++; SQ_FRAME_SYNC(); CHECK(sq_epoch == sq_seen_epoch, "SQ_FRAME_SYNC() is sq_chan_sync()"); }
 
 /* ---- defaults (ADR-0003 12), field by field ---- */
 static void t_defaults(void)
@@ -479,6 +550,15 @@ static void fuzz(long nticks)
             sq_preset_load(&junk, NULL, (uint8_t)fz_rnd(2)); what = "junk load"; for (int i = 0; i < SQ_NCH; i++) eh[i] = edhash((uint8_t)i); }
         else if (r < 280) { sq_req |= (r & 1u) ? SQ_REQ_STOP : SQ_REQ_START; }
         else if (r < 285) { if (!sq_load_pending && sq_playing) put_edits(c); for (int i = 0; i < SQ_NCH; i++) eh[i] = edhash((uint8_t)i); }
+        else if (r < 300) { sq_global_set((uint8_t)fz_rnd(SQ_G_NFIELD + 1), (int16_t)((int)fz_rnd(120) - 5)); what = "global"; }
+        else if (r < 340) {                                            /* the step-edit writers (P4-006 / P4-024) */
+            uint8_t p = (uint8_t)fz_rnd(SQ_NSTEP + 2); uint32_t k = fz_rnd(5);
+            if (k == 0) sq_note_edit_begin(c, p);
+            else if (k == 1) sq_step_set(c, p, (uint8_t)fz_rnd(SQ_F_NFIELD + 1), fz_rnd(4) ? (int16_t)((int)fz_rnd(130) - 3) : SQ_AUTO);
+            else if (k == 2) sq_step_tap(c, p);
+            else if (k == 3) sq_step_clear(c, p);
+            else sq_len_set(c, (uint8_t)fz_rnd(70));
+            what = "step"; }
         if (what[0] != 't' && what[0] != 'l' && what[0] != 'j' && what[0] != 's' && what[0] != 'u')   /* morph / dice / midi / algo / mute never touch edits */
             for (int i = 0; i < SQ_NCH; i++) CHECK(eh[i] == edhash((uint8_t)i), "after %s: CH%d edit layer changed", what, i + 1);
         last_what = what;
@@ -512,7 +592,7 @@ static void t_rot(void)
 int main(int argc, char **argv)
 {   if (argc > 1) fz_seed = (uint32_t)strtoul(argv[1], NULL, 0);
     printf("sq_chan channel state API\n");
-    t_rows_1_2(); t_morph(); t_undo(); t_midi(); t_algo(); t_rebuild(); t_defaults(); t_modsave(); t_preset(); t_rot();
+    t_rows_1_2(); t_morph(); t_undo(); t_midi(); t_algo(); t_rebuild(); t_defaults(); t_modsave(); t_preset(); t_global(); t_sync_first(); t_rot();
     fuzz(100000);
     printf("%s\n", fails ? "SQ_CHAN FAIL" : "SQ_CHAN PASS");
     return fails ? 1 : 0; }

@@ -538,6 +538,152 @@ static void section_sched(void)
     CHECK(viol == v0, "S7: no violation");
 }
 
+
+/* ---- P4-024 (FB-015): LENGTH cuts a held TIE; a set SLIDE on a TIE step; step-edit undo and redo. No golden lines: the checks are the spec. ---- */
+_Static_assert(SQ_PROB_LOW_256 == 128, "PROB_LOW 50 % derives to a 128 threshold of 256");
+
+static int count_ev(uint8_t on, uint8_t note, uint32_t from, uint32_t to)
+{   int n = 0;
+    for (int i = 0; i < nev; i++) if (evs[i].on == on && evs[i].note == note && evs[i].tick >= from && evs[i].tick < to) n++;
+    return n; }
+
+static void section_tie_cut(void)
+{   uint8_t A, B;
+    int i;
+    long v0;
+
+    /* C1: TIE on step 1 of 8 (nothing else sounds: the hold would run the whole loop, to tick 384). LENGTH 2 during the hold: the OFF
+     * arrives at the next step start (tick 48), not at 384. */
+    v0 = viol;
+    fresh();
+    scen(8, 1);
+    A = sq_note(&sq_gdb[sq_gidx], 0);
+    set_step(0, 1, 0, SQ_GATE_TIE, -1);
+    rec_on = 1; sq_on_start();
+    while (sq_now < 20) sq_block(64);
+    CHECK(sq_len_set(0, 2), "C1: LENGTH 2 during the hold");
+    while (sq_now < 500) sq_block(64);
+    rec_on = 0;
+    i = first_ev(0, A);
+    CHECK(i >= 0 && evs[i].tick <= 48, "C1: the tied note is cut within one step of the LENGTH change (OFF at tick %d)", i >= 0 ? (int)evs[i].tick : -1);
+    CHECK(viol == v0, "C1: no violation");
+
+    /* C2: a LENGTH change after the tie ended on its own cuts nothing (no stray OFF, no violation). */
+    v0 = viol;
+    fresh();
+    scen(4, 1);
+    A = sq_note(&sq_gdb[sq_gidx], 0); B = sq_note(&sq_gdb[sq_gidx], 2);
+    set_step(0, 1, 0, SQ_GATE_TIE, -1);
+    set_step(2, 1, 2, 50, -1);
+    rec_on = 1; sq_on_start();
+    while (sq_now < 150) sq_block(64);
+    CHECK(sq_len_set(0, 3), "C2: LENGTH 3 after the tie ended at tick 96");
+    while (sq_now < 400) sq_block(64);
+    rec_on = 0;
+    i = first_ev(0, A);
+    CHECK(i >= 0 && evs[i].tick == 96, "C2: the tie ended at step 3 (tick 96)");
+    CHECK(count_ev(1, A, 0, 192) == 1 && count_ev(0, A, 0, 192) == 1, "C2: the first pass has one ON and one OFF of A (no stray cut)");
+    CHECK(viol == v0, "C2: no violation");
+
+    /* C3: SLIDE ON wins over TIE when the next step sounds: the glide's overlap (OFF at S1 + D = 54), not the tie's OFF at 48. */
+    v0 = viol;
+    fresh();
+    scen(2, 1);
+    A = sq_note(&sq_gdb[sq_gidx], 0); B = sq_note(&sq_gdb[sq_gidx], 2);
+    set_step(0, 1, 0, SQ_GATE_TIE, 1);
+    set_step(1, 1, 2, 50, -1);
+    play_to(90);
+    i = first_ev(0, A);
+    CHECK(at_tick(1, B, 48) >= 0, "C3: B starts at tick 48");
+    CHECK(i >= 0 && evs[i].tick == 54, "C3: A glides on to tick 54 (OFF at tick %d)", i >= 0 ? (int)evs[i].tick : -1);
+    CHECK(viol == v0, "C3: no violation");
+
+    /* C4: SLIDE ON but the next step is silent: TIE holds (the OFF is at the tied step's next start, tick 96), no glide. */
+    v0 = viol;
+    fresh();
+    scen(2, 1);
+    A = sq_note(&sq_gdb[sq_gidx], 0);
+    set_step(0, 1, 0, SQ_GATE_TIE, 1);
+    play_to(120);
+    i = first_ev(0, A);
+    CHECK(i >= 0 && evs[i].tick == 96, "C4: the tie holds to tick 96 (OFF at tick %d)", i >= 0 ? (int)evs[i].tick : -1);
+    CHECK(viol == v0, "C4: no violation");
+
+    /* C5: TIE cancels RATCH: one ON in the tied step, not four. */
+    v0 = viol;
+    fresh();
+    scen(2, 1);
+    A = sq_note(&sq_gdb[sq_gidx], 0);
+    set_step(0, 1, 0, SQ_GATE_TIE, -1);
+    sq_step_set(0, 0, SQ_F_RATCH, 4);
+    play_to(90);
+    CHECK(count_ev(1, A, 0, 96) == 1, "C5: TIE with RATCH 4 sounds the note once (%d ONs)", count_ev(1, A, 0, 96));
+    CHECK(viol == v0, "C5: no violation");
+}
+
+static void section_step_undo(void)
+{   StepEdit blank, snap;
+    uint16_t seed0;
+    memset(&blank, 0, sizeof blank);
+    fresh();
+
+    /* U1: a NOTE_EDIT session is one record, whatever the number of writes; EDIT tap undoes it, the next tap redoes it. */
+    CHECK(sq_note_edit_begin(0, 5), "U1: NOTE_EDIT opens on step 6");
+    CHECK(sq_undo_rec[0].what == 0, "U1: opening takes no record yet (nothing written)");
+    CHECK(sq_step_set(0, 5, SQ_F_PITCH, 7) && sq_step_set(0, 5, SQ_F_VEL, 90) && sq_step_set(0, 5, SQ_F_GATE, 30), "U1: three field writes");
+    snap = sq_ch[0].ed[5];
+    CHECK(snap.vel == 90, "U1: the writes landed");
+    CHECK(sq_undo(0) == 1 && memcmp(&sq_ch[0].ed[5], &blank, sizeof blank) == 0, "U1: one EDIT tap undoes the whole session (back to AUTO)");
+    CHECK(sq_undo(0) == 1 && memcmp(&sq_ch[0].ed[5], &snap, sizeof snap) == 0, "U1: the next tap redoes it");
+
+    /* U2: a visit with no write does not take the previous undo record (a dice stays undoable). */
+    fresh();
+    seed0 = sq_ch[0].st[sq_ch[0].algo].seed[0];
+    sq_dice_layer(0, 0);
+    CHECK(sq_ch[0].st[sq_ch[0].algo].seed[0] != seed0, "U2: the dice moved the seed");
+    CHECK(sq_note_edit_begin(0, 3), "U2: open NOTE_EDIT, write nothing");
+    CHECK(sq_undo(0) == 1 && sq_ch[0].st[sq_ch[0].algo].seed[0] == seed0, "U2: EDIT tap still undoes the dice");
+
+    /* U3: a refused write and a write that changes nothing take no record. */
+    fresh();
+    sq_step_set(0, 2, SQ_F_VEL, 50);
+    CHECK(!sq_step_set(0, 2, SQ_F_VEL, 500), "U3: out-of-range refused");
+    CHECK(sq_step_set(0, 2, SQ_F_VEL, 50), "U3: same value again");
+    CHECK(sq_undo(0) == 1 && sq_ch[0].ed[2].vel == 0, "U3: the one record is the first write");
+
+    /* U4: RESET + key (sq_step_clear) is undoable; undo then redo. A clear of a step that is already AUTO keeps the older record. */
+    fresh();
+    sq_step_set(0, 9, SQ_F_PITCH, 4); sq_step_set(0, 9, SQ_F_VEL, 77);
+    snap = sq_ch[0].ed[9];
+    CHECK(sq_step_clear(0, 9) && memcmp(&sq_ch[0].ed[9], &blank, sizeof blank) == 0, "U4: step cleared");
+    CHECK(sq_undo(0) == 1 && memcmp(&sq_ch[0].ed[9], &snap, sizeof snap) == 0, "U4: EDIT tap brings the step back");
+    CHECK(sq_undo(0) == 1 && memcmp(&sq_ch[0].ed[9], &blank, sizeof blank) == 0, "U4: and again clears it (redo)");
+    CHECK(sq_step_clear(0, 9) && sq_undo(0) == 1 && memcmp(&sq_ch[0].ed[9], &snap, sizeof snap) == 0,
+          "U4: clearing an AUTO step took no record: undo still returns the earlier clear");
+
+    /* U5: a tap (ON/OFF toggle) is one undoable action on its own; another step's tap replaces the record (the last change wins). */
+    fresh();
+    CHECK(sq_step_tap(0, 3) && sq_step_tap(0, 7), "U5: tap step 4 and step 8");
+    snap = sq_ch[0].ed[3];
+    CHECK(sq_undo(0) == 1 && sq_ch[0].ed[7].fl == 0 && memcmp(&sq_ch[0].ed[3], &snap, sizeof snap) == 0, "U5: EDIT tap takes back the last tap only");
+    CHECK(sq_undo(0) == 1 && sq_ch[0].ed[7].fl != 0, "U5: redo");
+
+    /* U6: a session on a step, a tap on another step, then more writes on the first: each is its own record, never the stale one. */
+    fresh();
+    CHECK(sq_note_edit_begin(0, 1) && sq_step_set(0, 1, SQ_F_VEL, 40), "U6: session on step 2");
+    CHECK(sq_step_tap(0, 6), "U6: tap step 7 inside the session");
+    CHECK(sq_step_set(0, 1, SQ_F_VEL, 60), "U6: another write on step 2");
+    CHECK(sq_undo(0) == 1 && sq_ch[0].ed[1].vel == 40 && sq_ch[0].ed[6].fl != 0, "U6: undo returns step 2 to 40 and leaves the tap on step 7");
+
+    /* U7: begin refuses a hidden step; the page operations and a preset load end a session. */
+    fresh();
+    CHECK(!sq_note_edit_begin(0, 16), "U7: step 17 is past LENGTH 16");
+    CHECK(sq_note_edit_begin(0, 2) && sq_step_set(0, 2, SQ_F_VEL, 10), "U7: session on step 3");
+    CHECK(sq_page_clear(0, 0), "U7: page clear");
+    CHECK(sq_step_set(0, 2, SQ_F_VEL, 20), "U7: a write after the page clear");
+    CHECK(sq_undo(0) == 1 && sq_ch[0].ed[2].vel == 0, "U7: that write is its own record (back to AUTO, the page clear is not what is undone)");
+}
+
 /* ---- the golden: the resolved tables and the event logs ---- */
 static void golden_check(void)
 {   const char *path = "tests/golden/sq_edit.txt";
@@ -566,6 +712,8 @@ int main(void)
     section_tap();
     section_wrap();
     section_sched();
+    section_tie_cut();
+    section_step_undo();
     golden_check();
     if (irq_bad) { printf("FAIL the IRQ guard did not nest (%d)\n", irq_bad); fails++; }
     if (viol) { printf("FAIL %ld MIDI violations\n", viol); fails++; }

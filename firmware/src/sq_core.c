@@ -246,7 +246,10 @@ static uint32_t sp1_hash(uint8_t c, uint8_t p, uint16_t pass)
     sq_rng_init(&r, (uint16_t)((uint32_t)c * 0x9E37u ^ (uint32_t)p * 0x45D9u ^ (uint32_t)pass * 0x2C1Bu), 0u);
     return sq_rng_next(&r); }
 
-#define SQ_PROB_LOW_256 128u      /* PROB 50 %: a PROB step is silent when its draw (0..255) is 128 or more (9.2 names the test, not the value) */
+#ifndef PROB_LOW
+#define PROB_LOW 50               /* ADR-0003 12.2 flex constant: the chance, in %, of a PROB step (PROB_LOW = 50 -> the threshold below is 128) */
+#endif
+#define SQ_PROB_LOW_256 (((uint32_t)(PROB_LOW) * 256u + 50u) / 100u)   /* a PROB step is silent when its draw (0..255) is this or more (9.2 names the test) */
 
 /* SEQUENCER_UX 9.2: the resolved step p of channel c at `pass`. The generated layer at g(p) gives note, vel, gate, repeats and the
  * generated flags; the edit at ed[p] overrides each field it sets (AUTO fields keep the generated value). Output flags: PO_HIT resolved
@@ -339,6 +342,11 @@ static void sq_step_start(uint8_t c, uint32_t now, uint8_t L)
     uint32_t off_t = 0, hold_t = 0;
     SqRep rr[3];
 
+    if (r->tie && r->tie != len) {                                    /* 0. LENGTH changed while a TIE held (9.2: cut by a LENGTH change): end it now. The step start */
+        li = r->snd[1] ? 1 : 0;                                       /*    after the change is at or past the end of the tied step's own gate, so "sent at once" applies */
+        if (r->snd[li]) { sq_evq_purge_off(c, (uint8_t)(r->snd[li] - 1u)); sq_off_now(c, (uint8_t)li, now); }
+        r->tie = 0; }
+
     sq_eval(c, p, r->pass, a, k, g, &out);                            /* 2. */
     if (pairing && r->nxt_ok && r->nxt.pad == (uint8_t)(a->id + 1u)) {   /*    pairing fields come from the snapshot taken one step ago */
         out.flags = (uint8_t)((out.flags & ~(PO_HIT | PO_SLIDE_IN)) | (r->nxt.flags & (PO_HIT | PO_SLIDE_IN)));
@@ -356,7 +364,9 @@ static void sq_step_start(uint8_t c, uint32_t now, uint8_t L)
 
     slideout = (uint8_t)(sq_slide_out(c, p, pairing, (uint8_t)((out1.flags & PO_SLIDE_IN) != 0u)) && (out1.flags & PO_HIT));   /* 5. a slide crosses the loop end */
     tiehold = (uint8_t)((out.flags & PO_TIE) != 0u);
-    if (tiehold) slideout = 0;                                        /*    a TIE holds this step; it does not also glide (not in 9.2: see the task Log) */
+    if (tiehold && slideout && ((sq_ch[c].ed[p].fl >> 2) & 3u) == 1u) tiehold = 0;   /* 9.2 (P4-024): a SET SLIDE whose next step sounds wins over TIE (the glide's S1 + D) */
+    else if (tiehold) slideout = 0;                                   /*    otherwise a TIE holds this step and does not also glide; TIE always cancels RATCH (below) */
+    r->tie = tiehold ? len : 0;                                       /*    the LENGTH this hold is scheduled under: step 0 compares it at the next step start */
     li = r->snd[1] ? 1 : 0;                                           /*    the newest sounding note */
     tie = (uint8_t)(r->slide_in && r->snd[li] && out.note == (uint8_t)(r->snd[li] - 1u));
     if (r->open && !tie && r->snd[li]) sq_off_now(c, (uint8_t)li, now);   /* the announced tie did not happen */

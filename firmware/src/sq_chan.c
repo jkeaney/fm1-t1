@@ -2,7 +2,8 @@
 /* sq_chan.c: the channel state API (P4-005; ADR-0003 sections 3.1, 6, 10 and 12, as amended by section 22).
  *
  * Everything the UI may call, all MAIN LOOP, none from the ISR: sq_morph_turn, sq_dice_layer, sq_dice_all, sq_undo, sq_set_midi
- * (unique rule, SEQUENCER_UX 4.4), sq_set_algo, sq_set_mute, sq_rebuild (cache flip + epoch guard), the power-on defaults
+ * (unique rule, SEQUENCER_UX 4.4), sq_set_algo, sq_set_mute, sq_rebuild (cache flip + epoch guard), sq_global_set (KEY SCALE OCTAVE GATE DIV
+ * SWING, P4-024), the power-on defaults
  * (sq_defaults / sq_boot, ADR-0003 12) and sq_preset_save / sq_preset_load (RAM only; flash is P7).
  *
  * Included by the unity build right AFTER sq_core.c (it uses sq_ch, sq_gdb, sq_cache, sq_calgo, sq_cidx, sq_epoch, sq_stage_ch,
@@ -50,6 +51,17 @@ static uint16_t    sq_stage_smod[SQ_NCH][SQ_NALGO];   /* a queued load's s_mod; 
 static uint8_t     sq_stage_valid;
 
 static void sq_chan_sync(void);
+
+/* The per-frame hook (FB-011 a, FB-012): the main loop calls SQ_FRAME_SYNC() ONCE per frame, before ui_input() and so before any sq_* write.
+ * It is one compare when idle. When the ISR has landed a preset it clears every UndoRec, takes the staged HARMONY / BPM / s_mod and
+ * rebuilds the caches. P4-011 / P4-012 wire it in (P4-024 does not touch the main loop). sq_undo and every dice entry also call it first,
+ * so a record can never be swapped onto a preset that landed inside the same frame. */
+#define SQ_FRAME_SYNC() sq_chan_sync()
+
+/* NOTE_EDIT session (FB-015): a write to the step being edited, after sq_note_edit_begin, shares ONE undo record. 0 none, 1 opened and no
+ * write yet (sq_ne_snap holds the step as it was), 2 the record has been taken. Any other undoable action ends it. */
+static uint8_t  sq_ne_state, sq_ne_ch, sq_ne_p;
+static StepEdit sq_ne_snap;
 
 /* ------------------------------------------------------------------ rebuild (ADR-0003 6) */
 
@@ -104,7 +116,9 @@ static void sq_morph_turn(uint8_t ch, uint8_t knob, int8_t detents)
     (void)sq_rebuild(ch); }
 
 static void sq_undo_new(uint8_t ch)       /* a new undoable action: empty record for the algorithm in use, and the MIDI record is no longer the latest */
-{   memset(&sq_undo_rec[ch], 0, sizeof sq_undo_rec[ch]);
+{   sq_chan_sync();                       /* a load that landed this frame has already cleared the old records: never write under a stale epoch */
+    sq_ne_state = 0;
+    memset(&sq_undo_rec[ch], 0, sizeof sq_undo_rec[ch]);
     sq_undo_rec[ch].algo = sq_ch[ch].algo;
     sq_um_valid = 0; }
 
@@ -131,21 +145,25 @@ static uint8_t sq_dice_apply(uint8_t ch, uint8_t layer, UndoRec *u)   /* returns
 
 static void sq_dice_layer(uint8_t ch, uint8_t layer)
 {   UndoRec u;
-    if (ch >= SQ_NCH || layer >= SQ_NLAYER || sq_ch[ch].algo >= SQ_NALGO) return;
+    if (ch >= SQ_NCH) return;
+    sq_chan_sync();                                                   /* FB-012: first, so the record below is for the state that is live now */
+    if (layer >= SQ_NLAYER || sq_ch[ch].algo >= SQ_NALGO) return;
     memset(&u, 0, sizeof u);
     if (!sq_dice_apply(ch, layer, &u)) return;                        /* an absent layer is inert: no change, no record */
     u.what = 1; u.algo = sq_ch[ch].algo;
-    sq_undo_rec[ch] = u; sq_um_valid = 0;
+    sq_undo_rec[ch] = u; sq_um_valid = 0; sq_ne_state = 0;
     (void)sq_rebuild(ch); }
 
 static void sq_dice_all(uint8_t ch)                                   /* layers 0..4, ONE record for the union */
 {   UndoRec u; uint8_t any = 0;
-    if (ch >= SQ_NCH || sq_ch[ch].algo >= SQ_NALGO) return;
+    if (ch >= SQ_NCH) return;
+    sq_chan_sync();
+    if (sq_ch[ch].algo >= SQ_NALGO) return;
     memset(&u, 0, sizeof u);
     for (uint8_t l = 0; l < SQ_NLAYER; l++) any |= sq_dice_apply(ch, l, &u);
     if (!any) return;
     u.what = 1; u.algo = sq_ch[ch].algo;
-    sq_undo_rec[ch] = u; sq_um_valid = 0;
+    sq_undo_rec[ch] = u; sq_um_valid = 0; sq_ne_state = 0;
     (void)sq_rebuild(ch); }
 
 static void sq_swap8(uint8_t *a, uint8_t *b) { uint8_t t = *a; *a = *b; *b = t; }
@@ -155,6 +173,8 @@ static void sq_swap16(uint16_t *a, uint16_t *b) { uint16_t t = *a; *a = *b; *b =
  * (UndoMidi) that is what is swapped, as ONE record for both channels. Returns 1 if anything was swapped. */
 static uint8_t sq_undo(uint8_t ch)
 {   UndoRec *u; ChanSave *cs;
+    sq_chan_sync();                                                   /* FB-012: a stale record must not land on a preset that arrived this frame */
+    sq_ne_state = 0;
     if (sq_um_valid) {
         uint8_t m = sq_ch[sq_um.ch].midi_ch;
         sq_ch[sq_um.ch].midi_ch = sq_um.old_midi; sq_um.old_midi = m;
@@ -209,9 +229,56 @@ static void sq_set_mute(uint8_t ch, uint8_t on)
  * algorithm from sq_calgo of the flipped buffer). */
 static void sq_set_algo(uint8_t ch, uint8_t algo)
 {   if (ch >= SQ_NCH || algo >= SQ_NALGO || sq_ch[ch].algo == algo) return;
-    memset(&sq_undo_rec[ch], 0, sizeof sq_undo_rec[ch]);
+    sq_chan_sync();
+    memset(&sq_undo_rec[ch], 0, sizeof sq_undo_rec[ch]); sq_ne_state = 0;
     sq_ch[ch].algo = algo;
     (void)sq_rebuild(ch); }
+
+/* ------------------------------------------------------------------ global settings (ADR-0003 5, 6; SEQUENCER_UX SET and SCALE pages) */
+
+#define SQ_G_KEY    0                /* sq_global_set fields */
+#define SQ_G_SCALE  1
+#define SQ_G_OCTAVE 2
+#define SQ_G_GATE   3
+#define SQ_G_DIV    4
+#define SQ_G_SWING  5
+#define SQ_G_NFIELD 6
+
+/* KEY 0..11, SCALE 0..15, OCTAVE -2..+2, GATE 10..100 %, DIV 0..5, SWING 50..75 %. A value outside the range is clamped to its end (a knob
+ * that runs past the end stays there). The change is built off to the side: the other SeqGlobal copy gets the new value and its derived snap[]
+ * (sq_gbuild), then ALL FOUR channels' caches are built from it into their inactive buffers, and only then do sq_gidx and the four sq_cidx
+ * flip, together inside one interrupt-off window. The ISR therefore sees either the old global with the old caches or the new global with
+ * the new caches, never a mix and never a half-built cache. If a preset load lands while building (sq_epoch moved) the work starts again from the live
+ * state. While a queued load is pending the inactive buffers hold the STAGED global and caches, so the call is refused (returns 0, nothing
+ * changed): the load replaces every global anyway. Returns 1 when the setting changed and is live. */
+static uint8_t sq_global_set(uint8_t field, int16_t v)
+{   if (field >= SQ_G_NFIELD) return 0;
+    for (uint8_t tries = 0; tries < 4; tries++) {
+        SeqGlobal *ng;
+        uint8_t ep, gi, ok;
+        sq_chan_sync();
+        if (sq_load_pending) return 0;
+        ep = sq_epoch; gi = sq_gidx;
+        ng = &sq_gdb[gi ^ 1u];
+        *ng = sq_gdb[gi];
+        switch (field) {
+        case SQ_G_KEY:    ng->s.key    = (uint8_t)(v < 0 ? 0 : v > 11 ? 11 : v); break;
+        case SQ_G_SCALE:  ng->s.scale  = (uint8_t)(v < 0 ? 0 : v > 15 ? 15 : v); break;
+        case SQ_G_OCTAVE: ng->s.octave = (int8_t)(v < -2 ? -2 : v > 2 ? 2 : v); break;
+        case SQ_G_GATE:   ng->s.gate   = (uint8_t)(v < 10 ? 10 : v > 100 ? 100 : v); break;
+        case SQ_G_DIV:    ng->s.div    = (uint8_t)(v < 0 ? 0 : v > 5 ? 5 : v); break;
+        default:          ng->s.swing  = (uint8_t)(v < 50 ? 50 : v > 75 ? 75 : v); break;
+        }
+        if (!memcmp(&ng->s, &sq_gdb[gi].s, sizeof ng->s)) return 0;   /* nothing to change */
+        sq_gbuild(ng);
+        for (uint8_t c = 0; c < SQ_NCH; c++) sq_build_buf(c, (uint8_t)(sq_cidx[c] ^ 1u), ng, &sq_ch[c], sq_smod[c]);
+        SQ_IRQ_OFF();
+        ok = (uint8_t)(ep == sq_epoch && !sq_load_pending);
+        if (ok) { for (uint8_t c = 0; c < SQ_NCH; c++) sq_cidx[c] ^= 1u; sq_gidx = (uint8_t)(gi ^ 1u); }
+        SQ_IRQ_ON();
+        if (ok) return 1;
+    }
+    return 0; }
 
 /* ------------------------------------------------------------------ edit layer and pages (SEQUENCER_UX 1.1-1.6, 9.1; P4-006)
  * Main loop. Edits never touch a cache: sq_eval (sq_core.c) reads ed[] at play time, so no rebuild is needed. Every writer refuses a
@@ -258,12 +325,29 @@ static void sq_undo_page(uint8_t ch, uint8_t k)
     u->len = sq_ch[ch].len; u->pg_src = sq_ch[ch].pg_src; u->pg_used = sq_ch[ch].pg_used;
     memcpy(u->ed, &sq_ch[ch].ed[(uint16_t)k * SQ_PAGE], sizeof u->ed); }
 
+/* Step-level undo (FB-015, SEQUENCER_UX 1.2 and 9.1: "one EDIT tap away from coming back"). A UndoRec with what = 8: idx = the step, ed[0] =
+ * the step as it was; sq_undo swaps it, so the same call again redoes. Called BEFORE a changing write. Inside a session opened by
+ * sq_note_edit_begin on this step, the first write takes the record (from the snapshot made at begin) and the later writes share it; any
+ * other write, tap or clear is a record of its own (the last change wins, 9.1). */
+static void sq_edit_record(uint8_t ch, uint8_t p)
+{   UndoRec *u;
+    StepEdit was;
+    uint8_t join;
+    sq_chan_sync();                                                   /* (a load that landed ends the session: decide after it) */
+    join = (uint8_t)(sq_ne_state && sq_ne_ch == ch && sq_ne_p == p);
+    if (join && sq_ne_state == 2) return;                             /* the session's record is already in place */
+    was = join ? sq_ne_snap : sq_ch[ch].ed[p];
+    sq_undo_new(ch);                                                  /* ends any session */
+    u = &sq_undo_rec[ch];
+    u->what = 8; u->idx = p; u->ed[0] = was;
+    if (join) sq_ne_state = 2; }
+
 /* One field of one step (1.1 / 1.2: NOTE EDIT, or RESET + that field's control). v = SQ_AUTO clears the field. Returns 1 when written.
  * ON 0 OFF / 1 ON; PITCH 0..96 semitones above 36 + KEY (unsnapped, SP6 snaps at play); OCT -2..+2 (0 is stored as AUTO's "no shift");
  * GATE 10..100 in steps of 10, or SQ_GATE_TIE; VEL 1..127; RATCH 1..4 (1x..4x); SLIDE 0 OFF / 1 ON; PROB 100 or 50. A set step
  * marks its page as holding content (pg_used). */
 static uint8_t sq_step_set(uint8_t ch, uint8_t p, uint8_t field, int16_t v)
-{   StepEdit *e;
+{   StepEdit n, *e;
     uint8_t oc;
     if (ch >= SQ_NCH || field >= SQ_F_NFIELD || p >= SQ_NSTEP || p >= sq_ch[ch].len) return 0;
     e = &sq_ch[ch].ed[p];
@@ -279,16 +363,20 @@ static uint8_t sq_step_set(uint8_t ch, uint8_t p, uint8_t field, int16_t v)
         default:         if (v != 100 && v != 50) return 0; break;   /* PROB */
         }
     }
+    n = *e;
     switch (field) {
-    case SQ_F_ON:    e->fl = (uint8_t)((e->fl & ~3u) | (v == SQ_AUTO ? 0u : v == 1 ? 1u : 2u)); break;
-    case SQ_F_PITCH: e->note = (uint8_t)(v == SQ_AUTO ? 0u : 0x80u | (uint8_t)v); break;
-    case SQ_F_OCT:   oc = (uint8_t)(v == SQ_AUTO ? 0u : (uint8_t)(v + 3)); e->fl = (uint8_t)((e->fl & 0x1Fu) | (uint8_t)(oc << 5)); break;
-    case SQ_F_GATE:  e->gr = (uint8_t)((e->gr & 0xF0u) | (v == SQ_AUTO ? 0u : v == SQ_GATE_TIE ? 11u : (uint8_t)(v / 10))); break;
-    case SQ_F_VEL:   e->vel = (uint8_t)(v == SQ_AUTO ? 0u : v); break;
-    case SQ_F_RATCH: e->gr = (uint8_t)((e->gr & 0x8Fu) | (uint8_t)((v == SQ_AUTO ? 0 : v) << 4)); break;
-    case SQ_F_SLIDE: e->fl = (uint8_t)((e->fl & ~0x0Cu) | (v == SQ_AUTO ? 0u : v == 1 ? 4u : 8u)); break;
-    default:         e->fl = (uint8_t)((e->fl & ~0x10u) | (v == 50 ? 0x10u : 0u)); break;
+    case SQ_F_ON:    n.fl = (uint8_t)((n.fl & ~3u) | (v == SQ_AUTO ? 0u : v == 1 ? 1u : 2u)); break;
+    case SQ_F_PITCH: n.note = (uint8_t)(v == SQ_AUTO ? 0u : 0x80u | (uint8_t)v); break;
+    case SQ_F_OCT:   oc = (uint8_t)(v == SQ_AUTO ? 0u : (uint8_t)(v + 3)); n.fl = (uint8_t)((n.fl & 0x1Fu) | (uint8_t)(oc << 5)); break;
+    case SQ_F_GATE:  n.gr = (uint8_t)((n.gr & 0xF0u) | (v == SQ_AUTO ? 0u : v == SQ_GATE_TIE ? 11u : (uint8_t)(v / 10))); break;
+    case SQ_F_VEL:   n.vel = (uint8_t)(v == SQ_AUTO ? 0u : v); break;
+    case SQ_F_RATCH: n.gr = (uint8_t)((n.gr & 0x8Fu) | (uint8_t)((v == SQ_AUTO ? 0 : v) << 4)); break;
+    case SQ_F_SLIDE: n.fl = (uint8_t)((n.fl & ~0x0Cu) | (v == SQ_AUTO ? 0u : v == 1 ? 4u : 8u)); break;
+    default:         n.fl = (uint8_t)((n.fl & ~0x10u) | (v == 50 ? 0x10u : 0u)); break;
     }
+    if (n.note != e->note || n.vel != e->vel || n.gr != e->gr || n.fl != e->fl) {   /* a write that changes nothing takes no undo record */
+        sq_edit_record(ch, p);
+        *e = n; }
     sq_ch[ch].pg_used |= (uint8_t)(1u << (p / SQ_PAGE));
     return 1; }
 
@@ -302,14 +390,26 @@ static uint8_t sq_step_tap(uint8_t ch, uint8_t p)
     gen = sq_gen_hit(ch, p);
     cur = (uint8_t)((e->fl & 3u) == 0u ? gen : (uint8_t)((e->fl & 3u) == 1u));
     want = (uint8_t)!cur;
+    sq_edit_record(ch, p);                                            /* a tap always changes the ON field */
     e->fl = (uint8_t)((e->fl & ~3u) | (want == gen ? 0u : want ? 1u : 2u));
     sq_ch[ch].pg_used |= (uint8_t)(1u << (p / SQ_PAGE));
     return 1; }
 
 /* RESET + key (1.2): every field of one step back to AUTO. */
 static uint8_t sq_step_clear(uint8_t ch, uint8_t p)
-{   if (ch >= SQ_NCH || p >= SQ_NSTEP || p >= sq_ch[ch].len) return 0;
+{   const StepEdit *e;
+    if (ch >= SQ_NCH || p >= SQ_NSTEP || p >= sq_ch[ch].len) return 0;
+    e = &sq_ch[ch].ed[p];
+    if (e->note | e->vel | e->gr | e->fl) sq_edit_record(ch, p);      /* an AUTO step is already clear: no record, the older one stays */
     memset(&sq_ch[ch].ed[p], 0, sizeof(StepEdit));
+    return 1; }
+
+/* Opens a NOTE_EDIT session on step p (SEQUENCER_UX U16): remembers the step; the first sq_step_set / sq_step_clear that changes it takes the
+ * undo record (one for the whole session), so a visit alone does not replace an older record. A step the LENGTH hides is refused. */
+static uint8_t sq_note_edit_begin(uint8_t ch, uint8_t p)
+{   if (ch >= SQ_NCH || p >= SQ_NSTEP || p >= sq_ch[ch].len) return 0;
+    sq_chan_sync();
+    sq_ne_ch = ch; sq_ne_p = p; sq_ne_snap = sq_ch[ch].ed[p]; sq_ne_state = 1;
     return 1; }
 
 /* RESET + REC (1.2): the viewed page's edits to AUTO. Its content flag goes too (1.6: a cleared page is copied again when extended),
@@ -404,7 +504,7 @@ static void sq_defaults(SeqPreset *p)                                 /* the pow
  * sets sq_ready (cut-over, P4-012). Call before the ISR runs sq_block. */
 static void sq_boot(void)
 {   sq_default_global(&sq_gdb[0]); sq_gdb[1] = sq_gdb[0];
-    sq_gidx = 0; sq_load_pending = 0; sq_um_valid = 0; sq_stage_valid = 0;
+    sq_gidx = 0; sq_load_pending = 0; sq_um_valid = 0; sq_stage_valid = 0; sq_ne_state = 0;
     memset(sq_undo_rec, 0, sizeof sq_undo_rec);
     sq_default_harm(&sq_harm); sq_bpm = SQ_BPM_DEFAULT;
     for (uint8_t c = 0; c < SQ_NCH; c++) {
@@ -508,7 +608,7 @@ static void sq_chan_sync(void)
 {   if (sq_epoch == sq_seen_epoch) return;
     sq_seen_epoch = sq_epoch;
     memset(sq_undo_rec, 0, sizeof sq_undo_rec);
-    sq_um_valid = 0;
+    sq_um_valid = 0; sq_ne_state = 0;
     if (sq_stage_valid) { sq_harm = sq_stage_harm; sq_bpm = sq_stage_bpm; memcpy(sq_smod, sq_stage_smod, sizeof sq_smod); sq_stage_valid = 0; }
     for (uint8_t c = 0; c < SQ_NCH; c++) (void)sq_rebuild(c);        /* a dice or undo while the load was pending changed s_mod; the staged smod replaced it above */
 }

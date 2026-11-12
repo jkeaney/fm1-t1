@@ -22,6 +22,7 @@ The home page the device boots into: the selected channel's lane, step keys tap 
 ## Deliverable
 - ui_sq.c PERF page: lane with playhead and FOLLOW, step key handling (U14 tap, hold -> NOTE_EDIT named `hold=EDIT`), PG-/PG+, PLAY/STOP via the transport request flag, channel cells Z1, preview of the selected channel
 - tests/ui_sq_test.c: cases for this page (input sequence -> sq_* API calls and screen strings) and PNG renders in build/ui_sq/
+- Live checklist item for the HW-1 sheet (FB-015): on AF_PAIRING algorithms (ACID) a tap or an ON edit made during step p-1 is heard from the next pass, not at step p: the pairing snapshot is taken one step ahead, the same one-step latency the old slide pairing had. Not a bug; confirm it feels acceptable.
 
 ## Acceptance criteria
 - [ ] Scenario S01 steps 1-6 reproduce in the host test (screen strings and API calls)
