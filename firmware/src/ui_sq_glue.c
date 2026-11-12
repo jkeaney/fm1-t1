@@ -9,7 +9,8 @@
  *                      in which case its tempo goes the other way.
  *   ui_sq_poll()       every frame from ui_input(): keeps the screen and the selected channel in step (sq_sel is the ISR's copy).
  *   ui_sq_controls()   the frame's input while the sequencer screen has the panel. P4-012 wires the transport (PLAY) and the page
- *                      dispatch (ui_sq_input). P4-013 wires the PERF page (ui_sq.c): SELECT (channel, one past the last adds), the M keys (tap mute,
+ *                      dispatch (ui_sq_input). P4-015 wires the CHAN page: the CHN key (inside ui_sq_keys), K1-K4 / OCT / SELECT by page, the ALGO encoder (ui_sq_algo_turn) and
+ *                      PLAY / GLO / REC / SAVE as exits (ui_sq_other_button). P4-013 wires the PERF page (ui_sq.c): SELECT (channel, one past the last adds), the M keys (tap mute,
  *                      hold preview, held 1.5 s remove), the white keys (tap step ON/OFF, held 0.4 s NOTE_EDIT), PG-/PG+, K1-K4 (sq_morph_turn),
  *                      the dice buttons, EDIT (undo / redo) and OCT-/OCT+ (the knob row). P4-014 wires the NOTE_EDIT page through the same calls (the buttons and
  *                      knobs route by page inside ui_sq.c) plus ui_sq_home for HOME. The keys stay silent (song.grid 2). ALGO and PRESETS
@@ -33,6 +34,8 @@ static void ui_sq_poll(void)
 static void ui_sq_controls(uint32_t pressed, uint32_t notes)
 {   static const uint8_t pb[9] = { B_FX, B_SCL, B_ENV, B_LFO, B_EDIT, B_ARP, B_SEQ, B_OCTDN, B_OCTUP };            /* the panel buttons the PERF page reads ... */
     static const uint8_t pc[9] = { UI_C_B_FX, UI_C_B_SCL, UI_C_B_ENV, UI_C_B_LFO, UI_C_B_EDIT, UI_C_B_ARP, UI_C_B_SEQ, UI_C_B_OCTDN, UI_C_B_OCTUP };   /* ... and their control ids */
+    static const uint8_t po[4]  = { B_PLAY, B_GLO, B_REC, B_SAVE };
+    static const uint8_t poc[4] = { UI_C_B_PLAY, UI_C_B_GLO, UI_C_B_REC, UI_C_B_SAVE };
     uint32_t k;
     (void)notes;                                        /* the key EDGES are not used: ui_sq_keys() diffs the held state itself */
     song.grid = 2;                                      /* the keys never sound by themselves: a key is a step, an M key, a page key (PERF page) */
@@ -42,7 +45,9 @@ static void ui_sq_controls(uint32_t pressed, uint32_t notes)
         if ((pressed >> panel.btn[pb[k]]) & 1u) ui_sq_button(pc[k]);
     for (k = 0; k < 4u; k++) ui_sq_knob((uint8_t)k, panel_enc(EN_K1 + k));
     ui_sq_select_turn(panel_enc(EN_SELECT));
-    (void)panel_enc(EN_ALGO);                           /* (the ALGO page task) */
+    for (k = 0; k < 4u; k++)                            /* the buttons with no page behaviour yet: on CHAN they are an exit for the pending MIDI channel (P4-015) */
+        if ((pressed >> panel.btn[po[k]]) & 1u) ui_sq_other_button(poc[k]);
+    ui_sq_algo_turn(panel_enc(EN_ALGO));                /* CHAN: the algorithm picker (P4-015); PERF's is P4-032's */
     (void)panel_enc(EN_PRESET);
     ui_sq_keys(fm1_in.notes);
     ui_sq_home((uint8_t)((fm1_in.buttons >> panel.btn[B_HOME]) & 1u));   /* HOME tap leaves NOTE_EDIT (a hold is the MENU's: ui_input.c never gets here) */

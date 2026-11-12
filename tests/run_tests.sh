@@ -189,6 +189,10 @@ run "PERF page controls: tap step ON/OFF, hold 0.4 s NOTE_EDIT, M key tap/previe
 ${CC%% *} -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/ui_sq_note_test" tests/ui_sq_note_test.c -lm
 run "NOTE_EDIT page: open by hold, K1-K4 AUTO / set, layer buttons, OCT, EDIT undo / redo, move the editor, HOME / SELECT leave and close the session, field bounds, strings fit; PNGs in build/ui_sq/note_*" "$OUT/ui_sq_note_test" build/ui_sq
 
+# CHAN page (P4-015): D#4 opens it, K2 MIDI with the 0.6 s settle and the commit on every exit, the unique-channel steal (toast, other channel OFF, one EDIT undo), OFF, K1 LENGTH clamp and page count change, -PAGE / +PAGE, FOLLOW, the ALGO encoder, SELECT without add, bounds; PNGs in build/ui_sq/chan_*
+${CC%% *} -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/ui_sq_chan_test" tests/ui_sq_chan_test.c -lm
+run "CHAN page: D#4 open / close, K2 MIDI settle + commit on every exit, MIDI steal toast + one EDIT undo, OFF, LENGTH clamp + page count, -PAGE / +PAGE, FOLLOW, ALGO picker, SELECT without add, pending-value bounds; PNGs in build/ui_sq/chan_*" "$OUT/ui_sq_chan_test" build/ui_sq
+
 # Algorithm UI descriptor (P4-027, ADR-0007): the real ui_sq.c draws the knob tiles of ACID (real row) and a dummy DEMO row through the descriptor alone
 ${CC%% *} -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/sq_algodesc_test" tests/sq_algodesc_test.c -lm
 run "algorithm UI descriptor: value text / one font / dots / short name from AlgoDesc, a dummy algorithm's knob tiles through ui_sq.c unchanged" "$OUT/sq_algodesc_test"
