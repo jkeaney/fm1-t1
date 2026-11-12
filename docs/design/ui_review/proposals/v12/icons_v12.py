@@ -148,3 +148,58 @@ from el import IC as _IC
 ICONS["spkx"] = _IC["spkx"]   # the muted speaker (el.py), for the remove-channel hold
 for _n in ("left", "right", "rst"):   # P4-029: the black-key glyphs PG- PG+ RST / BACK (el.py), so the firmware table has them too
     ICONS[_n] = _IC[_n]
+
+
+# ---- P4-014: the NOTE_EDIT layer buttons. The die is "re-roll the pattern"; open corner brackets are "this one step" (the white step frame of the lane and the
+# key). Inner glyphs of FX / SCL / ENV are the dice's own (same idea at step level); SLIDE, PROB, ON/OFF are new. 13 x 13, 2 px strokes, brackets 3 px arms.
+STEP_FRAME = ["###.......###", "##.........##", "##.........##", "#...........#", ".............", ".............", ".............",
+              ".............", ".............", "#...........#", "##.........##", "##.........##", "###.......###"]
+
+
+def step(inner):
+    """inner: 9 rows of 9 chars placed at (2,2) inside the step brackets"""
+    rows = [list(r) for r in STEP_FRAME]
+    for j, r in enumerate(inner.strip("\n").split("\n")):
+        for i, c in enumerate(r):
+            if c == "#":
+                rows[2 + j][2 + i] = "#"
+    return "\n".join("".join(r) for r in rows)
+
+
+def _inner(name):      # the 9 x 9 inside of a die icon (die(): inner at (2,2))
+    return "\n".join(r[2:11] for r in ICONS[name].strip("\n").split("\n")[2:11])
+
+
+ICONS["step_all"] = step(_inner("dice_all"))
+ICONS["step_notes"] = step(_inner("dice_notes"))
+ICONS["step_accnt"] = step(_inner("dice_accnt"))
+ICONS["step_slide"] = step("""
+.........
+......##.
+......##.
+.....##..
+....##...
+.##.##...
+.##.#....
+.........
+.........""")
+ICONS["step_prob"] = step("""
+.........
+.##...##.
+.##..##..
+....##...
+...##....
+..##..##.
+.##...##.
+.........
+.........""")
+ICONS["step_onoff"] = step("""
+.........
+.........
+..#####..
+..#####..
+..#####..
+..#####..
+..#####..
+.........
+.........""")

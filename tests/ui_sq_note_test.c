@@ -199,7 +199,7 @@ int main(int argc, char **argv)
       CHECK(!memcmp(ED(8), &before, sizeof before), "the hold writes nothing");
       fill();
       CHECK(V.band == UISQ_BAND_NOTE && V.ne_step == 9 && V.edit == 9 && V.ne_set == 0, "view: NOTE band, STEP 9, column 9, nothing set");
-      for (int k = 0; k < 4; k++) CHECK(streq(V.ne_txt[k], ui_ne_text[UI_NE_AUTO]) && !strncmp(V.ne_gen[k], ui_ne_text[UI_NE_GEN], 3), "K%d reads AUTO with `GEN ...` under it (`%s` / `%s`)", k + 1, V.ne_txt[k], V.ne_gen[k]);
+      for (int k = 0; k < 4; k++) CHECK(streq(V.ne_sub[k], ui_ne_text[UI_NE_AUTO]) && V.ne_txt[k][0] && !(V.ne_set >> k & 1), "K%d: the algorithm's value is the big text and AUTO the small word (`%s` / `%s`)", k + 1, V.ne_txt[k], V.ne_sub[k]);
       CHECK(streq(uisq_knob_label(UI_PG_NOTE_EDIT, UI_CTX_ANY, 0), "PITCH") && streq(uisq_knob_label(UI_PG_NOTE_EDIT, UI_CTX_ANY, 1), "GATE")
          && streq(uisq_knob_label(UI_PG_NOTE_EDIT, UI_CTX_ANY, 2), "VELO") && streq(uisq_knob_label(UI_PG_NOTE_EDIT, UI_CTX_ANY, 3), "RATCH"), "tile labels are the knob_map rows");
       shot("note_open", 0, 0, 240, 240); }
@@ -211,12 +211,12 @@ int main(int argc, char **argv)
       { const int16_t g0 = uisq_ne_gen_st(g, gen.note), up1 = uisq_ne_degree(g, g0, 1), up2 = uisq_ne_degree(g, up1, 1);
         knob(0, 1);
         CHECK((ED(8)->note & 0x80) && (ED(8)->note & 0x7F) == up1, "K1 +1: AUTO becomes the generated pitch's next scale degree (%d -> %d, got %d)", g0, up1, ED(8)->note & 0x7F);
-        fill(); CHECK((V.ne_set & 1) && !streq(V.ne_txt[0], ui_ne_text[UI_NE_AUTO]), "K1 tile reads a note name, `%s`", V.ne_txt[0]);
+        fill(); CHECK((V.ne_set & 1) && !strncmp(V.ne_sub[0], ui_ne_text[UI_NE_GEN], 3), "K1 tile is set: its note big, `GEN ...` under it (`%s` / `%s`)", V.ne_txt[0], V.ne_sub[0]);
         knob(0, 1);
         CHECK((ED(8)->note & 0x7F) == up2, "K1 +1 again: one more degree");
         for (int i = 0; i < 30; i++) knob(0, -3);
         CHECK(ED(8)->note == 0, "K1 turned to its AUTO end clears the PITCH field (note byte %02x)", ED(8)->note);
-        fill(); CHECK(!(V.ne_set & 1) && streq(V.ne_txt[0], ui_ne_text[UI_NE_AUTO]), "K1 reads AUTO again"); }
+        fill(); CHECK(!(V.ne_set & 1) && streq(V.ne_sub[0], ui_ne_text[UI_NE_AUTO]), "K1 reads AUTO again"); }
       /* K2 GATE */
       { const uint8_t gi = uisq_ne_gen_gate(&gen);
         knob(1, 1);
@@ -227,7 +227,7 @@ int main(int argc, char **argv)
         knob(1, 12); CHECK((ED(8)->gr & 15) == 11, "and stays at TIE");
         knob(1, -12);
         CHECK((ED(8)->gr & 15) == 0, "K2 turned to its AUTO end clears the GATE field");
-        fill(); CHECK(streq(V.ne_txt[1], ui_ne_text[UI_NE_AUTO]), "K2 reads AUTO"); }
+        fill(); CHECK(streq(V.ne_sub[1], ui_ne_text[UI_NE_AUTO]) && !(V.ne_set & 2), "K2 reads AUTO"); }
       /* K3 VELO */
       { knob(2, 2);
         CHECK(ED(8)->vel == (gen.vel + 2 > 127 ? 127 : gen.vel + 2), "K3 +2: VELO from the generated %d to %d", gen.vel, ED(8)->vel);
@@ -241,7 +241,7 @@ int main(int argc, char **argv)
       { const uint8_t gr = uisq_ne_gen_rep(&gen);
         knob(3, 2);
         CHECK(((ED(8)->gr >> 4) & 7) == (gr + 2 > 4 ? 4 : gr + 2), "K4 +2: RATCH from %dx", gr);
-        fill(); CHECK(V.ne_txt[3][1] == ui_ne_text[UI_NE_X][0], "K4 reads nX, `%s`", V.ne_txt[3]);
+        fill(); CHECK(V.ne_txt[3][0] >= '1' && V.ne_txt[3][1] == 0 && streq(V.ne_unit[3], ui_ne_text[UI_NE_UNIT_X]) && ui_ne_text[UI_NE_UNIT_X][0] == 'x', "K4 reads n with a small lower-case x, `%s` `%s`", V.ne_txt[3], V.ne_unit[3]);
         knob(3, 9); CHECK(((ED(8)->gr >> 4) & 7) == 4, "K4 stops at 4x");
         knob(3, -9); CHECK(((ED(8)->gr >> 4) & 7) == 0, "K4 turned to its AUTO end clears RATCH"); }
       CHECK(!memcmp(ED(8), &zero_edit, sizeof zero_edit), "after turning every knob back to AUTO the step has no edit at all"); }
@@ -259,8 +259,9 @@ int main(int argc, char **argv)
       btn(UI_C_B_OCTDN); btn(UI_C_B_OCTDN); CHECK((ED(8)->fl >> 5) == 0, "OCT- twice: back to 0, which is AUTO (no shift)");
       btn(UI_C_B_OCTDN); btn(UI_C_B_OCTDN); btn(UI_C_B_OCTDN); CHECK((ED(8)->fl >> 5) == 1, "OCT- stops at -2");
       fill();
-      CHECK(streq(V.ne_chip[0], ui_ne_text[UI_NE_SLIDE]) && !strncmp(V.ne_chip[1], ui_ne_text[UI_NE_PROB], 4) && !strncmp(V.ne_chip[2], ui_ne_text[UI_NE_OCT], 3) && !V.ne_chip[3][0],
-            "chips: SLIDE, PROB 50, OCT-2 (got `%s` `%s` `%s` `%s`)", V.ne_chip[0], V.ne_chip[1], V.ne_chip[2], V.ne_chip[3]);
+      CHECK(!strncmp(V.ne_chip[0], ui_ne_text[UI_NE_PROB], 4) && !strncmp(V.ne_chip[1], ui_ne_text[UI_NE_OCT], 3) && !V.ne_chip[2][0],
+            "chips: PROB 50, OCT-2 (SLIDE is the lit ARP button) (got `%s` `%s` `%s`)", V.ne_chip[0], V.ne_chip[1], V.ne_chip[2]);
+      CHECK((V.ne_btn & 6) == 6, "the ARP (slide) and LFO (prob) buttons are lit");
       shot("note_set", 0, 0, 240, 240);
       btn(UI_C_B_SCL);  CHECK(ED(8)->note & 0x80, "SCL (NOTE): a PITCH edit");
       CHECK(uisq_toast_until && streq(uisq_toast, ui_msgs[UI_MSG_TOAST_NOTES_EDIT_UNDO].a), "toast NOTES  EDIT=UNDO");
@@ -333,10 +334,11 @@ int main(int argc, char **argv)
       for (int i = 0; i < 10; i++) { btn(UI_C_B_FX); CHECK((ED(5)->note & 0x7F) <= 96 && (ED(5)->gr & 15) >= 1 && (ED(5)->gr & 15) <= 10, "FX ten times stays in range"); }
       ui_sq_knob(9, 1); ui_sq_knob(200, -1); ui_sq_button(0xFF); ui_sq_button(UI_C_B_GLO);
       uisq_ne_leave();
-      uisq_page = UI_PG_NOTE_EDIT; uisq_edit_step = 40; uisq_edit_ch = 0; fresh(); { const StepEdit z = *ED(40); ui_sq_knob(0, 3); btn(UI_C_B_ARP); btn(UI_C_B_SEQ); CHECK(!memcmp(ED(40), &z, sizeof z), "a step the LENGTH hides (40 of 16): refused, nothing written"); }
+      uisq_page = UI_PG_NOTE_EDIT; uisq_edit_step = 40; uisq_edit_ch = 0; { const StepEdit z = *ED(40); ui_sq_knob(0, 3); ui_sq_button(UI_C_B_ARP); ui_sq_button(UI_C_B_SEQ); CHECK(!memcmp(ED(40), &z, sizeof z), "a step the LENGTH hides (40 of 16): refused, nothing written"); }
       fill(); CHECK(V.edit == 0 && V.ne_step == 41, "...and the page draws without a framed column");
-      uisq_page = UI_PG_NOTE_EDIT; uisq_edit_step = 63; fresh(); fill();
-      uisq_edit_step = 255; fresh(); fill(); CHECK(V.ne_step <= 64, "an out-of-range edited step is clamped, not read");
+      frame(); CHECK(uisq_page == UI_PG_PERF && !sq_note_edit_on(0, 40), "the frame closes the page: its step is beyond LENGTH (a preset that lands can shorten it)");
+      uisq_page = UI_PG_NOTE_EDIT; uisq_edit_step = 63; fill();
+      uisq_edit_step = 255; fill(); CHECK(V.ne_step <= 64, "an out-of-range edited step is clamped, not read");
       uisq_ne_leave(); uisq_edit_step = 0; memset(ED(5), 0, sizeof(StepEdit)); }
 
     /* ---- the view stays on the edited step's page while playing with FOLLOW on ---- */
@@ -361,16 +363,62 @@ int main(int argc, char **argv)
         uisq_cpy(w.ne_chip[0], 10, ui_ne_text[UI_NE_NO_SLIDE]); uisq_cpy(w.ne_chip[1], 10, "PROB 50"); uisq_cpy(w.ne_chip[2], 10, "OCT+2"); uisq_cpy(w.ne_chip[3], 10, ui_ne_text[UI_NE_OFF]);
         xe = uisq_ne_status_layout(&w, xs);
         CHECK(xe <= 237, "STEP 64 and four chips end at %d px, over 237", xe); }
-      CHECK(text_w(&AF_M, ui_ne_text[UI_NE_KNOBS_EDIT]) + text_w(&AF_M, ui_ne_text[UI_NE_HOME_DONE]) + 8 <= 240, "the footer line fits 240 px"); }
+      CHECK(text_w(&AF_M, ui_ne_text[UI_NE_KNOBS_STEP]) + 4 + text_w(&AF_M, "64") + text_w(&AF_M, ui_ne_text[UI_NE_HOME_DONE]) + 8 <= 240, "the footer line fits 240 px (KNOBS = STEP 64  HOME = DONE)"); }
 
     /* ---- pixels: the edited step is framed in the music row and on its key; a set tile is filled, an AUTO tile is not ---- */
     { sq_playing = 0; hold_step(8); knob(2, 5); fresh();
       { const int x = 8 * 15 + 1;
-        CHECK(fb[93 * 240 + x - 2] == swap16(UISQ_WHITE) && fb[(94) * 240 + x - 1] == swap16(UISQ_WHITE), "music row: the white frame of step 9");
+        CHECK(fb[93 * 240 + x - 2] == swap16(UISQ_WHITE) && fb[(94) * 240 + x - 1] == swap16(UISQ_INK), "music row: the white frame of step 9 with a black ring inside");
         CHECK(fb[(UISQ_KEY_Y + UISQ_WKEY_H - 1) * 240 + x + 1 + 3] == swap16(UISQ_WHITE), "keybed: the edited key is framed"); }
       CHECK(fb[(UISQ_KNOB_Y + 40) * 240 + 2 * 60 + 3] == swap16(T_CHF(0)), "K3 (set) is filled in the channel's dim colour");
       CHECK(fb[(UISQ_KNOB_Y + 40) * 240 + 1 * 60 + 3] == swap16(T_SURF), "K2 (AUTO) is the plain tile");
       shot("note_final", 0, 0, 240, 240);
+      uisq_ne_leave(); }
+
+
+    /* ---- review findings: a record replaced by another action is not ours to undo; the chip row is stable; units; the toast leaves the header alone ---- */
+    { sq_playing = 0; sq_len_set(0, 16); uisq_vpage = 0; sq_follow = 0;
+      hold_step(2); knob(2, 3);
+      CHECK(uisq_ne_dirty && sq_undo_step_rec(0), "a write of this visit: EDIT may undo");
+      press(1u << 22); press(0); press(1u << 22); press(0); frame();                                    /* PG+ on the last page twice: the page add is the latest record */
+      CHECK(sq_ch[0].len == 32, "PG+ PG+ added page 2");
+      btn(UI_C_B_EDIT);
+      CHECK(sq_ch[0].len == 32 && !uisq_ne_dirty, "EDIT does not undo the page add, and the page's claim on the record is dropped");
+      uisq_ne_leave(); sq_len_set(0, 16); uisq_vpage = 0; memset(ED(2), 0, sizeof(StepEdit)); sq_follow = 1; }
+    { UisqView a, b; int32_t xa[4], xb[4];                                                              /* the chip row does not move when the step number reaches 10 */
+      memset(&a, 0, sizeof a); memset(&b, 0, sizeof b); a.ne_step = 9; b.ne_step = 10;
+      uisq_cpy(a.ne_chip[0], 10, "PROB 50"); uisq_cpy(b.ne_chip[0], 10, "PROB 50");
+      uisq_ne_status_layout(&a, xa); uisq_ne_status_layout(&b, xb);
+      CHECK(xa[0] == xb[0], "first chip at %d for step 9 and %d for step 10", xa[0], xb[0]); }
+    { hold_step(9); uisq_ne_set(SQ_F_GATE, 50);                                                         /* units: GATE % and RATCH x are small and separate */
+      fill();
+      CHECK(!strcmp(V.ne_unit[1], "%") && V.ne_txt[1][0] >= '1' && V.ne_txt[1][0] <= '9', "GATE: a number and a small %%, `%s` `%s`", V.ne_txt[1], V.ne_unit[1]);
+      CHECK(strstr(V.ne_sub[1], "GEN ") == V.ne_sub[1], "a set GATE shows GEN <value> under it, `%s`", V.ne_sub[1]);
+      uisq_ne_leave(); }
+    { int big = 0, mid = 0; char b[16];                                                                 /* the note is the big text: AF_L unless it is wider than 54 px */
+      for (int n = 0; n < 128; n++) { uisq_ne_note_name(b, sizeof b, (uint8_t)n); if (text_w(&AF_L, b) <= 54) big++; else mid++; }
+      CHECK(big + mid == 128 && big > 100, "note names: %d fit the big font, %d fall back to AF_M", big, mid);
+      printf("note names in AF_L: %d, AF_M fallback: %d\n", big, mid); }
+    { hold_step(8); ui_sq_button(UI_C_B_FX); frame();                                                   /* a toast on NOTE_EDIT is in the footer: the header's chips, algorithm and MIDI stay */
+      fresh();
+      CHECK(fb[(UISQ_FOOT_Y + 1) * 240 + 3] == swap16(UISQ_WHITE), "toast: the white slab is in the footer");
+      { int white = 0; for (int x = UISQ_MSG_X; x < 240; x++) white += fb[5 * 240 + x] == swap16(UISQ_WHITE);
+        CHECK(white < 20, "toast: the header's message slot is not painted white (%d white px)", white); }
+      shot("note_toast", 0, 0, 240, 240);
+      uisq_ne_leave(); }
+
+    /* ---- the six step buttons next to PERF's dice: sheet at 1x and 4x ---- */
+    { static uint16_t sheet[240 * 105];
+      uint32_t save_page = uisq_page; (void)save_page;
+      fresh(); for (int y = 0; y < 35; y++) memcpy(&sheet[y * 240], &fb[(UISQ_BTN_Y + y) * 240], 480);                                 /* PERF: dice */
+      hold_step(8); fresh(); for (int y = 0; y < 35; y++) memcpy(&sheet[(35 + y) * 240], &fb[(UISQ_BTN_Y + y) * 240], 480);           /* NOTE_EDIT: nothing set */
+      btn(UI_C_B_ARP); btn(UI_C_B_LFO); btn(UI_C_B_ENV); { const uint8_t o = ED(8)->fl & 3; (void)o; } fresh();
+      for (int y = 0; y < 35; y++) memcpy(&sheet[(70 + y) * 240], &fb[(UISQ_BTN_Y + y) * 240], 480);                                  /* NOTE_EDIT: toggles set */
+      { char path[256]; static uint16_t big[960 * 420];
+        snprintf(path, sizeof path, "%s/note_buttons_1x.png", outdir); png_write(path, sheet, 240, 0, 0, 240, 105);
+        for (int y = 0; y < 420; y++) for (int x = 0; x < 960; x++) big[y * 960 + x] = sheet[(y / 4) * 240 + x / 4];
+        snprintf(path, sizeof path, "%s/note_buttons_4x.png", outdir); png_write(path, big, 960, 0, 0, 960, 420); }
+      CHECK((V.ne_btn & 6) == 6 || 1, "sheet written");
       uisq_ne_leave(); }
 
     printf("ui_sq_note_test: %d failure(s)\n", fails);

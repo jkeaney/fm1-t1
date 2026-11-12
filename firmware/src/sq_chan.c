@@ -418,6 +418,9 @@ static uint8_t sq_note_edit_begin(uint8_t ch, uint8_t p)
  * other undoable action, an EDIT undo or a landed preset ends it silently and the page must then open it again before its next write. */
 static void sq_note_edit_end(void) { sq_ne_state = 0; }
 static uint8_t sq_note_edit_on(uint8_t ch, uint8_t p) { return (uint8_t)(sq_ne_state && sq_ne_ch == ch && sq_ne_p == p); }
+/* sq_undo_step_rec: the latest undo record of the channel is a STEP record (what = 8) and no MIDI-channel record has replaced it: EDIT on NOTE_EDIT may
+ * swap it. A dice, a page add or a landed preset has replaced or cleared it (what != 8), and then EDIT there must do nothing. */
+static uint8_t sq_undo_step_rec(uint8_t ch) { return (uint8_t)(ch < SQ_NCH && !sq_um_valid && sq_undo_rec[ch].what == 8u && sq_undo_rec[ch].algo < SQ_NALGO); }
 
 /* RESET + REC (1.2): the viewed page's edits to AUTO. Its content flag goes too (1.6: a cleared page is copied again when extended),
  * except on page 1, which always holds content. Undoable (one page). */

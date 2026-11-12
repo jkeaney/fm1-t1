@@ -317,3 +317,7 @@ S	136	CHN CH2 SETUP	message slot, page title
 S	136	REMOVE CH4	message slot, hold hint
 S	136	PREVIEW CH4	message slot, hold hint
 S	136	HELP / MENU	message slot, hold hint
+M	99	HOME = DONE	NOTE_EDIT footer right (P4-014)
+S	104	HOLD KEY = MOVE	NOTE_EDIT status line right (P4-014): beside STEP n and the chips
+S	58	GEN G#-1	NOTE_EDIT tile sub line (P4-014): 58 px tile
+S	58	GEN 100	NOTE_EDIT tile sub line (P4-014)

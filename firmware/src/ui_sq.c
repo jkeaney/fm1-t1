@@ -316,23 +316,23 @@ static void ui_sq_new_set(uint8_t ch, uint8_t on) { if (ch < SQ_NCH) { if (on) u
 
 /* ---- lane data: the resolved view of the 16 steps of the viewed page (sq_eval, as the scheduler resolves them) ---- */
 typedef struct { uint8_t on, vel, ed, acc, slide, rep, note; } UisqStep;
-static void uisq_lane_read(UisqStep *L, uint8_t ch, uint8_t vpage)
+static void uisq_step_read(UisqStep *L, uint8_t ch, uint8_t p)      /* one step as the scheduler resolves it (zero when hidden by LENGTH or no cache) */
 {   const AlgoDesc *a = &ALGOS[sq_ch[ch].algo % SQ_NALGO];
     const uint8_t ci = sq_cidx[ch];
-    for (uint8_t n = 0; n < SQ_PAGE; n++) {
-        const uint8_t p = (uint8_t)(vpage * SQ_PAGE + n);
-        PulseOut o;
-        memset(&L[n], 0, sizeof L[n]);
-        if (p >= sq_ch[ch].len || p >= SQ_NSTEP || !a->step || sq_calgo[ch][ci] != sq_ch[ch].algo) continue;
-        memset(&o, 0, sizeof o);
-        sq_eval(ch, p, 0, a, sq_cache[ch][ci], &sq_gdb[sq_gidx], &o);
-        L[n].on = (uint8_t)((o.flags & PO_HIT) != 0u);
-        L[n].vel = o.vel;
-        L[n].note = o.note;
-        L[n].acc = (uint8_t)(o.vel >= 100u);
-        L[n].rep = (uint8_t)(((o.flags & PO_REP_MASK) >> PO_REP_SHIFT) + 1u);
-        L[n].slide = (uint8_t)(((sq_ch[ch].ed[p].fl >> 2) & 3u) == 1u);
-        L[n].ed = (uint8_t)((sq_ch[ch].ed[p].note | sq_ch[ch].ed[p].vel | sq_ch[ch].ed[p].gr | sq_ch[ch].ed[p].fl) != 0u); } }
+    PulseOut o;
+    memset(L, 0, sizeof *L);
+    if (p >= sq_ch[ch].len || p >= SQ_NSTEP || !a->step || sq_calgo[ch][ci] != sq_ch[ch].algo) return;
+    memset(&o, 0, sizeof o);
+    sq_eval(ch, p, 0, a, sq_cache[ch][ci], &sq_gdb[sq_gidx], &o);
+    L->on = (uint8_t)((o.flags & PO_HIT) != 0u);
+    L->vel = o.vel;
+    L->note = o.note;
+    L->acc = (uint8_t)(o.vel >= 100u);
+    L->rep = (uint8_t)(((o.flags & PO_REP_MASK) >> PO_REP_SHIFT) + 1u);
+    L->slide = (uint8_t)(((sq_ch[ch].ed[p].fl >> 2) & 3u) == 1u);
+    L->ed = (uint8_t)((sq_ch[ch].ed[p].note | sq_ch[ch].ed[p].vel | sq_ch[ch].ed[p].gr | sq_ch[ch].ed[p].fl) != 0u); }
+static void uisq_lane_read(UisqStep *L, uint8_t ch, uint8_t vpage)
+{   for (uint8_t n = 0; n < SQ_PAGE; n++) uisq_step_read(&L[n], ch, (uint8_t)(vpage * SQ_PAGE + n)); }
 
 static uint8_t uisq_playhead(uint8_t ch)                           /* the step now sounding (ChanRT.p is the NEXT one), 255 = stopped */
 {   const uint8_t len = sq_ch[ch].len ? sq_ch[ch].len : 1u;
@@ -396,7 +396,7 @@ static void uisq_ne_vel_text(char *d, uint32_t n, uint8_t vel)
 {   d[0] = 0;
     if (vel >= UISQ_ACC_THR) uisq_cat(d, n, uisq_ne_w(UI_NE_ACC)); else uisq_catu(d, n, vel); }
 static void uisq_ne_rat_text(char *d, uint32_t n, uint8_t r)
-{   d[0] = 0; uisq_catu(d, n, r); uisq_cat(d, n, uisq_ne_w(UI_NE_X)); }
+{   d[0] = 0; uisq_catu(d, n, r); }
 static void uisq_ne_gen_line(char *d, uint32_t n, const char *v) { d[0] = 0; uisq_cat(d, n, uisq_ne_w(UI_NE_GEN)); uisq_cat(d, n, " "); uisq_cat(d, n, v); }
 
 /* the generated GATE field of a step: its gate rounded to the 10 % grid (at least 10), or TIE */
@@ -500,7 +500,8 @@ typedef struct {
     UisqStep lane[SQ_PAGE];                            /* the selected channel's 16 steps: on, note, acc, slide */
     /* ---- NOTE_EDIT (P4-014): the edited step as the tiles, the status line and the keybed draw it; all zero on the other pages ---- */
     uint8_t  edit, ne_step, ne_set;                    /* the edited step's column 1..16 of the viewed page (0 = not on it); its number 1..64; bit k = knob k is set (else AUTO) */
-    char     ne_txt[4][8], ne_gen[4][10];              /* per knob: the value (AUTO or the set value) and the generated one under it (`GEN F2`) */
+    char     ne_txt[4][8], ne_unit[4][2], ne_sub[4][12];   /* per knob: the BIG value (the set one, else the one the algorithm gives), its small unit (% / x) and the line under it (AUTO, or `GEN F2` for a set value) */
+    uint8_t  ne_btn;                                   /* the toggle buttons that are ON for the step: bit 0 ENV (accent), 1 LFO (prob), 2 ARP (slide), 3 SEQ (step on) */
     char     ne_chip[4][10];                           /* the step's other set fields, one chip each: ON/OFF, SLIDE, PROB 50, OCT+1 ("" = AUTO, no chip) */
     uint16_t btn_lit, btn_dim;                         /* P4-029: buttons pressed (inverted) and dice buttons whose layer the algorithm lacks (bit = panel index) */
     uint8_t  held_m, held_mv, cue;                     /* held mute key (1 + channel), held move key (1 SOL 2 FIL 3 ROL), the setup cue (new channel or MIDI OFF) */
@@ -554,6 +555,21 @@ static void uisq_msg_pick(UisqMsg *m, uint32_t now, uint8_t page, uint8_t sel)
     else if (page == UI_PG_CHAN) {                                     /* a page names itself while it is open */
         m->kind = UI_MK_TOUCH; uisq_cpy(m->a, sizeof m->a, "CHN"); uisq_cpy(m->b, sizeof m->b, "CH"); uisq_catu(m->b, sizeof m->b, (uint32_t)sel + 1u); uisq_cat(m->b, sizeof m->b, " SETUP"); } }
 
+static const char *uisq_ne_unit(uint8_t k, const char *val)                /* the small unit after a number: GATE %, RATCH x (the big font has neither); TIE and ACC have none */
+{   const uint8_t num = (uint8_t)(val[0] >= '0' && val[0] <= '9');
+    if (num && k == 1u) return uisq_ne_w(UI_NE_UNIT_PCT);
+    if (num && k == 3u) return uisq_ne_w(UI_NE_UNIT_X);
+    return ""; }
+/* one tile: `val` is the text of the set value, `gen` the one the algorithm gives; a set tile shows its own value big and `GEN <gen>` under it, an AUTO tile
+ * shows the generated value big (grey) and the word AUTO under it */
+static void uisq_ne_tile(UisqView *v, uint8_t k, uint8_t set, const char *val, const char *gen, uint8_t have)
+{   char b[12];
+    const char *shown = set ? val : gen;
+    if (set) v->ne_set |= (uint8_t)(1u << k);
+    if (set || have) { uisq_cpy(v->ne_txt[k], sizeof v->ne_txt[k], shown); uisq_cpy(v->ne_unit[k], sizeof v->ne_unit[k], uisq_ne_unit(k, shown)); }
+    if (!set) uisq_cpy(v->ne_sub[k], sizeof v->ne_sub[k], uisq_ne_w(UI_NE_AUTO));
+    else if (have) { uisq_ne_gen_line(b, sizeof b, gen); uisq_cat(b, sizeof b, uisq_ne_unit(k, gen)); uisq_cpy(v->ne_sub[k], sizeof v->ne_sub[k], b); } }
+
 /* the four tiles, the chips and the framed column of the edited step, into the view (all zero when the page is not NOTE_EDIT) */
 static void uisq_ne_fill(UisqView *v, uint8_t vp)
 {   const uint8_t ch = uisq_edit_ch < SQ_NCH ? uisq_edit_ch : 0u, p = uisq_edit_step < SQ_NSTEP ? uisq_edit_step : 0u;
@@ -561,29 +577,34 @@ static void uisq_ne_fill(UisqView *v, uint8_t vp)
     const SeqGlobal *g = &sq_gdb[sq_gidx];
     const uint8_t gt = (uint8_t)(e->gr & 15u), rt = (uint8_t)((e->gr >> 4) & 7u), on = (uint8_t)(e->fl & 3u), sl = (uint8_t)((e->fl >> 2) & 3u), oc = (uint8_t)(e->fl >> 5);
     PulseOut o;
-    char b[10];
+    char b[8], c[8];
+    UisqStep cur;
+    b[0] = 0;
     uint8_t have = uisq_ne_gen(ch, p, &o), nc = 0;
     v->ne_step = (uint8_t)(p + 1u);
     v->edit = (p / SQ_PAGE == vp) ? (uint8_t)(p % SQ_PAGE + 1u) : 0u;
-    /* K1 PITCH */
-    if (e->note & 0x80u) { v->ne_set |= 1u; uisq_ne_note_name(v->ne_txt[0], sizeof v->ne_txt[0], sq_note(g, (int16_t)(e->note & 0x7Fu))); }
-    else uisq_cpy(v->ne_txt[0], sizeof v->ne_txt[0], uisq_ne_w(UI_NE_AUTO));
-    if (have) { uisq_ne_note_name(b, sizeof b, o.note); uisq_ne_gen_line(v->ne_gen[0], sizeof v->ne_gen[0], b); }
-    /* K2 GATE */
-    if (gt >= 1u && gt <= 11u) { v->ne_set |= 2u; uisq_ne_gate_text(v->ne_txt[1], sizeof v->ne_txt[1], gt); }
-    else uisq_cpy(v->ne_txt[1], sizeof v->ne_txt[1], uisq_ne_w(UI_NE_AUTO));
-    if (have) { uisq_ne_gate_text(b, sizeof b, uisq_ne_gen_gate(&o)); uisq_ne_gen_line(v->ne_gen[1], sizeof v->ne_gen[1], b); }
-    /* K3 VELO */
-    if (e->vel) { v->ne_set |= 4u; uisq_ne_vel_text(v->ne_txt[2], sizeof v->ne_txt[2], e->vel); }
-    else uisq_cpy(v->ne_txt[2], sizeof v->ne_txt[2], uisq_ne_w(UI_NE_AUTO));
-    if (have) { uisq_ne_vel_text(b, sizeof b, o.vel); uisq_ne_gen_line(v->ne_gen[2], sizeof v->ne_gen[2], b); }
-    /* K4 RATCH */
-    if (rt >= 1u && rt <= 4u) { v->ne_set |= 8u; uisq_ne_rat_text(v->ne_txt[3], sizeof v->ne_txt[3], rt); }
-    else uisq_cpy(v->ne_txt[3], sizeof v->ne_txt[3], uisq_ne_w(UI_NE_AUTO));
-    if (have) { uisq_ne_rat_text(b, sizeof b, uisq_ne_gen_rep(&o)); uisq_ne_gen_line(v->ne_gen[3], sizeof v->ne_gen[3], b); }
-    /* the chips: a field that is set and has no knob; four at most (ON, SLIDE, PROB, OCT) */
-    if (on == 1u || on == 2u) uisq_cpy(v->ne_chip[nc++], sizeof v->ne_chip[0], uisq_ne_w(on == 1u ? UI_NE_ON : UI_NE_OFF));
-    if (sl == 1u || sl == 2u) uisq_cpy(v->ne_chip[nc++], sizeof v->ne_chip[0], uisq_ne_w(sl == 1u ? UI_NE_SLIDE : UI_NE_NO_SLIDE));
+    c[0] = 0;
+    if (have) uisq_ne_note_name(c, sizeof c, o.note);
+    if (e->note & 0x80u) uisq_ne_note_name(b, sizeof b, sq_note(g, (int16_t)(e->note & 0x7Fu)));
+    uisq_ne_tile(v, 0, (uint8_t)((e->note & 0x80u) != 0u), b, c, have);                                              /* K1 PITCH */
+    if (gt >= 1u && gt <= 11u) uisq_ne_gate_text(b, sizeof b, gt);
+    if (have) uisq_ne_gate_text(c, sizeof c, uisq_ne_gen_gate(&o));
+    uisq_ne_tile(v, 1, (uint8_t)(gt >= 1u && gt <= 11u), b, c, have);                                                 /* K2 GATE */
+    if (e->vel) uisq_ne_vel_text(b, sizeof b, e->vel);
+    if (have) uisq_ne_vel_text(c, sizeof c, o.vel);
+    uisq_ne_tile(v, 2, (uint8_t)(e->vel != 0u), b, c, have);                                                          /* K3 VELO */
+    if (rt >= 1u && rt <= 4u) uisq_ne_rat_text(b, sizeof b, rt);
+    if (have) uisq_ne_rat_text(c, sizeof c, uisq_ne_gen_rep(&o));
+    uisq_ne_tile(v, 3, (uint8_t)(rt >= 1u && rt <= 4u), b, c, have);                                                  /* K4 RATCH */
+    /* the toggle buttons' state: what the step does now (the resolved step), not only what was set */
+    uisq_step_read(&cur, ch, p);
+    if (cur.acc) v->ne_btn |= 1u;
+    if (e->fl & 0x10u) v->ne_btn |= 2u;
+    if (sl == 1u) v->ne_btn |= 4u;
+    if (cur.on) v->ne_btn |= 8u;
+    /* the chips: a field that is set and has no toggle on a button (OFF, NO SLD, PROB 50, OCT+1); four at most */
+    if (on == 2u) uisq_cpy(v->ne_chip[nc++], sizeof v->ne_chip[0], uisq_ne_w(UI_NE_OFF));
+    if (sl == 2u) uisq_cpy(v->ne_chip[nc++], sizeof v->ne_chip[0], uisq_ne_w(UI_NE_NO_SLIDE));
     if (e->fl & 0x10u) { uisq_cpy(v->ne_chip[nc], sizeof v->ne_chip[0], uisq_ne_w(UI_NE_PROB)); uisq_cat(v->ne_chip[nc], sizeof v->ne_chip[0], " 50"); nc++; }
     if (oc >= 1u && oc <= 5u && oc != 3u) {
         const int32_t sh = (int32_t)oc - 3;
@@ -742,32 +763,35 @@ static void uisq_draw_knobs(const UisqView *v, int32_t y)
             cv_frame(x, y, 58, 53, col);
             if (!dots) { const int32_t oh = 36 * v->turn_old / 100; cv_rect(x + 1, y + 53 - oh - 1, 6, 2, UISQ_WHITE); cv_rect(x + 51, y + 53 - oh - 1, 6, 2, UISQ_WHITE); } } } }
 
-/* ---- NOTE_EDIT tiles (P4-014): K1-K4 of the edited step. AUTO = the plain tile with the word AUTO (MID) and the generated value under it; set = the tile
- * filled like a full meter in the channel's dim colour with the value in white (AF_L when it fits, as the live tiles) and a level edge: the fill is a
- * shape, so AUTO and set never differ by colour alone. The label is the knob_map NOTE_EDIT row. ---- */
+/* ---- NOTE_EDIT tiles (P4-014): K1-K4 of the edited step. The BIG text is the value the step will play: yours (white, the tile filled like a full meter in the
+ * channel's dim colour, a white marker square top left, `GEN <value>` under it) or the algorithm's (grey on the plain tile, the word AUTO under it). AF_L when
+ * the text fits 54 px, else AF_M. GATE's % and RATCH's x are small (AF_S) beside the digits: the big font has neither. The label is the knob_map NOTE_EDIT row. ---- */
 static void uisq_draw_notetiles(const UisqView *v, int32_t y)
 {   const uint16_t col = T_CH(v->sel), fc = T_CHF(v->sel);
     for (uint32_t k = 0; k < 4u; k++) {
         const int32_t x = 1 + 60 * (int32_t)k;
         const uint8_t set = (uint8_t)(v->ne_set >> k & 1u);
-        const char *t = v->ne_txt[k];
-        const aafont_t *f = (set && text_w(&AF_L, t) <= 54) ? &AF_L : &AF_M;
-        const uint16_t bgv = set ? fc : T_SURF;
+        const char *t = v->ne_txt[k], *u = v->ne_unit[k];
+        const int32_t uw = u[0] ? text_w(&AF_S, u) + 1 : 0;
+        const aafont_t *f = (text_w(&AF_L, t) + uw <= 54) ? &AF_L : &AF_M;
+        const uint16_t bgv = set ? fc : T_SURF, fg = set ? UISQ_WHITE : T_MID;
+        const int32_t tw = text_w(f, t) + uw, tx = x + HALF_UP(58 - tw), cap = f == &AF_L ? y + 19 : y + 23;
         cv_rect(x, y, 58, 16, T_SURF);
         uisq_text_c(x, 58, y + 3, &AF_M, uisq_knob_label(UI_PG_NOTE_EDIT, UI_CTX_ANY, (uint8_t)k), T_MID, T_SURF);
         cv_rect(x, y + 17, 58, 36, bgv);
-        if (set) { cv_rect(x, y + 17, 7, 2, col); cv_rect(x + 51, y + 17, 7, 2, col); }
-        uisq_text_c(x, 58, f == &AF_L ? y + 19 : y + 25, f, t, set ? UISQ_WHITE : T_MID, bgv);
-        uisq_text_c(x, 58, y + 44, &AF_S, v->ne_gen[k], set ? T_TEXT : T_MID, bgv);
+        if (set) { cv_rect(x, y + 17, 7, 2, col); cv_rect(x + 51, y + 17, 7, 2, col); cv_rect(x + 3, y + 22, 5, 5, UISQ_WHITE); }   /* the level edge and the set marker */
+        if (t[0]) {
+            const int32_t xe = uisq_text(tx, cap, f, t, fg, bgv);
+            if (u[0]) uisq_text(xe + 1, cap + (f == &AF_L ? 12 : 2), &AF_S, u, fg, bgv); }                    /* the unit sits on the digits' baseline */
+        uisq_text_c(x, 58, y + 44, &AF_S, v->ne_sub[k], set ? T_TEXT : T_MID, bgv);
         if (v->turn == k + 1u) { cv_frame(x - 1, y - 1, 60, 55, col); cv_frame(x, y, 58, 53, col); } } }
 
-/* the NOTE_EDIT status line: `STEP` (AF_S) and the number (AF_M), then one chip per set field in order; xs[i] = the left edge of chip i, the return the right edge
- * of the last (the test proves that STEP 64 with every chip fits 237 px) */
+/* the NOTE_EDIT status line: `STEP n` (AF_M), then one chip per set field in order; xs[i] = the left edge of chip i, the return the right edge of the last.
+ * The first chip starts after the widest step number (two digits), so the row does not move when the step reaches 10 (the test proves STEP 64 with
+ * every chip fits 237 px) */
 static int32_t uisq_ne_status_layout(const UisqView *v, int32_t xs[4])
-{   char b[8];
-    int32_t x;
-    b[0] = 0; uisq_catu(b, sizeof b, v->ne_step);
-    x = 3 + text_w(&AF_S, uisq_ne_w(UI_NE_STEP)) + 3 + text_w(&AF_M, b) + 5;
+{   int32_t x = 3 + text_w(&AF_M, uisq_ne_w(UI_NE_STEP)) + 4 + text_w(&AF_M, "88") + 4;
+    (void)v;
     for (uint32_t i = 0; i < 4u; i++) {
         xs[i] = x;
         if (v->ne_chip[i][0]) x += text_w(&AF_S, v->ne_chip[i]) + 4 + 2; }
@@ -777,21 +801,22 @@ static int32_t uisq_ne_status_layout(const UisqView *v, int32_t xs[4])
 static void uisq_draw_status(const UisqView *v)
 {   const int32_t y = 80;
     char b[16];
-    if (v->band == UISQ_BAND_NOTE) {                                   /* NOTE_EDIT: STEP n, the step's other set fields as chips, the set mark's legend */
+    if (v->band == UISQ_BAND_NOTE) {                                   /* NOTE_EDIT: STEP n, the step's other set fields as chips, the move hint and the set mark's legend */
         int32_t xs[4];
         const int32_t xe = uisq_ne_status_layout(v, xs);
-        const char *lg = uisq_ne_w(UI_NE_SET_MARK);
-        int32_t x0 = uisq_text(3, y + 2, &AF_S, uisq_ne_w(UI_NE_STEP), T_MID, T_BG);
+        const char *lg = uisq_ne_w(UI_NE_SET_MARK), *mv = uisq_ne_w(UI_NE_HOLD_MOVE);
+        const int32_t lw = text_w(&AF_S, lg) + 8, mw = text_w(&AF_S, mv);
+        int32_t xr = 237;
         b[0] = 0; uisq_catu(b, sizeof b, v->ne_step);
-        (void)uisq_text(x0 + 3, y, &AF_M, b, UISQ_WHITE, T_BG);
+        (void)uisq_text(uisq_text(3, y, &AF_M, uisq_ne_w(UI_NE_STEP), UISQ_WHITE, T_BG) + 4, y, &AF_M, b, UISQ_WHITE, T_BG);
         for (uint32_t i = 0; i < 4u; i++) {
             if (!v->ne_chip[i][0]) continue;
             cv_rect(xs[i], y - 1, text_w(&AF_S, v->ne_chip[i]) + 4, 13, T_CH(v->sel));
             uisq_text(xs[i] + 2, y + 1, &AF_S, v->ne_chip[i], UISQ_INK, T_CH(v->sel)); }
-        if (xe + 8 + text_w(&AF_S, lg) <= 237) {                       /* the legend, when the chips leave room */
-            cv_rect(237 - text_w(&AF_S, lg) - 8, y + 2, 6, 6, T_CHF(v->sel));
-            cv_frame(237 - text_w(&AF_S, lg) - 8, y + 2, 6, 6, T_CH(v->sel));
-            uisq_text_r(237, y + 2, &AF_S, lg, T_MID, T_BG); }
+        if (xe + mw <= xr) { uisq_text_r(xr, y + 2, &AF_S, mv, T_MID, T_BG); xr -= mw + 8; }         /* how to move to another step, when the chips leave room */
+        if (xe + lw <= xr) {                                           /* the legend of the set marker, when there is room left */
+            cv_rect(xr - text_w(&AF_S, lg) - 8, y + 2, 6, 6, UISQ_WHITE);
+            uisq_text_r(xr, y + 2, &AF_S, lg, T_MID, T_BG); }
         return; }
     if (v->pend) {
         b[0] = 0; uisq_cat(b, sizeof b, "P"); if (v->pend < 10u) uisq_cat(b, sizeof b, "0"); uisq_catu(b, sizeof b, v->pend); uisq_cat(b, sizeof b, "?");
@@ -855,7 +880,7 @@ static void uisq_draw_music(const UisqView *v)
     if (v->edit) {                                                     /* NOTE_EDIT: the edited step is framed (the REC cursor's frame) */
         const int32_t x = ((int32_t)v->edit - 1) * 15 + 1;
         cv_frame(x - 2, 93, 17, 49, UISQ_WHITE);
-        cv_frame(x - 1, 94, 15, 47, UISQ_WHITE); }
+        cv_frame(x - 1, 94, 15, 47, UISQ_INK); }                       /* a black ring inside the white one: the amber bar never touches white (2.3:1) */
     if (v->rec) {                                                      /* REC: the write cursor frames its step */
         const int32_t x = ((int32_t)v->cursor - 1) * 15 + 1;
         cv_frame(x - 2, 93, 17, 49, UISQ_WHITE);
@@ -869,6 +894,11 @@ static void uisq_draw_buttons(const UisqView *v)
         uint16_t fg = uisq_btn_dice[i] ? UISQ_WHITE : T_TEXT, bg = uisq_btn_dice[i] ? T_DICE : T_SURF;
         if (uisq_btn_dice[i] && (v->btn_dim >> i & 1u)) fg = T_DIM;     /* the algorithm has no such layer: the die is greyed */
         if (uisq_btn_ctl[i] == UI_C_B_REC && v->rec) { ic = SQI_REC; fg = T_REC; }
+        if (v->band == UISQ_BAND_NOTE && uisq_btn_dice[i]) {            /* NOTE_EDIT: the layer buttons act on THIS step: corner brackets, not the die; a toggle shows its state */
+            static const uint8_t sti[12] = { SQI_STEP_ALL, SQI_STEP_NOTES, SQI_STEP_ACCNT, SQI_STEP_PROB, 0, 0, 0, 0, SQI_STEP_SLIDE, SQI_STEP_ONOFF, 0, 0 };
+            static const int8_t tog[12] = { -1, -1, 0, 1, -1, -1, -1, -1, 2, 3, -1, -1 };      /* the bit of ne_btn each toggle reads */
+            ic = sti[i]; fg = UISQ_WHITE; bg = T_DICE;
+            if (tog[i] >= 0 && (v->ne_btn >> tog[i] & 1u)) { bg = T_CH(v->sel); fg = UISQ_INK; cv_rect(x, y, UISQ_BTN_W, UISQ_BTN_TH, bg); cv_rect(x, y + UISQ_BTN_TH - 2, UISQ_BTN_W, 2, UISQ_WHITE); } }
         if (v->btn_lit >> i & 1u) { bg = UISQ_WHITE; fg = UISQ_INK; cv_rect(x, y, UISQ_BTN_W, UISQ_BTN_TH, bg); }
         cv_icon(x + (UISQ_BTN_W - SQI_TAB[ic].w) / 2, y + (UISQ_BTN_TH - SQI_TAB[ic].h) / 2, ic, fg); } }
 
@@ -885,7 +915,6 @@ static void uisq_draw_keybed(const UisqView *v)
         if (rec) cv_rect(x + 1, y, 14, kh, T_KEY);                      /* REC: plain playable keys */
         if (i >= v->len16) { uisq_hatch(x + 1, y, 14, kh, T_LINE, 3); continue; }   /* this key is past LENGTH */
         if (!rec && v->lane[i].on) cv_rect(x + 1, y + bh + 2, 14, kh - bh - 2, T_CH(sel));   /* the step is on: the key's front in the channel colour */
-        if (v->edit == i + 1u) cv_frame(x + 1, y, 14, kh, UISQ_WHITE);  /* NOTE_EDIT: the edited step's key is framed */
         if (i == v->ph && !rec) cv_rect(x + 1, y + kh, 14, 2, UISQ_WHITE); }   /* the playing step: a white bar under its key */
     for (uint32_t k = 0; k < 11u; k++) {
         const int32_t x = (int32_t)uisq_bkey_cx[k] - UISQ_BKEY_W / 2, gy = y + 7;
@@ -904,10 +933,18 @@ static void uisq_draw_keybed(const UisqView *v)
             if (v->held_mv == k - 4u) { cv_rect(x, y, UISQ_BKEY_W, bh, UISQ_WHITE); uisq_text_c(x, UISQ_BKEY_W, gy - 1, &AF_S, letter[k - 5u], UISQ_INK, UISQ_WHITE); }
             else uisq_text_c(x, UISQ_BKEY_W, gy - 1, &AF_S, letter[k - 5u], T_TEXT, T_RAISE); }
         else cv_icon(x + 3, gy, k == 8u ? SQI_LEFT : k == 9u ? SQI_RIGHT : SQI_RST, T_TEXT); }   /* PG- PG+ RST */
+    if (v->edit) {                                                      /* NOTE_EDIT: the edited key's front, below the black keys, framed white with a black ring inside */
+        const int32_t x = 15 * ((int32_t)v->edit - 1) + 1, fy = y + bh + 1;
+        cv_frame(x, fy, 14, y + kh - fy, UISQ_WHITE);
+        cv_frame(x + 1, fy + 1, 12, y + kh - fy - 2, UISQ_INK); }
     { const int32_t ym = y + kh + 6;                                    /* the footer: the keys' mode line, or the setup cue (inverted) */
       char b[8];
       if (rec) { uisq_text(2, ym, &AF_M, uisq_foot_rec, T_TEXT, T_BG); uisq_text_r(238, ym + 1, &AF_S, uisq_foot_done, T_MID, T_BG); }
-      else if (v->band == UISQ_BAND_NOTE) { uisq_text(2, ym, &AF_M, uisq_ne_w(UI_NE_KNOBS_EDIT), T_TEXT, T_BG); uisq_text_r(238, ym, &AF_M, uisq_ne_w(UI_NE_HOME_DONE), T_MID, T_BG); }
+      else if (v->band == UISQ_BAND_NOTE) {                           /* NOTE_EDIT: the mode and its step, and the way out */
+          char n[8];
+          n[0] = 0; uisq_catu(n, sizeof n, v->ne_step);
+          uisq_text(uisq_text(2, ym, &AF_M, uisq_ne_w(UI_NE_KNOBS_STEP), T_TEXT, T_BG) + 4, ym, &AF_M, n, T_TEXT, T_BG);
+          uisq_text_r(238, ym, &AF_M, uisq_ne_w(UI_NE_HOME_DONE), T_MID, T_BG); }
       else if (chan) { uisq_text(2, ym, &AF_M, uisq_foot_midi, T_TEXT, T_BG); uisq_text_r(238, ym, &AF_M, uisq_foot_back, T_MID, T_BG); }
       else if (v->cue) {
           b[0] = 'C'; b[1] = 'H'; b[2] = (char)('1' + sel); b[3] = 0;
@@ -936,16 +973,18 @@ static void uisq_draw_msg(const UisqView *v)
         uisq_text(x0 + 5, 7, &AF_S, m->a, T_TEXT, UISQ_INK);
         uisq_fitm(x0 + nw + 6, 5, m->b, UISQ_INK, T_TEXT, w - nw - 8); }
     else if (m->kind == UI_MK_TOAST) {                                  /* [channel chip] what happened, how to reverse it */
-        int32_t x = x0 + 3;
+        const int32_t yo = v->band == UISQ_BAND_NOTE ? UISQ_FOOT_Y : 0, hh = v->band == UISQ_BAND_NOTE ? UISQ_FOOT_H : 22;   /* NOTE_EDIT: the toast takes the footer, so the header's algorithm and MIDI channel stay */
+        const int32_t xs = v->band == UISQ_BAND_NOTE ? 0 : x0, ws = v->band == UISQ_BAND_NOTE ? UISQ_W : w;
+        int32_t x = xs + 3;
         const int32_t hw = text_w(&AF_S, m->b);
-        cv_rect(x0, 0, w, 22, UISQ_WHITE);
+        cv_rect(xs, yo, ws, hh, UISQ_WHITE);
         if (m->chip) {
             b[0] = (char)('0' + m->chip); b[1] = 0;
-            cv_rect(x, 2, 13, 18, T_CH(m->chip - 1u));
-            uisq_text_c(x, 13, 6, &AF_M, b, UISQ_INK, T_CH(m->chip - 1u));
+            cv_rect(x, yo + 2, 13, hh - 4, T_CH(m->chip - 1u));
+            uisq_text_c(x, 13, yo + (hh == 22 ? 6 : 4), &AF_M, b, UISQ_INK, T_CH(m->chip - 1u));
             x += 17; }
-        uisq_fitm(x, 5, m->a, UISQ_INK, UISQ_WHITE, UISQ_W - 4 - hw - 6 - x);
-        uisq_text_r(237, 7, &AF_S, m->b, UISQ_INK, UISQ_WHITE); } }
+        uisq_fitm(x, yo + (hh == 22 ? 5 : 4), m->a, UISQ_INK, UISQ_WHITE, UISQ_W - 4 - hw - 6 - x);
+        uisq_text_r(237, yo + (hh == 22 ? 7 : 6), &AF_S, m->b, UISQ_INK, UISQ_WHITE); } }
 
 /* the elements, in the mock's order (screen v2 4.1-4.6, 5): the frame of tiles and keys first, the elements over it */
 static void uisq_draw_frame(void);
@@ -1128,17 +1167,18 @@ static void uisq_ne_button(uint8_t ctl)
         if (nv < -2 || nv > 2) break;
         uisq_ne_set(SQ_F_OCT, nv == 0 ? (int16_t)SQ_AUTO : (int16_t)nv);
         break; }
-    case UI_C_B_EDIT:                                                   /* UNDO / REDO the step's edits; nothing to take back = inert (never an older dice) */
-        if (!uisq_ne_dirty) break;
+    case UI_C_B_EDIT:                                                   /* UNDO / REDO the step's edits; nothing to take back = inert (never an older dice or a page add) */
+        if (!uisq_ne_dirty || !sq_undo_step_rec(uisq_edit_ch)) { uisq_ne_dirty = 0; break; }   /* another action replaced the record (or a preset cleared it): the page's claim is gone */
         if (sq_undo(uisq_edit_ch)) {
             ui_sq_toast_id(uisq_ne_undone ? UI_MSG_TOAST_REDO_EDIT_UNDO : UI_MSG_TOAST_UNDO_EDIT_REDO, uisq_edit_ch);
             uisq_ne_undone = (uint8_t)!uisq_ne_undone; }
         break;
     default: break; } }
 
-/* the frame's check: the page lives while its channel is the selected one and in use */
+/* the frame's check: the page lives while its channel is the selected one and in use and its step is inside LENGTH (a preset that lands can shorten it) */
 static void uisq_pg_note_edit(void)
-{   if (uisq_sel != uisq_edit_ch || !(uisq_used >> uisq_edit_ch & 1u)) uisq_ne_leave(); }
+{   if (uisq_sel != uisq_edit_ch || !(uisq_used >> uisq_edit_ch & 1u) || uisq_edit_ch >= SQ_NCH || uisq_edit_step >= sq_ch[uisq_edit_ch].len) uisq_ne_leave();
+    else if (uisq_ne_dirty && !sq_undo_step_rec(uisq_edit_ch)) uisq_ne_dirty = 0; }      /* the session was ended elsewhere: EDIT here has nothing of ours to undo */
 
 /* HOME (level, once per frame): a tap under 0.7 s leaves NOTE_EDIT for PERF; a longer hold is the MENU's (ui_input.c) and does not come here */
 static void ui_sq_home(uint8_t down)
@@ -1346,6 +1386,7 @@ static uint8_t ui_sq_draw(void)
     uisq_view_fill(&view);
     for (uint32_t s = 0; s < UISQ_NSTRIP; s++) { sg[s] = uisq_h(sg[s], uisq_page); sg[s] = uisq_h(sg[s], ux.gen); sg[s] = uisq_h(sg[s], uisq_view_sig(&view)); }
     sg[0] = uisq_h(sg[0], uisq_msg_sig(&view));
+    if (view.band == UISQ_BAND_NOTE) sg[1] = uisq_h(sg[1], uisq_msg_sig(&view));   /* NOTE_EDIT: its toast is drawn in the footer (strip 1) */
     for (const char *s = cue; *s; s++) sg[1] = uisq_h(sg[1], (uint8_t)*s);
     for (uint32_t s = 0; s < UISQ_NSTRIP; s++) {
         if (!ui.force && uisq_have_sig && sg[s] == uisq_sig[s]) continue;

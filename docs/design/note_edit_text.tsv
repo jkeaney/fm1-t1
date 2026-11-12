@@ -2,19 +2,21 @@ id	text	note
 AUTO	AUTO	a field that follows the algorithm (the knob tile value; cleared to AUTO at the knob's low end)
 ACC	ACC	VELO at or above ACC_THR 100 reads ACC
 TIE	TIE	GATE top value
-X	X	RATCH suffix: 2X
-GEN	GEN	the generated value under a knob value: GEN F2
+UNIT_X	x	unit after the RATCH number (2x), small beside the big digit (AF_L has no lower case)
+GEN	GEN	the generated value under a set value: GEN C2
 STEP	STEP	status line: STEP 21
 ON	ON	ON field set to ON
 OFF	OFF	ON field set to OFF
 SLIDE	SLIDE	SLIDE field set to ON
-NO_SLIDE	NO SLIDE	SLIDE field set to OFF
+NO_SLIDE	NO SLD	SLIDE field set to OFF (short: the chip row must fit STEP 64 with four chips)
 PROB	PROB	PROB field set: PROB 50
 OCT	OCT	OCT field set: OCT+1
 PLUS	+	sign
 MINUS	-	sign
-SET_MARK	= SET BY YOU	legend after the set mark square
-KNOBS_EDIT	KNOBS EDIT	footer, left
+SET_MARK	= SET	legend after the set marker square (short so it fits beside the move hint; `= SET BY YOU` did not)
+KNOBS_STEP	KNOBS = STEP	footer, left: the mode, with the step number after it (S03 cue `STEP n: KNOBS EDIT  HOME=done`, SEQUENCER_UX 2.2)
+UNIT_PCT	%	unit after the GATE number (70%), small beside the big digits (AF_L has no percent sign)
+HOLD_MOVE	HOLD KEY = MOVE	status line, right: how to move the editor to another step
 HOME_DONE	HOME = DONE	footer, right
 NOTE_C	C	pitch class 0
 NOTE_CS	C#	pitch class 1

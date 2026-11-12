@@ -338,7 +338,7 @@ int main(int argc, char **argv)
     for (uint8_t p = 0; p < UI_PG_COUNT; p++) {
         char nm[48];
         if (p == UI_PG_MENU) { uisq_page = p; blits = 0; ui.force = 1; frame(); ui.force = 0; CHECK(blits == 0, "MENU draws nothing (ui_menu.c owns the screen)"); continue; }
-        uisq_page = p; uisq_edit_step = 20; fresh();
+        uisq_page = p; uisq_edit_step = 4; fresh();
         snprintf(nm, sizeof nm, "page_%02d_%s", p, ui_page_names[p]); shot(nm, 0, 0, 240, 240); }
     uisq_page = UI_PG_PERF;
 
