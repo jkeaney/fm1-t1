@@ -1,0 +1,25 @@
+combinations rendered: 408 tool warnings/flags: 0
+
+per (selected, muted): min gap MIDI-ink right edge to the M chip left edge (px), widest case; algo-name right margin (tile right edge = x+59 inclusive-exclusive 60 grid: margin = tile_x+59-ink_right)
+ sel=1 muted=0: min name margin 5 (EUCLID, MIDI 1); no chip
+ sel=1 muted=1: min name margin 5 (EUCLID, MIDI 1); min MIDI-ink to chip gap 2 (ACID MIDI 10)
+ sel=0 muted=0: min name margin 5 (EUCLID, MIDI 1); no chip
+ sel=0 muted=1: min name margin 5 (EUCLID, MIDI 1); min MIDI-ink to chip gap 2 (ACID MIDI 10)
+
+widest name ink right edge for muted tiles vs chip left (x+42=42 in tile 0 coordinates): name ink right edge by algo:
+  ACID: ink right edge x=38 (tile 0 spans x 1..58); overlaps chip column (x>=43) at y of name? the name row is y 47..60 and the chip is y 29..43: no (different rows)
+  EUCLID: ink right edge x=55 (tile 0 spans x 1..58); overlaps chip column (x>=43) at y of name? the name row is y 47..60 and the chip is y 29..43: no (different rows)
+  SNAKE: ink right edge x=52 (tile 0 spans x 1..58); overlaps chip column (x>=43) at y of name? the name row is y 47..60 and the chip is y 29..43: no (different rows)
+  STAGE: ink right edge x=50 (tile 0 spans x 1..58); overlaps chip column (x>=43) at y of name? the name row is y 47..60 and the chip is y 29..43: no (different rows)
+  ARP: ink right edge x=33 (tile 0 spans x 1..58); overlaps chip column (x>=43) at y of name? the name row is y 47..60 and the chip is y 29..43: no (different rows)
+  PATT: ink right edge x=39 (tile 0 spans x 1..58); overlaps chip column (x>=43) at y of name? the name row is y 47..60 and the chip is y 29..43: no (different rows)
+
+MIDI-slot ink right edge vs M chip left edge (chip rect x=43..56), muted tiles, MIDI 10..16 and OFF (EUCLID):
+  MIDI 1   slot `1` ink right 29, chip left 43 -> gap 14
+  MIDI 9   slot `9` ink right 33, chip left 43 -> gap 10
+  MIDI 10  slot `10` ink right 41, chip left 43 -> gap 2
+  MIDI 11  slot `11` ink right 38, chip left 43 -> gap 5
+  MIDI 16  slot `16` ink right 41, chip left 43 -> gap 2
+  MIDI OFF slot `--` ink right 27, chip left 43 -> gap 16
+
+name-to-tile-edge margin and widest names: [('ACID', 22), ('ARP', 27), ('EUCLID', 5), ('PATT', 21), ('SNAKE', 8), ('STAGE', 10)]

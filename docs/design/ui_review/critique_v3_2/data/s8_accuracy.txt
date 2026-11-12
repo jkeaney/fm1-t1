@@ -1,0 +1,69 @@
+## 8.1 knob labels and ranges, proposal P1.KNOBS (as used by v3.2 knob_view, OCTS->SPAN) vs docs/design/knob_map.tsv PERF rows
+rows compared: 48; label/range mismatches: 1
+  knob_map.tsv:21 SNAKE K4 | proposal PATH 0..13 PATH | spec PATH: shp 1..14 def 7
+
+## 8.2 value text the spec prescribes vs what v3.2 draws
+ACID DENS=0 -> ('DENS', 'KEYS', <mock.Font object at 0x1097f5310>) (spec knob_map.tsv:2 'cell value reads KEYS')
+ARP SPAN=1..4 -> ['1', '2', '3', '4'] (spec knob_map.tsv:36 'cell reads 1 OCT..4 OCT')
+ARP RATE -> ['1/4', '1/2', '1X', '2X', '3T', '4X'] (spec knob_map.tsv:37 '1/4 1/2 1X 2X 3T 4X')
+ARP DIR -> ['UP', 'DOWN', 'UPDN', 'RAND', 'ASPL', 'CHORD'] (spec knob_map.tsv:41 'UP DOWN UPDN RAND ASPL CHORD')
+ARP SHAPE -> ['LINE', 'SKIP', 'THUMB', 'OCTV', 'REPT', 'WAVE'] (spec knob_map.tsv:35 'LINE SKIP THUMB OCTV REPT WAVE')
+EUCLID CURVE -> ['AUTO', 'SINE', 'TRI', 'SAW+', 'SAW-', 'ARCH', 'INV'] (spec knob_map.tsv:17 'AUTO SINE TRI SAW+ SAW- ARCH INV')
+PATTERNS PICK=1,21,41,61,81,101 -> label/value [('ACID', '1'), ('DUB', '1'), ('FUNK', '1'), ('HOUSE', '1'), ('MEL', '1'), ('TECH', '1')] (spec knob_map.tsv:46 'the cell reads CAT nn, for example HOUSE 3')
+STAGE TOTAL=48 with heard=32: tile draws the value 48 and the meter slot text '(32)' separately (spec knob_map.tsv:27 'value reads 48 (32)')
+
+## 8.3 MAP button labels vs button_modes.tsv labels (tap / hold) and control_map.tsv
+  B_FX    FX     tap `ALL` hold ``  match
+  B_SCL   SCL    tap `NOTES` hold ``  match
+  B_ENV   ENV    tap `ACCNT` hold ``  match
+  B_LFO   LFO    tap `SHAPE` hold ``  match
+  B_EDIT  EDIT   tap `UNDO` hold `RESET`  match
+  B_GLO   GLO    tap `SET` hold `HARM`  match
+  B_HOME  HOME   tap `CANCEL` hold `MENU`  MISMATCH: TAP v3.2 `CANCEL` vs tsv `HOME` (button_modes.tsv:110); HOLD v3.2 `MENU` vs tsv `HLP/MN` (button_modes.tsv:111)
+  B_SAVE  SAVE   tap `SAVE` hold `UNDO L`  match
+  B_ARP   ARP    tap `ARTIC` hold ``  match
+  B_SEQ   SEQ    tap `HITS` hold ``  match
+  B_PLAY  PLAY   tap `PLAY` hold ``  match
+  B_REC   REC    tap `REC` hold ``  match
+  OCT-: v3.2 ROW 1 vs tsv (218, 'ROW 1') ; OCT+: v3.2 `ROW+` vs tsv (237, 'ROW 2')
+
+## 8.4 MAP encoder tiles vs control_map.tsv
+  control_map.tsv:142 EN_SELECT label `CH n`
+  control_map.tsv:152 EN_ALGO label `ALGO`
+  control_map.tsv:162 EN_PRESET label `Pnn`
+  control_map.tsv:212 MASTER label `-`
+  v3.2 MAP_ENC = (('MASTER', 'VOL', 'MASTER'), ('SELECT', 'CH 1-4', 'ENC_SEL'), ('PRESETS', 'P01-16', 'ENC_PRE'), ('ALGO', 'OF CH %d', 'EN_ALGO'))
+
+## 8.5 MAP page B black keys vs key_map.tsv
+  key_map.tsv:210 KEY_B01_F#3 tap -> label `M1`
+  key_map.tsv:211 KEY_B01_F#3 hold -> label `PRV1`
+  key_map.tsv:223 KEY_B02_G#3 tap -> label `M2`
+  key_map.tsv:224 KEY_B02_G#3 hold -> label `PRV2`
+  key_map.tsv:236 KEY_B03_A#3 tap -> label `M3`
+  key_map.tsv:237 KEY_B03_A#3 hold -> label `PRV3`
+  key_map.tsv:249 KEY_B04_C#4 tap -> label `M4`
+  key_map.tsv:250 KEY_B04_C#4 hold -> label `PRV4`
+  key_map.tsv:262 KEY_B05_D#4 tap -> label `CHN`
+  key_map.tsv:263 KEY_B05_D#4 hold -> label `RIG`
+  key_map.tsv:272 KEY_B06_F#4 hold -> label `SOL`
+  key_map.tsv:281 KEY_B07_G#4 hold -> label `FIL`
+  key_map.tsv:290 KEY_B08_A#4 hold -> label `ROL`
+  key_map.tsv:299 KEY_B09_C#5 tap -> label `PG-`
+  key_map.tsv:308 KEY_B10_D#5 tap -> label `PG+`
+  key_map.tsv:317 KEY_B11_F#5 tap -> label `RST`
+  v3.2 MAP_BLACK (tap, hold) = (('M1', ''), ('M2', ''), ('M3', ''), ('M4', ''), ('CHN', ''), ('', 'SOL'), ('', 'FIL'), ('', 'ROL'), ('PG-', ''), ('PG+', ''), ('RST', ''))
+
+## 8.6 cue / toast strings against the spec text
+  cue dice_*     `EDIT = UNDO`                                        | button_modes.tsv B_EDIT tap: UNDO / REDO the last dice ... of the selected channel
+  cue save_hold  ('SAVE', 'HOLD = UNDO PRESET LOAD')                  | button_modes.tsv B_SAVE hold: 0.7 s: undo the last preset load ... again = redo; while a slot is pending: cancel it instead
+  cue edit_hold  ('EDIT', 'RESET: TOUCH A CONTROL')                   | button_modes.tsv B_EDIT hold: 0.4 s: open RESET (latched, one shot): the next control touched goes back to its default
+  cue oct_peek   ('OCT+', 'HELD: ROW 2 LIVE')                         | button_modes.tsv B_OCTUP hold: hold and turn a knob: ROW 2 live while held (cue text names OCT+ only; OCT- hold peek has no cue)
+  cue chn        ('CHN', 'MIDI CHANNEL AND LENGTH')                   | key_map.tsv KEY_B05 tap: open the CHAN page (LENGTH MIDI SOURCE FOLLOW)
+  cue gloset     ('GLO', 'SET: BPM SWING GATE DIV')                   | button_modes.tsv B_GLO tap: open SET (latched): BPM SWING GATE DIV
+  cue home       ('HOME', 'TAP: CANCEL  HOLD: MAP')                   | button_modes.tsv B_HOME tap: only cancels a pending prompt / skips first-run; hold: HELP / MENU
+  cue mute_hold  ('M2', 'HOLD = PREVIEW CH2')                         | key_map.tsv KEY_B0n hold 0.4 s: PREVIEW on/off of CHn (label PRVn)
+  cue fill       ('FIL', 'DENSITY UP WHILE HELD')                     | key_map.tsv KEY_B07 hold: the selected channel's K1 density goes up while held
+  cue roll       ('ROL', 'STEPS REPEAT 2X-4X')                        | key_map.tsv KEY_B08 hold: every step repeats (force: 2x light, 3x medium, 4x firm)
+  cue restart    ('RST', 'ALL CHANNELS TO STEP 1')                    | key_map.tsv KEY_B11 tap: all channels to step 1 at the next step
+  cue past_end   ('', 'PAST THE END: CHN K1 = LENGTH')                | key_map.tsv KEY_W tap: past LENGTH: dim, toast PAST THE END
+  cue pg_next    ('PG+', 'PAGE 2 OF 4  FOLLOW OFF')                   | key_map.tsv KEY_B10 tap: view the next page (FOLLOW off); on the last page: ADD PAGE prompt

@@ -1,0 +1,393 @@
+cap_h measured: {'S': 9, 'M': 11, 'L': 21}
+### counts per scene (glance screens)
+| scene | strings | AF_L | AF_M | AF_S | distinct roles |
+|---|---|---|---|---|---|
+| glance_idle | 28 | 4 | 24 | 0 | 11 |
+| glance_playing | 28 | 4 | 24 | 0 | 11 |
+| row2 | 29 | 3 | 26 | 0 | 13 |
+| row3 | 29 | 4 | 25 | 0 | 11 |
+| mutes | 32 | 3 | 29 | 0 | 14 |
+| stress | 35 | 3 | 32 | 0 | 14 |
+| stress_row2 | 35 | 3 | 32 | 0 | 14 |
+| stress_pal_paper | 35 | 3 | 32 | 0 | 14 |
+| stress_pal_mono | 35 | 3 | 32 | 0 | 14 |
+| stress_pal_ice | 35 | 3 | 32 | 0 | 14 |
+| stage_total | 29 | 3 | 26 | 0 | 13 |
+
+warnings any scene: {}
+
+#### glance_idle (roles: algo name, chan numeral, cue, knob label, knob value, midi slot, page numeral, preset, ratchet digit, row label, tempo)
+| # | role | string | font | advance px | ink px (w x h) | cap px | cap mm | arcmin@50cm | ink box (x0,y0,x1,y1) | fg/bg contrast |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | tempo | `120` | M | 27 | 26x13 | 11 | 1.375 | 9.5 | 17,5,43,18 | 12.33 |
+| 2 | preset | `P01` | M | 27 | 24x13 | 11 | 1.375 | 9.5 | 121,5,145,18 | 12.33 |
+| 3 | page numeral | `1` | M | 9 | 5x11 | 11 | 1.375 | 9.5 | 230,6,235,17 | 10.03 |
+| 4 | chan numeral | `1` | M | 9 | 5x11 | 11 | 1.375 | 9.5 | 5,30,10,41 | 10.42 |
+| 5 | midi slot | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 24,29,33,41 | 10.42 |
+| 6 | algo name | `ACID` | M | 33 | 33x13 | 11 | 1.375 | 9.5 | 5,46,38,59 | 10.42 |
+| 7 | chan numeral | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 65,29,74,41 | 7.19 |
+| 8 | midi slot | `3` | M | 9 | 9x13 | 11 | 1.375 | 9.5 | 84,29,93,42 | 7.19 |
+| 9 | algo name | `EUCLID` | M | 51 | 50x13 | 11 | 1.375 | 9.5 | 65,46,115,59 | 7.19 |
+| 10 | chan numeral | `3` | M | 9 | 9x13 | 11 | 1.375 | 9.5 | 125,29,134,42 | 7.19 |
+| 11 | midi slot | `4` | M | 9 | 9x11 | 11 | 1.375 | 9.5 | 144,30,153,41 | 7.19 |
+| 12 | algo name | `SNAKE` | M | 47 | 47x13 | 11 | 1.375 | 9.5 | 125,46,172,59 | 7.19 |
+| 13 | chan numeral | `4` | M | 9 | 9x11 | 11 | 1.375 | 9.5 | 185,30,194,41 | 7.19 |
+| 14 | midi slot | `10` | M | 18 | 17x13 | 11 | 1.375 | 9.5 | 204,29,221,42 | 7.19 |
+| 15 | algo name | `STAGE` | M | 45 | 45x13 | 11 | 1.375 | 9.5 | 185,46,230,59 | 7.19 |
+| 16 | ratchet digit | `3` | M | 9 | 9x13 | 11 | 1.375 | 9.5 | 153,88,162,101 | 7.19 |
+| 17 | ratchet digit | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 198,88,207,100 | 5.58 |
+| 18 | knob label | `DENS` | M | 38 | 38x13 | 11 | 1.375 | 9.5 | 11,147,49,160 | 10.03 |
+| 19 | knob value | `12` | L | 36 | 32x21 | 21 | 2.625 | 18.0 | 14,165,46,186 | 10.03 |
+| 20 | knob label | `SLIDE` | M | 39 | 38x13 | 11 | 1.375 | 9.5 | 71,147,109,160 | 10.03 |
+| 21 | knob value | `6` | L | 18 | 16x22 | 21 | 2.625 | 18.0 | 82,165,98,187 | 10.03 |
+| 22 | knob label | `JUMP` | M | 40 | 40x12 | 11 | 1.375 | 9.5 | 130,148,170,160 | 10.03 |
+| 23 | knob value | `5` | L | 18 | 15x22 | 21 | 2.625 | 18.0 | 142,165,157,187 | 10.03 |
+| 24 | knob label | `ACCNT` | M | 50 | 50x13 | 11 | 1.375 | 9.5 | 185,147,235,160 | 10.03 |
+| 25 | knob value | `3` | L | 18 | 16x22 | 21 | 2.625 | 18.0 | 202,165,218,187 | 10.03 |
+| 26 | row label | `ROW 1` | M | 46 | 43x13 | 11 | 1.375 | 9.5 | 8,205,51,218 | 12.33 |
+| 27 | row label | `ROW 2` | M | 46 | 46x13 | 11 | 1.375 | 9.5 | 67,205,113,218 | 5.23 |
+| 28 | cue | `HOLD HOME = MAP` | M | 133 | 133x13 | 11 | 1.375 | 9.5 | 53,221,186,234 | 12.33 |
+
+#### glance_playing (roles: algo name, chan numeral, cue, knob label, knob value, midi slot, page numeral, preset, ratchet digit, row label, tempo)
+| # | role | string | font | advance px | ink px (w x h) | cap px | cap mm | arcmin@50cm | ink box (x0,y0,x1,y1) | fg/bg contrast |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | tempo | `120` | M | 27 | 26x13 | 11 | 1.375 | 9.5 | 17,5,43,18 | 12.33 |
+| 2 | preset | `P01` | M | 27 | 24x13 | 11 | 1.375 | 9.5 | 121,5,145,18 | 12.33 |
+| 3 | page numeral | `1` | M | 9 | 5x11 | 11 | 1.375 | 9.5 | 230,6,235,17 | 11.08 |
+| 4 | chan numeral | `1` | M | 9 | 5x11 | 11 | 1.375 | 9.5 | 5,30,10,41 | 10.42 |
+| 5 | midi slot | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 24,29,33,41 | 10.42 |
+| 6 | algo name | `ACID` | M | 33 | 33x13 | 11 | 1.375 | 9.5 | 5,46,38,59 | 10.42 |
+| 7 | chan numeral | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 65,29,74,41 | 7.19 |
+| 8 | midi slot | `3` | M | 9 | 9x13 | 11 | 1.375 | 9.5 | 84,29,93,42 | 7.19 |
+| 9 | algo name | `EUCLID` | M | 51 | 50x13 | 11 | 1.375 | 9.5 | 65,46,115,59 | 7.19 |
+| 10 | chan numeral | `3` | M | 9 | 9x13 | 11 | 1.375 | 9.5 | 125,29,134,42 | 7.19 |
+| 11 | midi slot | `4` | M | 9 | 9x11 | 11 | 1.375 | 9.5 | 144,30,153,41 | 7.19 |
+| 12 | algo name | `SNAKE` | M | 47 | 47x13 | 11 | 1.375 | 9.5 | 125,46,172,59 | 7.19 |
+| 13 | chan numeral | `4` | M | 9 | 9x11 | 11 | 1.375 | 9.5 | 185,30,194,41 | 7.19 |
+| 14 | midi slot | `10` | M | 18 | 17x13 | 11 | 1.375 | 9.5 | 204,29,221,42 | 7.19 |
+| 15 | algo name | `STAGE` | M | 45 | 45x13 | 11 | 1.375 | 9.5 | 185,46,230,59 | 7.19 |
+| 16 | ratchet digit | `3` | M | 9 | 9x13 | 11 | 1.375 | 9.5 | 153,88,162,101 | 7.19 |
+| 17 | ratchet digit | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 198,88,207,100 | 5.58 |
+| 18 | knob label | `DENS` | M | 38 | 38x13 | 11 | 1.375 | 9.5 | 11,147,49,160 | 10.03 |
+| 19 | knob value | `12` | L | 36 | 32x21 | 21 | 2.625 | 18.0 | 14,165,46,186 | 10.03 |
+| 20 | knob label | `SLIDE` | M | 39 | 38x13 | 11 | 1.375 | 9.5 | 71,147,109,160 | 10.03 |
+| 21 | knob value | `6` | L | 18 | 16x22 | 21 | 2.625 | 18.0 | 82,165,98,187 | 10.03 |
+| 22 | knob label | `JUMP` | M | 40 | 40x12 | 11 | 1.375 | 9.5 | 130,148,170,160 | 10.03 |
+| 23 | knob value | `5` | L | 18 | 15x22 | 21 | 2.625 | 18.0 | 142,165,157,187 | 10.03 |
+| 24 | knob label | `ACCNT` | M | 50 | 50x13 | 11 | 1.375 | 9.5 | 185,147,235,160 | 10.03 |
+| 25 | knob value | `3` | L | 18 | 16x22 | 21 | 2.625 | 18.0 | 202,165,218,187 | 10.03 |
+| 26 | row label | `ROW 1` | M | 46 | 43x13 | 11 | 1.375 | 9.5 | 8,205,51,218 | 12.33 |
+| 27 | row label | `ROW 2` | M | 46 | 46x13 | 11 | 1.375 | 9.5 | 67,205,113,218 | 5.23 |
+| 28 | cue | `FX SCL ENV LFO ARP SEQ = DICE` | M | 222 | 221x13 | 11 | 1.375 | 9.5 | 9,221,230,234 | 12.33 |
+
+#### row2 (roles: algo name, chan numeral, cue, cue chip, knob label, knob value, knob value (M), midi slot, page numeral, preset, ratchet digit, row label, tempo)
+| # | role | string | font | advance px | ink px (w x h) | cap px | cap mm | arcmin@50cm | ink box (x0,y0,x1,y1) | fg/bg contrast |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | tempo | `120` | M | 27 | 26x13 | 11 | 1.375 | 9.5 | 17,5,43,18 | 12.33 |
+| 2 | preset | `P01` | M | 27 | 24x13 | 11 | 1.375 | 9.5 | 121,5,145,18 | 12.33 |
+| 3 | page numeral | `1` | M | 9 | 5x11 | 11 | 1.375 | 9.5 | 230,6,235,17 | 11.08 |
+| 4 | chan numeral | `1` | M | 9 | 5x11 | 11 | 1.375 | 9.5 | 5,30,10,41 | 10.42 |
+| 5 | midi slot | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 24,29,33,41 | 10.42 |
+| 6 | algo name | `ACID` | M | 33 | 33x13 | 11 | 1.375 | 9.5 | 5,46,38,59 | 10.42 |
+| 7 | chan numeral | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 65,29,74,41 | 7.19 |
+| 8 | midi slot | `3` | M | 9 | 9x13 | 11 | 1.375 | 9.5 | 84,29,93,42 | 7.19 |
+| 9 | algo name | `EUCLID` | M | 51 | 50x13 | 11 | 1.375 | 9.5 | 65,46,115,59 | 7.19 |
+| 10 | chan numeral | `3` | M | 9 | 9x13 | 11 | 1.375 | 9.5 | 125,29,134,42 | 7.19 |
+| 11 | midi slot | `4` | M | 9 | 9x11 | 11 | 1.375 | 9.5 | 144,30,153,41 | 7.19 |
+| 12 | algo name | `SNAKE` | M | 47 | 47x13 | 11 | 1.375 | 9.5 | 125,46,172,59 | 7.19 |
+| 13 | chan numeral | `4` | M | 9 | 9x11 | 11 | 1.375 | 9.5 | 185,30,194,41 | 7.19 |
+| 14 | midi slot | `10` | M | 18 | 17x13 | 11 | 1.375 | 9.5 | 204,29,221,42 | 7.19 |
+| 15 | algo name | `STAGE` | M | 45 | 45x13 | 11 | 1.375 | 9.5 | 185,46,230,59 | 7.19 |
+| 16 | ratchet digit | `3` | M | 9 | 9x13 | 11 | 1.375 | 9.5 | 153,88,162,101 | 7.19 |
+| 17 | ratchet digit | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 198,88,207,100 | 5.58 |
+| 18 | knob label | `OFFSET` | M | 54 | 54x13 | 11 | 1.375 | 9.5 | 3,147,57,160 | 12.33 |
+| 19 | knob value | `0` | L | 18 | 16x22 | 21 | 2.625 | 18.0 | 22,165,38,187 | 10.03 |
+| 20 | knob label | `PEDAL` | M | 45 | 45x11 | 11 | 1.375 | 9.5 | 67,148,112,159 | 12.33 |
+| 21 | knob value | `4` | L | 18 | 16x21 | 21 | 2.625 | 18.0 | 82,165,98,186 | 10.03 |
+| 22 | knob label | `PUNCH` | M | 51 | 50x13 | 11 | 1.375 | 9.5 | 125,147,175,160 | 12.33 |
+| 23 | knob value | `40` | L | 36 | 34x22 | 21 | 2.625 | 18.0 | 133,165,167,187 | 10.03 |
+| 24 | knob label | `DIR` | M | 23 | 23x11 | 11 | 1.375 | 9.5 | 198,148,221,159 | 12.33 |
+| 25 | knob value (M) | `FWD` | M | 33 | 32x11 | 11 | 1.375 | 9.5 | 194,184,226,195 | 10.03 |
+| 26 | row label | `ROW 1` | M | 46 | 43x13 | 11 | 1.375 | 9.5 | 8,205,51,218 | 5.23 |
+| 27 | row label | `ROW 2` | M | 46 | 46x13 | 11 | 1.375 | 9.5 | 67,205,113,218 | 12.33 |
+| 28 | cue chip | `OCT+` | M | 39 | 38x13 | 11 | 1.375 | 9.5 | 2,221,40,234 | 12.33 |
+| 29 | cue | `OFFSET PEDAL PUNCH DIR` | M | 182 | 182x13 | 11 | 1.375 | 9.5 | 46,221,228,234 | 12.33 |
+
+#### row3 (roles: algo name, chan numeral, cue, knob label, knob value, midi slot, page numeral, preset, ratchet digit, row label, tempo)
+| # | role | string | font | advance px | ink px (w x h) | cap px | cap mm | arcmin@50cm | ink box (x0,y0,x1,y1) | fg/bg contrast |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | tempo | `120` | M | 27 | 26x13 | 11 | 1.375 | 9.5 | 17,5,43,18 | 12.33 |
+| 2 | preset | `P01` | M | 27 | 24x13 | 11 | 1.375 | 9.5 | 121,5,145,18 | 12.33 |
+| 3 | page numeral | `1` | M | 9 | 5x11 | 11 | 1.375 | 9.5 | 230,6,235,17 | 11.08 |
+| 4 | chan numeral | `1` | M | 9 | 5x11 | 11 | 1.375 | 9.5 | 5,30,10,41 | 10.42 |
+| 5 | midi slot | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 24,29,33,41 | 10.42 |
+| 6 | algo name | `ACID` | M | 33 | 33x13 | 11 | 1.375 | 9.5 | 5,46,38,59 | 10.42 |
+| 7 | chan numeral | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 65,29,74,41 | 7.19 |
+| 8 | midi slot | `3` | M | 9 | 9x13 | 11 | 1.375 | 9.5 | 84,29,93,42 | 7.19 |
+| 9 | algo name | `EUCLID` | M | 51 | 50x13 | 11 | 1.375 | 9.5 | 65,46,115,59 | 7.19 |
+| 10 | chan numeral | `3` | M | 9 | 9x13 | 11 | 1.375 | 9.5 | 125,29,134,42 | 7.19 |
+| 11 | midi slot | `4` | M | 9 | 9x11 | 11 | 1.375 | 9.5 | 144,30,153,41 | 7.19 |
+| 12 | algo name | `SNAKE` | M | 47 | 47x13 | 11 | 1.375 | 9.5 | 125,46,172,59 | 7.19 |
+| 13 | chan numeral | `4` | M | 9 | 9x11 | 11 | 1.375 | 9.5 | 185,30,194,41 | 7.19 |
+| 14 | midi slot | `10` | M | 18 | 17x13 | 11 | 1.375 | 9.5 | 204,29,221,42 | 7.19 |
+| 15 | algo name | `STAGE` | M | 45 | 45x13 | 11 | 1.375 | 9.5 | 185,46,230,59 | 7.19 |
+| 16 | ratchet digit | `3` | M | 9 | 9x13 | 11 | 1.375 | 9.5 | 153,88,162,101 | 7.19 |
+| 17 | ratchet digit | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 198,88,207,100 | 5.58 |
+| 18 | knob label | `CUT` | M | 30 | 30x13 | 11 | 1.375 | 9.5 | 15,147,45,160 | 12.33 |
+| 19 | knob value | `74` | L | 36 | 34x21 | 21 | 2.625 | 18.0 | 13,165,47,186 | 7.19 |
+| 20 | knob label | `RESO` | M | 37 | 37x13 | 11 | 1.375 | 9.5 | 71,147,108,160 | 12.33 |
+| 21 | knob value | `40` | L | 36 | 34x22 | 21 | 2.625 | 18.0 | 73,165,107,187 | 7.19 |
+| 22 | knob label | `ENV-X` | M | 43 | 44x11 | 11 | 1.375 | 9.5 | 128,148,172,159 | 12.33 |
+| 23 | knob value | `64` | L | 36 | 34x22 | 21 | 2.625 | 18.0 | 133,165,167,187 | 7.19 |
+| 24 | knob label | `PAD-Z` | M | 43 | 43x11 | 11 | 1.375 | 9.5 | 188,148,231,159 | 12.33 |
+| 25 | knob value | `64` | L | 36 | 34x22 | 21 | 2.625 | 18.0 | 193,165,227,187 | 7.19 |
+| 26 | row label | `ROW 1` | M | 46 | 43x13 | 11 | 1.375 | 9.5 | 8,205,51,218 | 5.23 |
+| 27 | row label | `ROW 2` | M | 46 | 46x13 | 11 | 1.375 | 9.5 | 67,205,113,218 | 5.23 |
+| 28 | row label | `ROW 3` | M | 46 | 46x13 | 11 | 1.375 | 9.5 | 127,205,173,218 | 12.33 |
+| 29 | cue | `FX SCL ENV LFO ARP SEQ = DICE` | M | 222 | 221x13 | 11 | 1.375 | 9.5 | 9,221,230,234 | 12.33 |
+
+#### mutes (roles: algo name, chan numeral, cue, cue chip, knob label, knob value, knob value (M), midi slot, mute chip, page numeral, preset, ratchet digit, row label, tempo)
+| # | role | string | font | advance px | ink px (w x h) | cap px | cap mm | arcmin@50cm | ink box (x0,y0,x1,y1) | fg/bg contrast |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | tempo | `120` | M | 27 | 26x13 | 11 | 1.375 | 9.5 | 17,5,43,18 | 12.33 |
+| 2 | preset | `P01` | M | 27 | 24x13 | 11 | 1.375 | 9.5 | 121,5,145,18 | 12.33 |
+| 3 | page numeral | `1` | M | 9 | 5x11 | 11 | 1.375 | 9.5 | 215,6,220,17 | 11.08 |
+| 4 | page numeral | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 228,5,237,17 | 5.23 |
+| 5 | chan numeral | `1` | M | 9 | 5x11 | 11 | 1.375 | 9.5 | 5,30,10,41 | 7.19 |
+| 6 | midi slot | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 24,29,33,41 | 7.19 |
+| 7 | algo name | `ACID` | M | 33 | 33x13 | 11 | 1.375 | 9.5 | 5,46,38,59 | 7.19 |
+| 8 | chan numeral | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 65,29,74,41 | 6.42 |
+| 9 | midi slot | `3` | M | 9 | 9x13 | 11 | 1.375 | 9.5 | 84,29,93,42 | 6.42 |
+| 10 | mute chip | `M` | M | 13 | 12x11 | 11 | 1.375 | 9.5 | 104,30,116,41 | 6.42 |
+| 11 | algo name | `EUCLID` | M | 51 | 50x13 | 11 | 1.375 | 9.5 | 65,46,115,59 | 6.42 |
+| 12 | chan numeral | `3` | M | 9 | 9x13 | 11 | 1.375 | 9.5 | 125,29,134,42 | 10.42 |
+| 13 | midi slot | `4` | M | 9 | 9x11 | 11 | 1.375 | 9.5 | 144,30,153,41 | 10.42 |
+| 14 | algo name | `SNAKE` | M | 47 | 47x13 | 11 | 1.375 | 9.5 | 125,46,172,59 | 10.42 |
+| 15 | chan numeral | `4` | M | 9 | 9x11 | 11 | 1.375 | 9.5 | 185,30,194,41 | 6.42 |
+| 16 | midi slot | `--` | M | 13 | 12x3 | 11 | 1.375 | 9.5 | 195,35,207,38 | 6.42 |
+| 17 | mute chip | `M` | M | 13 | 12x11 | 11 | 1.375 | 9.5 | 224,30,236,41 | 6.42 |
+| 18 | algo name | `STAGE` | M | 45 | 45x13 | 11 | 1.375 | 9.5 | 185,46,230,59 | 6.42 |
+| 19 | ratchet digit | `3` | M | 9 | 9x13 | 11 | 1.375 | 9.5 | 153,88,162,101 | 7.19 |
+| 20 | ratchet digit | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 198,88,207,100 | 5.58 |
+| 21 | knob label | `DENS` | M | 38 | 38x13 | 11 | 1.375 | 9.5 | 11,147,49,160 | 10.03 |
+| 22 | knob value | `10` | L | 36 | 32x22 | 21 | 2.625 | 18.0 | 14,165,46,187 | 10.03 |
+| 23 | knob label | `LEN` | M | 27 | 26x11 | 11 | 1.375 | 9.5 | 77,148,103,159 | 10.03 |
+| 24 | knob value | `7` | L | 18 | 15x21 | 21 | 2.625 | 18.0 | 82,165,97,186 | 10.03 |
+| 25 | knob label | `RANGE` | M | 49 | 48x13 | 11 | 1.375 | 9.5 | 126,147,174,160 | 10.03 |
+| 26 | knob value | `12` | L | 36 | 32x21 | 21 | 2.625 | 18.0 | 134,165,166,186 | 10.03 |
+| 27 | knob label | `PATH` | M | 36 | 35x11 | 11 | 1.375 | 9.5 | 192,148,227,159 | 10.03 |
+| 28 | knob value (M) | `7` | M | 9 | 9x11 | 11 | 1.375 | 9.5 | 226,173,235,184 | 10.03 |
+| 29 | row label | `ROW 1` | M | 46 | 43x13 | 11 | 1.375 | 9.5 | 8,205,51,218 | 12.33 |
+| 30 | row label | `ROW 2` | M | 46 | 46x13 | 11 | 1.375 | 9.5 | 67,205,113,218 | 5.23 |
+| 31 | cue chip | `M2` | M | 22 | 22x12 | 11 | 1.375 | 9.5 | 2,221,24,233 | 12.33 |
+| 32 | cue | `CH2 MUTED  TAP AGAIN = ON` | M | 202 | 201x13 | 11 | 1.375 | 9.5 | 30,221,231,234 | 12.33 |
+
+#### stress (roles: algo name, chan numeral, cue, cue chip, knob label, knob value, knob value (M), midi slot, mute chip, page numeral, preset, ratchet digit, row label, tempo)
+| # | role | string | font | advance px | ink px (w x h) | cap px | cap mm | arcmin@50cm | ink box (x0,y0,x1,y1) | fg/bg contrast |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | tempo | `EXT 126` | M | 57 | 57x13 | 11 | 1.375 | 9.5 | 17,5,74,18 | 12.33 |
+| 2 | preset | `P16` | M | 27 | 27x13 | 11 | 1.375 | 9.5 | 121,5,148,18 | 12.33 |
+| 3 | page numeral | `1` | M | 9 | 5x11 | 11 | 1.375 | 9.5 | 185,6,190,17 | 5.23 |
+| 4 | page numeral | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 198,5,207,17 | 5.23 |
+| 5 | page numeral | `3` | M | 9 | 9x13 | 11 | 1.375 | 9.5 | 213,5,222,18 | 5.23 |
+| 6 | page numeral | `4` | M | 9 | 9x11 | 11 | 1.375 | 9.5 | 228,6,237,17 | 11.08 |
+| 7 | chan numeral | `1` | M | 9 | 5x11 | 11 | 1.375 | 9.5 | 5,30,10,41 | 7.19 |
+| 8 | midi slot | `16` | M | 18 | 17x13 | 11 | 1.375 | 9.5 | 24,29,41,42 | 7.19 |
+| 9 | algo name | `ACID` | M | 33 | 33x13 | 11 | 1.375 | 9.5 | 5,46,38,59 | 7.19 |
+| 10 | chan numeral | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 65,29,74,41 | 7.19 |
+| 11 | midi slot | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 84,29,93,41 | 7.19 |
+| 12 | algo name | `PATT` | M | 35 | 34x11 | 11 | 1.375 | 9.5 | 65,47,99,58 | 7.19 |
+| 13 | chan numeral | `3` | M | 9 | 9x13 | 11 | 1.375 | 9.5 | 125,29,134,42 | 7.19 |
+| 14 | midi slot | `--` | M | 13 | 12x3 | 11 | 1.375 | 9.5 | 135,35,147,38 | 7.19 |
+| 15 | algo name | `SNAKE` | M | 47 | 47x13 | 11 | 1.375 | 9.5 | 125,46,172,59 | 7.19 |
+| 16 | chan numeral | `4` | M | 9 | 9x11 | 11 | 1.375 | 9.5 | 185,30,194,41 | 5.37 |
+| 17 | midi slot | `--` | M | 13 | 12x3 | 11 | 1.375 | 9.5 | 195,35,207,38 | 10.42 |
+| 18 | mute chip | `M` | M | 13 | 12x11 | 11 | 1.375 | 9.5 | 224,30,236,41 | 10.42 |
+| 19 | algo name | `ARP` | M | 28 | 28x11 | 11 | 1.375 | 9.5 | 185,47,213,58 | 10.42 |
+| 20 | ratchet digit | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 78,88,87,100 | 3.54 |
+| 21 | ratchet digit | `3` | M | 9 | 9x13 | 11 | 1.375 | 9.5 | 108,88,117,101 | 11.08 |
+| 22 | ratchet digit | `4` | M | 9 | 9x11 | 11 | 1.375 | 9.5 | 123,89,132,100 | 4.57 |
+| 23 | ratchet digit | `2` | M | 9 | 9x12 | 11 | 1.375 | 9.5 | 213,88,222,100 | 3.54 |
+| 24 | knob label | `DENS` | M | 38 | 38x13 | 11 | 1.375 | 9.5 | 11,147,49,160 | 10.03 |
+| 25 | knob value | `8` | L | 18 | 16x22 | 21 | 2.625 | 18.0 | 22,165,38,187 | 10.03 |
+| 26 | knob label | `SHAPE` | M | 47 | 46x13 | 11 | 1.375 | 9.5 | 67,147,113,160 | 10.03 |
+| 27 | knob value (M) | `OCTV` | M | 40 | 40x13 | 11 | 1.375 | 9.5 | 70,183,110,196 | 10.03 |
+| 28 | knob label | `SPAN` | M | 37 | 37x13 | 11 | 1.375 | 9.5 | 131,147,168,160 | 10.03 |
+| 29 | knob value | `3` | L | 18 | 16x22 | 21 | 2.625 | 18.0 | 142,165,158,187 | 10.03 |
+| 30 | knob label | `RATE` | M | 35 | 35x11 | 11 | 1.375 | 9.5 | 192,148,227,159 | 10.03 |
+| 31 | knob value | `2X` | L | 36 | 34x21 | 21 | 2.625 | 18.0 | 193,165,227,186 | 10.03 |
+| 32 | row label | `ROW 1` | M | 46 | 43x13 | 11 | 1.375 | 9.5 | 8,205,51,218 | 12.33 |
+| 33 | row label | `ROW 2` | M | 46 | 46x13 | 11 | 1.375 | 9.5 | 67,205,113,218 | 5.23 |
+| 34 | cue chip | `REC` | M | 28 | 28x13 | 11 | 1.375 | 9.5 | 2,221,30,234 | 12.33 |
+| 35 | cue | `KEYS WRITE NOTES` | M | 135 | 135x13 | 11 | 1.375 | 9.5 | 36,221,171,234 | 12.33 |
+
+### cue line, every cue_* scene (rows with role 'cue' / 'cue chip' only)
+| # | role | string | font | advance px | ink px (w x h) | cap px | cap mm | arcmin@50cm | ink box (x0,y0,x1,y1) | fg/bg contrast |
+|---|---|---|---|---|---|---|---|---|---|---|
+| cue_dice_accnt | cue chip | `ENV` | M | 29 | 29x11 | 11 | 1.375 | 9.5 | 2,222,31,233 | 12.33 |
+| cue_dice_accnt | cue | `ACCNT  EDIT = UNDO` | M | 146 | 146x13 | 11 | 1.375 | 9.5 | 37,221,183,234 | 12.33 |
+| cue_dice_all | cue chip | `FX` | M | 18 | 18x11 | 11 | 1.375 | 9.5 | 2,222,20,233 | 12.33 |
+| cue_dice_all | cue | `ALL LAYERS  EDIT = UNDO` | M | 178 | 178x13 | 11 | 1.375 | 9.5 | 26,221,204,234 | 12.33 |
+| cue_dice_artic | cue chip | `ARP` | M | 28 | 28x11 | 11 | 1.375 | 9.5 | 2,222,30,233 | 12.33 |
+| cue_dice_artic | cue | `ARTIC  EDIT = UNDO` | M | 138 | 138x13 | 11 | 1.375 | 9.5 | 36,221,174,234 | 12.33 |
+| cue_dice_hits | cue chip | `SEQ` | M | 28 | 28x13 | 11 | 1.375 | 9.5 | 2,221,30,234 | 12.33 |
+| cue_dice_hits | cue | `HITS  EDIT = UNDO` | M | 128 | 128x13 | 11 | 1.375 | 9.5 | 36,221,164,234 | 12.33 |
+| cue_dice_notes | cue chip | `SCL` | M | 27 | 27x13 | 11 | 1.375 | 9.5 | 2,221,29,234 | 12.33 |
+| cue_dice_notes | cue | `NOTES  EDIT = UNDO` | M | 143 | 143x13 | 11 | 1.375 | 9.5 | 35,221,178,234 | 12.33 |
+| cue_dice_shape | cue chip | `LFO` | M | 27 | 27x13 | 11 | 1.375 | 9.5 | 2,221,29,234 | 12.33 |
+| cue_dice_shape | cue | `SHAPE  EDIT = UNDO` | M | 143 | 143x13 | 11 | 1.375 | 9.5 | 35,221,178,234 | 12.33 |
+| cue_fill | cue chip | `FIL` | M | 19 | 19x11 | 11 | 1.375 | 9.5 | 2,222,21,233 | 12.33 |
+| cue_fill | cue | `DENSITY UP WHILE HELD` | M | 171 | 171x13 | 11 | 1.375 | 9.5 | 27,221,198,234 | 12.33 |
+| cue_idle_playing | cue | `FX SCL ENV LFO ARP SEQ = DICE` | M | 222 | 221x13 | 11 | 1.375 | 9.5 | 9,221,230,234 | 12.33 |
+| cue_idle_stopped | cue | `HOLD HOME = MAP` | M | 133 | 133x13 | 11 | 1.375 | 9.5 | 53,221,186,234 | 12.33 |
+| cue_mute_held | cue chip | `M2` | M | 22 | 22x12 | 11 | 1.375 | 9.5 | 2,221,24,233 | 12.33 |
+| cue_mute_held | cue | `CH2 MUTED  TAP AGAIN = ON` | M | 202 | 201x13 | 11 | 1.375 | 9.5 | 30,221,231,234 | 12.33 |
+| cue_oct_latch | cue chip | `OCT+` | M | 39 | 38x13 | 11 | 1.375 | 9.5 | 2,221,40,234 | 12.33 |
+| cue_oct_latch | cue | `OFFSET PEDAL PUNCH DIR` | M | 182 | 182x13 | 11 | 1.375 | 9.5 | 46,221,228,234 | 12.33 |
+| cue_page | cue chip | `PG+` | M | 29 | 28x13 | 11 | 1.375 | 9.5 | 2,221,30,234 | 12.33 |
+| cue_page | cue | `PAGE 2 OF 4  FOLLOW OFF` | M | 180 | 179x13 | 11 | 1.375 | 9.5 | 36,221,215,234 | 12.33 |
+| cue_roll | cue chip | `ROL` | M | 28 | 28x13 | 11 | 1.375 | 9.5 | 2,221,30,234 | 12.33 |
+| cue_roll | cue | `STEPS REPEAT 2X-4X` | M | 146 | 147x13 | 11 | 1.375 | 9.5 | 36,221,183,234 | 12.33 |
+| cue_save_hold | cue chip | `SAVE` | M | 36 | 36x13 | 11 | 1.375 | 9.5 | 2,221,38,234 | 12.33 |
+| cue_save_hold | cue | `HOLD = UNDO PRESET LOAD` | M | 195 | 195x13 | 11 | 1.375 | 9.5 | 44,221,239,234 | 12.33 |
+| cue_solo | cue chip | `SOL` | M | 28 | 28x13 | 11 | 1.375 | 9.5 | 2,221,30,234 | 12.33 |
+| cue_solo | cue | `ONLY CH1 SOUNDS` | M | 135 | 134x13 | 11 | 1.375 | 9.5 | 36,221,170,234 | 12.33 |
+| cue_undo | cue chip | `EDIT` | M | 31 | 31x11 | 11 | 1.375 | 9.5 | 2,222,33,233 | 12.33 |
+| cue_undo | cue | `UNDONE  AGAIN = REDO` | M | 166 | 166x13 | 11 | 1.375 | 9.5 | 39,221,205,234 | 12.33 |
+
+### toasts (rows of toast roles + the AF_S/M/L counts of the whole scene)
+| # | role | string | font | advance px | ink px (w x h) | cap px | cap mm | arcmin@50cm | ink box (x0,y0,x1,y1) | fg/bg contrast |
+|---|---|---|---|---|---|---|---|---|---|---|
+<!-- toast_algo: 27 strings L5 M22 S0 -->
+| toast_algo | toast title | `EUCLID` | L | 96 | 95x22 | 21 | 2.625 | 18.0 | 3,200,98,222 | 10.03 |
+| toast_algo | toast detail | `ALGORITHM  CH1` | M | 120 | 117x13 | 11 | 1.375 | 9.5 | 3,223,120,236 | 10.03 |
+<!-- toast_dice_accnt: 29 strings L6 M23 S0 -->
+| toast_dice_accnt | toast chip | `ENV` | L | 55 | 54x21 | 21 | 2.625 | 18.0 | 7,200,61,221 | 12.33 |
+| toast_dice_accnt | toast title | `ACCNT` | L | 95 | 95x22 | 21 | 2.625 | 18.0 | 73,200,168,222 | 10.03 |
+| toast_dice_accnt | toast detail | `CH1 NEW ACCENTS` | M | 137 | 137x13 | 11 | 1.375 | 9.5 | 3,223,140,236 | 10.03 |
+| toast_dice_accnt | toast hint | `EDIT: UNDO` | M | 80 | 80x13 | 11 | 1.375 | 9.5 | 157,223,237,236 | 5.23 |
+<!-- toast_dice_all: 28 strings L6 M22 S0 -->
+| toast_dice_all | toast chip | `FX` | L | 34 | 33x21 | 21 | 2.625 | 18.0 | 7,200,40,221 | 12.33 |
+| toast_dice_all | toast title | `ALL` | L | 49 | 49x21 | 21 | 2.625 | 18.0 | 52,200,101,221 | 10.03 |
+| toast_dice_all | toast detail | `CH1 EVERY LAYER NEW` | M | 162 | 163x13 | 11 | 1.375 | 9.5 | 3,223,166,236 | 10.03 |
+<!-- toast_dice_artic: 28 strings L6 M22 S0 -->
+| toast_dice_artic | toast chip | `ARP` | L | 53 | 53x21 | 21 | 2.625 | 18.0 | 7,200,60,221 | 12.33 |
+| toast_dice_artic | toast title | `ARTIC` | L | 80 | 79x22 | 21 | 2.625 | 18.0 | 72,200,151,222 | 10.03 |
+| toast_dice_artic | toast detail | `CH1 NEW GATES + SLIDES` | M | 179 | 179x13 | 11 | 1.375 | 9.5 | 3,223,182,236 | 10.03 |
+<!-- toast_dice_artic_snake: 28 strings L5 M23 S0 -->
+| toast_dice_artic_snake | toast chip | `ARP` | L | 53 | 53x21 | 21 | 2.625 | 18.0 | 7,200,60,221 | 6.42 |
+| toast_dice_artic_snake | toast title | `ARTIC` | L | 80 | 79x22 | 21 | 2.625 | 18.0 | 72,200,151,222 | 5.23 |
+| toast_dice_artic_snake | toast detail | `NO ARTIC IN SNAKE` | M | 134 | 134x13 | 11 | 1.375 | 9.5 | 3,223,137,236 | 5.23 |
+<!-- toast_dice_hits: 28 strings L6 M22 S0 -->
+| toast_dice_hits | toast chip | `SEQ` | L | 54 | 53x23 | 21 | 2.625 | 18.0 | 7,200,60,223 | 12.33 |
+| toast_dice_hits | toast title | `HITS` | L | 61 | 59x22 | 21 | 2.625 | 18.0 | 72,200,131,222 | 10.03 |
+| toast_dice_hits | toast detail | `CH1 NEW HIT PATTERN` | M | 159 | 158x13 | 11 | 1.375 | 9.5 | 3,223,161,236 | 10.03 |
+<!-- toast_dice_notes: 29 strings L6 M23 S0 -->
+| toast_dice_notes | toast chip | `SCL` | L | 52 | 52x22 | 21 | 2.625 | 18.0 | 7,200,59,222 | 12.33 |
+| toast_dice_notes | toast title | `NOTES` | L | 90 | 88x22 | 21 | 2.625 | 18.0 | 71,200,159,222 | 10.03 |
+| toast_dice_notes | toast detail | `CH1 NEW PITCHES` | M | 129 | 129x13 | 11 | 1.375 | 9.5 | 3,223,132,236 | 10.03 |
+| toast_dice_notes | toast hint | `EDIT: UNDO` | M | 80 | 80x13 | 11 | 1.375 | 9.5 | 157,223,237,236 | 5.23 |
+<!-- toast_dice_shape: 28 strings L6 M22 S0 -->
+| toast_dice_shape | toast chip | `LFO` | L | 51 | 50x22 | 21 | 2.625 | 18.0 | 7,200,57,222 | 12.33 |
+| toast_dice_shape | toast title | `SHAPE` | L | 89 | 88x22 | 21 | 2.625 | 18.0 | 69,200,157,222 | 10.03 |
+| toast_dice_shape | toast detail | `CH1 NEW OCTAVE JUMPS` | M | 178 | 178x13 | 11 | 1.375 | 9.5 | 3,223,181,236 | 10.03 |
+<!-- toast_midi_channel: 27 strings L5 M22 S0 -->
+| toast_midi_channel | toast title | `MIDI 2` | L | 81 | 79x21 | 21 | 2.625 | 18.0 | 3,200,82,221 | 10.03 |
+| toast_midi_channel | toast detail | `CH1 SENDS ON MIDI CHANNEL 2` | M | 222 | 222x13 | 11 | 1.375 | 9.5 | 3,223,225,236 | 10.03 |
+<!-- toast_midi_off: 27 strings L5 M22 S0 -->
+| toast_midi_off | toast title | `MIDI OFF` | L | 114 | 113x22 | 21 | 2.625 | 18.0 | 3,200,116,222 | 10.03 |
+| toast_midi_off | toast detail | `CH1 SENDS NOTHING` | M | 149 | 149x13 | 11 | 1.375 | 9.5 | 3,223,152,236 | 10.03 |
+<!-- toast_preset_loading: 29 strings L5 M24 S0 -->
+| toast_preset_loading | toast title | `P04` | L | 53 | 51x22 | 21 | 2.625 | 18.0 | 3,200,54,222 | 10.03 |
+| toast_preset_loading | toast detail | `LOADING` | M | 62 | 62x13 | 11 | 1.375 | 9.5 | 80,204,142,217 | 10.03 |
+| toast_preset_loading | toast chip | `SAVE` | M | 36 | 36x13 | 11 | 1.375 | 9.5 | 5,223,41,236 | 12.33 |
+| toast_preset_loading | toast detail | `HOLD = UNDO LAST LOAD` | M | 178 | 178x13 | 11 | 1.375 | 9.5 | 47,223,225,236 | 10.03 |
+<!-- toast_preset_pending: 28 strings L5 M23 S0 -->
+| toast_preset_pending | toast title | `P04` | L | 53 | 51x22 | 21 | 2.625 | 18.0 | 3,200,54,222 | 10.03 |
+| toast_preset_pending | toast detail | `LOADS AT BAR` | M | 99 | 100x13 | 11 | 1.375 | 9.5 | 64,204,164,217 | 10.03 |
+| toast_preset_pending | toast detail | `SAVE: KEEP HERE  HOME: CANCEL` | M | 233 | 233x13 | 11 | 1.375 | 9.5 | 3,223,236,236 | 10.03 |
+<!-- toast_preset_pending_stopped: 28 strings L5 M23 S0 -->
+| toast_preset_pending_stopped | toast title | `P04` | L | 53 | 51x22 | 21 | 2.625 | 18.0 | 3,200,54,222 | 10.03 |
+| toast_preset_pending_stopped | toast detail | `LOADS IN 1.5 S` | M | 102 | 101x13 | 11 | 1.375 | 9.5 | 64,204,165,217 | 10.03 |
+| toast_preset_pending_stopped | toast detail | `SAVE: KEEP HERE  HOME: CANCEL` | M | 233 | 233x13 | 11 | 1.375 | 9.5 | 3,223,236,236 | 10.03 |
+<!-- toast_redo: 29 strings L6 M23 S0 -->
+| toast_redo | toast chip | `EDIT` | L | 59 | 58x21 | 21 | 2.625 | 18.0 | 7,200,65,221 | 12.33 |
+| toast_redo | toast title | `REDONE` | L | 109 | 107x22 | 21 | 2.625 | 18.0 | 77,200,184,222 | 10.03 |
+| toast_redo | toast detail | `CH1 NOTES` | M | 81 | 81x13 | 11 | 1.375 | 9.5 | 3,223,84,236 | 10.03 |
+| toast_redo | toast hint | `EDIT AGAIN = UNDO` | M | 136 | 136x13 | 11 | 1.375 | 9.5 | 101,223,237,236 | 5.23 |
+<!-- toast_undo: 29 strings L6 M23 S0 -->
+| toast_undo | toast chip | `EDIT` | L | 59 | 58x21 | 21 | 2.625 | 18.0 | 7,200,65,221 | 12.33 |
+| toast_undo | toast title | `UNDONE` | L | 115 | 113x22 | 21 | 2.625 | 18.0 | 77,200,190,222 | 10.03 |
+| toast_undo | toast detail | `CH1 NOTES` | M | 81 | 81x13 | 11 | 1.375 | 9.5 | 3,223,84,236 | 10.03 |
+| toast_undo | toast hint | `EDIT AGAIN = REDO` | M | 133 | 133x13 | 11 | 1.375 | 9.5 | 104,223,237,236 | 5.23 |
+<!-- state_add_page: 29 strings L5 M24 S0 -->
+| state_add_page | toast title | `ADD PAGE 3` | L | 156 | 155x22 | 21 | 2.625 | 18.0 | 3,200,158,222 | 10.03 |
+| state_add_page | toast detail | `PG+ AGAIN: COPY OF 2  HOME: NO` | M | 236 | 236x13 | 11 | 1.375 | 9.5 | 3,223,239,236 | 10.03 |
+<!-- state_past_length: 27 strings L5 M22 S0 -->
+| state_past_length | toast title | `PAST THE END` | L | 188 | 186x22 | 21 | 2.625 | 18.0 | 3,200,189,222 | 10.03 |
+| state_past_length | toast detail | `CHN K1 = LENGTH` | M | 126 | 125x13 | 11 | 1.375 | 9.5 | 3,223,128,236 | 10.03 |
+| state_past_length | toast hint | `20 STEPS` | M | 66 | 66x13 | 11 | 1.375 | 9.5 | 171,223,237,236 | 5.23 |
+
+### map_A: 55 strings, fonts {'L': 0, 'M': 33, 'S': 22}, roles 8
+| role | font | count | strings | min contrast | max advance | max ink | cap mm | arcmin |
+|---|---|---|---|---|---|---|---|---|
+| map title | M | 1 | `TOUCH = HELP` | 12.33 | 103 | 103 | 1.375 | 9.5 |
+| map page hint | M | 1 | `OCT+ = KEYS >` | 6.42 | 104 | 103 | 1.375 | 9.5 |
+| map printed | S | 22 | `MASTER`, `SELECT`, `PRESETS`, `ALGO`, `OCT-`, `OCT+`, `K1`, `K2`, `K3`, `K4`, `FX`, `SCL` ... | 5.23 | 49 | 49 | 1.125 | 7.7 |
+| map role | M | 18 | `VOL`, `CH 1-4`, `P01-16`, `OF CH 1`, `ROW 1`, `ROW+`, `ALL`, `NOTES`, `ACCNT`, `SHAPE`, `UNDO`, `SET` ... | 10.03 | 57 | 57 | 1.375 | 9.5 |
+| map legend | M | 1 | `= HOLD` | 12.33 | 52 | 51 | 1.375 | 9.5 |
+| map knob row1 | M | 4 | `DENS`, `SLIDE`, `JUMP`, `ACCNT` | 10.03 | 50 | 50 | 1.375 | 9.5 |
+| map knob row2 | M | 4 | `OFFSET`, `PEDAL`, `PUNCH`, `DIR` | 5.23 | 54 | 54 | 1.375 | 9.5 |
+| map hold | M | 4 | `RESET`, `HARM`, `MENU`, `UNDO L` | 10.03 | 53 | 53 | 1.375 | 9.5 |
+full list: map title|TOUCH = HELP|M; map page hint|OCT+ = KEYS >|M; map printed|MASTER|S; map role|VOL|M; map printed|SELECT|S; map role|CH 1-4|M; map printed|PRESETS|S; map role|P01-16|M; map printed|ALGO|S; map role|OF CH 1|M; map printed|OCT-|S; map role|ROW 1|M; map printed|OCT+|S; map role|ROW+|M; map legend|= HOLD|M; map printed|K1|S; map knob row1|DENS|M; map knob row2|OFFSET|M; map printed|K2|S; map knob row1|SLIDE|M; map knob row2|PEDAL|M; map printed|K3|S; map knob row1|JUMP|M; map knob row2|PUNCH|M; map printed|K4|S; map knob row1|ACCNT|M; map knob row2|DIR|M; map printed|FX|S; map role|ALL|M; map printed|SCL|S; map role|NOTES|M; map printed|ENV|S; map role|ACCNT|M; map printed|LFO|S; map role|SHAPE|M; map printed|EDIT|S; map role|UNDO|M; map hold|RESET|M; map printed|GLO|S; map role|SET|M; map hold|HARM|M; map printed|HOME|S; map role|CANCEL|M; map hold|MENU|M; map printed|SAVE|S; map role|SAVE|M; map hold|UNDO L|M; map printed|ARP|S; map role|ARTIC|M; map printed|SEQ|S; map role|HITS|M; map printed|PLAY|S; map role|PLAY|M; map printed|REC|S; map role|REC|M
+ink pairs on overlapping rows with horizontal gap < 2: []
+ink reaching x>=238 or x<=1: [('TOUCH = HELP', (1, 2, 104, 15)), ('OCT+ = KEYS >', (136, 2, 239, 15))]
+
+### map_A_row3: 55 strings, fonts {'L': 0, 'M': 33, 'S': 22}, roles 8
+| role | font | count | strings | min contrast | max advance | max ink | cap mm | arcmin |
+|---|---|---|---|---|---|---|---|---|
+| map title | M | 1 | `TOUCH = HELP` | 12.33 | 103 | 103 | 1.375 | 9.5 |
+| map page hint | M | 1 | `OCT+ = KEYS >` | 6.42 | 104 | 103 | 1.375 | 9.5 |
+| map printed | S | 22 | `MASTER`, `SELECT`, `PRESETS`, `ALGO`, `OCT-`, `OCT+`, `K1`, `K2`, `K3`, `K4`, `FX`, `SCL` ... | 5.23 | 49 | 49 | 1.125 | 7.7 |
+| map role | M | 18 | `VOL`, `CH 1-4`, `P01-16`, `OF CH 1`, `ROW 1`, `ROW+`, `ALL`, `NOTES`, `ACCNT`, `SHAPE`, `UNDO`, `SET` ... | 10.03 | 57 | 57 | 1.375 | 9.5 |
+| map legend | M | 1 | `= HOLD` | 12.33 | 52 | 51 | 1.375 | 9.5 |
+| map knob row1 | M | 4 | `DENS`, `SLIDE`, `JUMP`, `ACCNT` | 5.23 | 50 | 50 | 1.375 | 9.5 |
+| map knob row2 | M | 4 | `OFFSET`, `PEDAL`, `PUNCH`, `DIR` | 10.03 | 54 | 54 | 1.375 | 9.5 |
+| map hold | M | 4 | `RESET`, `HARM`, `MENU`, `UNDO L` | 10.03 | 53 | 53 | 1.375 | 9.5 |
+
+### map_B: 32 strings, fonts {'L': 0, 'M': 32, 'S': 0}, roles 8
+| role | font | count | strings | min contrast | max advance | max ink | cap mm | arcmin |
+|---|---|---|---|---|---|---|---|---|
+| map title | M | 1 | `TOUCH = HELP` | 12.33 | 103 | 103 | 1.375 | 9.5 |
+| map page hint | M | 1 | `< OCT- = BUTTONS` | 6.42 | 132 | 131 | 1.375 | 9.5 |
+| map black key | M | 8 | `M1`, `M2`, `M3`, `M4`, `CHN`, `PG-`, `PG+`, `RST` | 12.33 | 31 | 31 | 1.375 | 9.5 |
+| map black key hold | M | 3 | `SOL`, `FIL`, `ROL` | 12.33 | 28 | 28 | 1.375 | 9.5 |
+| map white key | M | 4 | `1`, `5`, `9`, `13` | 12.33 | 18 | 17 | 1.375 | 9.5 |
+| map caption | M | 2 | `TAP = STEP ON/OFF`, `= EDIT THAT NOTE` | 12.33 | 135 | 135 | 1.375 | 9.5 |
+| map hold | M | 1 | `HOLD` | 12.33 | 39 | 39 | 1.375 | 9.5 |
+| map key word | M | 12 | `ACCENT`, `SLIDE`, `3`, `RATCHET 2-4`, `EDITED`, `M`, `MUTED`, `2`, `MIDI OUT`, `--`, `MIDI OFF`, `SOUNDED` | 6.42 | 92 | 92 | 1.375 | 9.5 |
+full list: map title|TOUCH = HELP|M; map page hint|< OCT- = BUTTONS|M; map black key|M1|M; map black key|M2|M; map black key|M3|M; map black key|M4|M; map black key|CHN|M; map black key hold|SOL|M; map black key hold|FIL|M; map black key hold|ROL|M; map black key|PG-|M; map black key|PG+|M; map black key|RST|M; map white key|1|M; map white key|5|M; map white key|9|M; map white key|13|M; map caption|TAP = STEP ON/OFF|M; map hold|HOLD|M; map caption|= EDIT THAT NOTE|M; map key word|ACCENT|M; map key word|SLIDE|M; map key word|3|M; map key word|RATCHET 2-4|M; map key word|EDITED|M; map key word|M|M; map key word|MUTED|M; map key word|2|M; map key word|MIDI OUT|M; map key word|--|M; map key word|MIDI OFF|M; map key word|SOUNDED|M
+ink pairs on overlapping rows with horizontal gap < 2: []
+ink reaching x>=238 or x<=1: [('TOUCH = HELP', (1, 2, 104, 15)), ('< OCT- = BUTTONS', (108, 2, 239, 15)), ('RST', (212, 39, 239, 52)), ('1', (1, 110, 6, 121)), ('TAP = STEP ON/OFF', (1, 126, 136, 140)), ('3', (1, 181, 10, 194)), ('--', (1, 227, 13, 230))]
+
+### map_menu_countdown: 54 strings, fonts {'L': 0, 'M': 32, 'S': 22}, roles 7
+| role | font | count | strings | min contrast | max advance | max ink | cap mm | arcmin |
+|---|---|---|---|---|---|---|---|---|
+| map menu word | M | 1 | `MENU` | 12.33 | 42 | 42 | 1.375 | 9.5 |
+| map printed | S | 22 | `MASTER`, `SELECT`, `PRESETS`, `ALGO`, `OCT-`, `OCT+`, `K1`, `K2`, `K3`, `K4`, `FX`, `SCL` ... | 5.23 | 49 | 49 | 1.125 | 7.7 |
+| map role | M | 18 | `VOL`, `CH 1-4`, `P01-16`, `OF CH 1`, `ROW 1`, `ROW+`, `ALL`, `NOTES`, `ACCNT`, `SHAPE`, `UNDO`, `SET` ... | 10.03 | 57 | 57 | 1.375 | 9.5 |
+| map legend | M | 1 | `= HOLD` | 12.33 | 52 | 51 | 1.375 | 9.5 |
+| map knob row1 | M | 4 | `DENS`, `SLIDE`, `JUMP`, `ACCNT` | 10.03 | 50 | 50 | 1.375 | 9.5 |
+| map knob row2 | M | 4 | `OFFSET`, `PEDAL`, `PUNCH`, `DIR` | 5.23 | 54 | 54 | 1.375 | 9.5 |
+| map hold | M | 4 | `RESET`, `HARM`, `MENU`, `UNDO L` | 10.03 | 53 | 53 | 1.375 | 9.5 |
+
+### map_touch: 54 strings, fonts {'L': 0, 'M': 32, 'S': 22}, roles 7
+| role | font | count | strings | min contrast | max advance | max ink | cap mm | arcmin |
+|---|---|---|---|---|---|---|---|---|
+| map help line | M | 1 | `ALL: re-roll every layer` | 12.33 | 147 | 147 | 1.375 | 9.5 |
+| map printed | S | 22 | `MASTER`, `SELECT`, `PRESETS`, `ALGO`, `OCT-`, `OCT+`, `K1`, `K2`, `K3`, `K4`, `FX`, `SCL` ... | 5.23 | 49 | 49 | 1.125 | 7.7 |
+| map role | M | 18 | `VOL`, `CH 1-4`, `P01-16`, `OF CH 1`, `ROW 1`, `ROW+`, `ALL`, `NOTES`, `ACCNT`, `SHAPE`, `UNDO`, `SET` ... | 10.03 | 57 | 57 | 1.375 | 9.5 |
+| map legend | M | 1 | `= HOLD` | 12.33 | 52 | 51 | 1.375 | 9.5 |
+| map knob row1 | M | 4 | `DENS`, `SLIDE`, `JUMP`, `ACCNT` | 10.03 | 50 | 50 | 1.375 | 9.5 |
+| map knob row2 | M | 4 | `OFFSET`, `PEDAL`, `PUNCH`, `DIR` | 5.23 | 54 | 54 | 1.375 | 9.5 |
+| map hold | M | 4 | `RESET`, `HARM`, `MENU`, `UNDO L` | 10.03 | 53 | 53 | 1.375 | 9.5 |

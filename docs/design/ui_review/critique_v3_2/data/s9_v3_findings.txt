@@ -1,0 +1,20 @@
+## finding 7: step velocity 1/2/3 ON vs REST, both under the playhead (column 1) and not under it (column 3)
+ under playhead: vel 1 vs rest: 44 differing px in the 13x70 column; 
+ under playhead: vel 2 vs rest: 44 differing px in the 13x70 column; 
+ under playhead: vel 3 vs rest: 44 differing px in the 13x70 column; 
+ under playhead: vel 4 vs rest: 55 differing px in the 13x70 column; 
+ under playhead: vel 8 vs rest: 66 differing px in the 13x70 column; 
+ NOT under playhead: vel 1 vs rest, column 6: 44 differing px (bar height 4 px)
+ NOT under playhead: vel 2 vs rest, column 6: 44 differing px (bar height 4 px)
+ NOT under playhead: vel 3 vs rest, column 6: 44 differing px (bar height 4 px)
+
+## finding 7: slide chain under the playhead (all 16 steps slide, playhead on 8): longest BG run on the tie row (v3: 15 px)
+ longest BG run on y85: 1
+
+## finding 7: accent vs plain bar inside the playing column (all-BG marks): cap pixel rows vs bar pixel rows at the centre column
+ playing column, accent ON vs accent OFF: differing px = 56 (cap triangle 13x8 = 56 px of BG on HEAD)
+
+## finding 8: ratchet counts 1..8 (digit min(rep,4)), differing px in the column against rep 1 and against rep 4
+ vs rep 1: {2: 57, 3: 64, 4: 61, 5: 61, 6: 61, 7: 61, 8: 61}  vs rep 4: {1: 61, 2: 79, 3: 82, 5: 0, 6: 0, 7: 0, 8: 0}
+
+## finding 9: amber/head pixels in the lane when the playhead is on a page that is not viewed: see s6_edge_abcd.txt (d)

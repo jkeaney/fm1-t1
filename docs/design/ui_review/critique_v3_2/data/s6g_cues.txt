@@ -1,0 +1,108 @@
+## A. every CUES entry (chip + text) as drawn by draw_cue: width = chip block + 4 + text ink; limit 240; the mock has NO ellipsis path for cues (text_on), over-width text is cut by the canvas edge / assertion
+| key | chip | text | chip block px | text ink px | total px | spare px (240 - total) |  in CUE_ORDER (rendered in cue_table_1..3) |
+|---|---|---|---|---|---|---|---|
+| idle_stopped | `` | `HOLD HOME = MAP` | 0 | 133 | 133 | 107 | yes |
+| idle_playing | `` | `FX SCL ENV LFO ARP SEQ = DICE` | 0 | 221 | 221 | 19 | yes |
+| dice_all | `FX` | `ALL LAYERS  EDIT = UNDO` | 22 | 178 | 204 | 36 | yes |
+| dice_notes | `SCL` | `NOTES  EDIT = UNDO` | 31 | 143 | 178 | 62 | yes |
+| dice_accnt | `ENV` | `ACCNT  EDIT = UNDO` | 33 | 146 | 183 | 57 | yes |
+| dice_shape | `LFO` | `SHAPE  EDIT = UNDO` | 31 | 143 | 178 | 62 | yes |
+| dice_artic | `ARP` | `ARTIC  EDIT = UNDO` | 32 | 138 | 174 | 66 | yes |
+| dice_hits | `SEQ` | `HITS  EDIT = UNDO` | 32 | 128 | 164 | 76 | yes |
+| undo | `EDIT` | `UNDONE  AGAIN = REDO` | 35 | 166 | 205 | 35 | yes |
+| redo | `EDIT` | `REDONE  AGAIN = UNDO` | 35 | 166 | 205 | 35 | yes |
+| edit_hold | `EDIT` | `RESET: TOUCH A CONTROL` | 35 | 187 | 226 | 14 | yes |
+| mute | `M2` | `CH2 MUTED  TAP AGAIN = ON` | 26 | 201 | 231 | 9 | yes |
+| unmute | `M2` | `CH2 ON  TAP AGAIN = MUTE` | 26 | 191 | 221 | 19 | yes |
+| mute_hold | `M2` | `HOLD = PREVIEW CH2` | 26 | 151 | 181 | 59 | NO |
+| solo | `SOL` | `ONLY CH1 SOUNDS` | 32 | 134 | 170 | 70 | yes |
+| fill | `FIL` | `DENSITY UP WHILE HELD` | 23 | 171 | 198 | 42 | yes |
+| roll | `ROL` | `STEPS REPEAT 2X-4X` | 32 | 147 | 183 | 57 | yes |
+| pg_next | `PG+` | `PAGE 2 OF 4  FOLLOW OFF` | 32 | 179 | 215 | 25 | yes |
+| pg_add | `PG+` | `AGAIN = ADD PAGE 2` | 32 | 142 | 178 | 62 | yes |
+| restart | `RST` | `ALL CHANNELS TO STEP 1` | 31 | 177 | 212 | 28 | yes |
+| chn | `CHN` | `MIDI CHANNEL AND LENGTH` | 35 | 195 | 234 | 6 | NO |
+| oct_peek | `OCT+` | `HELD: ROW 2 LIVE` | 42 | 123 | 169 | 71 | yes |
+| save_hold | `SAVE` | `HOLD = UNDO PRESET LOAD` | 40 | 195 | 239 | 1 | yes |
+| save_tap | `SAVE` | `SAVED TO P01` | 40 | 96 | 140 | 100 | yes |
+| home | `HOME` | `TAP: CANCEL  HOLD: MAP` | 46 | 177 | 227 | 13 | yes |
+| play | `PLAY` | `STOP: ALL NOTES OFF` | 40 | 152 | 196 | 44 | NO |
+| rec_stopped | `REC` | `PLAY KEYS TO WRITE NOTES` | 32 | 197 | 233 | 7 | yes |
+| rec_playing | `REC` | `KEYS WRITE NOTES` | 32 | 135 | 171 | 69 | NO |
+| ext_sync | `` | `WAITING FOR THE HOST TEMPO` | 0 | 219 | 219 | 21 | yes |
+| wait | `PLAY` | `WAITING FOR HOST START` | 40 | 182 | 226 | 14 | yes |
+| ext_lost | `` | `CLOCK LOST: OWN TEMPO 120` | 0 | 214 | 214 | 26 | yes |
+| follow_off | `PG-` | `VIEW 2 OF 4  FOLLOW OFF` | 30 | 179 | 213 | 27 | yes |
+| past_end | `` | `PAST THE END: CHN K1 = LENGTH` | 0 | 232 | 232 | 8 | yes |
+| first_run | `CHN` | `K2 = MIDI CHANNEL` | 35 | 136 | 175 | 65 | yes |
+| gloset | `GLO` | `SET: BPM SWING GATE DIV` | 33 | 182 | 219 | 21 | NO |
+
+## B. OCT+/OCT- cue for every algorithm and row (cue_oct), channel with / without a device
+combinations: 72; widest 8 (total px, algo, rig, current row, button, chip, text):
+   (237, 'EUCLID', 1, 3, 'OCT-', 'OCT-', 'HITS OFFSET RATCH ACCNT')
+   (237, 'EUCLID', 1, 2, 'OCT-', 'OCT-', 'HITS OFFSET RATCH ACCNT')
+   (237, 'EUCLID', 1, 1, 'OCT-', 'OCT-', 'HITS OFFSET RATCH ACCNT')
+   (237, 'EUCLID', 0, 3, 'OCT-', 'OCT-', 'HITS OFFSET RATCH ACCNT')
+   (237, 'EUCLID', 0, 2, 'OCT-', 'OCT-', 'HITS OFFSET RATCH ACCNT')
+   (237, 'EUCLID', 0, 1, 'OCT-', 'OCT-', 'HITS OFFSET RATCH ACCNT')
+   (228, 'ACID', 1, 1, 'OCT+', 'OCT+', 'OFFSET PEDAL PUNCH DIR')
+   (228, 'ACID', 0, 3, 'OCT+', 'OCT+', 'OFFSET PEDAL PUNCH DIR')
+over 240: none
+OCT- from ROW 1 goes to ROW 1 (r = 0): cue names the ROW 1 names even when ROW 1 is already live: example [(237, 'EUCLID', 1, 1, 'OCT-', 'OCT-', 'HITS OFFSET RATCH ACCNT')]
+
+## C. strings with a variable part, worst case
+digit ink widths (AF_M): [(9, 0), (5, 1), (9, 2), (9, 3), (9, 4), (9, 5), (9, 6), (9, 7), (9, 8), (9, 9)]  advance: [9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
+widest variable-part cues: [(232, 'past_end', '', 'PAST THE END: CHN K1 = LENGTH'), (231, 'mute', 'M4', 'CH4 MUTED  TAP AGAIN = ON'), (231, 'mute', 'M3', 'CH3 MUTED  TAP AGAIN = ON'), (231, 'mute', 'M2', 'CH2 MUTED  TAP AGAIN = ON'), (228, 'mute', 'M1', 'CH1 MUTED  TAP AGAIN = ON'), (226, 'edit_hold', 'EDIT', 'RESET: TOUCH A CONTROL')]
+over 240: none
+per key worst: 
+worst total per key: {'mute': 231, 'unmute': 221, 'mute_hold': 181, 'solo': 170, 'pg_next': 215, 'pg_add': 178, 'follow_off': 213, 'save_tap': 143, 'ext_lost': 214, 'past_end': 232, 'first_run': 175, 'gloset': 219, 'edit_hold': 226}
+
+## D. coverage: controls of docs/design/button_modes.tsv PERF and key_map.tsv PERF vs a cue entry in proposal_v3_2.CUES
+| control | gesture | spec label | spec action (start) | cue in CUES | cue text |
+|---|---|---|---|---|---|
+| B_FX | tap | ALL | press: DICE ALL layers present in the algorithm (generated layer only; | dice_all | FX ALL LAYERS  EDIT = UNDO |
+| B_SCL | tap | NOTES | press: dice the NOTES layer (new pitches in the scale; edited pitches  | dice_notes | SCL NOTES  EDIT = UNDO |
+| B_ENV | tap | ACCNT | press: dice the ACCNT layer (which generated steps are loud; VELO edit | dice_accnt | ENV ACCNT  EDIT = UNDO |
+| B_LFO | tap | SHAPE | press: dice the SHAPE layer (register jumps, slot lengths, drift, mod  | dice_shape | LFO SHAPE  EDIT = UNDO |
+| B_EDIT | tap | UNDO | UNDO / REDO the last dice, dice-all, step edit, page add, page clear o | undo/redo | EDIT UNDONE  AGAIN = REDO / EDIT REDONE  AGAIN = UNDO |
+| B_EDIT | hold | RESET | 0.4 s: open RESET (latched, one shot): the next control touched goes b | edit_hold | EDIT RESET: TOUCH A CONTROL |
+| B_GLO | tap | SET | open SET (latched): BPM SWING GATE DIV | gloset | GLO SET: BPM SWING GATE DIV |
+| B_GLO | hold | HARM | 0.4 s: open HARMONY (latched): SCALE KEY VOICE MOVE, the progression s | **none** |  |
+| B_HOME | tap | HOME | release under 0.7 s, nothing touched: already home, so it only cancels | home | HOME TAP: CANCEL  HOLD: MAP |
+| B_HOME | hold | HLP/MN | hold (acts on release; owner decisions 57 / 61): from 0.25 s the strip | **none** |  |
+| B_SAVE | tap | SAVE | release under 0.7 s: save the whole device state to the slot in the he | save_tap | SAVE SAVED TO P01 |
+| B_SAVE | hold | UNDO L | 0.7 s: undo the last preset load (the state AND the header slot go bac | save_hold | SAVE HOLD = UNDO PRESET LOAD |
+| B_ARP | tap | ARTIC | press: dice the ARTIC layer (gate, slide, ratchet as the algorithm has | dice_artic | ARP ARTIC  EDIT = UNDO |
+| B_SEQ | tap | HITS | press: dice the HITS layer (where the generated steps fall; ON/OFF edi | dice_hits | SEQ HITS  EDIT = UNDO |
+| B_PLAY | tap | PLAY | press: start / stop all channels (stop sends every note-off then CC123 | play | PLAY STOP: ALL NOTES OFF |
+| B_REC | tap | REC | press: open REC (latched, LED lit): the 27 keys play and write notes | rec_stopped/rec_playing | REC PLAY KEYS TO WRITE NOTES / REC KEYS WRITE NOTES |
+| B_OCTDN | tap | ROW 1 | release: latch ROW 1 of the knob band, from ROW 2 or ROW 3 alike (the  | oct_dn | OCT- DENS SLIDE JUMP ACCNT |
+| B_OCTDN | hold | ROW 1 | hold and turn a knob: ROW 1 live while held (momentary peek; the tap i | oct_peek (OCT+ text only) | OCT+ HELD: ROW 2 LIVE |
+| B_OCTDN | hold-both | UPDATE | both OCT held 5 s = UPDATE MODE; both at power-on = CALIBRATION (hidde | **none** |  |
+| B_OCTUP | tap | ROW 2 | release: next row of the knob band: ROW 1 -> ROW 2; ROW 2 -> ROW 3 (th | oct_up | OCT+ OFFSET PEDAL PUNCH DIR |
+| B_OCTUP | hold | ROW 2 | hold and turn a knob: ROW 2 live while held (momentary peek; the tap i | oct_peek | OCT+ HELD: ROW 2 LIVE |
+| B_OCTUP | hold-both | UPDATE | both OCT held 5 s = UPDATE MODE; both at power-on = CALIBRATION (hidde | **none** |  |
+| KEY_W01_F3 | tap | STEP | release under 0.4 s: step 1 of the viewed page ON/OFF (a second tap th | **none** |  |
+| KEY_W01_F3 | hold | EDIT | held 0.4 s: open NOTE EDIT on step 1 of the viewed page | **none** |  |
+| KEY_B01_F#3 | tap | M1 | tap: mute / unmute CH1 (latched; phase keeps running) | mute/unmute |  |
+| KEY_B01_F#3 | hold | PRV1 | held 0.4 s: PREVIEW on/off of CH1 (toast); with ALGO turned: its previ | mute_hold ('HOLD = PREVIEW CHn') |  |
+| KEY_B02_G#3 | tap | M2 | tap: mute / unmute CH2 | mute/unmute |  |
+| KEY_B02_G#3 | hold | PRV2 | held 0.4 s: PREVIEW on/off of CH2 (toast); with ALGO turned: its previ | mute_hold ('HOLD = PREVIEW CHn') |  |
+| KEY_B03_A#3 | tap | M3 | tap: mute / unmute CH3 | mute/unmute |  |
+| KEY_B03_A#3 | hold | PRV3 | held 0.4 s: PREVIEW on/off of CH3 (toast); with ALGO turned: its previ | mute_hold ('HOLD = PREVIEW CHn') |  |
+| KEY_B04_C#4 | tap | M4 | tap: mute / unmute CH4 | mute/unmute |  |
+| KEY_B04_C#4 | hold | PRV4 | held 0.4 s: PREVIEW on/off of CH4 (toast); with ALGO turned: its previ | mute_hold ('HOLD = PREVIEW CHn') |  |
+| KEY_B05_D#4 | tap | CHN | tap: open the CHAN page of the selected channel (LENGTH MIDI SOURCE FO | chn |  |
+| KEY_B05_D#4 | hold | RIG | 0.4 s: open the RIG page of the selected channel (latched; stays open  | **none** |  |
+| KEY_B06_F#4 | hold | SOL | hold: only the selected channel sounds; release restores the mutes | solo |  |
+| KEY_B07_G#4 | hold | FIL | hold: the selected channel's K1 density goes up while held (force: lig | fill |  |
+| KEY_B08_A#4 | hold | ROL | hold: every step of the selected channel repeats while held (force: 2x | roll |  |
+| KEY_B09_C#5 | tap | PG- | tap: view the previous page of the selected channel (no wrap; FOLLOW o | follow_off |  |
+| KEY_B10_D#5 | tap | PG+ | tap: view the next page (FOLLOW off); on the last page: a prompt that  | pg_next |  |
+| KEY_B11_F#5 | tap | RST | tap: all channels to step 1 at the next step | restart |  |
+
+control/gesture rows with NO cue entry: [('B_GLO', 'hold'), ('B_HOME', 'hold'), ('B_OCTDN', 'hold-both'), ('B_OCTUP', 'hold-both'), ('KEY_W01_F3', 'tap', 'STEP'), ('KEY_W01_F3', 'hold', 'EDIT'), ('KEY_B05_D#4', 'hold', 'RIG')]
+
+## E. MAP header help line for every PERF control in help_text.tsv: line1 in AF_M vs 236 px; fall-back font AF_S
+PERF help lines: 49; line1 wider than 236 px in AF_M (these fall back to AF_S in map_header): 0
+line2 is never drawn by map_header (only c[2] = line1 is returned by help_line). PERF rows with a non-empty line2: 49

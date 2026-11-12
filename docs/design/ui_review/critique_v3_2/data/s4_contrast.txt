@@ -1,0 +1,161 @@
+tokens per palette (RGB565 hex):
+GREY BG=0841 SURF=2104 TEXT=CE59 MID=9492 DIM=5ACB LINE=2945 SEL=BDD7 INK=0841 RAISE=39C7 LANE=39C7 KEY=A514 THEME=EF5D ACCENT=FFDF REC=FFDF GRID=2945 TINT=2104 LANE2=4A49 MUTEC=A514 DIMINK=4208 HEAD=FD80 ACC=565F RED=FA49
+GREEN BG=0081 SURF=1143 TEXT=E7BC MID=A594 DIM=638C LINE=29C6 SEL=456C INK=0081 RAISE=2A06 LANE=19C4 KEY=B616 THEME=56AF ACCENT=FEAB REC=FA49 GRID=21A5 TINT=0943 LANE2=3287 MUTEC=B636 DIMINK=1204 HEAD=FD80 ACC=565F RED=FA49
+AMBER BG=1061 SURF=2902 TEXT=F77B MID=B553 DIM=736C LINE=39A6 SEL=CC44 INK=1061 RAISE=41C5 LANE=4162 KEY=C5F5 THEME=FD45 ACCENT=66BC REC=FA49 GRID=3964 TINT=2901 LANE2=5A25 MUTEC=C5F5 DIMINK=4982 HEAD=FD80 ACC=565F RED=FA49
+ICE BG=0883 SURF=1126 TEXT=E79F MID=A577 DIM=638F LINE=31C8 SEL=44D8 INK=0883 RAISE=29E9 LANE=19A8 KEY=B619 THEME=55DD ACCENT=FC6C REC=FA49 GRID=2188 TINT=1126 LANE2=326B MUTEC=B619 DIMINK=19C9 HEAD=FD80 ACC=565F RED=FA49
+VIOLET BG=1063 SURF=20E7 TEXT=F75F MID=B557 DIM=734F LINE=39A8 SEL=9399 INK=1063 RAISE=39AA LANE=3149 KEY=C5D9 THEME=B45E ACCENT=6F35 REC=FA49 GRID=3148 TINT=20E6 LANE2=4A0C MUTEC=C5F9 DIMINK=394A HEAD=FD80 ACC=565F RED=FA49
+ROSE BG=1842 SURF=30A5 TEXT=FF5E MID=BD36 DIM=7B4E LINE=4187 SEL=CAF2 INK=1842 RAISE=4968 LANE=40E7 KEY=CDD8 THEME=F396 ACCENT=FEAD REC=FA49 GRID=4107 TINT=30A4 LANE2=59AA MUTEC=CDD8 DIMINK=5107 HEAD=FD80 ACC=565F RED=FA49
+PAPER BG=F77C SURF=E6D9 TEXT=20E3 MID=62EA DIM=9CB1 LINE=CE57 SEL=3BAC INK=F77C RAISE=CE16 LANE=CE77 KEY=5248 THEME=0AA8 ACCENT=A9C1 REC=B8C5 GRID=DE78 TINT=DEDA LANE2=B5D5 MUTEC=5248 DIMINK=BE57 HEAD=82C2 ACC=1310 RED=B8C5
+NIGHT BG=0000 SURF=00C1 TEXT=9735 MID=6D0F DIM=4309 LINE=1944 SEL=358A INK=0000 RAISE=1183 LANE=0962 KEY=7590 THEME=3EEC ACCENT=FFDF REC=FA49 GRID=0922 TINT=08E1 LANE2=1A24 MUTEC=7DB1 DIMINK=11A3 HEAD=FD80 ACC=565F RED=FA49
+MONO BG=0000 SURF=0000 TEXT=FFFF MID=B596 DIM=6B4D LINE=3166 SEL=CE59 INK=0000 RAISE=2104 LANE=18C3 KEY=C638 THEME=FFFF ACCENT=FFFF REC=FA49 GRID=1082 TINT=2104 LANE2=31A6 MUTEC=CE59 DIMINK=39E7 HEAD=FFFF ACC=FFFF RED=FFFF
+
+### TEXT pairs (need 4.5:1; AF_L-only text needs 3:1; '!' = under 4.5)
+| # | pair | fg / bg | GREY | GREEN | AMBER | ICE | VIOLET | ROSE | PAPER | NIGHT | MONO |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | bpm / preset / cue / map caption: TEXT on BG | TEXT / BG | 12.33 | 17.34 | 16.88 | 16.86 | 16.67 | 16.98 | 14.74 | 14.17 | 21.00 |
+| 2 | page numeral viewed: TEXT on SURF | TEXT / SURF | 10.03 | 13.96 | 13.91 | 14.04 | 14.09 | 14.53 | 12.31 | 12.50 | 21.00 |
+| 3 | page numeral other: MID on SURF | MID / SURF | 5.23 | 7.08 | 7.01 | 7.10 | 7.33 | 7.29 | 4.76 | 6.17 | 9.97 |
+| 4 | page numeral on the PLAYING page: BG on HEAD | BG / HEAD | 11.08 | 10.78 | 10.78 | 10.59 | 10.68 | 10.75 | 5.38 | 11.62 | 21.00 |
+| 5 | chan numeral/algo/MIDI slot unselected live: TEXT on RAISE | TEXT / RAISE | 7.19 | 9.98 | 9.99 | 10.06 | 10.15 | 10.62 | 9.65 | 9.72 | 16.29 |
+| 6 | chan numeral/algo/MIDI slot selected: INK on SEL | INK / SEL | 10.42 | 6.92 | 6.67 | 6.00 | 5.06 | 5.17 | 4.70 | 7.62 | 12.93 |
+| 7 | chan numeral/algo/MIDI slot muted unselected: MID on BG | MID / BG | 6.42 | 8.80 | 8.51 | 8.53 | 8.66 | 8.51 | 5.70 | 7.00 | 9.97 |
+| 8 | chan numeral muted SELECTED: DIMINK on SEL | DIMINK / SEL | 5.37 | 4.20! | 4.18! | 3.87! | 3.44! | 3.44! | 3.17! | 4.99 | 6.88 |
+| 9 | mute chip M unselected: INK on MID | INK / MID | 6.42 | 8.80 | 8.51 | 8.53 | 8.66 | 8.51 | 5.70 | 7.00 | 9.97 |
+| 10 | mute chip M on selected tile: SEL on INK | SEL / INK | 10.42 | 6.92 | 6.67 | 6.00 | 5.06 | 5.17 | 4.70 | 7.62 | 12.93 |
+| 11 | SOL-dimmed tile text: MID on BG (hatched with DIM) | MID / BG | 6.42 | 8.80 | 8.51 | 8.53 | 8.66 | 8.51 | 5.70 | 7.00 | 9.97 |
+| 12 | knob label / value (M) ROW 1: TEXT on SURF | TEXT / SURF | 10.03 | 13.96 | 13.91 | 14.04 | 14.09 | 14.53 | 12.31 | 12.50 | 21.00 |
+| 13 | knob label ROW 2/3 inverted band: INK on TEXT | INK / TEXT | 12.33 | 17.34 | 16.88 | 16.86 | 16.67 | 16.98 | 14.74 | 14.17 | 21.00 |
+| 14 | knob value / label ROW 3 body: TEXT on RAISE | TEXT / RAISE | 7.19 | 9.98 | 9.99 | 10.06 | 10.15 | 10.62 | 9.65 | 9.72 | 16.29 |
+| 15 | STAGE heard '(n)': MID on SURF | MID / SURF | 5.23 | 7.08 | 7.01 | 7.10 | 7.33 | 7.29 | 4.76 | 6.17 | 9.97 |
+| 16 | ROW cell live: INK on TEXT | INK / TEXT | 12.33 | 17.34 | 16.88 | 16.86 | 16.67 | 16.98 | 14.74 | 14.17 | 21.00 |
+| 17 | ROW cell not live: MID on SURF | MID / SURF | 5.23 | 7.08 | 7.01 | 7.10 | 7.33 | 7.29 | 4.76 | 6.17 | 9.97 |
+| 18 | cue chip: INK on TEXT | INK / TEXT | 12.33 | 17.34 | 16.88 | 16.86 | 16.67 | 16.98 | 14.74 | 14.17 | 21.00 |
+| 19 | toast: title/detail TEXT on SURF | TEXT / SURF | 10.03 | 13.96 | 13.91 | 14.04 | 14.09 | 14.53 | 12.31 | 12.50 | 21.00 |
+| 20 | toast: hint MID on SURF | MID / SURF | 5.23 | 7.08 | 7.01 | 7.10 | 7.33 | 7.29 | 4.76 | 6.17 | 9.97 |
+| 21 | toast: dimmed (NO LAYER) title/detail MID on SURF | MID / SURF | 5.23 | 7.08 | 7.01 | 7.10 | 7.33 | 7.29 | 4.76 | 6.17 | 9.97 |
+| 22 | toast: chip INK on TEXT / dimmed chip INK on MID | INK / MID | 6.42 | 8.80 | 8.51 | 8.53 | 8.66 | 8.51 | 5.70 | 7.00 | 9.97 |
+| 23 | ratchet digit unmuted: TEXT on LANE | TEXT / LANE | 7.19 | 11.50 | 11.43 | 11.52 | 11.83 | 12.66 | 10.61 | 10.29 | 17.76 |
+| 24 | ratchet digit unmuted: TEXT on LANE2 | TEXT / LANE2 | 5.58 | 8.00 | 7.94 | 8.01 | 8.24 | 8.96 | 8.51 | 7.51 | 12.60 |
+| 25 | ratchet digit muted: MUTEC on LANE | MUTEC / LANE | 4.57 | 7.18 | 7.12 | 7.18 | 7.58 | 7.88 | 5.57 | 6.46 | 10.93 |
+| 26 | ratchet digit muted: MUTEC on LANE2 | MUTEC / LANE2 | 3.54! | 5.00 | 4.94 | 4.99 | 5.28 | 5.58 | 4.47! | 4.72 | 7.76 |
+| 27 | ratchet digit in playing column: BG on HEAD | BG / HEAD | 11.08 | 10.78 | 10.78 | 10.59 | 10.68 | 10.75 | 5.38 | 11.62 | 21.00 |
+| 28 | MAP printed AF_S: MID on SURF | MID / SURF | 5.23 | 7.08 | 7.01 | 7.10 | 7.33 | 7.29 | 4.76 | 6.17 | 9.97 |
+| 29 | MAP printed AF_S hot: INK on SEL | INK / SEL | 10.42 | 6.92 | 6.67 | 6.00 | 5.06 | 5.17 | 4.70 | 7.62 | 12.93 |
+| 30 | MAP role: TEXT on SURF | TEXT / SURF | 10.03 | 13.96 | 13.91 | 14.04 | 14.09 | 14.53 | 12.31 | 12.50 | 21.00 |
+| 31 | MAP role/hold hot: INK on SEL | INK / SEL | 10.42 | 6.92 | 6.67 | 6.00 | 5.06 | 5.17 | 4.70 | 7.62 | 12.93 |
+| 32 | MAP page hint / MENU word: MID on BG | MID / BG | 6.42 | 8.80 | 8.51 | 8.53 | 8.66 | 8.51 | 5.70 | 7.00 | 9.97 |
+| 33 | MAP white key numerals / black key labels: TEXT on BG | TEXT / BG | 12.33 | 17.34 | 16.88 | 16.86 | 16.67 | 16.98 | 14.74 | 14.17 | 21.00 |
+| 34 | MAP knob row2 not live: MID on SURF | MID / SURF | 5.23 | 7.08 | 7.01 | 7.10 | 7.33 | 7.29 | 4.76 | 6.17 | 9.97 |
+| 35 | MAP key word M chip: INK on MID | INK / MID | 6.42 | 8.80 | 8.51 | 8.53 | 8.66 | 8.51 | 5.70 | 7.00 | 9.97 |
+
+### NON-TEXT pairs (need 3:1; '!' = under)
+| # | pair | fg / bg | GREY | GREEN | AMBER | ICE | VIOLET | ROSE | PAPER | NIGHT | MONO |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | playhead column HEAD vs LANE | HEAD / LANE | 6.46 | 7.15 | 7.30 | 7.23 | 7.58 | 8.01 | 3.87 | 8.43 | 17.76 |
+| 2 | playhead column HEAD vs LANE2 | HEAD / LANE2 | 5.02 | 4.97 | 5.07 | 5.03 | 5.28 | 5.67 | 3.10 | 6.16 | 12.60 |
+| 3 | playhead column HEAD vs BG (gap) | HEAD / BG | 11.08 | 10.78 | 10.78 | 10.59 | 10.68 | 10.75 | 5.38 | 11.62 | 21.00 |
+| 4 | accent cap ACC vs LANE | ACC / LANE | 6.25 | 6.92 | 7.06 | 7.00 | 7.34 | 7.76 | 4.30 | 8.16 | 17.76 |
+| 5 | accent cap ACC vs LANE2 | ACC / LANE2 | 4.86 | 4.81 | 4.91 | 4.87 | 5.11 | 5.49 | 3.45 | 5.96 | 12.60 |
+| 6 | accent cap ACC vs normal bar TEXT (distinguishing colour) | ACC / TEXT | 1.15! | 1.66! | 1.62! | 1.65! | 1.61! | 1.63! | 2.47! | 1.26! | 1.00! |
+| 7 | normal bar TEXT vs LANE | TEXT / LANE | 7.19 | 11.50 | 11.43 | 11.52 | 11.83 | 12.66 | 10.61 | 10.29 | 17.76 |
+| 8 | normal bar TEXT vs LANE2 | TEXT / LANE2 | 5.58 | 8.00 | 7.94 | 8.01 | 8.24 | 8.96 | 8.51 | 7.51 | 12.60 |
+| 9 | accent mark in playing column: BG cap on HEAD | BG / HEAD | 11.08 | 10.78 | 10.78 | 10.59 | 10.68 | 10.75 | 5.38 | 11.62 | 21.00 |
+| 10 | normal bar in playing column: BG on HEAD | BG / HEAD | 11.08 | 10.78 | 10.78 | 10.59 | 10.68 | 10.75 | 5.38 | 11.62 | 21.00 |
+| 11 | accent cap vs normal bar INSIDE playing column (both BG) | BG / BG | 1.00! | 1.00! | 1.00! | 1.00! | 1.00! | 1.00! | 1.00! | 1.00! | 1.00! |
+| 12 | slide tie TEXT on LANE | TEXT / LANE | 7.19 | 11.50 | 11.43 | 11.52 | 11.83 | 12.66 | 10.61 | 10.29 | 17.76 |
+| 13 | slide tie in playing column: TEXT on HEAD | TEXT / HEAD | 1.11! | 1.61! | 1.57! | 1.59! | 1.56! | 1.58! | 2.74! | 1.22! | 1.00! |
+| 14 | slide tie in playing column: TEXT on BG outline (gap column x+14) | TEXT / BG | 12.33 | 17.34 | 16.88 | 16.86 | 16.67 | 16.98 | 14.74 | 14.17 | 21.00 |
+| 15 | slide tie outline BG on HEAD | BG / HEAD | 11.08 | 10.78 | 10.78 | 10.59 | 10.68 | 10.75 | 5.38 | 11.62 | 21.00 |
+| 16 | rest: baseline MUTEC vs LANE (rest = empty column) | MUTEC / LANE | 4.57 | 7.18 | 7.12 | 7.18 | 7.58 | 7.88 | 5.57 | 6.46 | 10.93 |
+| 17 | quiet note: bar TEXT 4 px vs baseline MUTEC (the only difference) | TEXT / MUTEC | 1.57! | 1.60! | 1.61! | 1.60! | 1.56! | 1.61! | 1.90! | 1.59! | 1.62! |
+| 18 | quiet note in playing column: BG bar vs HEAD | BG / HEAD | 11.08 | 10.78 | 10.78 | 10.59 | 10.68 | 10.75 | 5.38 | 11.62 | 21.00 |
+| 19 | edited foot ACC vs LANE | ACC / LANE | 6.25 | 6.92 | 7.06 | 7.00 | 7.34 | 7.76 | 4.30 | 8.16 | 17.76 |
+| 20 | edited foot vs plain baseline MUTEC | ACC / MUTEC | 1.37! | 1.04! | 1.01! | 1.03! | 1.03! | 1.02! | 1.30! | 1.26! | 1.62! |
+| 21 | muted lane bar outline MUTEC vs LANE | MUTEC / LANE | 4.57 | 7.18 | 7.12 | 7.18 | 7.58 | 7.88 | 5.57 | 6.46 | 10.93 |
+| 22 | muted lane bar outline MUTEC vs LANE2 | MUTEC / LANE2 | 3.54 | 5.00 | 4.94 | 4.99 | 5.28 | 5.58 | 4.47 | 4.72 | 7.76 |
+| 23 | muted hollow bar: outline MUTEC vs hollow interior LANE | MUTEC / LANE | 4.57 | 7.18 | 7.12 | 7.18 | 7.58 | 7.88 | 5.57 | 6.46 | 10.93 |
+| 24 | ghost column frame HEAD vs LANE | HEAD / LANE | 6.46 | 7.15 | 7.30 | 7.23 | 7.58 | 8.01 | 3.87 | 8.43 | 17.76 |
+| 25 | ghost column frame HEAD vs LANE2 | HEAD / LANE2 | 5.02 | 4.97 | 5.07 | 5.03 | 5.28 | 5.67 | 3.10 | 6.16 | 12.60 |
+| 26 | beat shading LANE vs LANE2 | LANE2 / LANE | 1.29! | 1.44! | 1.44! | 1.44! | 1.44! | 1.41! | 1.25! | 1.37! | 1.41! |
+| 27 | lane column LANE vs BG | LANE / BG | 1.72! | 1.51! | 1.48! | 1.46! | 1.41! | 1.34! | 1.39! | 1.38! | 1.18! |
+| 28 | lane column LANE2 vs BG | LANE2 / BG | 2.21! | 2.17! | 2.13! | 2.11! | 2.02! | 1.89! | 1.73! | 1.89! | 1.67! |
+| 29 | past-LENGTH hatch DIM vs BG | DIM / BG | 2.87! | 3.77 | 3.80 | 3.80 | 3.71 | 3.80 | 2.58! | 3.03 | 3.84 |
+| 30 | unselected live tile RAISE vs BG | RAISE / BG | 1.72! | 1.74! | 1.69! | 1.68! | 1.64! | 1.60! | 1.53! | 1.46! | 1.29! |
+| 31 | selected tile SEL vs BG | SEL / BG | 10.42 | 6.92 | 6.67 | 6.00 | 5.06 | 5.17 | 4.70 | 7.62 | 12.93 |
+| 32 | selected SEL vs unselected RAISE | SEL / RAISE | 6.07 | 3.98 | 3.95 | 3.58 | 3.08 | 3.23 | 3.07 | 5.23 | 10.03 |
+| 33 | muted tile frame MID vs BG (the tile fill = BG) | MID / BG | 6.42 | 8.80 | 8.51 | 8.53 | 8.66 | 8.51 | 5.70 | 7.00 | 9.97 |
+| 34 | muted tile (BG) vs live tile (RAISE) fill | BG / RAISE | 1.72! | 1.74! | 1.69! | 1.68! | 1.64! | 1.60! | 1.53! | 1.46! | 1.29! |
+| 35 | muted tile frame MID vs live tile RAISE | MID / RAISE | 3.75 | 5.07 | 5.03 | 5.09 | 5.27 | 5.33 | 3.73 | 4.80 | 7.73 |
+| 36 | SOL-dimmed tile frame DIM vs BG | DIM / BG | 2.87! | 3.77 | 3.80 | 3.80 | 3.71 | 3.80 | 2.58! | 3.03 | 3.84 |
+| 37 | mute chip fill MID vs BG (unselected muted) | MID / BG | 6.42 | 8.80 | 8.51 | 8.53 | 8.66 | 8.51 | 5.70 | 7.00 | 9.97 |
+| 38 | mute chip fill INK vs SEL (selected muted) | INK / SEL | 10.42 | 6.92 | 6.67 | 6.00 | 5.06 | 5.17 | 4.70 | 7.62 | 12.93 |
+| 39 | MIDI arrow TEXT on RAISE | TEXT / RAISE | 7.19 | 9.98 | 9.99 | 10.06 | 10.15 | 10.62 | 9.65 | 9.72 | 16.29 |
+| 40 | MIDI arrow INK on SEL | INK / SEL | 10.42 | 6.92 | 6.67 | 6.00 | 5.06 | 5.17 | 4.70 | 7.62 | 12.93 |
+| 41 | MIDI arrow MID on BG (muted) | MID / BG | 6.42 | 8.80 | 8.51 | 8.53 | 8.66 | 8.51 | 5.70 | 7.00 | 9.97 |
+| 42 | first-run attention frame INK on SEL | INK / SEL | 10.42 | 6.92 | 6.67 | 6.00 | 5.06 | 5.17 | 4.70 | 7.62 | 12.93 |
+| 43 | activity bar HEAD vs BG | HEAD / BG | 11.08 | 10.78 | 10.78 | 10.59 | 10.68 | 10.75 | 5.38 | 11.62 | 21.00 |
+| 44 | meter fill TEXT vs track LANE | TEXT / LANE | 7.19 | 11.50 | 11.43 | 11.52 | 11.83 | 12.66 | 10.61 | 10.29 | 17.76 |
+| 45 | meter track LANE vs knob tile SURF | LANE / SURF | 1.40! | 1.21! | 1.22! | 1.22! | 1.19! | 1.15! | 1.16! | 1.22! | 1.18! |
+| 46 | meter track LANE vs ROW 3 body RAISE | LANE / RAISE | 1.00! | 1.15! | 1.14! | 1.15! | 1.17! | 1.19! | 1.10! | 1.06! | 1.09! |
+| 47 | meter fill TEXT vs ROW 3 RAISE | TEXT / RAISE | 7.19 | 9.98 | 9.99 | 10.06 | 10.15 | 10.62 | 9.65 | 9.72 | 16.29 |
+| 48 | enum pips unchosen MID vs SURF | MID / SURF | 5.23 | 7.08 | 7.01 | 7.10 | 7.33 | 7.29 | 4.76 | 6.17 | 9.97 |
+| 49 | knob tile SURF vs BG | SURF / BG | 1.23! | 1.24! | 1.21! | 1.20! | 1.18! | 1.17! | 1.20! | 1.13! | 1.00! |
+| 50 | ROW 2/3 inverted band TEXT vs SURF tile | TEXT / SURF | 10.03 | 13.96 | 13.91 | 14.04 | 14.09 | 14.53 | 12.31 | 12.50 | 21.00 |
+| 51 | ROW 3 body RAISE vs BG | RAISE / BG | 1.72! | 1.74! | 1.69! | 1.68! | 1.64! | 1.60! | 1.53! | 1.46! | 1.29! |
+| 52 | ROW 3 frame TEXT vs BG | TEXT / BG | 12.33 | 17.34 | 16.88 | 16.86 | 16.67 | 16.98 | 14.74 | 14.17 | 21.00 |
+| 53 | ROW cell live TEXT vs BG | TEXT / BG | 12.33 | 17.34 | 16.88 | 16.86 | 16.67 | 16.98 | 14.74 | 14.17 | 21.00 |
+| 54 | ROW cell not live SURF vs BG | SURF / BG | 1.23! | 1.24! | 1.21! | 1.20! | 1.18! | 1.17! | 1.20! | 1.13! | 1.00! |
+| 55 | page box SURF vs BG | SURF / BG | 1.23! | 1.24! | 1.21! | 1.20! | 1.18! | 1.17! | 1.20! | 1.13! | 1.00! |
+| 56 | page box playing HEAD vs BG | HEAD / BG | 11.08 | 10.78 | 10.78 | 10.59 | 10.68 | 10.75 | 5.38 | 11.62 | 21.00 |
+| 57 | page under-bar viewed TEXT vs BG | TEXT / BG | 12.33 | 17.34 | 16.88 | 16.86 | 16.67 | 16.98 | 14.74 | 14.17 | 21.00 |
+| 58 | transport play HEAD vs BG | HEAD / BG | 11.08 | 10.78 | 10.78 | 10.59 | 10.68 | 10.75 | 5.38 | 11.62 | 21.00 |
+| 59 | transport stop MID vs BG | MID / BG | 6.42 | 8.80 | 8.51 | 8.53 | 8.66 | 8.51 | 5.70 | 7.00 | 9.97 |
+| 60 | REC disc RED vs BG | RED / BG | 5.99 | 5.83 | 5.82 | 5.72 | 5.77 | 5.81 | 5.50 | 6.28 | 21.00 |
+| 61 | REC ring (stopped) RED vs BG | RED / BG | 5.99 | 5.83 | 5.82 | 5.72 | 5.77 | 5.81 | 5.50 | 6.28 | 21.00 |
+| 62 | toast slab SURF vs BG | SURF / BG | 1.23! | 1.24! | 1.21! | 1.20! | 1.18! | 1.17! | 1.20! | 1.13! | 1.00! |
+| 63 | toast slab SURF vs knob tile SURF (it overlays tiles' bottoms) | SURF / SURF | 1.00! | 1.00! | 1.00! | 1.00! | 1.00! | 1.00! | 1.00! | 1.00! | 1.00! |
+| 64 | toast top rule TEXT vs SURF | TEXT / SURF | 10.03 | 13.96 | 13.91 | 14.04 | 14.09 | 14.53 | 12.31 | 12.50 | 21.00 |
+| 65 | toast slab SURF vs playhead HEAD brightness (HEAD vs SURF) | HEAD / SURF | 9.02 | 8.68 | 8.88 | 8.81 | 9.03 | 9.20 | 4.49 | 10.25 | 21.00 |
+| 66 | toast algo unchosen pips MID vs SURF | MID / SURF | 5.23 | 7.08 | 7.01 | 7.10 | 7.33 | 7.29 | 4.76 | 6.17 | 9.97 |
+| 67 | toast countdown bar: fill TEXT vs frame/track TEXT (frame only) on SURF | TEXT / SURF | 10.03 | 13.96 | 13.91 | 14.04 | 14.09 | 14.53 | 12.31 | 12.50 | 21.00 |
+| 68 | settle bar under P: TEXT vs MID track | TEXT / MID | 1.92! | 1.97! | 1.98! | 1.98! | 1.92! | 1.99! | 2.58! | 2.03! | 2.11! |
+| 69 | settle bar track MID vs BG | MID / BG | 6.42 | 8.80 | 8.51 | 8.53 | 8.66 | 8.51 | 5.70 | 7.00 | 9.97 |
+| 70 | MAP hold box outline MID vs SURF | MID / SURF | 5.23 | 7.08 | 7.01 | 7.10 | 7.33 | 7.29 | 4.76 | 6.17 | 9.97 |
+| 71 | MAP hot tile SEL vs SURF | SEL / SURF | 8.47 | 5.57 | 5.50 | 5.00 | 4.28 | 4.43 | 3.92 | 6.72 | 12.93 |
+| 72 | MAP black key KEY vs BG | KEY / BG | 7.83 | 10.50 | 10.51 | 10.51 | 10.37 | 10.57 | 7.74 | 8.42 | 12.26 |
+| 73 | MAP leader line MID vs BG | MID / BG | 6.42 | 8.80 | 8.51 | 8.53 | 8.66 | 8.51 | 5.70 | 7.00 | 9.97 |
+| 74 | MAP white key tile LANE vs BG | LANE / BG | 1.72! | 1.51! | 1.48! | 1.46! | 1.41! | 1.34! | 1.39! | 1.38! | 1.18! |
+| 75 | MAP white key tile LANE2 vs BG | LANE2 / BG | 2.21! | 2.17! | 2.13! | 2.11! | 2.02! | 1.89! | 1.73! | 1.89! | 1.67! |
+| 76 | MAP header rule LINE vs BG | LINE / BG | 1.36! | 1.58! | 1.59! | 1.61! | 1.60! | 1.58! | 1.43! | 1.36! | 1.54! |
+| 77 | MAP countdown fill TEXT vs frame TEXT on BG | TEXT / BG | 12.33 | 17.34 | 16.88 | 16.86 | 16.67 | 16.98 | 14.74 | 14.17 | 21.00 |
+| 78 | cue chip INK/TEXT tab vs BG: TEXT vs BG | TEXT / BG | 12.33 | 17.34 | 16.88 | 16.86 | 16.67 | 16.98 | 14.74 | 14.17 | 21.00 |
+| 79 | FIL up-triangle INK on TEXT band | INK / TEXT | 12.33 | 17.34 | 16.88 | 16.86 | 16.67 | 16.98 | 14.74 | 14.17 | 21.00 |
+
+### UNDER the threshold, per palette
+**GREY** text under 4.5: 1; non-text under 3: 24
+  text: ratchet digit muted: MUTEC on LANE2 (3.54)
+  non-text: accent cap ACC vs normal bar TEXT (distinguishing colour) (1.15); accent cap vs normal bar INSIDE playing column (both BG) (1.00); slide tie in playing column: TEXT on HEAD (1.11); quiet note: bar TEXT 4 px vs baseline MUTEC (the only difference) (1.57); edited foot vs plain baseline MUTEC (1.37); beat shading LANE vs LANE2 (1.29); lane column LANE vs BG (1.72); lane column LANE2 vs BG (2.21); past-LENGTH hatch DIM vs BG (2.87); unselected live tile RAISE vs BG (1.72); muted tile (BG) vs live tile (RAISE) fill (1.72); SOL-dimmed tile frame DIM vs BG (2.87); meter track LANE vs knob tile SURF (1.40); meter track LANE vs ROW 3 body RAISE (1.00); knob tile SURF vs BG (1.23); ROW 3 body RAISE vs BG (1.72); ROW cell not live SURF vs BG (1.23); page box SURF vs BG (1.23); toast slab SURF vs BG (1.23); toast slab SURF vs knob tile SURF (it overlays tiles' bottoms) (1.00); settle bar under P: TEXT vs MID track (1.92); MAP white key tile LANE vs BG (1.72); MAP white key tile LANE2 vs BG (2.21); MAP header rule LINE vs BG (1.36)
+**GREEN** text under 4.5: 1; non-text under 3: 22
+  text: chan numeral muted SELECTED: DIMINK on SEL (4.20)
+  non-text: accent cap ACC vs normal bar TEXT (distinguishing colour) (1.66); accent cap vs normal bar INSIDE playing column (both BG) (1.00); slide tie in playing column: TEXT on HEAD (1.61); quiet note: bar TEXT 4 px vs baseline MUTEC (the only difference) (1.60); edited foot vs plain baseline MUTEC (1.04); beat shading LANE vs LANE2 (1.44); lane column LANE vs BG (1.51); lane column LANE2 vs BG (2.17); unselected live tile RAISE vs BG (1.74); muted tile (BG) vs live tile (RAISE) fill (1.74); meter track LANE vs knob tile SURF (1.21); meter track LANE vs ROW 3 body RAISE (1.15); knob tile SURF vs BG (1.24); ROW 3 body RAISE vs BG (1.74); ROW cell not live SURF vs BG (1.24); page box SURF vs BG (1.24); toast slab SURF vs BG (1.24); toast slab SURF vs knob tile SURF (it overlays tiles' bottoms) (1.00); settle bar under P: TEXT vs MID track (1.97); MAP white key tile LANE vs BG (1.51); MAP white key tile LANE2 vs BG (2.17); MAP header rule LINE vs BG (1.58)
+**AMBER** text under 4.5: 1; non-text under 3: 22
+  text: chan numeral muted SELECTED: DIMINK on SEL (4.18)
+  non-text: accent cap ACC vs normal bar TEXT (distinguishing colour) (1.62); accent cap vs normal bar INSIDE playing column (both BG) (1.00); slide tie in playing column: TEXT on HEAD (1.57); quiet note: bar TEXT 4 px vs baseline MUTEC (the only difference) (1.61); edited foot vs plain baseline MUTEC (1.01); beat shading LANE vs LANE2 (1.44); lane column LANE vs BG (1.48); lane column LANE2 vs BG (2.13); unselected live tile RAISE vs BG (1.69); muted tile (BG) vs live tile (RAISE) fill (1.69); meter track LANE vs knob tile SURF (1.22); meter track LANE vs ROW 3 body RAISE (1.14); knob tile SURF vs BG (1.21); ROW 3 body RAISE vs BG (1.69); ROW cell not live SURF vs BG (1.21); page box SURF vs BG (1.21); toast slab SURF vs BG (1.21); toast slab SURF vs knob tile SURF (it overlays tiles' bottoms) (1.00); settle bar under P: TEXT vs MID track (1.98); MAP white key tile LANE vs BG (1.48); MAP white key tile LANE2 vs BG (2.13); MAP header rule LINE vs BG (1.59)
+**ICE** text under 4.5: 1; non-text under 3: 22
+  text: chan numeral muted SELECTED: DIMINK on SEL (3.87)
+  non-text: accent cap ACC vs normal bar TEXT (distinguishing colour) (1.65); accent cap vs normal bar INSIDE playing column (both BG) (1.00); slide tie in playing column: TEXT on HEAD (1.59); quiet note: bar TEXT 4 px vs baseline MUTEC (the only difference) (1.60); edited foot vs plain baseline MUTEC (1.03); beat shading LANE vs LANE2 (1.44); lane column LANE vs BG (1.46); lane column LANE2 vs BG (2.11); unselected live tile RAISE vs BG (1.68); muted tile (BG) vs live tile (RAISE) fill (1.68); meter track LANE vs knob tile SURF (1.22); meter track LANE vs ROW 3 body RAISE (1.15); knob tile SURF vs BG (1.20); ROW 3 body RAISE vs BG (1.68); ROW cell not live SURF vs BG (1.20); page box SURF vs BG (1.20); toast slab SURF vs BG (1.20); toast slab SURF vs knob tile SURF (it overlays tiles' bottoms) (1.00); settle bar under P: TEXT vs MID track (1.98); MAP white key tile LANE vs BG (1.46); MAP white key tile LANE2 vs BG (2.11); MAP header rule LINE vs BG (1.61)
+**VIOLET** text under 4.5: 1; non-text under 3: 22
+  text: chan numeral muted SELECTED: DIMINK on SEL (3.44)
+  non-text: accent cap ACC vs normal bar TEXT (distinguishing colour) (1.61); accent cap vs normal bar INSIDE playing column (both BG) (1.00); slide tie in playing column: TEXT on HEAD (1.56); quiet note: bar TEXT 4 px vs baseline MUTEC (the only difference) (1.56); edited foot vs plain baseline MUTEC (1.03); beat shading LANE vs LANE2 (1.44); lane column LANE vs BG (1.41); lane column LANE2 vs BG (2.02); unselected live tile RAISE vs BG (1.64); muted tile (BG) vs live tile (RAISE) fill (1.64); meter track LANE vs knob tile SURF (1.19); meter track LANE vs ROW 3 body RAISE (1.17); knob tile SURF vs BG (1.18); ROW 3 body RAISE vs BG (1.64); ROW cell not live SURF vs BG (1.18); page box SURF vs BG (1.18); toast slab SURF vs BG (1.18); toast slab SURF vs knob tile SURF (it overlays tiles' bottoms) (1.00); settle bar under P: TEXT vs MID track (1.92); MAP white key tile LANE vs BG (1.41); MAP white key tile LANE2 vs BG (2.02); MAP header rule LINE vs BG (1.60)
+**ROSE** text under 4.5: 1; non-text under 3: 22
+  text: chan numeral muted SELECTED: DIMINK on SEL (3.44)
+  non-text: accent cap ACC vs normal bar TEXT (distinguishing colour) (1.63); accent cap vs normal bar INSIDE playing column (both BG) (1.00); slide tie in playing column: TEXT on HEAD (1.58); quiet note: bar TEXT 4 px vs baseline MUTEC (the only difference) (1.61); edited foot vs plain baseline MUTEC (1.02); beat shading LANE vs LANE2 (1.41); lane column LANE vs BG (1.34); lane column LANE2 vs BG (1.89); unselected live tile RAISE vs BG (1.60); muted tile (BG) vs live tile (RAISE) fill (1.60); meter track LANE vs knob tile SURF (1.15); meter track LANE vs ROW 3 body RAISE (1.19); knob tile SURF vs BG (1.17); ROW 3 body RAISE vs BG (1.60); ROW cell not live SURF vs BG (1.17); page box SURF vs BG (1.17); toast slab SURF vs BG (1.17); toast slab SURF vs knob tile SURF (it overlays tiles' bottoms) (1.00); settle bar under P: TEXT vs MID track (1.99); MAP white key tile LANE vs BG (1.34); MAP white key tile LANE2 vs BG (1.89); MAP header rule LINE vs BG (1.58)
+**PAPER** text under 4.5: 2; non-text under 3: 24
+  text: chan numeral muted SELECTED: DIMINK on SEL (3.17); ratchet digit muted: MUTEC on LANE2 (4.47)
+  non-text: accent cap ACC vs normal bar TEXT (distinguishing colour) (2.47); accent cap vs normal bar INSIDE playing column (both BG) (1.00); slide tie in playing column: TEXT on HEAD (2.74); quiet note: bar TEXT 4 px vs baseline MUTEC (the only difference) (1.90); edited foot vs plain baseline MUTEC (1.30); beat shading LANE vs LANE2 (1.25); lane column LANE vs BG (1.39); lane column LANE2 vs BG (1.73); past-LENGTH hatch DIM vs BG (2.58); unselected live tile RAISE vs BG (1.53); muted tile (BG) vs live tile (RAISE) fill (1.53); SOL-dimmed tile frame DIM vs BG (2.58); meter track LANE vs knob tile SURF (1.16); meter track LANE vs ROW 3 body RAISE (1.10); knob tile SURF vs BG (1.20); ROW 3 body RAISE vs BG (1.53); ROW cell not live SURF vs BG (1.20); page box SURF vs BG (1.20); toast slab SURF vs BG (1.20); toast slab SURF vs knob tile SURF (it overlays tiles' bottoms) (1.00); settle bar under P: TEXT vs MID track (2.58); MAP white key tile LANE vs BG (1.39); MAP white key tile LANE2 vs BG (1.73); MAP header rule LINE vs BG (1.43)
+**NIGHT** text under 4.5: 0; non-text under 3: 22
+  text: 
+  non-text: accent cap ACC vs normal bar TEXT (distinguishing colour) (1.26); accent cap vs normal bar INSIDE playing column (both BG) (1.00); slide tie in playing column: TEXT on HEAD (1.22); quiet note: bar TEXT 4 px vs baseline MUTEC (the only difference) (1.59); edited foot vs plain baseline MUTEC (1.26); beat shading LANE vs LANE2 (1.37); lane column LANE vs BG (1.38); lane column LANE2 vs BG (1.89); unselected live tile RAISE vs BG (1.46); muted tile (BG) vs live tile (RAISE) fill (1.46); meter track LANE vs knob tile SURF (1.22); meter track LANE vs ROW 3 body RAISE (1.06); knob tile SURF vs BG (1.13); ROW 3 body RAISE vs BG (1.46); ROW cell not live SURF vs BG (1.13); page box SURF vs BG (1.13); toast slab SURF vs BG (1.13); toast slab SURF vs knob tile SURF (it overlays tiles' bottoms) (1.00); settle bar under P: TEXT vs MID track (2.03); MAP white key tile LANE vs BG (1.38); MAP white key tile LANE2 vs BG (1.89); MAP header rule LINE vs BG (1.36)
+**MONO** text under 4.5: 0; non-text under 3: 22
+  text: 
+  non-text: accent cap ACC vs normal bar TEXT (distinguishing colour) (1.00); accent cap vs normal bar INSIDE playing column (both BG) (1.00); slide tie in playing column: TEXT on HEAD (1.00); quiet note: bar TEXT 4 px vs baseline MUTEC (the only difference) (1.62); edited foot vs plain baseline MUTEC (1.62); beat shading LANE vs LANE2 (1.41); lane column LANE vs BG (1.18); lane column LANE2 vs BG (1.67); unselected live tile RAISE vs BG (1.29); muted tile (BG) vs live tile (RAISE) fill (1.29); meter track LANE vs knob tile SURF (1.18); meter track LANE vs ROW 3 body RAISE (1.09); knob tile SURF vs BG (1.00); ROW 3 body RAISE vs BG (1.29); ROW cell not live SURF vs BG (1.00); page box SURF vs BG (1.00); toast slab SURF vs BG (1.00); toast slab SURF vs knob tile SURF (it overlays tiles' bottoms) (1.00); settle bar under P: TEXT vs MID track (2.11); MAP white key tile LANE vs BG (1.18); MAP white key tile LANE2 vs BG (1.67); MAP header rule LINE vs BG (1.54)

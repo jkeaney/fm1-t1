@@ -1,0 +1,16 @@
+| role | font | cap px | cap mm | arcmin @50cm | instances over the 6 screens | strings (distinct) | widest advance px | widest ink px | lowest fg/bg contrast | in screens |
+|---|---|---|---|---|---|---|---|---|---|---|
+| algo name | M | 11 | 1.375 | 9.5 | 24 | `ARP`, `ACID`, `PATT`, `STAGE`, `SNAKE`, `EUCLID` | 51 | 50 | 6.42 | 6 |
+| chan numeral | M | 11 | 1.375 | 9.5 | 24 | `3`, `2`, `4`, `1` | 9 | 9 | 5.37 | 6 |
+| cue | M | 11 | 1.375 | 9.5 | 6 | `HOLD HOME = MAP`, `KEYS WRITE NOTES`, `OFFSET PEDAL PUNCH DIR`, `CH2 MUTED  TAP AGAIN = ON`, `FX SCL ENV LFO ARP SEQ = DICE` | 222 | 221 | 12.33 | 6 |
+| cue chip | M | 11 | 1.375 | 9.5 | 3 | `M2`, `REC`, `OCT+` | 39 | 38 | 12.33 | 3 |
+| knob label | M | 11 | 1.375 | 9.5 | 24 | `CUT`, `DIR`, `LEN`, `DENS`, `SPAN`, `RATE`, `JUMP`, `RESO` ... | 54 | 54 | 10.03 | 6 |
+| knob value | L | 21 | 2.625 | 18.0 | 21 | `3`, `0`, `6`, `5`, `8`, `7`, `4`, `40` ... | 36 | 34 | 7.19 | 6 |
+| knob value (M) | M | 11 | 1.375 | 9.5 | 3 | `7`, `FWD`, `OCTV` | 40 | 40 | 10.03 | 3 |
+| midi slot | M | 11 | 1.375 | 9.5 | 24 | `3`, `2`, `4`, `10`, `16`, `--` | 18 | 17 | 6.42 | 6 |
+| mute chip | M | 11 | 1.375 | 9.5 | 3 | `M` | 13 | 12 | 6.42 | 2 |
+| page numeral | M | 11 | 1.375 | 9.5 | 10 | `3`, `2`, `4`, `1` | 9 | 9 | 5.23 | 6 |
+| preset | M | 11 | 1.375 | 9.5 | 6 | `P16`, `P01` | 27 | 27 | 12.33 | 6 |
+| ratchet digit | M | 11 | 1.375 | 9.5 | 14 | `3`, `2`, `4` | 9 | 9 | 3.54 | 6 |
+| row label | M | 11 | 1.375 | 9.5 | 13 | `ROW 2`, `ROW 1`, `ROW 3` | 46 | 46 | 5.23 | 6 |
+| tempo | M | 11 | 1.375 | 9.5 | 6 | `120`, `EXT 126` | 57 | 57 | 12.33 | 6 |

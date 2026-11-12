@@ -1,0 +1,226 @@
+## A. blit coverage (a pixel never written stays 0x0000; GREY/GREEN/... BG is non-zero)
+scenes (excluding MONO/NIGHT whose BG is 0) with unwritten pixels: {'cue_table_1': 11520, 'cue_table_2': 11520, 'cue_table_3': 11520} ; blits per scene: {2, 3}
+
+## B. declared zone marks (the tool's `mark`) in glance_playing, and measured content bands
+mark ('Z0 head', 0, 0, 240, 24)
+mark ('Z2 lane', 0, 72, 240, 72)
+mark ('Z4 ROW strip', 0, 204, 240, 16)
+mark ('Z5 cue', 0, 220, 240, 16)
+mark ('Z6 margin', 0, 236, 240, 4)
+rows with any non-BG pixel -> spans: [(5, 18), (20, 23), (25, 62), (64, 67), (73, 142), (145, 202), (205, 218), (221, 233)]
+BG-only row spans between them: [(0, 4), (19, 19), (24, 24), (63, 63), (68, 72), (143, 144), (203, 204), (219, 220), (234, 239)]
+
+## C. rectangles measured from the pixels (scene: glance_playing unless noted)
+
+## D. TSV rows checked by edge test (inside edge pixels differ from BG on all four sides; outside ring equals BG), scene as in the TSV
+TSV rows 99: edge-test pass 78, skipped (text cells) 3, fail 18
+FAIL ('stress', 'page bar 1', 'bar', (181, 20, 13, 4), ['top:inside-bg', 'bottom:inside-bg', 'left:inside-bg', 'right:inside-bg'])
+FAIL ('stress', 'page bar 2', 'bar', (196, 20, 13, 4), ['top:inside-bg', 'bottom:inside-bg', 'left:inside-bg', 'right:inside-bg'])
+FAIL ('stress', 'page bar 3', 'bar', (211, 20, 13, 4), ['top:inside-bg', 'bottom:inside-bg', 'left:inside-bg', 'right:inside-bg'])
+FAIL ('stress', 'activity bar 2', 'bar', (61, 64, 58, 4), ['top:inside-bg', 'bottom:inside-bg', 'left:inside-bg', 'right:inside-bg'])
+FAIL ('stress', 'activity bar 3', 'bar', (121, 64, 58, 4), ['top:inside-bg', 'bottom:inside-bg', 'left:inside-bg', 'right:inside-bg'])
+FAIL ('stress', 'activity bar 4', 'bar', (181, 64, 58, 4), ['top:inside-bg', 'bottom:inside-bg', 'left:inside-bg', 'right:inside-bg'])
+FAIL ('state_add_page', 'page bar 1', 'bar', (211, 20, 13, 4), ['top:inside-bg', 'bottom:inside-bg', 'left:inside-bg', 'right:inside-bg'])
+FAIL ('map_B', 'map black key M1', 'keybed', (11, 17, 8, 14), ['bottom:outside-not-bg'])
+FAIL ('map_B', 'map black key M2', 'keybed', (26, 17, 8, 14), ['bottom:outside-not-bg'])
+FAIL ('map_B', 'map black key M3', 'keybed', (41, 17, 8, 14), ['bottom:outside-not-bg'])
+FAIL ('map_B', 'map black key M4', 'keybed', (71, 17, 8, 14), ['bottom:outside-not-bg'])
+FAIL ('map_B', 'map black key CHN', 'keybed', (86, 17, 8, 14), ['bottom:outside-not-bg'])
+FAIL ('map_B', 'map black key SOL', 'keybed', (116, 17, 8, 14), ['bottom:outside-not-bg'])
+FAIL ('map_B', 'map black key FIL', 'keybed', (131, 17, 8, 14), ['bottom:outside-not-bg'])
+FAIL ('map_B', 'map black key ROL', 'keybed', (146, 17, 8, 14), ['bottom:outside-not-bg'])
+FAIL ('map_B', 'map black key PG-', 'keybed', (176, 17, 8, 14), ['bottom:outside-not-bg'])
+FAIL ('map_B', 'map black key PG+', 'keybed', (191, 17, 8, 14), ['bottom:outside-not-bg'])
+FAIL ('map_B', 'map black key RST', 'keybed', (221, 17, 8, 14), ['bottom:outside-not-bg'])
+
+## E. measured rect vs TSV rect (same scene, same name)
+same row3 row cell 3 measured (121, 205, 58, 14) tsv (121, 205, 58, 14)
+same stress activity bar 1 measured (1, 64, 58, 4) tsv (1, 64, 58, 4)
+same stress chan tile 1 measured (1, 25, 58, 38) tsv (1, 25, 58, 38)
+same stress chan tile 2 measured (61, 25, 58, 38) tsv (61, 25, 58, 38)
+same stress chan tile 3 measured (121, 25, 58, 38) tsv (121, 25, 58, 38)
+same stress chan tile 4 measured (181, 25, 58, 38) tsv (181, 25, 58, 38)
+same stress knob tile 1 measured (1, 145, 58, 58) tsv (1, 145, 58, 58)
+same stress knob tile 2 measured (61, 145, 58, 58) tsv (61, 145, 58, 58)
+same stress knob tile 3 measured (121, 145, 58, 58) tsv (121, 145, 58, 58)
+same stress knob tile 4 measured (181, 145, 58, 58) tsv (181, 145, 58, 58)
+same stress lane col 1 measured (1, 73, 13, 70) tsv (1, 73, 13, 70)
+same stress lane col 10 measured (136, 73, 13, 70) tsv (136, 73, 13, 70)
+same stress lane col 11 measured (151, 73, 13, 70) tsv (151, 73, 13, 70)
+same stress lane col 12 measured (166, 73, 13, 70) tsv (166, 73, 13, 70)
+same stress lane col 13 measured (181, 73, 13, 70) tsv (181, 73, 13, 70)
+same stress lane col 14 measured (196, 73, 13, 70) tsv (196, 73, 13, 70)
+same stress lane col 15 measured (211, 73, 13, 70) tsv (211, 73, 13, 70)
+same stress lane col 16 measured (226, 73, 13, 70) tsv (226, 73, 13, 70)
+same stress lane col 2 measured (16, 73, 13, 70) tsv (16, 73, 13, 70)
+same stress lane col 3 measured (31, 73, 13, 70) tsv (31, 73, 13, 70)
+same stress lane col 4 measured (46, 73, 13, 70) tsv (46, 73, 13, 70)
+same stress lane col 5 measured (61, 73, 13, 70) tsv (61, 73, 13, 70)
+same stress lane col 6 measured (76, 73, 13, 70) tsv (76, 73, 13, 70)
+same stress lane col 7 measured (91, 73, 13, 70) tsv (91, 73, 13, 70)
+same stress lane col 8 measured (106, 73, 13, 70) tsv (106, 73, 13, 70)
+same stress lane col 9 measured (121, 73, 13, 70) tsv (121, 73, 13, 70)
+same stress row cell 1 measured (1, 205, 58, 14) tsv (1, 205, 58, 14)
+same stress row cell 2 measured (61, 205, 58, 14) tsv (61, 205, 58, 14)
+same stress transport measured (1, 5, 13, 14) tsv (1, 5, 13, 14)
+DIFF toast_preset_pending toast slab measured (0, 190, 240, 46) tsv (0, 196, 240, 40)
+differences: 1
+
+## F. all measured rectangles (name: x,y,w,h) for the glance scenes -- the module test: x-1 mod 15, w+2 mod 15, y-1 mod 4, h+2 mod 4 (flush bars/cue: x mod 15, y mod 4)
+glance_playing     activity bar 1         x  1 y 64 w 58 h  4 | xr  0 wr  0 yr 3 hr 2 | flush xr  1 yr 0
+glance_playing     activity bar 2         x 61 y 64 w 58 h  4 | xr  0 wr  0 yr 3 hr 2 | flush xr  1 yr 0
+glance_playing     chan tile 1            x  1 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     chan tile 2            x 61 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     chan tile 3            x121 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     chan tile 4            x181 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     knob tile 1            x  1 y145 w 58 h 58 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     knob tile 2            x 61 y145 w 58 h 58 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     knob tile 3            x121 y145 w 58 h 58 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     knob tile 4            x181 y145 w 58 h 58 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     lane col 1             x  1 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     lane col 10            x136 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     lane col 11            x151 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     lane col 12            x166 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     lane col 13            x181 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     lane col 14            x196 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     lane col 15            x211 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     lane col 16            x226 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     lane col 2             x 16 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     lane col 3             x 31 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     lane col 4             x 46 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     lane col 5             x 61 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     lane col 6             x 76 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     lane col 7             x 91 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     lane col 8             x106 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     lane col 9             x121 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     page bar (run 1)       x226 y 20 w 13 h  4 | xr  0 wr  0 yr 3 hr 2 | flush xr  1 yr 0
+glance_playing     page box (run 1)       x226 y  5 w 13 h 14 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     row cell 1             x  1 y205 w 58 h 14 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     row cell 2             x 61 y205 w 58 h 14 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+glance_playing     transport              x  1 y  5 w 12 h 14 | xr  0 wr 14 yr 0 hr 0 | flush xr  1 yr 1
+mutes              activity bar 1         x  1 y 64 w 58 h  4 | xr  0 wr  0 yr 3 hr 2 | flush xr  1 yr 0
+mutes              chan tile 1            x  1 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              chan tile 2            x 61 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              chan tile 3            x121 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              chan tile 4            x181 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              knob tile 1            x  1 y145 w 58 h 58 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              knob tile 2            x 61 y145 w 58 h 58 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              knob tile 3            x121 y145 w 58 h 58 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              knob tile 4            x181 y145 w 58 h 58 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              lane col 1             x  1 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              lane col 10            x136 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              lane col 11            x151 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              lane col 12            x166 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              lane col 13            x181 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              lane col 14            x196 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              lane col 15            x211 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              lane col 16            x226 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              lane col 2             x 16 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              lane col 3             x 31 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              lane col 4             x 46 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              lane col 5             x 61 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              lane col 6             x 76 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              lane col 7             x 91 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              lane col 8             x106 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              lane col 9             x121 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              page bar (run 1)       x211 y 20 w 13 h  4 | xr  0 wr  0 yr 3 hr 2 | flush xr  1 yr 0
+mutes              page box (run 1)       x211 y  5 w 13 h 14 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              page box (run 2)       x226 y  5 w 13 h 14 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              row cell 1             x  1 y205 w 58 h 14 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              row cell 2             x 61 y205 w 58 h 14 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+mutes              transport              x  1 y  5 w 12 h 14 | xr  0 wr 14 yr 0 hr 0 | flush xr  1 yr 1
+row3               activity bar 1         x  1 y 64 w 58 h  4 | xr  0 wr  0 yr 3 hr 2 | flush xr  1 yr 0
+row3               activity bar 2         x 61 y 64 w 58 h  4 | xr  0 wr  0 yr 3 hr 2 | flush xr  1 yr 0
+row3               chan tile 1            x  1 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               chan tile 2            x 61 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               chan tile 3            x121 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               chan tile 4            x181 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               knob tile 1            x  1 y145 w 58 h 58 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               knob tile 2            x 61 y145 w 58 h 58 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               knob tile 3            x121 y145 w 58 h 58 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               knob tile 4            x181 y145 w 58 h 58 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               lane col 1             x  1 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               lane col 10            x136 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               lane col 11            x151 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               lane col 12            x166 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               lane col 13            x181 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               lane col 14            x196 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               lane col 15            x211 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               lane col 16            x226 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               lane col 2             x 16 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               lane col 3             x 31 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               lane col 4             x 46 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               lane col 5             x 61 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               lane col 6             x 76 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               lane col 7             x 91 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               lane col 8             x106 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               lane col 9             x121 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               page bar (run 1)       x226 y 20 w 13 h  4 | xr  0 wr  0 yr 3 hr 2 | flush xr  1 yr 0
+row3               page box (run 1)       x226 y  5 w 13 h 14 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               row cell 1             x  1 y205 w 58 h 14 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               row cell 2             x 61 y205 w 58 h 14 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               row cell 3             x121 y205 w 58 h 14 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+row3               transport              x  1 y  5 w 12 h 14 | xr  0 wr 14 yr 0 hr 0 | flush xr  1 yr 1
+stress             activity bar 1         x  1 y 64 w 58 h  4 | xr  0 wr  0 yr 3 hr 2 | flush xr  1 yr 0
+stress             chan tile 1            x  1 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             chan tile 2            x 61 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             chan tile 3            x121 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             chan tile 4            x181 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             knob tile 1            x  1 y145 w 58 h 58 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             knob tile 2            x 61 y145 w 58 h 58 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             knob tile 3            x121 y145 w 58 h 58 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             knob tile 4            x181 y145 w 58 h 58 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             lane col 1             x  1 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             lane col 10            x136 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             lane col 11            x151 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             lane col 12            x166 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             lane col 13            x181 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             lane col 14            x196 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             lane col 15            x211 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             lane col 16            x226 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             lane col 2             x 16 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             lane col 3             x 31 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             lane col 4             x 46 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             lane col 5             x 61 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             lane col 6             x 76 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             lane col 7             x 91 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             lane col 8             x106 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             lane col 9             x121 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             page bar (run 1)       x226 y 20 w 13 h  4 | xr  0 wr  0 yr 3 hr 2 | flush xr  1 yr 0
+stress             page box (run 1)       x181 y  5 w 13 h 14 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             page box (run 2)       x196 y  5 w 13 h 14 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             page box (run 3)       x211 y  5 w 13 h 14 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             page box (run 4)       x226 y  5 w 13 h 14 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             row cell 1             x  1 y205 w 58 h 14 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             row cell 2             x 61 y205 w 58 h 14 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+stress             transport              x  1 y  5 w 13 h 14 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   activity bar 1         x  1 y 64 w 58 h  4 | xr  0 wr  0 yr 3 hr 2 | flush xr  1 yr 0
+toast_dice_notes   activity bar 2         x 61 y 64 w 58 h  4 | xr  0 wr  0 yr 3 hr 2 | flush xr  1 yr 0
+toast_dice_notes   chan tile 1            x  1 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   chan tile 2            x 61 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   chan tile 3            x121 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   chan tile 4            x181 y 25 w 58 h 38 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   knob tile 1            x  1 y145 w 58 h 51 | xr  0 wr  0 yr 0 hr 1 | flush xr  1 yr 1
+toast_dice_notes   knob tile 2            x 61 y145 w 58 h 51 | xr  0 wr  0 yr 0 hr 1 | flush xr  1 yr 1
+toast_dice_notes   knob tile 3            x121 y145 w 58 h 51 | xr  0 wr  0 yr 0 hr 1 | flush xr  1 yr 1
+toast_dice_notes   knob tile 4            x181 y145 w 58 h 51 | xr  0 wr  0 yr 0 hr 1 | flush xr  1 yr 1
+toast_dice_notes   lane col 1             x  1 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   lane col 10            x136 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   lane col 11            x151 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   lane col 12            x166 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   lane col 13            x181 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   lane col 14            x196 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   lane col 15            x211 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   lane col 16            x226 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   lane col 2             x 16 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   lane col 3             x 31 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   lane col 4             x 46 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   lane col 5             x 61 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   lane col 6             x 76 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   lane col 7             x 91 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   lane col 8             x106 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   lane col 9             x121 y 73 w 13 h 70 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   page bar (run 1)       x226 y 20 w 13 h  4 | xr  0 wr  0 yr 3 hr 2 | flush xr  1 yr 0
+toast_dice_notes   page box (run 1)       x226 y  5 w 13 h 14 | xr  0 wr  0 yr 0 hr 0 | flush xr  1 yr 1
+toast_dice_notes   toast slab             x  0 y190 w240 h 46 | xr 14 wr  2 yr 1 hr 0 | flush xr  0 yr 2
+toast_dice_notes   transport              x  1 y  5 w 12 h 14 | xr  0 wr 14 yr 0 hr 0 | flush xr  1 yr 1

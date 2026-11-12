@@ -1,0 +1,59 @@
+=== (a) all four channels muted
+RENDER a_all_muted_sel1                   tool warnings: none
+  a_all_muted_sel1: HEAD px in activity row y64..67: 0; M chips drawn: 4; texts: 32; header HEAD px (y0..24): 241
+  numerals/names contrast (fg/bg): [5.37, 6.42, 10.42]
+RENDER a_all_muted_sel4                   tool warnings: none
+  a_all_muted_sel4: HEAD px in activity row y64..67: 0; M chips drawn: 4; texts: 32; header HEAD px (y0..24): 241
+  numerals/names contrast (fg/bg): [5.37, 6.42, 10.42]
+RENDER a_all_muted_all_off_sel2           tool warnings: none
+  a_all_muted_all_off_sel2: HEAD px in activity row y64..67: 0; M chips drawn: 4; texts: 32; header HEAD px (y0..24): 241
+  numerals/names contrast (fg/bg): [5.37, 6.42, 10.42]
+  reference unmuted glance_playing: HEAD px in activity row: 464
+
+=== (b) 16 steps ON, accent+slide+ratchet 4 on every step, playhead on step 1, 8, 16
+RENDER b_full_ph1                         tool warnings: none
+  b_full_ph1 playhead col 1: longest BG run on the slide-tie centre row y85 = 1 px; tie colour run count: 1
+   column profile, playing col x=7 (rel rows, colour): [(0, 0, 'FD80'), (1, 9, '0841'), (10, 14, 'CE59'), (15, 15, '0841'), (16, 16, 'C618'), (17, 17, '3186'), (18, 18, '0841'), (19, 19, '738E'), (20, 20, 'E71C'), (21, 22, 'FD80'), (23, 23, '738E'), (24, 24, '2945'), (25, 29, 'FD80'), (30, 65, '0841'), (66, 69, 'FD80')]
+   column profile, other col x=22: [(0, 0, '39C7'), (1, 8, '565F'), (9, 9, '39C7'), (10, 14, 'CE59'), (15, 15, '39C7'), (16, 16, '5ACB'), (17, 17, 'B596'), (18, 18, 'CE59'), (19, 19, '8C51'), (20, 20, '4A49'), (21, 22, '39C7'), (23, 23, '8C51'), (24, 24, 'BDD7'), (25, 29, '39C7'), (30, 63, 'CE59'), (64, 65, 'A514'), (66, 69, '39C7')]
+   accent-cap pixels (rel row 1..8, centre col) colour in playing col: ['0841']  normal bar pixel (rel 40): 0841
+   ratchet digit ink boxes (first 2): [(3, 89, 12, 100), (18, 89, 27, 100)] count 16
+   row y85 from x=221..239 colours: ['CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', '0841']
+RENDER b_full_ph8                         tool warnings: none
+  b_full_ph8 playhead col 8: longest BG run on the slide-tie centre row y85 = 1 px; tie colour run count: 1
+   column profile, playing col x=112 (rel rows, colour): [(0, 0, 'FD80'), (1, 9, '0841'), (10, 14, 'CE59'), (15, 15, '0841'), (16, 16, 'C618'), (17, 17, '3186'), (18, 18, '0841'), (19, 19, '738E'), (20, 20, 'E71C'), (21, 22, 'FD80'), (23, 23, '738E'), (24, 24, '2945'), (25, 29, 'FD80'), (30, 65, '0841'), (66, 69, 'FD80')]
+   column profile, other col x=127: [(0, 0, '39C7'), (1, 8, '565F'), (9, 9, '39C7'), (10, 14, 'CE59'), (15, 15, '39C7'), (16, 16, '5ACB'), (17, 17, 'B596'), (18, 18, 'CE59'), (19, 19, '8C51'), (20, 20, '4A49'), (21, 22, '39C7'), (23, 23, '8C51'), (24, 24, 'BDD7'), (25, 29, '39C7'), (30, 63, 'CE59'), (64, 65, 'A514'), (66, 69, '39C7')]
+   accent-cap pixels (rel row 1..8, centre col) colour in playing col: ['0841']  normal bar pixel (rel 40): 0841
+   ratchet digit ink boxes (first 2): [(3, 89, 12, 100), (18, 89, 27, 100)] count 16
+   row y85 from x=221..239 colours: ['CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', '0841']
+RENDER b_full_ph16                        tool warnings: none
+  b_full_ph16 playhead col 16: longest BG run on the slide-tie centre row y85 = 1 px; tie colour run count: 1
+   column profile, playing col x=232 (rel rows, colour): [(0, 0, 'FD80'), (1, 9, '0841'), (10, 14, 'CE59'), (15, 15, '0841'), (16, 16, 'C618'), (17, 17, '3186'), (18, 18, '0841'), (19, 19, '738E'), (20, 20, 'E71C'), (21, 22, 'FD80'), (23, 23, '738E'), (24, 24, '2945'), (25, 29, 'FD80'), (30, 65, '0841'), (66, 69, 'FD80')]
+   column profile, other col x=7: [(0, 0, '39C7'), (1, 8, '565F'), (9, 9, '39C7'), (10, 14, 'CE59'), (15, 15, '39C7'), (16, 16, '5ACB'), (17, 17, 'B596'), (18, 18, 'CE59'), (19, 19, '8C51'), (20, 20, '4A49'), (21, 22, '39C7'), (23, 23, '8C51'), (24, 24, 'BDD7'), (25, 29, '39C7'), (30, 63, 'CE59'), (64, 65, 'A514'), (66, 69, '39C7')]
+   accent-cap pixels (rel row 1..8, centre col) colour in playing col: ['0841']  normal bar pixel (rel 40): 0841
+   ratchet digit ink boxes (first 2): [(3, 89, 12, 100), (18, 89, 27, 100)] count 16
+   row y85 from x=221..239 colours: ['CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', 'CE59', '0841']
+
+=== (c) no steps ON
+RENDER c_empty_playing                    tool warnings: none
+  c_empty_playing: lane pixel colours (hex:count): {'39C7': 7072, '4A49': 6188, '0841': 2266, 'FD80': 884, 'A514': 390}; texts in lane rows (y72..143): []
+RENDER c_empty_stopped                    tool warnings: none
+  c_empty_stopped: lane pixel colours (hex:count): {'39C7': 7072, '4A49': 7072, '0841': 2240, 'A514': 416}; texts in lane rows (y72..143): []
+
+=== (d) playhead on a page that is not viewed (len 64)
+RENDER d_view_p1_play_p2                  tool warnings: none
+  d_view_p1_play_p2: viewed page 1, playing step 21 (page 2): HEAD px in lane 343; header boxes (x: colour at y8): ['181:2104', '196:FD80', '211:2104', '226:2104']; viewed under-bars at x: [181]
+    ghost column x=61: row73 FD80, row 75 FD80 inner px(x+3,y100) 4A49; lane step label drawn? 
+RENDER d_view_p1_play_p4                  tool warnings: none
+  d_view_p1_play_p4: viewed page 1, playing step 61 (page 4): HEAD px in lane 343; header boxes (x: colour at y8): ['181:2104', '196:2104', '211:2104', '226:FD80']; viewed under-bars at x: [181]
+    ghost column x=181: row73 FD80, row 75 FD80 inner px(x+3,y100) 4A49; lane step label drawn? 
+RENDER d_view_p4_play_p1                  tool warnings: none
+  d_view_p4_play_p1: viewed page 4, playing step 5 (page 1): HEAD px in lane 343; header boxes (x: colour at y8): ['181:FD80', '196:2104', '211:2104', '226:2104']; viewed under-bars at x: [226]
+    ghost column x=61: row73 FD80, row 75 FD80 inner px(x+3,y100) 4A49; lane step label drawn? 
+RENDER d_view_p2_play_p2_ref              tool warnings: none
+  d_view_p2_play_p2_ref: viewed page 2, playing step 21 (page 2): HEAD px in lane 531; header boxes (x: colour at y8): ['181:2104', '196:FD80', '211:2104', '226:2104']; viewed under-bars at x: [196]
+    ghost column x=61: row73 FD80, row 75 FD80 inner px(x+3,y100) FD80; lane step label drawn? 
+RENDER d_view_p3_play_p4_step64           tool warnings: none
+  d_view_p3_play_p4_step64: viewed page 3, playing step 64 (page 4): HEAD px in lane 343; header boxes (x: colour at y8): ['181:2104', '196:2104', '211:2104', '226:FD80']; viewed under-bars at x: [211]
+    ghost column x=226: row73 FD80, row 75 FD80 inner px(x+3,y100) 4A49; lane step label drawn? 
+RENDER d_tmp                              tool warnings: none
+  digits/text inside lane rows in d_view_p1_play_p4: ['3', '2']

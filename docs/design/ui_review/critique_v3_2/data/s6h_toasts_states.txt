@@ -1,0 +1,123 @@
+=== (h1) dice toasts: 6 layers x 6 algorithms (P.dice_text), rendered h_dice_ALGO_LAYER
+| algo | layer | title (chip + role) | title right edge | detail | detail right edge | hint drawn | warnings | overlaps |
+|---|---|---|---|---|---|---|---|---|
+| ACID | ALL | `FX ALL` | 101 | `CH1 EVERY LAYER NEW` | 166 | no | none | - |
+| ACID | NOTES | `SCL NOTES` | 159 | `CH1 NEW PITCHES` | 132 | `EDIT: UNDO` at x157 | none | - |
+| ACID | ACCNT | `ENV ACCNT` | 168 | `CH1 NEW ACCENTS` | 140 | `EDIT: UNDO` at x157 | none | - |
+| ACID | SHAPE | `LFO SHAPE` | 157 | `CH1 NEW OCTAVE JUMPS` | 181 | no | none | - |
+| ACID | ARTIC | `ARP ARTIC` | 151 | `CH1 NEW GATES + SLIDES` | 182 | no | none | - |
+| ACID | HITS | `SEQ HITS` | 131 | `CH1 NEW HIT PATTERN` | 161 | no | none | - |
+| EUCLID | ALL | `FX ALL` | 101 | `CH1 EVERY LAYER NEW` | 166 | no | none | - |
+| EUCLID | NOTES | `SCL NOTES` | 159 | `CH1 NEW PITCHES` | 132 | `EDIT: UNDO` at x157 | none | - |
+| EUCLID | ACCNT | `ENV ACCNT` | 168 | `CH1 NEW ACCENTS` | 140 | `EDIT: UNDO` at x157 | none | - |
+| EUCLID | SHAPE | `LFO SHAPE` | 157 | `CH1 NEW MOD LANES` | 156 | no | none | - |
+| EUCLID | ARTIC | `ARP ARTIC` | 151 | `CH1 NEW RATCHETS` | 146 | no | none | - |
+| EUCLID | HITS | `SEQ HITS` | 131 | `CH1 HITS ROTATED` | 135 | `EDIT: UNDO` at x157 | none | - |
+| SNAKE | ALL | `FX ALL` | 101 | `CH1 ALL BUT ARTIC NEW` | 176 | no | none | - |
+| SNAKE | NOTES | `SCL NOTES` | 159 | `CH1 NEW PITCHES` | 132 | `EDIT: UNDO` at x157 | none | - |
+| SNAKE | ACCNT | `ENV ACCNT` | 168 | `CH1 NEW VELOCITIES` | 153 | no | none | - |
+| SNAKE | SHAPE | `LFO SHAPE` | 157 | `CH1 NEW DRIFT` | 113 | `EDIT: UNDO` at x157 | none | - |
+| SNAKE | ARTIC | `ARP ARTIC` | 151 | `NO ARTIC IN SNAKE` | 137 | no | none | - |
+| SNAKE | HITS | `SEQ HITS` | 131 | `CH1 NEW GATES` | 118 | `EDIT: UNDO` at x157 | none | - |
+| STAGE | ALL | `FX ALL` | 101 | `CH1 EVERY LAYER NEW` | 166 | no | none | - |
+| STAGE | NOTES | `SCL NOTES` | 159 | `CH1 NEW PITCHES` | 132 | `EDIT: UNDO` at x157 | none | - |
+| STAGE | ACCNT | `ENV ACCNT` | 168 | `CH1 NEW VELOCITIES` | 153 | no | none | - |
+| STAGE | SHAPE | `LFO SHAPE` | 157 | `CH1 NEW LONG STAGES` | 169 | no | none | - |
+| STAGE | ARTIC | `ARP ARTIC` | 151 | `CH1 NEW RATCHETS + HOLDS` | 211 | no | none | - |
+| STAGE | HITS | `SEQ HITS` | 131 | `CH1 NEW RESTS` | 117 | `EDIT: UNDO` at x157 | none | - |
+| ARP | ALL | `FX ALL` | 101 | `CH1 EVERY LAYER NEW` | 166 | no | none | - |
+| ARP | NOTES | `SCL NOTES` | 159 | `CH1 NEW OCTAVE HOPS` | 171 | no | none | - |
+| ARP | ACCNT | `ENV ACCNT` | 168 | `CH1 NEW VELOCITIES` | 153 | no | none | - |
+| ARP | SHAPE | `LFO SHAPE` | 157 | `CH1 NEW START PHASE` | 167 | no | none | - |
+| ARP | ARTIC | `ARP ARTIC` | 151 | `CH1 NEW NOTE LENGTHS` | 180 | no | none | - |
+| ARP | HITS | `SEQ HITS` | 131 | `CH1 NEW RESTS` | 117 | `EDIT: UNDO` at x157 | none | - |
+| PATT | ALL | `FX ALL` | 101 | `CH1 EVERY LAYER NEW` | 166 | no | none | - |
+| PATT | NOTES | `SCL NOTES` | 159 | `CH1 NEW VARIATIONS` | 155 | no | none | - |
+| PATT | ACCNT | `ENV ACCNT` | 168 | `CH1 NEW ACCENTS` | 140 | `EDIT: UNDO` at x157 | none | - |
+| PATT | SHAPE | `LFO SHAPE` | 157 | `CH1 NEW UP/DOWN` | 142 | `EDIT: UNDO` at x157 | none | - |
+| PATT | ARTIC | `ARP ARTIC` | 151 | `CH1 NEW SLIDES` | 120 | `EDIT: UNDO` at x157 | none | - |
+| PATT | HITS | `SEQ HITS` | 131 | `CH1 NEW THINNING ORDER` | 193 | no | none | - |
+widest detail right edge over 36: 211 (slab inner limit 237)
+
+=== (h2) undo / redo toast: the detail string is not specified; plausible 'what' strings from button_modes.tsv B_EDIT ('last dice, dice-all, step edit, page add, page clear, reset ... HARMONY change')
+| kind | what | detail right edge | hint left edge | overlap px (hint left - detail right; negative = overlap) | warnings |
+|---|---|---|---|---|---|
+| undo | `CH1 NOTES` | 84 | 104 | 20 | none |
+| undo | `CH4 ACCNT` | 86 | 104 | 18 | none |
+| undo | `CH1 ALL LAYERS` | 118 | 104 | -14 | none |
+| undo | `CH1 STEP 12` | 93 | 104 | 11 | none |
+| undo | `CH1 PAGE ADDED` | 125 | 104 | -21 | none |
+| undo | `CH1 PAGE CLEARED` | 140 | 104 | -36 | none |
+| undo | `CH1 RESET` | 80 | 104 | 24 | none |
+| undo | `CH1 PRESET LOAD` | 130 | 104 | -26 | none |
+| undo | `HARMONY: VOICE` | 125 | 104 | -21 | none |
+| undo | `CH1 ALL BUT ARTIC` | 139 | 104 | -35 | none |
+| undo | `CH1 NEW PITCHES` | 132 | 104 | -28 | none |
+| undo | `CH4 STEP EDIT` | 106 | 104 | -2 | none |
+| redo | `CH1 NOTES` | 84 | 101 | 17 | none |
+| redo | `CH4 ACCNT` | 86 | 101 | 15 | none |
+| redo | `CH1 ALL LAYERS` | 118 | 101 | -17 | none |
+| redo | `CH1 STEP 12` | 93 | 101 | 8 | none |
+| redo | `CH1 PAGE ADDED` | 125 | 101 | -24 | none |
+| redo | `CH1 PAGE CLEARED` | 140 | 101 | -39 | none |
+| redo | `CH1 RESET` | 80 | 101 | 21 | none |
+| redo | `CH1 PRESET LOAD` | 130 | 101 | -29 | none |
+| redo | `HARMONY: VOICE` | 125 | 101 | -24 | none |
+| redo | `CH1 ALL BUT ARTIC` | 139 | 101 | -38 | none |
+| redo | `CH1 NEW PITCHES` | 132 | 101 | -31 | none |
+| redo | `CH4 STEP EDIT` | 106 | 101 | -5 | none |
+   undo/redo branch of draw_slab draws the hint unconditionally (no width test), unlike the dice branch
+
+=== (h3) preset toasts, P01..P16, pending/stopped/loading
+  P01 pending  warnings none; toast strings [('P01', 3, 50), ('LOADS AT BAR', 64, 164), ('SAVE: KEEP HERE  HOME: CANCEL', 3, 236)]; countdown-bar frame px extent (x) (65, 236); header text [('P01?', 121, 155)]
+  P01 stopped  warnings none; toast strings [('P01', 3, 50), ('LOADS IN 1.5 S', 64, 165), ('SAVE: KEEP HERE  HOME: CANCEL', 3, 236)]; countdown-bar frame px extent (x) (65, 236); header text [('P01?', 121, 155)]
+  P01 loading  warnings none; toast strings [('P01', 3, 50), ('LOADING', 80, 142), ('SAVE', 5, 41), ('HOLD = UNDO LAST LOAD', 47, 225)]; countdown-bar frame px extent (x) None; header text [('P01>', 121, 157)]
+  P04 pending  warnings none; toast strings [('P04', 3, 54), ('LOADS AT BAR', 64, 164), ('SAVE: KEEP HERE  HOME: CANCEL', 3, 236)]; countdown-bar frame px extent (x) (65, 236); header text [('P04?', 121, 155)]
+  P04 stopped  warnings none; toast strings [('P04', 3, 54), ('LOADS IN 1.5 S', 64, 165), ('SAVE: KEEP HERE  HOME: CANCEL', 3, 236)]; countdown-bar frame px extent (x) (65, 236); header text [('P04?', 121, 155)]
+  P04 loading  warnings none; toast strings [('P04', 3, 54), ('LOADING', 80, 142), ('SAVE', 5, 41), ('HOLD = UNDO LAST LOAD', 47, 225)]; countdown-bar frame px extent (x) None; header text [('P04>', 121, 157)]
+  P09 pending  warnings none; toast strings [('P09', 3, 54), ('LOADS AT BAR', 64, 164), ('SAVE: KEEP HERE  HOME: CANCEL', 3, 236)]; countdown-bar frame px extent (x) (65, 236); header text [('P09?', 121, 155)]
+  P09 stopped  warnings none; toast strings [('P09', 3, 54), ('LOADS IN 1.5 S', 64, 165), ('SAVE: KEEP HERE  HOME: CANCEL', 3, 236)]; countdown-bar frame px extent (x) (65, 236); header text [('P09?', 121, 155)]
+  P09 loading  warnings none; toast strings [('P09', 3, 54), ('LOADING', 80, 142), ('SAVE', 5, 41), ('HOLD = UNDO LAST LOAD', 47, 225)]; countdown-bar frame px extent (x) None; header text [('P09>', 121, 157)]
+  P10 pending  warnings none; toast strings [('P10', 3, 54), ('LOADS AT BAR', 64, 164), ('SAVE: KEEP HERE  HOME: CANCEL', 3, 236)]; countdown-bar frame px extent (x) (65, 236); header text [('P10?', 121, 155)]
+  P10 stopped  warnings none; toast strings [('P10', 3, 54), ('LOADS IN 1.5 S', 64, 165), ('SAVE: KEEP HERE  HOME: CANCEL', 3, 236)]; countdown-bar frame px extent (x) (65, 236); header text [('P10?', 121, 155)]
+  P10 loading  warnings none; toast strings [('P10', 3, 54), ('LOADING', 80, 142), ('SAVE', 5, 41), ('HOLD = UNDO LAST LOAD', 47, 225)]; countdown-bar frame px extent (x) None; header text [('P10>', 121, 157)]
+  P16 pending  warnings none; toast strings [('P16', 3, 54), ('LOADS AT BAR', 64, 164), ('SAVE: KEEP HERE  HOME: CANCEL', 3, 236)]; countdown-bar frame px extent (x) (65, 236); header text [('P16?', 121, 155)]
+  P16 stopped  warnings none; toast strings [('P16', 3, 54), ('LOADS IN 1.5 S', 64, 165), ('SAVE: KEEP HERE  HOME: CANCEL', 3, 236)]; countdown-bar frame px extent (x) (65, 236); header text [('P16?', 121, 155)]
+  P16 loading  warnings none; toast strings [('P16', 3, 54), ('LOADING', 80, 142), ('SAVE', 5, 41), ('HOLD = UNDO LAST LOAD', 47, 225)]; countdown-bar frame px extent (x) None; header text [('P16>', 121, 157)]
+
+=== (h4) MIDI channel toasts: CH1..CH4 x MIDI 1..16, OFF
+widest detail: [(231, 97, 4, 16, 'CH4 SENDS ON MIDI CHANNEL 16'), (231, 97, 4, 15, 'CH4 SENDS ON MIDI CHANNEL 15'), (231, 97, 4, 14, 'CH4 SENDS ON MIDI CHANNEL 14')] (slab inner right limit 237 -> max ink width 234); titles widest: [(149, 113, 4, 'OFF', 'CH4 SENDS NOTHING'), (149, 113, 3, 'OFF', 'CH3 SENDS NOTHING')]
+render h_midi_ch4_16 warnings: none ; detail right edge 234
+  note: proposal's MIDI_TOAST and toast_midi_off use sel=0 (CH1); the toast text hardcodes the channel in `what`; no 'taken from CHn' duplicate warning is drawn.
+
+=== (h5) algorithm toast, six algorithms
+  ACID      title ink 3..66 (63 px) warnings none
+  EUCLID    title ink 3..98 (95 px) warnings none
+  SNAKE     title ink 3..92 (89 px) warnings none
+  STAGE     title ink 3..88 (85 px) warnings none
+  ARP       title ink 3..56 (53 px) warnings none
+  PATTERNS  title ink 3..138 (135 px) warnings none
+
+=== (i) header preset states and the settle bar
+  i_hdr_p16_pending warnings none; header strings [('tempo', '120', 17, 43), ('preset', 'P16?', 121, 155), ('page numeral', '1', 230, 235)]; settle bar y20 x-range (121, 154) (rows 20-21: frac drawn 17)
+  i_hdr_p16_loading warnings none; header strings [('tempo', '120', 17, 43), ('preset', 'P16>', 121, 157), ('page numeral', '1', 230, 235)]; settle bar y20 x-range None (rows 20-21: frac drawn 0)
+  i_hdr_p16_pending_ext240_4pages warnings none; header strings [('tempo', 'EXT 240', 17, 74), ('preset', 'P16?', 121, 155), ('page numeral', '1', 185, 190), ('page numeral', '2', 198, 207), ('page numeral', '3', 213, 222), ('page numeral', '4', 228, 237)]; settle bar y20 x-range (121, 154) (rows 20-21: frac drawn 17)
+  i_hdr_p04_pending_toast warnings none; header strings [('tempo', '120', 17, 43), ('preset', 'P04?', 121, 155), ('page numeral', '1', 230, 235)]; settle bar y20 x-range (121, 154) (rows 20-21: frac drawn 17)
+  fraction rule in code: sv.rect(121, 20, int(34*frac) if toast has 'frac' else 17, 2, TEXT): with NO toast on screen (a knob turn dismissed it) the fill is a constant 17 of 34 px:
+   TEXT px in settle bar row y20 with toast absent: 17 of 34
+
+=== (j) clock states: header strings and what changes against the internal-clock playing screen
+  state_ext_sync   warnings none; header strings [('EXT --', 17, 60), ('P01', 121, 145)]; header pixels differing from the internal-clock playing header: 627
+  state_wait       warnings none; header strings [('WAIT', 17, 52), ('P01', 121, 145)]; header pixels differing from the internal-clock playing header: 467
+  state_ext_lost   warnings none; header strings [('120', 17, 43), ('P01', 121, 145)]; header pixels differing from the internal-clock playing header: 0
+  j_ext_240        warnings none; header strings [('EXT 240', 17, 74), ('P01', 121, 145)]; header pixels differing from the internal-clock playing header: 419
+  j_ext_40         warnings none; header strings [('EXT 40', 17, 65), ('P01', 121, 145)]; header pixels differing from the internal-clock playing header: 362
+
+=== (k) REC, selected+muted+OFF, first-run
+  k_rec_stopped warnings none; transport px colours at (1..13, 5..18): ['0841', 'FA49']
+  k_rec_playing warnings none; transport px colours at (1..13, 5..18): ['0841', 'FA49']
+  k_rec_playing_ext_lost warnings none; transport px colours at (1..13, 5..18): ['0841', 'FA49']
+  k_sel_muted_off warnings none; transport px colours at (1..13, 5..18): ['0841', 'FA49']
+  k_first_run warnings none; transport px colours at (1..13, 5..18): ['9492']
+  first-run frame is drawn at x+12..x+38, y+3..y+18 (2 px, INK on SEL). Row y+9 colours x+10..x+30 (SEL=BDD7 INK=0841): ['.', '.', 'I', 'I', 'I', 'I', 'I', 'I', 'I', 'I', 'I', 'I', '.', '.', '.', '.', '?', 'I', '.', '.', '.']
+  first-run tile 0 midi slot ink: [('1', (24, 30, 29, 41))]  numeral ink: [('1', (5, 30, 10, 41))]

@@ -1,0 +1,15 @@
+| algorithm | row | K1..K4 labels | widest label (ink px) | min label margin L/R (of 58) | widest value (ink px) | min value margin | value drawn in AF_M (min/max/long cases) | picture-to-name gap min | tool flags | cells |
+|---|---|---|---|---|---|---|---|---|---|---|
+| ACID | 1 | DENS SLIDE JUMP ACCNT | `ACCNT` 50 | 4 | `KEYS` 36 | 11 | DENS=KEYS | - | 0 | 12 |
+| ACID | 2 | OFFSET PEDAL PUNCH DIR | `OFFSET` 54 | 2 | `PEND` 38 | 10 | DIR=FWD, DIR=PEND | 4 | 0 | 12 |
+| ACID | 3 | CUT RESO ENV-X PAD-Z | `ENV-X` 44 | 7 | `100` 50 | 4 | - | - | 0 | 12 |
+| EUCLID | 1 | HITS OFFSET RATCH ACCNT | `OFFSET` 54 | 2 | `KEYS` 36 | 11 | HITS=KEYS | - | 0 | 12 |
+| EUCLID | 2 | LEN SPAN PUNCH CURVE | `PUNCH` 50 | 4 | `AUTO` 40 | 9 | CURVE=AUTO, CURVE=INV | 3 | 0 | 12 |
+| SNAKE | 1 | DENS LEN RANGE PATH | `RANGE` 48 | 5 | `KEYS` 36 | 4 | DENS=KEYS, PATH | - | 0 | 12 |
+| SNAKE | 2 | OFFSET GLEN DYN DIR | `OFFSET` 54 | 2 | `PEND` 38 | 10 | DIR=FWD, DIR=PEND | 4 | 0 | 12 |
+| STAGE | 1 | DENS TOTAL DIR RATCH | `RATCH` 47 | 5 | `PEND` 38 | 10 | DENS=KEYS, DIR=FWD, DIR=PEND | 4 | 0 | 12 |
+| STAGE | 2 | OFFSET RDIV DYN RANGE | `OFFSET` 54 | 2 | `63` 34 | 12 | - | - | 0 | 12 |
+| ARP | 1 | DENS SHAPE SPAN RATE | `SHAPE` 46 | 6 | `THUMB` 52 | 3 | DENS=KEYS, SHAPE=LINE, SHAPE=THUMB, SHAPE=WAVE | 4 | 0 | 12 |
+| ARP | 2 | OFFSET LEGATO DYN DIR | `LEGATO` 55 | 1 | `CHORD` 51 | 3 | DIR=CHORD, DIR=UP | 3 | 0 | 12 |
+| PATTERNS | 1 | DENS VARY SPAN ACCNT | `ACCNT` 50 | 4 | `KEYS` 36 | 11 | DENS=KEYS | - | 0 | 12 |
+| PATTERNS | 2 | ACID SLIDE DYN CTONE TECH HOUSE | `HOUSE` 49 | 4 | `20` 33 | 12 | - | - | 0 | 12 |

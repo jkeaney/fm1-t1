@@ -1,0 +1,20 @@
+horizontal runs (first..last px) and the gap to the next run, per row, scene stress:
+ page boxes row y=5                               runs [(5, 9), (60, 60), (69, 69), (143, 143), (181, 193), (196, 208), (211, 223), (226, 238)] | gaps [50, 8, 73, 37, 2, 2, 2] | left margin 5 right margin 1
+ chan tiles row y=26 (row of tile top edge+1)     runs [(1, 58), (61, 118), (121, 178), (181, 238)] | gaps [2, 2, 2] | left margin 1 right margin 1
+ lane row y=73                                    runs [(1, 13), (16, 28), (31, 43), (46, 58), (61, 73), (76, 88), (91, 103), (106, 118), (121, 133), (136, 148), (151, 163), (166, 178), (181, 193), (196, 208), (211, 223), (226, 238)] | gaps [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2] | left margin 1 right margin 1
+ knob tiles row y=146                             runs [(1, 58), (61, 118), (121, 178), (181, 238)] | gaps [2, 2, 2] | left margin 1 right margin 1
+ ROW cells row y=206                              runs [(1, 20), (24, 58), (61, 118)] | gaps [3, 2] | left margin 1 right margin 121
+ cue chip row y=222                               runs [(0, 23), (26, 31), (36, 38), (42, 56), (61, 63), (65, 70), (75, 77), (81, 83), (87, 97), (99, 110), (112, 118), (124, 126), (131, 132), (136, 142), (144, 152), (154, 160), (163, 169)] | gaps [2, 4, 3, 4, 1, 4, 3, 3, 1, 1, 5, 4, 3, 1, 1, 2] | left margin 0 right margin 70
+ activity bar row y=65 (scene glance_playing)     runs [(1, 58), (61, 118)] | gaps [2] | left margin 1 right margin 121
+
+vertical bands in glance_playing (rows with any non-BG px) and the gap between neighbours:
+ spans [(5, 18), (20, 23), (25, 62), (64, 67), (73, 142), (145, 202), (205, 218), (221, 233)] gaps [1, 1, 1, 5, 2, 2, 2] top margin 5 bottom margin 6
+
+vertical gaps at specific columns (glance_playing):
+ x=2 (tile col 1) : [(6, 17), (25, 62), (64, 67), (73, 142), (145, 202), (205, 218)] gaps [7, 1, 5, 2, 2]
+ x=230 (page box 4/ tile 4 / lane 16): [(5, 18), (20, 23), (25, 62), (73, 142), (145, 202)]
+ stress x=230: [(5, 10), (12, 18), (20, 23), (25, 28), (37, 40), (43, 62), (73, 142), (145, 202)]
+toast_dice_notes x=2: [(6, 17), (25, 62), (64, 67), (73, 142), (145, 235)]
+ toast column x=100, y190..239 colours: [(194, 'CE59'), (195, 'CE59'), (196, 'CE59'), (197, 'CE59'), (198, '2104'), (199, '2104'), (235, '2104'), (236, '0841'), (237, '0841')]
+ toast x=230 (right empty part): [(194, '39C7'), (195, '39C7'), (196, 'CE59'), (197, 'CE59'), (198, '2104'), (199, '2104'), (235, '2104'), (236, '0841'), (237, '0841'), (239, '0841')]
+ toast slab x extent at y=210: [(0, 2), (63, 70), (76, 76), (82, 83), (89, 89), (95, 104), (110, 114), (120, 127), (141, 144), (157, 239)]

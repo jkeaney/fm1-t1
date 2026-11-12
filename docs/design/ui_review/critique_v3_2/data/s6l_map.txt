@@ -1,0 +1,35 @@
+| page | algo | row | sel | warnings | K1..K4 row-1 / row-2 ink widths | tightest ink-to-tile-edge margin (58 px tiles) | strings |
+|---|---|---|---|---|---|---|---|
+| A | ACID | 1 | 1 | none | DENS 38, OFFSET 54, SLIDE 38, PEDAL 45, JUMP 40, PUNCH 50, ACCNT 50, DIR 23 | 2 | - |
+| A | ACID | 2 | 1 | none | DENS 38, OFFSET 54, SLIDE 38, PEDAL 45, JUMP 40, PUNCH 50, ACCNT 50, DIR 23 | 2 | - |
+| A | ACID | 3 | 1 | none | DENS 38, OFFSET 54, SLIDE 38, PEDAL 45, JUMP 40, PUNCH 50, ACCNT 50, DIR 23 | 2 | - |
+| A | EUCLID | 1 | 1 | none | HITS 32, LEN 26, OFFSET 54, SPAN 37, RATCH 47, PUNCH 50, ACCNT 50, CURVE 48 | 2 | - |
+| A | EUCLID | 2 | 1 | none | HITS 32, LEN 26, OFFSET 54, SPAN 37, RATCH 47, PUNCH 50, ACCNT 50, CURVE 48 | 2 | - |
+| A | EUCLID | 3 | 1 | none | HITS 32, LEN 26, OFFSET 54, SPAN 37, RATCH 47, PUNCH 50, ACCNT 50, CURVE 48 | 2 | - |
+| A | SNAKE | 1 | 1 | none | DENS 38, OFFSET 54, LEN 26, GLEN 37, RANGE 48, DYN 29, PATH 35, DIR 23 | 2 | - |
+| A | SNAKE | 2 | 1 | none | DENS 38, OFFSET 54, LEN 26, GLEN 37, RANGE 48, DYN 29, PATH 35, DIR 23 | 2 | - |
+| A | SNAKE | 3 | 1 | none | DENS 38, OFFSET 54, LEN 26, GLEN 37, RANGE 48, DYN 29, PATH 35, DIR 23 | 2 | - |
+| A | STAGE | 1 | 1 | none | DENS 38, OFFSET 54, TOTAL 45, RDIV 33, DIR 23, DYN 29, RATCH 47, RANGE 48 | 2 | - |
+| A | STAGE | 2 | 1 | none | DENS 38, OFFSET 54, TOTAL 45, RDIV 33, DIR 23, DYN 29, RATCH 47, RANGE 48 | 2 | - |
+| A | STAGE | 3 | 1 | none | DENS 38, OFFSET 54, TOTAL 45, RDIV 33, DIR 23, DYN 29, RATCH 47, RANGE 48 | 2 | - |
+| A | ARP | 1 | 1 | none | DENS 38, OFFSET 54, SHAPE 46, LEGATO 55, SPAN 37, DYN 29, RATE 35, DIR 23 | 1 | - |
+| A | ARP | 2 | 1 | none | DENS 38, OFFSET 54, SHAPE 46, LEGATO 55, SPAN 37, DYN 29, RATE 35, DIR 23 | 1 | - |
+| A | ARP | 3 | 1 | none | DENS 38, OFFSET 54, SHAPE 46, LEGATO 55, SPAN 37, DYN 29, RATE 35, DIR 23 | 1 | - |
+| A | PATT | 1 | 1 | none | DENS 38, PICK 32, VARY 37, SLIDE 38, SPAN 37, DYN 29, ACCNT 50, CTONE 49 | 4 | - |
+| A | PATT | 2 | 1 | none | DENS 38, PICK 32, VARY 37, SLIDE 38, SPAN 37, DYN 29, ACCNT 50, CTONE 49 | 4 | - |
+| A | PATT | 3 | 1 | none | DENS 38, PICK 32, VARY 37, SLIDE 38, SPAN 37, DYN 29, ACCNT 50, CTONE 49 | 4 | - |
+  sel CH1: ALGO tile role ['OF CH 1'] ink [(183, 30, 236, 43)], warnings none
+  sel CH2: ALGO tile role ['OF CH 2'] ink [(182, 30, 238, 43)], warnings none
+  sel CH3: ALGO tile role ['OF CH 3'] ink [(182, 30, 238, 43)], warnings none
+  sel CH4: ALGO tile role ['OF CH 4'] ink [(182, 30, 238, 43)], warnings none
+
+MAP A / B tool warnings: ['none', 'none', 'none', 'none', 'none']
+map_A tile text: widest ink per role: {'map role': 57, 'map hold': 53, 'map printed': 49}
+tile text with ink margin <= 2 px to the 58 px tile edge:
+   `OF CH 1` (map role) margin 2, ink (183, 30, 236, 43)
+   `CANCEL` (map role) margin 0, ink (121, 170, 178, 183)
+   `UNDO L` (map hold) margin 2, ink (183, 185, 236, 198)
+
+map_B black key labels:  [('M1', (6, 40, 25, 51)), ('M2', (19, 61, 41, 73)), ('M3', (34, 39, 56, 52)), ('M4', (64, 62, 86, 73)), ('CHN', (75, 39, 106, 52)), ('SOL', (106, 61, 134, 74)), ('FIL', (126, 40, 145, 51)), ('ROL', (143, 61, 171, 74)), ('PG-', (167, 39, 193, 52)), ('PG+', (181, 61, 209, 74)), ('RST', (212, 39, 239, 52))]
+map_B ink touching the screen edge (x<=1 or x>=238): [('TOUCH = HELP', (1, 2, 104, 15)), ('< OCT- = BUTTONS', (108, 2, 239, 15)), ('RST', (212, 39, 239, 52)), ('1', (1, 110, 6, 121)), ('TAP = STEP ON/OFF', (1, 126, 136, 140)), ('3', (1, 181, 10, 194)), ('--', (1, 227, 13, 230))]
+map_B black key rectangles on row y=20 (x, w): [(11, 8), (26, 8), (41, 8), (71, 8), (86, 8), (116, 8), (131, 8), (146, 8), (176, 8), (191, 8), (221, 8)]  gaps: [7, 7, 22, 7, 22, 7, 7, 22, 7, 22]

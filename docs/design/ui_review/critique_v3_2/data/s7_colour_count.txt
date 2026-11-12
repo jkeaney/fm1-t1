@@ -1,0 +1,58 @@
+| scene | palette | distinct RGB565 pixel values | existing T_* token values present | new tokens present (HEAD/ACC/RED) | derived present (LANE2/MUTEC/DIMINK, not table rows) | other = 4-bit anti-alias ramp values | pixels by class: token / new / derived / ramp (of 57600) |
+|---|---|---|---|---|---|---|---|
+| glance_idle | GREY | 26 | 9 | 1 (ACC=565F) | 2 (LANE2=4A49,DIMINK=4208) | 14 | 49068 / 354 / 5550 / 2628 |
+| glance_playing | GREY | 29 | 9 | 2 (HEAD=FD80,ACC=565F) | 2 (LANE2=4A49,DIMINK=4208) | 16 | 48026 / 1943 / 4667 / 2964 |
+| row2 | GREY | 29 | 9 | 2 (HEAD=FD80,ACC=565F) | 2 (LANE2=4A49,DIMINK=4208) | 16 | 48072 / 1943 / 4622 / 2963 |
+| row3 | GREY | 29 | 9 | 2 (HEAD=FD80,ACC=565F) | 2 (LANE2=4A49,DIMINK=4208) | 16 | 47874 / 1943 / 4572 / 3211 |
+| mutes | GREY | 29 | 9 | 2 (HEAD=FD80,ACC=565F) | 2 (LANE2=4A49,DIMINK=4208) | 16 | 47712 / 1343 / 5559 / 2986 |
+| stress | GREY | 29 | 9 | 2 (HEAD=FD80,RED=FA49) | 2 (LANE2=4A49,DIMINK=4208) | 16 | 48017 / 1021 / 5483 / 3079 |
+| stress_row2 | GREY | 29 | 9 | 2 (HEAD=FD80,RED=FA49) | 2 (LANE2=4A49,DIMINK=4208) | 16 | 48107 / 1021 / 5330 / 3142 |
+| stage_total | GREY | 29 | 9 | 2 (HEAD=FD80,ACC=565F) | 2 (LANE2=4A49,DIMINK=4208) | 16 | 47115 / 1789 / 5588 / 3108 |
+| stress_pal_paper | PAPER | 121 | 10 | 1 (HEAD=82C2) | 2 (LANE2=B5D5,DIMINK=BE57) | 108 | 47507 / 875 / 4963 / 4255 |
+| stress_pal_mono | MONO | 72 | 9 | 0 () | 2 (LANE2=31A6,DIMINK=39E7) | 61 | 48611 / 0 / 4954 / 4035 |
+| stress_pal_ice | ICE | 120 | 12 | 1 (HEAD=FD80) | 2 (LANE2=326B,DIMINK=19C9) | 105 | 47546 / 875 / 4969 / 4210 |
+| toast_dice_notes | GREY | 29 | 9 | 2 (HEAD=FD80,ACC=565F) | 2 (LANE2=4A49,DIMINK=4208) | 16 | 47752 / 1943 / 4852 / 3053 |
+| toast_preset_pending | GREY | 29 | 9 | 2 (HEAD=FD80,ACC=565F) | 2 (LANE2=4A49,DIMINK=4208) | 16 | 47476 / 1943 / 4900 / 3281 |
+| state_sol | GREY | 29 | 9 | 2 (HEAD=FD80,ACC=565F) | 2 (LANE2=4A49,DIMINK=4208) | 16 | 48430 / 1711 / 4647 / 2812 |
+| state_fil | GREY | 29 | 9 | 2 (HEAD=FD80,ACC=565F) | 2 (LANE2=4A49,DIMINK=4208) | 16 | 48118 / 1943 / 4652 / 2887 |
+| state_rol | GREY | 29 | 9 | 2 (HEAD=FD80,ACC=565F) | 2 (LANE2=4A49,DIMINK=4208) | 16 | 48156 / 1943 / 4384 / 3117 |
+| state_follow_off | GREY | 29 | 9 | 2 (HEAD=FD80,ACC=565F) | 2 (LANE2=4A49,DIMINK=4208) | 16 | 47934 / 1369 / 5276 / 3021 |
+| lane_full_playhead | GREY | 29 | 9 | 2 (HEAD=FD80,ACC=565F) | 2 (LANE2=4A49,DIMINK=4208) | 16 | 49608 / 1847 / 2738 / 3407 |
+
+## token values on every palette in build/gen/ui_palettes.h (mock.py palette NAME), and the proposal's new / derived values with WCAG ratio
+
+| palette | BG | TEXT | LANE | LANE2 (derived) | MUTEC (derived) | DIMINK (derived) | HEAD | ACC | RED |
+|---|---|---|---|---|---|---|---|---|---|
+| GREY | 0841 #080808 | CE59 #cdcacd | 39C7 #393839 | 4A49 #4a484a | A514 #a4a1a4 | 4208 #414041 | FD80 #ffb200 | 565F #52caff | FA49 #ff484a |
+| GREEN | 0081 #001008 | E7BC #e6f6e6 | 19C4 #183820 | 3287 #315039 | B636 #b4c6b4 | 1204 #104020 | FD80 #ffb200 | 565F #52caff | FA49 #ff484a |
+| AMBER | 1061 #100c08 | F77B #f6eede | 4162 #412c10 | 5A25 #5a4429 | C5F5 #c5beac | 4982 #4a3010 | FD80 #ffb200 | 565F #52caff | FA49 #ff484a |
+| ICE | 0883 #081018 | E79F #e6f2ff | 19A8 #183441 | 326B #314c5a | B619 #b4c2cd | 19C9 #18384a | FD80 #ffb200 | 565F #52caff | FA49 #ff484a |
+| VIOLET | 1063 #100c18 | F75F #f6eaff | 3149 #31284a | 4A0C #4a4062 | C5F9 #c5becd | 394A #392852 | FD80 #ffb200 | 565F #52caff | FA49 #ff484a |
+| ROSE | 1842 #180810 | FF5E #ffeaf6 | 40E7 #411c39 | 59AA #5a3452 | CDD8 #cdbac5 | 5107 #522039 | FD80 #ffb200 | 565F #52caff | FA49 #ff484a |
+| PAPER | F77C #f6eee6 | 20E3 #201c18 | CE77 #cdcebd | B5D5 #b4baac | 5248 #524841 | BE57 #bdcabd | 82C2 #835910 | 1310 #106183 | B8C5 #bd1829 |
+| NIGHT | 0000 #000000 | 9735 #94e6ac | 0962 #082c10 | 1A24 #184420 | 7DB1 #7bb68b | 11A3 #103418 | FD80 #ffb200 | 565F #52caff | FA49 #ff484a |
+| MONO | 0000 #000000 | FFFF #ffffff | 18C3 #181818 | 31A6 #313431 | CE59 #cdcacd | 39E7 #393c39 | FFFF #ffffff | FFFF #ffffff | FFFF #ffffff |
+
+| palette | HEAD/BG | HEAD/LANE | HEAD/LANE2 | HEAD/SURF | ACC/BG | ACC/LANE | ACC/LANE2 | ACC/TEXT | RED/BG | RED/SURF | RED/LANE | MUTEC/LANE | MUTEC/LANE2 | MUTEC/BG | DIMINK/SEL | LANE2/LANE | HEAD/ACC | HEAD/RED | ACC/RED |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| GREY | 11.08 | 6.46 | 5.02 | 9.02 | 10.73 | 6.25 | 4.86 | 1.15 | 5.99 | 4.87 | 3.49 | 4.57 | 3.54 | 7.83 | 5.37 | 1.29 | 1.03 | 1.85 | 1.79 |
+| GREEN | 10.78 | 7.15 | 4.97 | 8.68 | 10.44 | 6.92 | 4.81 | 1.66 | 5.83 | 4.69 | 3.86 | 7.18 | 5.00 | 10.84 | 4.20! | 1.44 | 1.03 | 1.85 | 1.79 |
+| AMBER | 10.78 | 7.30 | 5.07 | 8.88 | 10.44 | 7.06 | 4.91 | 1.62 | 5.82 | 4.80 | 3.94 | 7.12 | 4.94 | 10.51 | 4.18! | 1.44 | 1.03 | 1.85 | 1.79 |
+| ICE | 10.59 | 7.23 | 5.03 | 8.81 | 10.25 | 7.00 | 4.87 | 1.65 | 5.72 | 4.76 | 3.91 | 7.18 | 4.99 | 10.51 | 3.87! | 1.44 | 1.03 | 1.85 | 1.79 |
+| VIOLET | 10.68 | 7.58 | 5.28 | 9.03 | 10.34 | 7.34 | 5.11 | 1.61 | 5.77 | 4.88 | 4.10 | 7.58 | 5.28 | 10.68 | 3.44! | 1.44 | 1.03 | 1.85 | 1.79 |
+| ROSE | 10.75 | 8.01 | 5.67 | 9.20 | 10.41 | 7.76 | 5.49 | 1.63 | 5.81 | 4.97 | 4.33 | 7.88 | 5.58 | 10.57 | 3.44! | 1.41 | 1.03 | 1.85 | 1.79 |
+| PAPER | 5.38 | 3.87 | 3.10 | 4.49 | 5.98 | 4.30 | 3.45 | 2.47 | 5.50 | 4.59 | 3.96 | 5.57 | 4.47 | 7.74 | 3.17! | 1.25 | 1.11 | 1.02 | 1.09 |
+| NIGHT | 11.62 | 8.43 | 6.16 | 10.25 | 11.25 | 8.16 | 5.96 | 1.26 | 6.28 | 5.54 | 4.56 | 6.46 | 4.72 | 8.91 | 4.99 | 1.37 | 1.03 | 1.85 | 1.79 |
+| MONO | 21.00 | 17.76 | 12.60 | 21.00 | 21.00 | 17.76 | 12.60 | 1.00 | 21.00 | 21.00 | 17.76 | 10.93 | 7.76 | 12.93 | 6.88 | 1.41 | 1.00 | 1.00 | 1.00 |
+('!' = below 3:1 for a meaning-bearing mark, or below 4.5:1 for DIMINK text)
+
+GREY palette: T_ACCENT == T_REC == T_TEXT (is_grey), so on GREY the proposal's HEAD/ACC/RED literals are the only chromatic values; on the other palettes RED = 0xFA49 = the palette's own REC value:
+  GREY    REC=FFDF ACCENT=FFDF THEME=EF5D  RED(proposal)=FA49
+  GREEN   REC=FA49 ACCENT=FEAB THEME=56AF  RED(proposal)=FA49
+  AMBER   REC=FA49 ACCENT=66BC THEME=FD45  RED(proposal)=FA49
+  ICE     REC=FA49 ACCENT=FC6C THEME=55DD  RED(proposal)=FA49
+  VIOLET  REC=FA49 ACCENT=6F35 THEME=B45E  RED(proposal)=FA49
+  ROSE    REC=FA49 ACCENT=FEAD THEME=F396  RED(proposal)=FA49
+  PAPER   REC=B8C5 ACCENT=A9C1 THEME=0AA8  RED(proposal)=B8C5
+  NIGHT   REC=FA49 ACCENT=FFDF THEME=3EEC  RED(proposal)=FA49
+  MONO    REC=FA49 ACCENT=FFFF THEME=FFFF  RED(proposal)=FFFF

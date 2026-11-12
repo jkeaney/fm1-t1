@@ -1,0 +1,126 @@
+| scene | role | string | font | kind | cell x,w | ink x0..x1 | margin L / R (px) | cap margin T / B (px) |
+|---|---|---|---|---|---|---|---|---|
+| glance_playing | tempo | `120` | M | il | None | (17, 43) | None | (1, 2) |
+| glance_playing | preset | `P01` | M | il | None | (121, 145) | None | (1, 2) |
+| glance_playing | page numeral | `1` | M | centred | (226, 13) | (230, 235) | (4, 4) | (1, 2) |
+| glance_playing | chan numeral | `1` | M | il | None | (5, 10) | None | (1, 2) |
+| glance_playing | midi slot | `2` | M | il | None | (24, 33) | None | (1, 2) |
+| glance_playing | chan numeral | `2` | M | il | None | (65, 74) | None | (1, 2) |
+| glance_playing | midi slot | `3` | M | il | None | (84, 93) | None | (1, 2) |
+| glance_playing | chan numeral | `3` | M | il | None | (125, 134) | None | (1, 2) |
+| glance_playing | midi slot | `4` | M | il | None | (144, 153) | None | (1, 2) |
+| glance_playing | chan numeral | `4` | M | il | None | (185, 194) | None | (1, 2) |
+| glance_playing | midi slot | `10` | M | il | None | (204, 221) | None | (1, 2) |
+| glance_playing | ratchet digit | `3` | M | centred | (151, 13) | (153, 162) | (2, 2) | None |
+| glance_playing | ratchet digit | `2` | M | centred | (196, 13) | (198, 207) | (2, 2) | None |
+| glance_playing | knob label | `DENS` | M | centred | (1, 58) | (11, 49) | (10, 10) | (3, 4) |
+| glance_playing | knob value | `12` | L | centred | (1, 58) | (14, 46) | (13, 13) | None |
+| glance_playing | knob label | `SLIDE` | M | centred | (61, 58) | (71, 109) | (10, 10) | (3, 4) |
+| glance_playing | knob value | `6` | L | centred | (61, 58) | (82, 98) | (21, 21) | None |
+| glance_playing | knob label | `JUMP` | M | centred | (121, 58) | (130, 170) | (9, 9) | (3, 4) |
+| glance_playing | knob value | `5` | L | centred | (121, 58) | (142, 157) | (21, 22) | None |
+| glance_playing | knob label | `ACCNT` | M | centred | (181, 58) | (185, 235) | (4, 4) | (3, 4) |
+| glance_playing | knob value | `3` | L | centred | (181, 58) | (202, 218) | (21, 21) | None |
+| glance_playing | row label | `ROW 1` | M | centred | (1, 58) | (8, 51) | (7, 8) | (1, 2) |
+| glance_playing | row label | `ROW 2` | M | centred | (61, 58) | (67, 113) | (6, 6) | (1, 2) |
+| glance_playing | cue | `FX SCL ENV LFO ARP SEQ = DICE` | M | centred | (0, 240) | (9, 230) | (9, 10) | (1, 2) |
+| mutes | page numeral | `2` | M | centred | (226, 13) | (228, 237) | (2, 2) | (1, 2) |
+| mutes | mute chip | `M` | M | centred | (103, 14) | (104, 116) | (1, 1) | (1, 2) |
+| mutes | midi slot | `--` | M | il | None | (195, 207) | None | (1, 2) |
+| mutes | knob value | `10` | L | centred | (1, 58) | (14, 46) | (13, 13) | None |
+| mutes | knob label | `LEN` | M | centred | (61, 58) | (77, 103) | (16, 16) | (3, 4) |
+| mutes | knob value | `7` | L | centred | (61, 58) | (82, 97) | (21, 22) | None |
+| mutes | knob label | `RANGE` | M | centred | (121, 58) | (126, 174) | (5, 5) | (3, 4) |
+| mutes | knob label | `PATH` | M | centred | (181, 58) | (192, 227) | (11, 12) | (3, 4) |
+| mutes | cue chip | `M2` | M | centred | (0, 26) | (2, 24) | (2, 2) | (1, 2) |
+| mutes | cue | `CH2 MUTED  TAP AGAIN = ON` | M | il | None | (30, 231) | None | (1, 2) |
+| stress | tempo | `EXT 126` | M | il | None | (17, 74) | None | (1, 2) |
+| stress | preset | `P16` | M | il | None | (121, 148) | None | (1, 2) |
+| stress | page numeral | `3` | M | centred | (211, 13) | (213, 222) | (2, 2) | (1, 2) |
+| stress | page numeral | `4` | M | centred | (226, 13) | (228, 237) | (2, 2) | (1, 2) |
+| stress | midi slot | `16` | M | il | None | (24, 41) | None | (1, 2) |
+| stress | ratchet digit | `4` | M | centred | (121, 13) | (123, 132) | (2, 2) | None |
+| stress | knob value | `8` | L | centred | (1, 58) | (22, 38) | (21, 21) | None |
+| stress | knob label | `SHAPE` | M | centred | (61, 58) | (67, 113) | (6, 6) | (3, 4) |
+| stress | knob value (M) | `OCTV` | M | centred | (61, 58) | (70, 110) | (9, 9) | None |
+| stress | knob label | `SPAN` | M | centred | (121, 58) | (131, 168) | (10, 11) | (3, 4) |
+| stress | knob label | `RATE` | M | centred | (181, 58) | (192, 227) | (11, 12) | (3, 4) |
+| stress | knob value | `2X` | L | centred | (181, 58) | (193, 227) | (12, 12) | None |
+| stress | cue chip | `REC` | M | centred | (0, 32) | (2, 30) | (2, 2) | (1, 2) |
+| stress | cue | `KEYS WRITE NOTES` | M | il | None | (36, 171) | None | (1, 2) |
+| row2 | knob label | `OFFSET` | M | centred | (1, 58) | (3, 57) | (2, 2) | (3, 4) |
+| row2 | knob value | `0` | L | centred | (1, 58) | (22, 38) | (21, 21) | None |
+| row2 | knob label | `PEDAL` | M | centred | (61, 58) | (67, 112) | (6, 7) | (3, 4) |
+| row2 | knob value | `4` | L | centred | (61, 58) | (82, 98) | (21, 21) | None |
+| row2 | knob label | `PUNCH` | M | centred | (121, 58) | (125, 175) | (4, 4) | (3, 4) |
+| row2 | knob value | `40` | L | centred | (121, 58) | (133, 167) | (12, 12) | None |
+| row2 | knob label | `DIR` | M | centred | (181, 58) | (198, 221) | (17, 18) | (3, 4) |
+| row2 | knob value (M) | `FWD` | M | centred | (181, 58) | (194, 226) | (13, 13) | None |
+| row2 | cue chip | `OCT+` | M | centred | (0, 42) | (2, 40) | (2, 2) | (1, 2) |
+| row2 | cue | `OFFSET PEDAL PUNCH DIR` | M | il | None | (46, 228) | None | (1, 2) |
+| row3 | knob label | `CUT` | M | centred | (1, 58) | (15, 45) | (14, 14) | (3, 4) |
+| row3 | knob value | `74` | L | centred | (1, 58) | (13, 47) | (12, 12) | None |
+| row3 | knob label | `RESO` | M | centred | (61, 58) | (71, 108) | (10, 11) | (3, 4) |
+| row3 | knob label | `ENV-X` | M | centred | (121, 58) | (128, 172) | (7, 7) | (3, 4) |
+| row3 | knob value | `64` | L | centred | (121, 58) | (133, 167) | (12, 12) | None |
+| row3 | knob label | `PAD-Z` | M | centred | (181, 58) | (188, 231) | (7, 8) | (3, 4) |
+| row3 | row label | `ROW 3` | M | centred | (121, 58) | (127, 173) | (6, 6) | (1, 2) |
+| toast_dice_notes | toast chip | `SCL` | L | centred | (3, 60) | (7, 59) | (4, 4) | None |
+| toast_undo | toast chip | `EDIT` | L | centred | (3, 66) | (7, 65) | (4, 4) | None |
+| map_A | map printed | `MASTER` | S | centred | (1, 58) | (7, 53) | (6, 6) | None |
+| map_A | map role | `VOL` | M | centred | (1, 58) | (16, 44) | (15, 15) | None |
+| map_A | map printed | `SELECT` | S | centred | (61, 58) | (69, 111) | (8, 8) | None |
+| map_A | map role | `CH 1-4` | M | centred | (61, 58) | (65, 114) | (4, 5) | None |
+| map_A | map printed | `PRESETS` | S | centred | (121, 58) | (125, 174) | (4, 5) | None |
+| map_A | map role | `P01-16` | M | centred | (121, 58) | (124, 175) | (3, 4) | None |
+| map_A | map printed | `ALGO` | S | centred | (181, 58) | (195, 225) | (14, 14) | None |
+| map_A | map role | `OF CH 1` | M | centred | (181, 58) | (183, 236) | (2, 3) | None |
+| map_A | map printed | `OCT-` | S | centred | (1, 58) | (16, 44) | (15, 15) | None |
+| map_A | map role | `ROW 1` | M | centred | (1, 58) | (8, 51) | (7, 8) | None |
+| map_A | map printed | `OCT+` | S | centred | (61, 58) | (75, 105) | (14, 14) | None |
+| map_A | map role | `ROW+` | M | centred | (61, 58) | (69, 111) | (8, 8) | None |
+| map_A | map printed | `K1` | S | centred | (1, 58) | (24, 36) | (23, 23) | None |
+| map_A | map knob row1 | `DENS` | M | centred | (1, 58) | (11, 49) | (10, 10) | None |
+| map_A | map knob row2 | `OFFSET` | M | centred | (1, 58) | (3, 57) | (2, 2) | None |
+| map_A | map printed | `K2` | S | centred | (61, 58) | (83, 97) | (22, 22) | None |
+| map_A | map knob row1 | `SLIDE` | M | centred | (61, 58) | (71, 109) | (10, 10) | None |
+| map_A | map knob row2 | `PEDAL` | M | centred | (61, 58) | (67, 112) | (6, 7) | None |
+| map_A | map printed | `K3` | S | centred | (121, 58) | (143, 157) | (22, 22) | None |
+| map_A | map knob row1 | `JUMP` | M | centred | (121, 58) | (130, 170) | (9, 9) | None |
+| map_A | map knob row2 | `PUNCH` | M | centred | (121, 58) | (125, 175) | (4, 4) | None |
+| map_A | map printed | `K4` | S | centred | (181, 58) | (203, 217) | (22, 22) | None |
+| map_A | map knob row1 | `ACCNT` | M | centred | (181, 58) | (185, 235) | (4, 4) | None |
+| map_A | map knob row2 | `DIR` | M | centred | (181, 58) | (198, 221) | (17, 18) | None |
+| map_A | map printed | `FX` | S | centred | (1, 58) | (23, 37) | (22, 22) | None |
+| map_A | map role | `ALL` | M | centred | (1, 58) | (17, 42) | (16, 17) | None |
+| map_A | map printed | `SCL` | S | centred | (61, 58) | (79, 101) | (18, 18) | None |
+| map_A | map role | `NOTES` | M | centred | (61, 58) | (66, 113) | (5, 6) | None |
+| map_A | map printed | `ENV` | S | centred | (121, 58) | (138, 161) | (17, 18) | None |
+| map_A | map role | `ACCNT` | M | centred | (121, 58) | (125, 175) | (4, 4) | None |
+| map_A | map printed | `LFO` | S | centred | (181, 58) | (199, 220) | (18, 19) | None |
+| map_A | map role | `SHAPE` | M | centred | (181, 58) | (187, 233) | (6, 6) | None |
+| map_A | map printed | `EDIT` | S | centred | (1, 58) | (17, 42) | (16, 17) | None |
+| map_A | map role | `UNDO` | M | centred | (1, 58) | (9, 51) | (8, 8) | None |
+| map_A | map hold | `RESET` | M | centred | (1, 58) | (8, 52) | (7, 7) | None |
+| map_A | map printed | `GLO` | S | centred | (61, 58) | (78, 101) | (17, 18) | None |
+| map_A | map role | `SET` | M | centred | (61, 58) | (76, 103) | (15, 16) | None |
+| map_A | map hold | `HARM` | M | centred | (61, 58) | (69, 111) | (8, 8) | None |
+| map_A | map printed | `HOME` | S | centred | (121, 58) | (133, 167) | (12, 12) | None |
+| map_A | map role | `CANCEL` | M | centred | (121, 58) | (121, 178) | (0, 1) | None |
+| map_A | map hold | `MENU` | M | centred | (121, 58) | (129, 171) | (8, 8) | None |
+| map_A | map printed | `SAVE` | S | centred | (181, 58) | (196, 224) | (15, 15) | None |
+| map_A | map role | `SAVE` | M | centred | (181, 58) | (192, 228) | (11, 11) | None |
+| map_A | map hold | `UNDO L` | M | centred | (181, 58) | (183, 236) | (2, 3) | None |
+| map_A | map printed | `ARP` | S | centred | (1, 58) | (19, 41) | (18, 18) | None |
+| map_A | map role | `ARTIC` | M | centred | (1, 58) | (9, 51) | (8, 8) | None |
+| map_A | map printed | `SEQ` | S | centred | (61, 58) | (79, 101) | (18, 18) | None |
+| map_A | map role | `HITS` | M | centred | (61, 58) | (74, 106) | (13, 13) | None |
+| map_A | map printed | `PLAY` | S | centred | (121, 58) | (136, 164) | (15, 15) | None |
+| map_A | map role | `PLAY` | M | centred | (121, 58) | (132, 168) | (11, 11) | None |
+| map_A | map printed | `REC` | S | centred | (181, 58) | (199, 221) | (18, 18) | None |
+| map_A | map role | `REC` | M | centred | (181, 58) | (196, 224) | (15, 15) | None |
+| map_B | map black key hold | `SOL` | M | centred | (103, 34) | (106, 134) | (3, 3) | None |
+| map_B | map black key hold | `FIL` | M | centred | (123, 25) | (126, 145) | (3, 3) | None |
+| map_B | map black key hold | `ROL` | M | centred | (140, 34) | (143, 171) | (3, 3) | None |
+| map_B | map hold | `HOLD` | M | centred | (1, 48) | (5, 44) | (4, 5) | None |
+| map_B | map key word | `M` | M | centred | (1, 14) | (2, 14) | (1, 1) | None |
