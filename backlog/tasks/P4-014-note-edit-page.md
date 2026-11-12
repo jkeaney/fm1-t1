@@ -3,7 +3,7 @@ id: P4-014
 title: NOTE_EDIT page
 phase: P4
 type: task
-status: review
+status: done
 priority: 2
 executor: haiku
 depends_on: [P4-013]
@@ -115,3 +115,6 @@ After these doc edits (no firmware change needed) the code passes; re-run check.
 ### 2026-11-13 executor (sonnet): docs sync after the failed final review (docs only)
 Synced to the revision 3 screen: S03 steps 7, 20, 37; S10 cue line; the use case step 1, sections 7-9; SEQUENCER_UX 2.2 (an "as built" note) and the two cue rows. page_states already carries `STEP n  HOLD KEY=MOVE  HOME=DONE`.
 Approved: James Keaney 2026-11-13 (answered "Good enough, sign" to the round 3 renders)
+
+### 2026-11-13 review (sonnet)
+Re-review of the docs sync (d4dd9fe). Verdict: PASS. S03 steps 7/20/37, S10 cue line, the use case (step 1, sections 7-9) and SEQUENCER_UX 2.2 ("as built" note) now state header chip `STEP n`, status line `STEP n` + chips, footer `HOLD KEY = MOVE` / `HOME = DONE`, toast in the message slot. Approved line present (use case line 99, task log line 117; owner answered "Good enough, sign", confirmed "Sign off. Continue"). `sh tools/check.sh`: CHECK PASS, RAM .data+.bss 29208 B of 73728 (headroom 44520 B). Minor leftover, not blocking: tests/design/widths.tsv:62 and SEQUENCER_UX sketch lines 296/1108/1146 keep the old strip text (sketch is labelled original intent; S10 was hand-amended though generated, so regenerating from page_states.tsv, which is already current, is consistent).
