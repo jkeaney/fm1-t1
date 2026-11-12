@@ -3,7 +3,7 @@ id: P5-001
 title: ACID algorithm in firmware (copy the locked prototype)
 phase: P5
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P4-002, P2-017]
