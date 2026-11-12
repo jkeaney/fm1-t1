@@ -3,7 +3,7 @@ id: P4-013
 title: PERF page: lane, step keys, pages and transport
 phase: P4
 type: task
-status: todo
+status: review
 priority: 2
 executor: haiku
 depends_on: [P4-012]
@@ -77,3 +77,7 @@ Gaps triage: legitimately later: NOTE_EDIT body (P4-014), MIDI channel and CHAN 
 ### 2026-11-13 review 2 (sonnet)
 Verdict: FAIL, back to todo. F1 (preview bit cleared, restored by undo), F3 (M hint ends before the non-PERF return) and the stack semantics of F2 are correct and tested. `sh tools/check.sh` = CHECK PASS; `RAM .data+.bss 29192 B of 73728` (headroom 44536 B, OK).
 - [ ] F5 (must fix) ui_sq.c:897 uisq_do_remove pushes without a bound, and the SELECT add (ui_sq.c:871) does not empty the stack. Remove CH2 (stack 1), SELECT past the last re-adds CH2 (stack still 1), remove again (2) ... the 5th push writes uisq_gone_ch/muted/prv[4], past the SQ_NCH=4 arrays, corrupting adjacent statics. Fix: set `uisq_gone_n = 0` where a channel is added by SELECT (a stale entry would also restore the wrong state), and guard the push with `if (uisq_gone_n < SQ_NCH)`. Add a test: remove, add, repeated 6 times, then EDIT, no overflow and uisq_gone_n <= 4.
+
+### 2026-11-13 executor (Sonnet 5.5), review 2 fix
+- F5: the removal push drops the oldest when the 4-entry stack is full; the SELECT add empties it. Audit: the pop index is n-1 with n <= 4, the dice and page-add paths set n = 0, no other index of uisq_gone_*. Test "remove then add six times", plus nine removals into a full stack, then EDIT.
+- `sh tools/check.sh` -> CHECK PASS; ui_sq_perf_test 0 failures.

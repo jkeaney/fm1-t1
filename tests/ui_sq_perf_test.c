@@ -298,6 +298,16 @@ int main(int argc, char **argv)
       CHECK(uisq_sel == 0, "clamped at CH1, no wrap"); }
     uisq_used = 0x0F; uisq_new = 0;
 
+    /* F5: remove then add, six times, then EDIT: the removal stack never overruns */
+    { uisq_used = 0x0F; uisq_gone_n = 0; uisq_sel = 0;
+      for (int i = 0; i < 6; i++) {
+          uisq_do_remove(3); CHECK(uisq_gone_n <= SQ_NCH, "stack bounded");
+          uisq_sel = 2; ui_sq_select_turn(1);
+          CHECK(uisq_used == 0x0F && uisq_gone_n == 0, "add empties the removal stack (round %d)", i); }
+      for (int i = 0; i < 9; i++) { uisq_do_remove((uint8_t)(i % 3 + 1)); uisq_used = 0x0F; CHECK(uisq_gone_n <= SQ_NCH, "full stack drops the oldest"); }
+      ui_sq_button(UI_C_B_EDIT); CHECK(uisq_gone_n == SQ_NCH - 1 && uisq_used == 0x0F, "EDIT pops one");
+      uisq_gone_n = 0; uisq_new = 0; uisq_sel = 0; uisq_vpage = 0; for (int c = 0; c < 4; c++) sq_ch[c].muted = 0; }
+
     /* ---- the last channel in use cannot be removed ---- */
     { uisq_used = 0x01; uisq_do_remove(0); CHECK(uisq_used == 0x01, "the last channel stays"); uisq_used = 0x0F; }
 

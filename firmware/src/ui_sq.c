@@ -869,6 +869,7 @@ static void ui_sq_select_turn(int32_t d)
             for (uint8_t c = 0; c < SQ_NCH; c++) if (!(uisq_used >> c & 1u)) { f = c; break; }
             if (f < SQ_NCH) {                                           /* add: the next free slot, new (setup cue), unmuted */
                 uisq_used |= (uint8_t)(1u << f);
+                uisq_gone_n = 0;                                        /* an add is a newer action than any removal */
                 sq_set_mute(f, 0);
                 ui_sq_new_set(f, 1);
                 uisq_sel = f;
@@ -894,6 +895,9 @@ static void ui_sq_knob(uint8_t k, int32_t d)
 static void uisq_do_remove(uint8_t ch)                                  /* removal of a channel: out of use and muted (the last one stays) */
 {   uint8_t left = (uint8_t)(uisq_used & ~(1u << ch));
     if (!left) return;
+    if (uisq_gone_n >= SQ_NCH) {                                        /* full: drop the oldest */
+        for (uint8_t i = 1; i < SQ_NCH; i++) { uisq_gone_ch[i - 1] = uisq_gone_ch[i]; uisq_gone_muted[i - 1] = uisq_gone_muted[i]; uisq_gone_prv[i - 1] = uisq_gone_prv[i]; }
+        uisq_gone_n = (uint8_t)(SQ_NCH - 1u); }
     uisq_gone_ch[uisq_gone_n] = ch; uisq_gone_muted[uisq_gone_n] = sq_ch[ch].muted; uisq_gone_prv[uisq_gone_n] = (uint8_t)(sq_ch[ch].pad[0] & 0x80u); uisq_gone_n++;
     uisq_used = left;
     sq_set_mute(ch, 1);
