@@ -3,7 +3,7 @@ id: P4-016
 title: SET page and tempo-source visibility (T-E)
 phase: P4
 type: task
-status: review
+status: todo
 priority: 2
 executor: haiku
 depends_on: [P4-013, P4-009, P4-024]
@@ -85,3 +85,10 @@ Findings (fix these, then resubmit):
 - (3) "own tempo kept" now credited to P4-031 in knob_map.tsv, control_map.tsv, CONTROL_MAP.md, SCREEN_SPEC_V2 4.7, SEQUENCER_UX 2.8, S06 rows 4, 10, 15.
 - (4) S06 rows 1, 2, 5, 8, 9, 10, 12, 14, 15, 16: clock-dot wording replaced by the header text of the as-built screen.
 - Tables regenerated (gen_sweeps), checkers run: check_scenarios, check_help, check_sequencer_ux pass; check_control_map stays at 78; `sh tools/check.sh` CHECK PASS.
+
+### 2026-11-13 re-review (sonnet)
+Verdict: FAIL, one residual docs line (two spots) in S06. `sh tools/check.sh` CHECK PASS (RAM .data+.bss 29352 B of 73728, headroom 44376 B; no firmware change in c796c25). check_control_map FAIL 78 = baseline, unchanged.
+Findings 1-3 verified fixed: use case P4-016 reworded as-built; P4-031 task has the own-tempo criterion and log line; "own tempo kept" now credited "required of P4-031" in knob_map, control_map, CONTROL_MAP, SCREEN_SPEC_V2:99, SEQUENCER_UX:432, S06 rows 4/10/15. Remaining "kept" hits are only in the superseded SCREEN_SPEC.md/TIMING_SPEC/P2-010 design text (acceptable). Finding 4 mostly fixed (rows rewritten).
+Fix (one complete list):
+- [ ] docs/design/scenarios/S06-clock-ableton-then-fm1-master.md:5 still says "Notation as S01; `o` is the clock dot." Drop the `o` clause (no dot in v12).
+- [ ] S06:34 closing result says each state is "readable from the header, the dot, the SET status lines and the PLAY LED". Remove "the dot" (rule 1 claim must match the owner ruling: no clock dot).
