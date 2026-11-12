@@ -33,6 +33,11 @@ CH3 is set to OFF and the toast names it.
 - [ ] Steps above give no steal toast; re-adding CH3 later gives a sensible MIDI (not silently OFF without notice).
 - [ ] `sh tools/check.sh` ends CHECK PASS.
 
+## Verification
+```sh
+sh tools/check.sh
+```
+
 ## UX gate
 n/a, bug fix; no new producer-visible element.
 
