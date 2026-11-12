@@ -273,6 +273,15 @@ int main(int argc, char **argv)
       CHECK(uisq_used == 0x0D, "the release after the remove does nothing more");
       ui_sq_button(UI_C_B_EDIT);
       CHECK(uisq_used == 0x0F && uisq_sel == 1, "EDIT takes the removal back"); }
+    /* F1: a removed channel's preview is off (and comes back with the undo); F2: two removals, two undos; F3: the hint ends with the key off PERF */
+    { sq_ch[1].pad[0] |= 0x80u; sq_ch[2].pad[0] |= 0x80u; uisq_gone_n = 0;
+      uisq_do_remove(1); uisq_do_remove(2);
+      CHECK(!(sq_ch[1].pad[0] & 0x80u) && !(sq_ch[2].pad[0] & 0x80u) && uisq_used == 0x09, "removed channels have the preview off");
+      ui_sq_button(UI_C_B_EDIT); CHECK(uisq_used == 0x0D && (sq_ch[2].pad[0] & 0x80u) && !(sq_ch[1].pad[0] & 0x80u), "first undo: the newest (CH3) with its preview");
+      ui_sq_button(UI_C_B_EDIT); CHECK(uisq_used == 0x0F && (sq_ch[1].pad[0] & 0x80u), "second undo: CH2 as well");
+      sq_ch[1].pad[0] &= 0x7Fu; sq_ch[2].pad[0] &= 0x7Fu;
+      press(1u << 3); wait_ms(300); CHECK(uisq_hold_on && uisq_held_m == 2, "M2 hint up");
+      uisq_page = UI_PG_CHAN; press(0); CHECK(!uisq_hold_on && !uisq_held_m, "released on another page: the hint is cleared"); uisq_page = UI_PG_PERF; uisq_toast_until = 0; }
     ui_sq_select(0);
 
     /* ---- SELECT: moves among the channels in use; one detent past the last adds the next free channel ---- */

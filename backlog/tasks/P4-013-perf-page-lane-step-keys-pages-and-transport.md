@@ -3,7 +3,7 @@ id: P4-013
 title: PERF page: lane, step keys, pages and transport
 phase: P4
 type: task
-status: todo
+status: review
 priority: 2
 executor: haiku
 depends_on: [P4-012]
@@ -66,3 +66,10 @@ Hold ladder (uisq_key_up / uisq_keys_tick) is correct: the 0.4 s and 1.5 s come 
 - [ ] F3 uisq_key_up returns early when page != PERF, before ui_sq_held_m_set(0) / ui_sq_hold_end(). Hold M1, then hold a white key 0.4 s (NOTE_EDIT), release M1: the PREVIEW/REMOVE hint stays. Clear the M hint before the page check.
 - [ ] F4 (minor) NOTE_EDIT stand-in never ends the sq note-edit session; P4-014 must close it. Note it in P4-014's Log when picked up.
 Gaps triage: legitimately later: NOTE_EDIT body (P4-014), MIDI channel and CHAN page (P4-015), RST (P4-018), SOL/FIL/ROL (P6-003), PRESETS encoder (P7-002), hard-tap ACCENT (needs key force; P4-014/P4-017). Must exist before HW-1 and were nobody's: CHN key (D#4) entry to CHAN, PERF ALGO encoder, PAST THE END / 64 STEPS = MAX, stopped step sounds once, preview toast. Filed as P4-032 (depends P4-013, P4-015) and added to P4-018's depends_on so it precedes P4-020 and HW-1 (P4-021).
+
+### 2026-11-13 executor (Sonnet 5.5), review fixes
+- F1: `uisq_do_remove` clears the channel's preview bit (pad[0]&0x80) and EDIT undo restores it; test "removed channels have the preview off".
+- F2: removals form a stack (up to 4: channel, mute, preview); each EDIT pops one. A dice, a page add, or an EDIT that undoes something else empties it.
+- F3: `uisq_key_up` ends the M-key hint (held_m, hold hint) before the non-PERF return; test added.
+- F4: for P4-014: replace `uisq_pg_note_edit` (stand-in that ends with the opening key) and own the NOTE_EDIT session end.
+- `sh tools/check.sh` -> CHECK PASS; ui_sq_perf_test 0 failures.

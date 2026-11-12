@@ -812,8 +812,9 @@ static uint32_t uisq_keys;                    /* the keys down at the last ui_sq
 static uint32_t uisq_key_fired;               /* bit k: the hold action of key k has fired (no tap on release) */
 static uint32_t uisq_key_t0[UISQ_NKEY];       /* UISQ_MS() of the press */
 static uint8_t  uisq_pg_pend;                 /* PG+ on the last page was pressed once: the next PG+ adds the page */
-static uint8_t  uisq_gone;                    /* 0 = nothing to take back, else 1 + the channel just removed (EDIT = UNDO puts it back) */
-static uint8_t  uisq_gone_muted;
+/* removed channels, newest last: EDIT = UNDO pops one (the channel, its mute and its preview bit come back). A dice, a page add or an EDIT
+ * that undoes something else empties the stack (the removal is then no longer the latest action). */
+static uint8_t  uisq_gone_n, uisq_gone_ch[SQ_NCH], uisq_gone_muted[SQ_NCH], uisq_gone_prv[SQ_NCH];
 static uint8_t  uisq_undone;                  /* the last EDIT tap was an undo: the next one says REDO */
 static uint8_t  uisq_edit_key = 255;          /* the key that opened NOTE_EDIT */
 
@@ -893,9 +894,10 @@ static void ui_sq_knob(uint8_t k, int32_t d)
 static void uisq_do_remove(uint8_t ch)                                  /* removal of a channel: out of use and muted (the last one stays) */
 {   uint8_t left = (uint8_t)(uisq_used & ~(1u << ch));
     if (!left) return;
-    uisq_gone = (uint8_t)(ch + 1u); uisq_gone_muted = sq_ch[ch].muted;
+    uisq_gone_ch[uisq_gone_n] = ch; uisq_gone_muted[uisq_gone_n] = sq_ch[ch].muted; uisq_gone_prv[uisq_gone_n] = (uint8_t)(sq_ch[ch].pad[0] & 0x80u); uisq_gone_n++;
     uisq_used = left;
     sq_set_mute(ch, 1);
+    sq_ch[ch].pad[0] &= 0x7Fu;                                          /* a removed channel must not sound on the built-in synth either */
     if (uisq_sel == ch) { uint8_t n = uisq_next_used(ch, -1); if (n == ch) n = uisq_next_used(ch, 1); uisq_sel = n; uisq_vpage = 0; }
     ui_sq_toast_id(UI_MSG_TOAST_GONE_EDIT_UNDO, ch); }
 
@@ -921,14 +923,14 @@ static void ui_sq_button(uint8_t ctl)
         uisq_lane_read(after, sel, vp);
         for (uint8_t n = 0; n < SQ_PAGE; n++) if (memcmp(&before[n], &after[n], sizeof before[n])) diff |= (uint16_t)(1u << n);
         ui_sq_diced_set(diff);
-        uisq_gone = 0; uisq_undone = 0;
+        uisq_gone_n = 0; uisq_undone = 0;
         ui_sq_toast_id(ctl == UI_C_B_FX ? UI_MSG_TOAST_ALL_EDIT_UNDO : uisq_dice_msg[ly], sel);
         return; }
     switch (ctl) {
     case UI_C_B_EDIT:                                                   /* UNDO / REDO; a channel just removed comes back first */
-        if (uisq_gone) {
-            const uint8_t c = (uint8_t)(uisq_gone - 1u);
-            uisq_used |= (uint8_t)(1u << c); sq_set_mute(c, uisq_gone_muted); uisq_gone = 0; uisq_sel = c;
+        if (uisq_gone_n) {
+            const uint8_t i = (uint8_t)(uisq_gone_n - 1u), c = uisq_gone_ch[i];
+            uisq_used |= (uint8_t)(1u << c); sq_set_mute(c, uisq_gone_muted[i]); sq_ch[c].pad[0] |= uisq_gone_prv[i]; uisq_gone_n = i; uisq_sel = c;
             ui_sq_toast_id(UI_MSG_TOAST_UNDO_EDIT_REDO, c); }
         else if (sq_undo(sel)) {
             ui_sq_toast_id(uisq_undone ? UI_MSG_TOAST_REDO_EDIT_UNDO : UI_MSG_TOAST_UNDO_EDIT_REDO, sel);
@@ -967,7 +969,7 @@ static void uisq_key_down(uint8_t k)
         if (vp + 1u < pages) { uisq_vpage = (uint8_t)(vp + 1u); uisq_pg_pend = 0; }
         else if (len < SQ_NSTEP) {
             uisq_vpage = vp;
-            if (uisq_pg_pend) { (void)sq_page_add(uisq_sel); uisq_pg_pend = 0; uisq_vpage = (uint8_t)(vp + 1u); uisq_gone = 0; uisq_undone = 0; }
+            if (uisq_pg_pend) { (void)sq_page_add(uisq_sel); uisq_pg_pend = 0; uisq_vpage = (uint8_t)(vp + 1u); uisq_gone_n = 0; uisq_undone = 0; }
             else { uisq_pg_pend = 1; uisq_msg_toast_n(UI_MSG_TOAST_PAGE_2_PG_ADD, uisq_sel, (uint8_t)(vp + 2u)); } }
         break; }
     default: uisq_pg_pend = 0; break; } }
@@ -976,6 +978,7 @@ static void uisq_key_up(uint8_t k)
 {   const uint8_t slot = uisq_key_slot(k), fired = (uint8_t)(uisq_key_fired >> k & 1u);
     const uint32_t el = UISQ_MS() - uisq_key_t0[k];
     uisq_key_fired &= ~(1u << k);
+    if ((slot & 0x80u) && (slot & 0x7Fu) < 4u) { ui_sq_held_m_set(0); ui_sq_hold_end(); }   /* the M-key hint ends with the key, on any page */
     if (uisq_page != UI_PG_PERF) return;
     if (!(slot & 0x80u)) {                                              /* a white key released before the hold time: step n ON/OFF (U14) */
         if (!fired) (void)sq_step_tap(uisq_sel, (uint8_t)(uisq_view_page() * SQ_PAGE + slot));
