@@ -3,7 +3,7 @@ id: P4-030
 title: Screen v2 table changes: add/remove channel, M-key hold timing, page_states and help rows, widths
 phase: P4
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: []
@@ -67,3 +67,5 @@ Checked vs SCREEN_SPEC_V2 sections 5-6 and v12 strings: SELECT add rule (knob_ma
 Wording fix made: page_states.tsv PERF row said a mute key "held 0.25 s names PREVIEW CHn"; spec section 6 and key_map say the PREVIEW name appears from 0.4 s (0.25 s is the generic hint start). Changed to "held 0.4 s names PREVIEW CHn (release before 1.5 s toggles it)". Checks re-run green.
 Scope note: firmware behaviour (add/remove, release-fire PREVIEW) is intentionally not implemented here (tables only); the tick box for sign-off stays open.
 Awaiting owner: sign the four items in the executor entry above (M-key timing incl. the 1.5 s remove threshold, SELECT add rule, FIRST_RUN/PERF/CHAN/REC cue wording).
+
+- Approved: James Keaney 2026-11-13 (M-key hold timing, 1.5 s remove threshold, SELECT add rule, cue wording).
