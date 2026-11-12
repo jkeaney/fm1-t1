@@ -52,14 +52,24 @@ Pass: performance >= 11 and no sub-score < 2.
 Design locked: cited from SCREEN_SPEC (P2-003, P2-011) and ADR-0004 locks 2026-11-12 (Gate A by the executor from the locked design; the reviewer confirms)
 
 ## 7. Walk-through (after the build)
-Gate B: the reviewer fills this (host render in build/ui_sq/*.png, tests/ui_sq_test.c).
+Gate B, 2026-11-12 reviewer (Sonnet): host render build/ui_sq/*.png (26 PNGs, looked at: perf, perf_playing, page_01_NOTE_EDIT, page_06_RESET, page_12_ALGO_PICK, toast, z5_legend, plus pixel dumps of Z5/Z6). Screen level only; no sound, the framework is not wired (P4-012).
+| # | Step | Screen observed | Differs from prediction |
+| --- | --- | --- | --- |
+| 1 | Power on (PERF) | Z0 `INT 120 P01 1 ACID M1` with the amber dot, page map, `L20`; Z1 four cells (CH1 inverted, CH2..4 dim `MUTE n`); Z2 lane with playhead, `x2`, `!`, `~`, `'` glyphs; Z3 `ROW 1` live (filled) `DENS SLIDE JUMP ACCNT` over dim ROW 2; Z4 two rows with hold marks; Z5 legend; Z6 `PLAY: start   K1-K4: morph`. All readable at 240x240; every control role has a label | Z5 legend: before the review fix it read `MU.. MU.. MU.. MU..` (the four mutes identical); after: `M1 M2 M3 M4`, but `CHN SOL ROL PG- PG+ RST` still show as `C... S... R... P...` (FB-016, owner) |
+| 2 | PLAY | `>` in H1, playhead underline, Z6 `TAP STEP=ON/OFF  HOLD=EDIT NOTE` | none |
+| 3 | K1 turn | the K1 cell value redraws only blit B (test) | n/a on host (knob not wired) |
+| 4 | ALGO turn | ALGO_PICK strip draws `ACID EUCL SNAK STAG [ARP] PATT` in Z6 | none |
+| 5 | Toast | `SAVED P05` on T_TINT in T_ACCENT in Z6, replaces the cue, expires at 2000 ms (test) | none |
 
 ## 8. Actual ease score
 | Function | V | I | O | L | /12 | Predicted | Delta | Pass? |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Read state and control roles | 3 | 3 | 3 | 2 | 11 | 12 | -1 | yes (>= 11, no sub-score < 2). L is 2, not 3: the legend cells `C...`, `S...`, `R...`, `P...` do not teach what the key does until FB-016 is ruled |
+| Toast and algo strip | 3 | 3 | 3 | 2 | 11 | 11 | 0 | yes |
 
 ## 9. Sync re-check and outcome
-- check_scenarios.py / check_help.py / host UI tests:
-- Live checklist re-answered from observation:
-- Outcome:
-- Approved:
+- check_scenarios.py: `0 with no scenario`; check_help.py: OK (392 rows, 2695 strings); gen_ui_tables.py --check OK; check_sequencer_ux.py OK; tests/design/width_probe.sh 297 strings 0 over; ui_sq_test 0 failures; `tools/check.sh` CHECK PASS (tools/check_control_map.py FAIL 78 is pre-existing, not part of check.sh).
+- Five surfaces after the reviewer's fix: key_map.tsv, control_map.tsv, CONTROL_MAP.md (key labels `M1..M4 CHN SOL FIL ROL RST`) and SCREEN_SPEC mock-up 7 agree. Still disagreeing, owner's call (FB-016): SCREEN_SPEC 2.4 / 2.5 / F2 say the PERF tag is `OCT-` over `h:peek` while the tables say `ROW 1` / `ROW 2` (decision 97), and the 20 px legend cannot hold CHN, SOL, ROL, PG-, PG+, RST in AF_S (22..25 px against 18 ink).
+- Live checklist re-answered from observation: reachable with no gesture yes; undo and boundary n/a (display only); one frame redraw yes (test: mute redraws blits A and C, a morph blit B, a toast blit C); one hand n/a; no other channel changed yes (ui_sq.c writes no sq_* state); survives load: only through SQ_FRAME_SYNC() in the caller (P4-012 must call it, its task text does); cost: RAM .data+.bss 23828 of 73728, headroom 49900 B.
+- Outcome: Pass with debt (FB-016 open for the owner).
+- Approved: n/a (gate none; hardware check follows the P4-012 cut-over)

@@ -3,7 +3,7 @@ id: P4-011
 title: ui_sq.c framework: screen zones, toasts, labels and page dispatch
 phase: P4
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P4-010, P4-005, P2-031]
@@ -58,3 +58,14 @@ Deviations and findings (the framework draws the tables and does not choose; det
 - AF_S ink is line-top + 3 .. + 14: lowercase cue text at the top of the 12 px Z6 slot spilled into Z7, so Z6 text is drawn 3 px up (`UISQ_Z6_TEXT_DY`); the test asserts Z7 stays blank. The cue strip is drawn from x=0 (the RIG ALGO cue rows are 239 px); toasts from x=4 (236 px max, all rows pass).
 - The H2 clock states (EXT, WAIT), the first-run / HELP / RESET / SCALE strip contents, step velocity of `!` (vel >= 100 stands in for an accent flag) and all page behaviour are the page tasks' (P4-012..P4-018).
 - Reads: sq_ch, sq_gdb/sq_cache/sq_cidx/sq_calgo via sq_eval (as sq_gen_hit does), sq_playing, sq_bpm, sq_follow, and ChanRT p / snd[0] as read-only single bytes. Writes none.
+
+### 2026-11-12 review (sonnet)
+Verdict: PASS with debt (gate none, so done; FB-016 stays open for the owner on two design choices).
+- `sh tools/check.sh` CHECK PASS (re-run after my edits). `./build.sh`: `image 169084 B; RAM .data+.bss 23828 B of 73728; pool 92500 B of 368640`, headroom 49900 B >= 8192.
+- (a) ui_sq.c writes no sq_* state and reads only the sq_* API/exports plus single-byte `sq_rt[c].p` / `snd[0]` (no accessor exists; debt: add a playhead accessor when the core next changes). It does not call SQ_FRAME_SYNC itself, by design; P4-012's task text owns the per-frame call. Not wired into ui_draw/ui_input/main.c/felucca.c (verified by grep).
+- (b) Broke a scratch ui_tables.h: knob label `DENSWWWWWWW` -> `FAIL 167: knob label ... is 107 px, over 49`; button `SAVEWWWWWWWWWW` -> `FAIL 219: page PERF row 1 cell widths sum to 311`. The assertions use the real text_w. Scratch removed. One nit: the key-label check used `|| 1` and the cut form always fits by construction, so it asserted nothing; I replaced it with a real assert (mutes must not be cut).
+- (c) FB-016 ruled; fixed: key labels M1..M4 CHN RST SOL FIL ROL in key_map.tsv, control_map.tsv, CONTROL_MAP.md (the mutes were unreadable `MU...`); generator now emits the cue column and ui_sq.c uses it. Left for the owner: the 20 px legend cannot hold CHN/SOL/ROL/PG-/PG+/RST, and the PERF tag `ROW n` vs spec `OCT-`/`h:peek`. Regenerated build/gen/ui_tables.h; gen_ui_tables --check, check_help, check_scenarios, width_probe (297, 0 over), check_sequencer_ux all OK.
+- (d) No accent flag exists in PulseOut or StepEdit; accent is velocity (ACC_VEL 120 vs plain 80..90, sq_prims.h SP20), so `vel >= 100` is a fair reading. Debt: replace with the ACC_VEL constant when the core defines one.
+- (e) Z6 3 px up accepted (see FB-016 item 4).
+- (f) Gate A complete; Gate B sections 7-9 filled (Pass with debt; read-state L 2 until the legend labels are ruled).
+Files fixed by reviewer: docs/design/key_map.tsv, control_map.tsv, CONTROL_MAP.md, tools/gen_ui_tables.py, firmware/src/ui_sq.c, tests/ui_sq_test.c, FB-016, the use case.

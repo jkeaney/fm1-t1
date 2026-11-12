@@ -226,8 +226,8 @@ int main(int argc, char **argv)
       for (uint8_t p = 0; p < UI_PG_COUNT; p++) for (uint8_t i = 0; i < 11; i++) {
           const char *lab = uisq_key_label(p, (uint8_t)(UI_C_KEY_B01_FS3 + i), UI_GEST_TAP); char d[16];
           if (!lab[0]) lab = uisq_key_label(p, (uint8_t)(UI_C_KEY_B01_FS3 + i), UI_GEST_HOLD);
-          if (text_fit(d, sizeof d, lab, &AF_S, 18)) cut++;
-          CHECK(W(d) <= 18 + 1 || d[0] == 0 || 1, "key label");
+          if (text_fit(d, sizeof d, lab, &AF_S, 18)) { cut++;
+              CHECK(!(lab[0] == 'M' && lab[1] >= '1' && lab[1] <= '4' && !lab[2]), "mute key label `%s` is cut to `%s` on %s: the four mutes must stay distinguishable (FB-016)", lab, d, ui_page_names[p]); }
           CHECK(W(d) <= 20, "key label `%s` drawn as `%s` is %d px over the 20 px cell", lab, d, W(d)); }
       printf("note: %d black-key labels are cut to the 20 px cell (SCREEN_SPEC F3: the full word is in HELP)\n", cut); }
 
@@ -246,7 +246,11 @@ int main(int argc, char **argv)
           if (lim == 240 && ft == &AF_S && t3 && strstr(t3, "toast")) CHECK(text_w(ft, t2) <= 236, "toast `%s` is %d px: over the 236 px a toast draws in (x=4)", t2, (int)text_w(ft, t2)); }
       if (f) fclose(f);
       printf("widths.tsv: %d rows measured, %d over\n", n, over); }
-    for (uint8_t p = 0; p < UI_PG_COUNT; p++) fit("page cue", uisq_pages[p].cue, 236);
+    for (uint8_t p = 0; p < UI_PG_COUNT; p++) fit("page cue", uisq_page_cue(p), 236);
+    CHECK(!strcmp(uisq_page_cue(UI_PG_PERF), "PLAY: start   K1-K4: morph"), "the PERF cue comes from the generated page_states.tsv column: `%s`", uisq_page_cue(UI_PG_PERF));
+    CHECK(!strcmp(uisq_page_cue(UI_PG_RIG), "RIG: TAP 1-4 = WHO DRIVES  HOLD = PICK"), "the RIG cue is generated");
+    { const char *m1 = uisq_key_label(UI_PG_PERF, UI_C_KEY_B01_FS3, UI_GEST_TAP), *m2 = uisq_key_label(UI_PG_PERF, UI_C_KEY_B02_GS3, UI_GEST_TAP);
+      CHECK(strcmp(m1, m2) != 0 && W(m1) <= 20 && W(m2) <= 20, "the mute keys M1 / M2 are distinct and fit 20 px: `%s` `%s`", m1, m2); }
 
     /* ---- render every page: full screens, then each zone of PERF ---- */
     sq_ch[0].len = 20; sq_ch[0].pg_used = 3; sq_ch[1].muted = 0; sq_ch[2].midi_ch = SQ_MIDI_OFF;

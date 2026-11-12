@@ -16,8 +16,8 @@
  * Data, not logic (ADR-0004 addendum): a label is a table row. The knob labels come from ui_knob_rows (page x algorithm x knob), the
  * button labels from ui_button_rows (page x button x tap/hold), the black-key labels from ui_key_rows; the dice sub-labels of PERF
  * from ALGOS[].sub. The Z4 cell widths are computed from the measured text (SCREEN_SPEC 2.5). What the tables do not carry is
- * kept here as a small static table with its source named: the cue strip text of each page (page_states.tsv, column cue_strip;
- * gen_ui_tables.py does not emit it: FB filed in the task log) and the 4-letter algorithm short names (SCREEN_SPEC 2.2).
+ * kept here as a small static table with its source named: the 4-letter algorithm short names (SCREEN_SPEC 2.2) and the cue text of
+ * the four pages whose cue_strip column is prose (the cue of every other page is the generated ui_page_rows[].cue).
  *
  * Pixel contract: the zones tile 240x240 (SCREEN_SPEC 2). Three blits, each at most 240x124: A = Z0..Z2 (y 0..108), B = Z3..Z4
  * (y 108..212), C = Z5..Z7 (y 212..240). A blit is redrawn only when the signature of its inputs changed or `ui.force` is set. */
@@ -128,32 +128,40 @@ static const char *uisq_key_label(uint8_t page, uint8_t ctl, uint8_t gest)
 static int8_t uisq_layer_of(uint8_t ctl)
 {   switch (ctl) { case UI_C_B_SCL: return 0; case UI_C_B_SEQ: return 1; case UI_C_B_ENV: return 2; case UI_C_B_ARP: return 3; case UI_C_B_LFO: return 4; default: return -1; } }
 
+/* the cue strip text of a page: the generated page_states.tsv cue_strip (gen_ui_tables.py) unless the page keeps its own */
+static const char *uisq_page_cue(uint8_t p);
 static uint8_t uisq_algo_ok(uint8_t a) { return a < SQ_NALGO && ALGOS[a].name[0] != 0; }   /* a row not yet written by its algorithm task is zero */
 
 /* ---- per-page data: the stub pages (P4-013..P4-018 replace the entries) ---- */
 typedef struct {
     void       (*input)(void);        /* the page's frame input; stubs do nothing */
-    const char *cue;                  /* page_states.tsv cue_strip (priority rows 11.2 are the page tasks') */
+    const char *cue;                  /* cue override: NULL = the generated page_states.tsv cue_strip; set only where that column is prose (HELP, MENU, FIRST_RUN, ALGO_PICK) */
     const char *st1, *st2;            /* single-row pages: the band status lines (SCREEN_SPEC 7.1); static text only */
     uint8_t     two_rows;             /* PERF: ROW 1 + ROW 2 in the band */
 } UisqPage;
 static void uisq_pg_stub(void) {}
 static const UisqPage uisq_pages[UI_PG_COUNT] = {
-    [UI_PG_PERF]      = { uisq_pg_stub, "PLAY: start   K1-K4: morph", "", "", 1 },
-    [UI_PG_NOTE_EDIT] = { uisq_pg_stub, "STEP n: KNOBS EDIT  HOME=done", "", "* = set by you (EDIT: undo)", 0 },
-    [UI_PG_CHAN]      = { uisq_pg_stub, "CH1: K1 LENGTH  OCT=+-PAGE  D#4=back", "", "D#4 = BACK", 0 },
-    [UI_PG_SET]       = { uisq_pg_stub, "SET: GLO hold=HARM  HOME=back", "", "", 0 },
-    [UI_PG_SCALE]     = { uisq_pg_stub, "HARM: KEYS F3-E4 = CHORD 1-7", "", "", 0 },
-    [UI_PG_REC]       = { uisq_pg_stub, "REC: PLAY KEYS TO WRITE  REC=done", "", "KEYS = NOTES (all 27)", 0 },
-    [UI_PG_RESET]     = { uisq_pg_stub, "RESET: TOUCH WHAT TO RESET  EDIT=no", "", "", 0 },
+    [UI_PG_PERF]      = { uisq_pg_stub, NULL, "", "", 1 },
+    [UI_PG_NOTE_EDIT] = { uisq_pg_stub, NULL, "", "* = set by you (EDIT: undo)", 0 },
+    [UI_PG_CHAN]      = { uisq_pg_stub, NULL, "", "D#4 = BACK", 0 },
+    [UI_PG_SET]       = { uisq_pg_stub, NULL, "", "", 0 },
+    [UI_PG_SCALE]     = { uisq_pg_stub, NULL, "", "", 0 },
+    [UI_PG_REC]       = { uisq_pg_stub, NULL, "", "KEYS = NOTES (all 27)", 0 },
+    [UI_PG_RESET]     = { uisq_pg_stub, NULL, "", "", 0 },
     [UI_PG_HELP]      = { uisq_pg_stub, "HELP: let go = back", "", "", 0 },
     [UI_PG_MENU]      = { uisq_pg_stub, "", "", "", 0 },                       /* the Felucca menu draws itself (ui_menu.c) */
     [UI_PG_FIRST_RUN] = { uisq_pg_stub, "D#4 K2: MIDI CHANNEL", "", "", 1 },
-    [UI_PG_ADD_PAGE]  = { uisq_pg_stub, "ADD PAGE 2 = COPY OF 1? PG+ = yes", "", "", 1 },
-    [UI_PG_MOVE_HELD] = { uisq_pg_stub, "ROLL 3x: let go to stop", "", "", 1 },
+    [UI_PG_ADD_PAGE]  = { uisq_pg_stub, NULL, "", "", 1 },
+    [UI_PG_MOVE_HELD] = { uisq_pg_stub, NULL, "", "", 1 },
     [UI_PG_ALGO_PICK] = { uisq_pg_stub, "", "", "", 1 },                       /* the strip is built from the algorithm list */
-    [UI_PG_RIG]       = { uisq_pg_stub, "RIG: TAP 1-4 = WHO DRIVES  HOLD = PICK", "", "", 0 },
+    [UI_PG_RIG]       = { uisq_pg_stub, NULL, "", "", 0 },
 };
+
+static const char *uisq_page_cue(uint8_t p)
+{   if (p >= UI_PG_COUNT) p = UI_PG_PERF;
+    if (uisq_pages[p].cue) return uisq_pages[p].cue;
+    for (uint32_t i = 0; i < UI_N_PAGE_STATES; i++) if (ui_page_rows[i].id == p) return ui_page_rows[i].cue;
+    return ""; }
 
 /* the page whose zones are drawn: the overlays (FIRST_RUN, ADD_PAGE, MOVE_HELD, ALGO_PICK) sit on PERF's layout */
 static uint8_t uisq_layout_page(void)
@@ -432,7 +440,7 @@ static void uisq_cue_text(char *d, uint32_t n)
             if (cur) uisq_cat(d, n, "]"); }
         return; }
     if (uisq_page == UI_PG_PERF && sq_playing) { uisq_cat(d, n, "TAP STEP=ON/OFF  HOLD=EDIT NOTE"); return; }
-    uisq_cat(d, n, uisq_pages[uisq_page < UI_PG_COUNT ? uisq_page : 0].cue); }
+    uisq_cat(d, n, uisq_page_cue(uisq_page)); }
 
 /* AF_S ink runs from line-top + 3 (capitals) to line-top + 14 (descenders), so a line drawn at the top of the 12 px slot spills its
  * descenders into Z7 (which stays blank): the Z6 line is drawn 3 px up, capitals on the slot's top row, descenders on its last */

@@ -207,90 +207,90 @@ REC	KEY_W16_G5	tap	play G5 (+ REC OCT and global OCTAVE) on the selected channel
 RESET	KEY_W16_G5	tap	clear every edit of step 16 of the viewed page (back to the generator); RESET closes; EDIT tap undoes	CLR	-	-
 HELP	KEY_W16_G5	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_W16_G5	tap/hold	inert while the menu is open	-	-	-
-PERF	KEY_B01_F#3	tap	tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1	-	-
+PERF	KEY_B01_F#3	tap	tap: mute / unmute CH1 (latched; phase keeps running)	M1	-	-
 PERF	KEY_B01_F#3	hold	held 0.4 s: PREVIEW on/off of CH1 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV1	-	-
-NOTE_EDIT	KEY_B01_F#3	tap	tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1	-	-
+NOTE_EDIT	KEY_B01_F#3	tap	tap: mute / unmute CH1 (latched; phase keeps running)	M1	-	-
 NOTE_EDIT	KEY_B01_F#3	hold	held 0.4 s: PREVIEW on/off of CH1 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV1	-	-
-CHAN	KEY_B01_F#3	tap	tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1	-	-
+CHAN	KEY_B01_F#3	tap	tap: mute / unmute CH1 (latched; phase keeps running)	M1	-	-
 CHAN	KEY_B01_F#3	hold	held 0.4 s: PREVIEW on/off of CH1 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV1	-	-
-SET	KEY_B01_F#3	tap	tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1	-	-
+SET	KEY_B01_F#3	tap	tap: mute / unmute CH1 (latched; phase keeps running)	M1	-	-
 SET	KEY_B01_F#3	hold	held 0.4 s: PREVIEW on/off of CH1 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV1	-	-
 SCALE	KEY_B01_F#3	tap	not used on HARMONY (the KEY is K2)	-	-	-
 REC	KEY_B01_F#3	tap	play F#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B01_F#3	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B01_F#3	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B01_F#3	tap/hold	inert while the menu is open	-	-	-
-PERF	KEY_B02_G#3	tap	tap: mute / unmute CH2	MUTE2	-	-
+PERF	KEY_B02_G#3	tap	tap: mute / unmute CH2	M2	-	-
 PERF	KEY_B02_G#3	hold	held 0.4 s: PREVIEW on/off of CH2 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV2	-	-
-NOTE_EDIT	KEY_B02_G#3	tap	tap: mute / unmute CH2	MUTE2	-	-
+NOTE_EDIT	KEY_B02_G#3	tap	tap: mute / unmute CH2	M2	-	-
 NOTE_EDIT	KEY_B02_G#3	hold	held 0.4 s: PREVIEW on/off of CH2 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV2	-	-
-CHAN	KEY_B02_G#3	tap	tap: mute / unmute CH2	MUTE2	-	-
+CHAN	KEY_B02_G#3	tap	tap: mute / unmute CH2	M2	-	-
 CHAN	KEY_B02_G#3	hold	held 0.4 s: PREVIEW on/off of CH2 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV2	-	-
-SET	KEY_B02_G#3	tap	tap: mute / unmute CH2	MUTE2	-	-
+SET	KEY_B02_G#3	tap	tap: mute / unmute CH2	M2	-	-
 SET	KEY_B02_G#3	hold	held 0.4 s: PREVIEW on/off of CH2 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV2	-	-
 SCALE	KEY_B02_G#3	tap	not used on HARMONY (the KEY is K2)	-	-	-
 REC	KEY_B02_G#3	tap	play G#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B02_G#3	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B02_G#3	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B02_G#3	tap/hold	inert while the menu is open	-	-	-
-PERF	KEY_B03_A#3	tap	tap: mute / unmute CH3	MUTE3	-	-
+PERF	KEY_B03_A#3	tap	tap: mute / unmute CH3	M3	-	-
 PERF	KEY_B03_A#3	hold	held 0.4 s: PREVIEW on/off of CH3 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV3	-	-
-NOTE_EDIT	KEY_B03_A#3	tap	tap: mute / unmute CH3	MUTE3	-	-
+NOTE_EDIT	KEY_B03_A#3	tap	tap: mute / unmute CH3	M3	-	-
 NOTE_EDIT	KEY_B03_A#3	hold	held 0.4 s: PREVIEW on/off of CH3 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV3	-	-
-CHAN	KEY_B03_A#3	tap	tap: mute / unmute CH3	MUTE3	-	-
+CHAN	KEY_B03_A#3	tap	tap: mute / unmute CH3	M3	-	-
 CHAN	KEY_B03_A#3	hold	held 0.4 s: PREVIEW on/off of CH3 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV3	-	-
-SET	KEY_B03_A#3	tap	tap: mute / unmute CH3	MUTE3	-	-
+SET	KEY_B03_A#3	tap	tap: mute / unmute CH3	M3	-	-
 SET	KEY_B03_A#3	hold	held 0.4 s: PREVIEW on/off of CH3 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV3	-	-
 SCALE	KEY_B03_A#3	tap	not used on HARMONY (the KEY is K2)	-	-	-
 REC	KEY_B03_A#3	tap	play A#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B03_A#3	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B03_A#3	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B03_A#3	tap/hold	inert while the menu is open	-	-	-
-PERF	KEY_B04_C#4	tap	tap: mute / unmute CH4	MUTE4	-	-
+PERF	KEY_B04_C#4	tap	tap: mute / unmute CH4	M4	-	-
 PERF	KEY_B04_C#4	hold	held 0.4 s: PREVIEW on/off of CH4 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV4	-	-
-NOTE_EDIT	KEY_B04_C#4	tap	tap: mute / unmute CH4	MUTE4	-	-
+NOTE_EDIT	KEY_B04_C#4	tap	tap: mute / unmute CH4	M4	-	-
 NOTE_EDIT	KEY_B04_C#4	hold	held 0.4 s: PREVIEW on/off of CH4 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV4	-	-
-CHAN	KEY_B04_C#4	tap	tap: mute / unmute CH4	MUTE4	-	-
+CHAN	KEY_B04_C#4	tap	tap: mute / unmute CH4	M4	-	-
 CHAN	KEY_B04_C#4	hold	held 0.4 s: PREVIEW on/off of CH4 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV4	-	-
-SET	KEY_B04_C#4	tap	tap: mute / unmute CH4	MUTE4	-	-
+SET	KEY_B04_C#4	tap	tap: mute / unmute CH4	M4	-	-
 SET	KEY_B04_C#4	hold	held 0.4 s: PREVIEW on/off of CH4 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV4	-	-
 SCALE	KEY_B04_C#4	tap	not used on HARMONY (the KEY is K2)	-	-	-
 REC	KEY_B04_C#4	tap	play C#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B04_C#4	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B04_C#4	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B04_C#4	tap/hold	inert while the menu is open	-	-	-
-PERF	KEY_B05_D#4	tap	tap: open the CHAN page of the selected channel (LENGTH MIDI SOURCE FOLLOW)	CHAN	-	-
+PERF	KEY_B05_D#4	tap	tap: open the CHAN page of the selected channel (LENGTH MIDI SOURCE FOLLOW)	CHN	-	-
 PERF	KEY_B05_D#4	hold	0.4 s: open the RIG page of the selected channel (latched; stays open when the key is released); named h:CHN=RIG in the lane header	RIG	-	-
-NOTE_EDIT	KEY_B05_D#4	tap	switch to the CHAN page (closes NOTE EDIT)	CHAN	-	-
+NOTE_EDIT	KEY_B05_D#4	tap	switch to the CHAN page (closes NOTE EDIT)	CHN	-	-
 CHAN	KEY_B05_D#4	tap	close CHAN, back to PERF	BACK	-	-
-SET	KEY_B05_D#4	tap	switch to the CHAN page	CHAN	-	-
+SET	KEY_B05_D#4	tap	switch to the CHAN page	CHN	-	-
 SCALE	KEY_B05_D#4	tap	not used on HARMONY (the KEY is K2)	-	-	-
 REC	KEY_B05_D#4	tap	play D#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B05_D#4	tap	re-copy the page before onto the viewed page (edits and source; page 1: clear its edits); RESET closes; EDIT tap undoes	COPY P	-	-
 HELP	KEY_B05_D#4	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B05_D#4	tap/hold	inert while the menu is open	-	-	-
-PERF	KEY_B06_F#4	hold	hold: only the selected channel sounds; release restores the mutes	SOLO	-	-
-NOTE_EDIT	KEY_B06_F#4	hold	hold: only the selected channel sounds; release restores the mutes	SOLO	-	-
-CHAN	KEY_B06_F#4	hold	hold: only the selected channel sounds; release restores the mutes	SOLO	-	-
-SET	KEY_B06_F#4	hold	hold: only the selected channel sounds; release restores the mutes	SOLO	-	-
+PERF	KEY_B06_F#4	hold	hold: only the selected channel sounds; release restores the mutes	SOL	-	-
+NOTE_EDIT	KEY_B06_F#4	hold	hold: only the selected channel sounds; release restores the mutes	SOL	-	-
+CHAN	KEY_B06_F#4	hold	hold: only the selected channel sounds; release restores the mutes	SOL	-	-
+SET	KEY_B06_F#4	hold	hold: only the selected channel sounds; release restores the mutes	SOL	-	-
 SCALE	KEY_B06_F#4	tap	not used on HARMONY (the KEY is K2)	-	-	-
 REC	KEY_B06_F#4	tap	play F#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B06_F#4	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B06_F#4	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B06_F#4	tap/hold	inert while the menu is open	-	-	-
-PERF	KEY_B07_G#4	hold	hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores	FILL	aftertouch: depth light..firm = halfway..maximum density	no force (or FORCE OFF): maximum density
-NOTE_EDIT	KEY_B07_G#4	hold	hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores	FILL	aftertouch: depth light..firm = halfway..maximum density	no force (or FORCE OFF): maximum density
-CHAN	KEY_B07_G#4	hold	hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores	FILL	aftertouch: depth light..firm = halfway..maximum density	no force (or FORCE OFF): maximum density
-SET	KEY_B07_G#4	hold	hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores	FILL	aftertouch: depth light..firm = halfway..maximum density	no force (or FORCE OFF): maximum density
+PERF	KEY_B07_G#4	hold	hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores	FIL	aftertouch: depth light..firm = halfway..maximum density	no force (or FORCE OFF): maximum density
+NOTE_EDIT	KEY_B07_G#4	hold	hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores	FIL	aftertouch: depth light..firm = halfway..maximum density	no force (or FORCE OFF): maximum density
+CHAN	KEY_B07_G#4	hold	hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores	FIL	aftertouch: depth light..firm = halfway..maximum density	no force (or FORCE OFF): maximum density
+SET	KEY_B07_G#4	hold	hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores	FIL	aftertouch: depth light..firm = halfway..maximum density	no force (or FORCE OFF): maximum density
 SCALE	KEY_B07_G#4	tap	not used on HARMONY (the KEY is K2)	-	-	-
 REC	KEY_B07_G#4	tap	play G#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B07_G#4	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B07_G#4	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B07_G#4	tap/hold	inert while the menu is open	-	-	-
-PERF	KEY_B08_A#4	hold	hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm)	ROLL	aftertouch: 2x / 3x / 4x by pressure bins	no force: 2x
-NOTE_EDIT	KEY_B08_A#4	hold	hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm)	ROLL	aftertouch: 2x / 3x / 4x by pressure bins	no force: 2x
-CHAN	KEY_B08_A#4	hold	hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm)	ROLL	aftertouch: 2x / 3x / 4x by pressure bins	no force: 2x
-SET	KEY_B08_A#4	hold	hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm)	ROLL	aftertouch: 2x / 3x / 4x by pressure bins	no force: 2x
+PERF	KEY_B08_A#4	hold	hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm)	ROL	aftertouch: 2x / 3x / 4x by pressure bins	no force: 2x
+NOTE_EDIT	KEY_B08_A#4	hold	hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm)	ROL	aftertouch: 2x / 3x / 4x by pressure bins	no force: 2x
+CHAN	KEY_B08_A#4	hold	hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm)	ROL	aftertouch: 2x / 3x / 4x by pressure bins	no force: 2x
+SET	KEY_B08_A#4	hold	hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm)	ROL	aftertouch: 2x / 3x / 4x by pressure bins	no force: 2x
 SCALE	KEY_B08_A#4	tap	not used on HARMONY (the KEY is K2)	-	-	-
 REC	KEY_B08_A#4	tap	play A#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent)	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B08_A#4	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
@@ -314,10 +314,10 @@ REC	KEY_B10_D#5	tap	play D#5 (+ REC OCT and global OCTAVE) on the selected chann
 RESET	KEY_B10_D#5	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
 HELP	KEY_B10_D#5	tap/hold	explain this key on the page beneath (HOME held); nothing happens	?	-	-
 MENU	KEY_B10_D#5	tap/hold	inert while the menu is open	-	-	-
-PERF	KEY_B11_F#5	tap	tap: all channels to step 1 at the next step	RESTRT	-	-
-NOTE_EDIT	KEY_B11_F#5	tap	tap: all channels to step 1 at the next step	RESTRT	-	-
-CHAN	KEY_B11_F#5	tap	tap: all channels to step 1 at the next step	RESTRT	-	-
-SET	KEY_B11_F#5	tap	tap: all channels to step 1 at the next step	RESTRT	-	-
+PERF	KEY_B11_F#5	tap	tap: all channels to step 1 at the next step	RST	-	-
+NOTE_EDIT	KEY_B11_F#5	tap	tap: all channels to step 1 at the next step	RST	-	-
+CHAN	KEY_B11_F#5	tap	tap: all channels to step 1 at the next step	RST	-	-
+SET	KEY_B11_F#5	tap	tap: all channels to step 1 at the next step	RST	-	-
 SCALE	KEY_B11_F#5	tap	not used on HARMONY (the KEY is K2)	-	-	-
 REC	KEY_B11_F#5	tap	play F#5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off	NOTE	no force on this key	velocity 90, or 120 with K2 ACC ON
 RESET	KEY_B11_F#5	tap	inert in RESET (toast NOTHING TO RESET)	-	-	-
@@ -343,18 +343,18 @@ RIG	KEY_W13_D5	tap	inert on the RIG page (the lane is not shown); no toast	-	-	-
 RIG	KEY_W14_E5	tap	inert on the RIG page (the lane is not shown); no toast	-	-	-
 RIG	KEY_W15_F5	tap	inert on the RIG page (the lane is not shown); no toast	-	-	-
 RIG	KEY_W16_G5	tap	inert on the RIG page (the lane is not shown); no toast	-	-	-
-RIG	KEY_B01_F#3	tap	tap: mute / unmute CH1 (latched; phase keeps running)	MUTE1	-	-
+RIG	KEY_B01_F#3	tap	tap: mute / unmute CH1 (latched; phase keeps running)	M1	-	-
 RIG	KEY_B01_F#3	hold	held 0.4 s: PREVIEW on/off of CH1 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV1	-	-
-RIG	KEY_B02_G#3	tap	tap: mute / unmute CH2	MUTE2	-	-
+RIG	KEY_B02_G#3	tap	tap: mute / unmute CH2	M2	-	-
 RIG	KEY_B02_G#3	hold	held 0.4 s: PREVIEW on/off of CH2 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV2	-	-
-RIG	KEY_B03_A#3	tap	tap: mute / unmute CH3	MUTE3	-	-
+RIG	KEY_B03_A#3	tap	tap: mute / unmute CH3	M3	-	-
 RIG	KEY_B03_A#3	hold	held 0.4 s: PREVIEW on/off of CH3 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV3	-	-
-RIG	KEY_B04_C#4	tap	tap: mute / unmute CH4	MUTE4	-	-
+RIG	KEY_B04_C#4	tap	tap: mute / unmute CH4	M4	-	-
 RIG	KEY_B04_C#4	hold	held 0.4 s: PREVIEW on/off of CH4 (toast); with ALGO turned: its preview sound ACID LEAD BASS PAD STRINGS PIANO (turns PREVIEW on); a tap is the MIDI mute (the preview is untouched)	PRV4	-	-
 RIG	KEY_B05_D#4	tap	close the RIG page, back to PERF	BACK	-	-
-RIG	KEY_B06_F#4	hold	hold: only the selected channel sounds; release restores the mutes	SOLO	-	-
-RIG	KEY_B07_G#4	hold	hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores	FILL	aftertouch: depth light..firm = halfway..maximum density	no force (or FORCE OFF): maximum density
-RIG	KEY_B08_A#4	hold	hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm)	ROLL	aftertouch: 2x / 3x / 4x by pressure bins	no force: 2x
+RIG	KEY_B06_F#4	hold	hold: only the selected channel sounds; release restores the mutes	SOL	-	-
+RIG	KEY_B07_G#4	hold	hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores	FIL	aftertouch: depth light..firm = halfway..maximum density	no force (or FORCE OFF): maximum density
+RIG	KEY_B08_A#4	hold	hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm)	ROL	aftertouch: 2x / 3x / 4x by pressure bins	no force: 2x
 RIG	KEY_B09_C#5	tap	inert on the RIG page (no lane to page); no toast	-	-	-
 RIG	KEY_B10_D#5	tap	inert on the RIG page (no lane to page); no toast	-	-	-
-RIG	KEY_B11_F#5	tap	tap: all channels to step 1 at the next step	RESTRT	-	-
+RIG	KEY_B11_F#5	tap	tap: all channels to step 1 at the next step	RST	-	-

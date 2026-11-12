@@ -290,8 +290,8 @@ def emit(t):
             L.append("    { %s }," % ", ".join(r))
         L.extend(["};", ""])
 
-    table("ui_page_rows", "ui_page_row_t", [("", "uint8_t id"), ("", "const char *kind")],
-          [["UI_PG_" + ident(r["state"]), cstr(r["kind"])] for r in t["ps"]], "UI_N_PAGE_STATES")
+    table("ui_page_rows", "ui_page_row_t", [("", "uint8_t id"), ("", "const char *kind"), ("", "const char *cue")],
+          [["UI_PG_" + ident(r["state"]), cstr(r["kind"]), cstr(r["cue_strip"])] for r in t["ps"]], "UI_N_PAGE_STATES")
     table("ui_control_rows", "ui_control_row_t",
           [("", "uint8_t ctl"), ("", "uint8_t page"), ("", "bool owns"), ("", "const char *label")],
           [["UI_C_" + ident(r["control"]), "UI_PG_" + ident(r["context"]),

@@ -524,73 +524,73 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_W16_G5` | `RESET` | tap: clear every edit of step 16 of the viewed page (back to the generator); RESET closes; EDIT tap undoes | `CLR` |
 | `KEY_W16_G5` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
 | `KEY_W16_G5` | `MENU` | tap/hold: inert while the menu is open | `-` |
-| `KEY_B01_F#3` | `PERF` | tap: tap: mute / unmute CH1 (latched; phase keeps running) | `MUTE1` |
-| `KEY_B01_F#3` | `NOTE_EDIT` | tap: tap: mute / unmute CH1 (latched; phase keeps running) | `MUTE1` |
-| `KEY_B01_F#3` | `CHAN` | tap: tap: mute / unmute CH1 (latched; phase keeps running) | `MUTE1` |
-| `KEY_B01_F#3` | `SET` | tap: tap: mute / unmute CH1 (latched; phase keeps running) | `MUTE1` |
+| `KEY_B01_F#3` | `PERF` | tap: tap: mute / unmute CH1 (latched; phase keeps running) | `M1` |
+| `KEY_B01_F#3` | `NOTE_EDIT` | tap: tap: mute / unmute CH1 (latched; phase keeps running) | `M1` |
+| `KEY_B01_F#3` | `CHAN` | tap: tap: mute / unmute CH1 (latched; phase keeps running) | `M1` |
+| `KEY_B01_F#3` | `SET` | tap: tap: mute / unmute CH1 (latched; phase keeps running) | `M1` |
 | `KEY_B01_F#3` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B01_F#3` | `REC` | tap: play F#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B01_F#3` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
 | `KEY_B01_F#3` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
 | `KEY_B01_F#3` | `MENU` | tap/hold: inert while the menu is open | `-` |
-| `KEY_B02_G#3` | `PERF` | tap: tap: mute / unmute CH2 | `MUTE2` |
-| `KEY_B02_G#3` | `NOTE_EDIT` | tap: tap: mute / unmute CH2 | `MUTE2` |
-| `KEY_B02_G#3` | `CHAN` | tap: tap: mute / unmute CH2 | `MUTE2` |
-| `KEY_B02_G#3` | `SET` | tap: tap: mute / unmute CH2 | `MUTE2` |
+| `KEY_B02_G#3` | `PERF` | tap: tap: mute / unmute CH2 | `M2` |
+| `KEY_B02_G#3` | `NOTE_EDIT` | tap: tap: mute / unmute CH2 | `M2` |
+| `KEY_B02_G#3` | `CHAN` | tap: tap: mute / unmute CH2 | `M2` |
+| `KEY_B02_G#3` | `SET` | tap: tap: mute / unmute CH2 | `M2` |
 | `KEY_B02_G#3` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B02_G#3` | `REC` | tap: play G#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B02_G#3` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
 | `KEY_B02_G#3` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
 | `KEY_B02_G#3` | `MENU` | tap/hold: inert while the menu is open | `-` |
-| `KEY_B03_A#3` | `PERF` | tap: tap: mute / unmute CH3 | `MUTE3` |
-| `KEY_B03_A#3` | `NOTE_EDIT` | tap: tap: mute / unmute CH3 | `MUTE3` |
-| `KEY_B03_A#3` | `CHAN` | tap: tap: mute / unmute CH3 | `MUTE3` |
-| `KEY_B03_A#3` | `SET` | tap: tap: mute / unmute CH3 | `MUTE3` |
+| `KEY_B03_A#3` | `PERF` | tap: tap: mute / unmute CH3 | `M3` |
+| `KEY_B03_A#3` | `NOTE_EDIT` | tap: tap: mute / unmute CH3 | `M3` |
+| `KEY_B03_A#3` | `CHAN` | tap: tap: mute / unmute CH3 | `M3` |
+| `KEY_B03_A#3` | `SET` | tap: tap: mute / unmute CH3 | `M3` |
 | `KEY_B03_A#3` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B03_A#3` | `REC` | tap: play A#3 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B03_A#3` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
 | `KEY_B03_A#3` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
 | `KEY_B03_A#3` | `MENU` | tap/hold: inert while the menu is open | `-` |
-| `KEY_B04_C#4` | `PERF` | tap: tap: mute / unmute CH4 | `MUTE4` |
-| `KEY_B04_C#4` | `NOTE_EDIT` | tap: tap: mute / unmute CH4 | `MUTE4` |
-| `KEY_B04_C#4` | `CHAN` | tap: tap: mute / unmute CH4 | `MUTE4` |
-| `KEY_B04_C#4` | `SET` | tap: tap: mute / unmute CH4 | `MUTE4` |
+| `KEY_B04_C#4` | `PERF` | tap: tap: mute / unmute CH4 | `M4` |
+| `KEY_B04_C#4` | `NOTE_EDIT` | tap: tap: mute / unmute CH4 | `M4` |
+| `KEY_B04_C#4` | `CHAN` | tap: tap: mute / unmute CH4 | `M4` |
+| `KEY_B04_C#4` | `SET` | tap: tap: mute / unmute CH4 | `M4` |
 | `KEY_B04_C#4` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B04_C#4` | `REC` | tap: play C#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B04_C#4` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
 | `KEY_B04_C#4` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
 | `KEY_B04_C#4` | `MENU` | tap/hold: inert while the menu is open | `-` |
-| `KEY_B05_D#4` | `PERF` | tap: tap: open the CHAN page of the selected channel (LENGTH MIDI SOURCE FOLLOW) | `CHAN` |
-| `KEY_B05_D#4` | `NOTE_EDIT` | tap: switch to the CHAN page (closes NOTE EDIT) | `CHAN` |
+| `KEY_B05_D#4` | `PERF` | tap: tap: open the CHAN page of the selected channel (LENGTH MIDI SOURCE FOLLOW) | `CHN` |
+| `KEY_B05_D#4` | `NOTE_EDIT` | tap: switch to the CHAN page (closes NOTE EDIT) | `CHN` |
 | `KEY_B05_D#4` | `CHAN` | tap: close CHAN, back to PERF | `BACK` |
-| `KEY_B05_D#4` | `SET` | tap: switch to the CHAN page | `CHAN` |
+| `KEY_B05_D#4` | `SET` | tap: switch to the CHAN page | `CHN` |
 | `KEY_B05_D#4` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B05_D#4` | `REC` | tap: play D#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B05_D#4` | `RESET` | tap: re-copy the page before onto the viewed page (edits and source; page 1: clear its edits); RESET closes; EDIT tap undoes | `COPY P` |
 | `KEY_B05_D#4` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
 | `KEY_B05_D#4` | `MENU` | tap/hold: inert while the menu is open | `-` |
-| `KEY_B06_F#4` | `PERF` | hold: hold: only the selected channel sounds; release restores the mutes | `SOLO` |
-| `KEY_B06_F#4` | `NOTE_EDIT` | hold: hold: only the selected channel sounds; release restores the mutes | `SOLO` |
-| `KEY_B06_F#4` | `CHAN` | hold: hold: only the selected channel sounds; release restores the mutes | `SOLO` |
-| `KEY_B06_F#4` | `SET` | hold: hold: only the selected channel sounds; release restores the mutes | `SOLO` |
+| `KEY_B06_F#4` | `PERF` | hold: hold: only the selected channel sounds; release restores the mutes | `SOL` |
+| `KEY_B06_F#4` | `NOTE_EDIT` | hold: hold: only the selected channel sounds; release restores the mutes | `SOL` |
+| `KEY_B06_F#4` | `CHAN` | hold: hold: only the selected channel sounds; release restores the mutes | `SOL` |
+| `KEY_B06_F#4` | `SET` | hold: hold: only the selected channel sounds; release restores the mutes | `SOL` |
 | `KEY_B06_F#4` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B06_F#4` | `REC` | tap: play F#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B06_F#4` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
 | `KEY_B06_F#4` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
 | `KEY_B06_F#4` | `MENU` | tap/hold: inert while the menu is open | `-` |
-| `KEY_B07_G#4` | `PERF` | hold: hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores; force: aftertouch: depth light..firm = halfway..maximum density; fallback: no force (or FORCE OFF): maximum density | `FILL` |
-| `KEY_B07_G#4` | `NOTE_EDIT` | hold: hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores; force: aftertouch: depth light..firm = halfway..maximum density; fallback: no force (or FORCE OFF): maximum density | `FILL` |
-| `KEY_B07_G#4` | `CHAN` | hold: hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores; force: aftertouch: depth light..firm = halfway..maximum density; fallback: no force (or FORCE OFF): maximum density | `FILL` |
-| `KEY_B07_G#4` | `SET` | hold: hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores; force: aftertouch: depth light..firm = halfway..maximum density; fallback: no force (or FORCE OFF): maximum density | `FILL` |
+| `KEY_B07_G#4` | `PERF` | hold: hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores; force: aftertouch: depth light..firm = halfway..maximum density; fallback: no force (or FORCE OFF): maximum density | `FIL` |
+| `KEY_B07_G#4` | `NOTE_EDIT` | hold: hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores; force: aftertouch: depth light..firm = halfway..maximum density; fallback: no force (or FORCE OFF): maximum density | `FIL` |
+| `KEY_B07_G#4` | `CHAN` | hold: hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores; force: aftertouch: depth light..firm = halfway..maximum density; fallback: no force (or FORCE OFF): maximum density | `FIL` |
+| `KEY_B07_G#4` | `SET` | hold: hold: the selected channel's K1 density goes up while held (force: light = halfway, firm = maximum); release restores; force: aftertouch: depth light..firm = halfway..maximum density; fallback: no force (or FORCE OFF): maximum density | `FIL` |
 | `KEY_B07_G#4` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B07_G#4` | `REC` | tap: play G#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B07_G#4` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
 | `KEY_B07_G#4` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
 | `KEY_B07_G#4` | `MENU` | tap/hold: inert while the menu is open | `-` |
-| `KEY_B08_A#4` | `PERF` | hold: hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm); force: aftertouch: 2x / 3x / 4x by pressure bins; fallback: no force: 2x | `ROLL` |
-| `KEY_B08_A#4` | `NOTE_EDIT` | hold: hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm); force: aftertouch: 2x / 3x / 4x by pressure bins; fallback: no force: 2x | `ROLL` |
-| `KEY_B08_A#4` | `CHAN` | hold: hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm); force: aftertouch: 2x / 3x / 4x by pressure bins; fallback: no force: 2x | `ROLL` |
-| `KEY_B08_A#4` | `SET` | hold: hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm); force: aftertouch: 2x / 3x / 4x by pressure bins; fallback: no force: 2x | `ROLL` |
+| `KEY_B08_A#4` | `PERF` | hold: hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm); force: aftertouch: 2x / 3x / 4x by pressure bins; fallback: no force: 2x | `ROL` |
+| `KEY_B08_A#4` | `NOTE_EDIT` | hold: hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm); force: aftertouch: 2x / 3x / 4x by pressure bins; fallback: no force: 2x | `ROL` |
+| `KEY_B08_A#4` | `CHAN` | hold: hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm); force: aftertouch: 2x / 3x / 4x by pressure bins; fallback: no force: 2x | `ROL` |
+| `KEY_B08_A#4` | `SET` | hold: hold: every step of the selected channel repeats while held (force: 2x light, 3x medium, 4x firm); force: aftertouch: 2x / 3x / 4x by pressure bins; fallback: no force: 2x | `ROL` |
 | `KEY_B08_A#4` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B08_A#4` | `REC` | tap: play A#4 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: landing force picks the written level SOFT 64 / MED 90 / HARD 120 (HARD = accent); fallback: velocity 90, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B08_A#4` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
@@ -614,10 +614,10 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `KEY_B10_D#5` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
 | `KEY_B10_D#5` | `HELP` | tap/hold: explain this key on the page beneath (HOME held); nothing happens | `?` |
 | `KEY_B10_D#5` | `MENU` | tap/hold: inert while the menu is open | `-` |
-| `KEY_B11_F#5` | `PERF` | tap: tap: all channels to step 1 at the next step | `RESTRT` |
-| `KEY_B11_F#5` | `NOTE_EDIT` | tap: tap: all channels to step 1 at the next step | `RESTRT` |
-| `KEY_B11_F#5` | `CHAN` | tap: tap: all channels to step 1 at the next step | `RESTRT` |
-| `KEY_B11_F#5` | `SET` | tap: tap: all channels to step 1 at the next step | `RESTRT` |
+| `KEY_B11_F#5` | `PERF` | tap: tap: all channels to step 1 at the next step | `RST` |
+| `KEY_B11_F#5` | `NOTE_EDIT` | tap: tap: all channels to step 1 at the next step | `RST` |
+| `KEY_B11_F#5` | `CHAN` | tap: tap: all channels to step 1 at the next step | `RST` |
+| `KEY_B11_F#5` | `SET` | tap: tap: all channels to step 1 at the next step | `RST` |
 | `KEY_B11_F#5` | `SCALE` | tap: not used on HARMONY (the KEY is K2) | `-` |
 | `KEY_B11_F#5` | `REC` | tap: play F#5 (+ REC OCT and global OCTAVE) on the selected channel and write it at the cursor / nearest step; release = note off; force: no force on this key; fallback: velocity 90, or 120 with K2 ACC ON | `NOTE` |
 | `KEY_B11_F#5` | `RESET` | tap: inert in RESET (toast NOTHING TO RESET) | `-` |
