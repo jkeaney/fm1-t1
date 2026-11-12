@@ -173,8 +173,8 @@ static void t_rows_1_2(void)
         CHECK(edhash(c) == eh, "algorithm change: edit layer untouched");
         CHECK(cache_matches(c), "after the algorithm round trip the cache is ACID's again"); }
     {   uint8_t c = 2; SeqPreset p; boot_mock();                       /* preset load replaces the edits (the preset carries them) */
-        put_edits(c); sq_preset_save(&p); memset(p.ch[c].ed, 0, sizeof p.ch[c].ed); p.ch[c].ed[5].vel = 99;
-        CHECK(sq_preset_load(&p, 0) == 0, "preset load ok");
+        put_edits(c); sq_preset_save(&p, NULL); memset(p.ch[c].ed, 0, sizeof p.ch[c].ed); p.ch[c].ed[5].vel = 99;
+        CHECK(sq_preset_load(&p, NULL, 0) == 0, "preset load ok");
         CHECK(sq_ch[c].ed[5].vel == 99 && sq_ch[c].ed[6].vel == 0, "preset load: the edits are the preset's"); }
 }
 
@@ -336,53 +336,79 @@ static void t_defaults(void)
     CHECK(p.ch[2].st[2].seed[0] == 0x0D45 && p.ch[3].st[3].seed[2] == 0x1A8A && p.ch[3].st[0].seed[5] == 0x78B8, "SNAKE CH3, STAGE CH4, ACID CH4 seeds");
     /* sq_boot: the live state is the same, the caches are built in buffer 0, s_mod is the default */
     boot_mock();
-    { SeqPreset q; sq_preset_save(&q); CHECK(!memcmp(&p, &q, sizeof p), "sq_boot state == sq_defaults"); }
+    { SeqPreset q; sq_preset_save(&q, NULL); CHECK(!memcmp(&p, &q, sizeof p), "sq_boot state == sq_defaults"); }
     for (int c = 0; c < SQ_NCH; c++) {
         CHECK(sq_cidx[c] == 0 && cache_matches(c), "boot: CH%d cache 0 built for its algorithm", c + 1);
         for (int a = 0; a < SQ_NALGO; a++) CHECK(sq_smod[c][a] == SQ_SMOD_DEFAULT(c) && sq_smod[c][a] != 0, "boot: CH%d s_mod default", c + 1);
     }
     CHECK(sq_gidx == 0 && sq_gdb[0].snap[0] == 0, "gidx 0; snap built"); }
 
+/* ---- ModSave (P4-023): s_mod survives a preset round trip, for every channel and algorithm ---- */
+static void t_modsave(void)
+{   SeqPreset p; ModSave ms[SQ_NCH], back[SQ_NCH];
+    boot_mock();
+    for (int c = 0; c < SQ_NCH; c++) for (int a = 0; a < SQ_NALGO; a++) sq_smod[c][a] = (uint16_t)(0x1234u + 0x0F0Fu * (unsigned)(c * 8 + a) + 0x8001u * (unsigned)(a & 1));
+    sq_preset_save(&p, ms);
+    CHECK(ms[2].smod[2 * 3] == (uint8_t)sq_smod[2][3] && ms[2].smod[2 * 3 + 1] == (uint8_t)(sq_smod[2][3] >> 8) && ms[0].dev == 0 && ms[0].slot[3][2] == 0, "save: little endian bytes, device and slots reserved 0");
+    boot_mock();                                                   /* s_mod back to the defaults */
+    CHECK(sq_smod[1][4] == SQ_SMOD_DEFAULT(1), "boot: defaults before the load");
+    CHECK(sq_preset_load(&p, ms, 0) == 0, "load ok");
+    for (int c = 0; c < SQ_NCH; c++) for (int a = 0; a < SQ_NALGO; a++)
+        CHECK(sq_smod[c][a] == (uint16_t)(0x1234u + 0x0F0Fu * (unsigned)(c * 8 + a) + 0x8001u * (unsigned)(a & 1)), "round trip: CH%d algo %d s_mod kept", c + 1, a);
+    sq_preset_save(&p, back); CHECK(!memcmp(ms, back, sizeof ms), "second save is byte-identical");
+    /* NULL keeps the live s_mod */
+    sq_smod[0][0] = 0x7777; CHECK(sq_preset_load(&p, NULL, 0) == 0 && sq_smod[0][0] == 0x7777, "NULL ModSave keeps the live s_mod");
+    /* queued: the staged cache is built with the staged s_mod; a dice while pending does not survive the landing */
+    boot_mock(); sq_on_start(); sq_now = 0;
+    for (uint32_t t = 0; t < 10; t++) { sq_tick(sq_now); sq_now++; }
+    CHECK(sq_preset_load(&p, ms, 1) == 0 && sq_load_pending == 1, "playing: queued");
+    CHECK(sq_smod[0][0] == SQ_SMOD_DEFAULT(0), "s_mod unchanged until the bar");
+    while (sq_now <= SQ_BAR_TICKS) { sq_tick(sq_now); sq_now++; }
+    sq_chan_sync();
+    for (int c = 0; c < SQ_NCH; c++) CHECK(sq_smod[c][sq_ch[c].algo] == (uint16_t)(0x1234u + 0x0F0Fu * (unsigned)(c * 8 + sq_ch[c].algo) + 0x8001u * (unsigned)(sq_ch[c].algo & 1)) && cache_matches(c), "queued: CH%d s_mod landed, cache matches", c + 1);
+    sq_on_stop(); }
+
 /* ---- presets ---- */
 static void t_preset(void)
-{   SeqPreset a, b, bad; boot_mock();
+{   SeqPreset a, b, bad; ModSave ma[SQ_NCH], mb[SQ_NCH]; boot_mock();
+    CHECK(sizeof(SeqPreset) == 1556 && sizeof ma == 100, "SeqPreset stays 1556 B, ModSave is the 100 B sibling");
     sq_morph_turn(0, 0, -4); sq_dice_all(1); sq_set_algo(2, 0); sq_set_midi(3, 9); sq_set_mute(0, 1); put_edits(2);
-    sq_preset_save(&a);
+    sq_preset_save(&a, ma);
     boot_mock();
-    CHECK(sq_preset_load(&a, 0) == 0, "load ok");
-    sq_preset_save(&b);
-    CHECK(!memcmp(&a, &b, sizeof a), "save -> load -> save round trip is byte-identical");
-    for (int c = 0; c < SQ_NCH; c++) CHECK(cache_matches(c) || c == 1, "after the load CH%d's cache matches its state (CH2's s_mod is not in the preset)", c + 1);
+    CHECK(sq_preset_load(&a, ma, 0) == 0, "load ok");
+    sq_preset_save(&b, mb);
+    CHECK(!memcmp(&a, &b, sizeof a) && !memcmp(ma, mb, sizeof ma), "save -> load -> save round trip is byte-identical");
+    for (int c = 0; c < SQ_NCH; c++) CHECK(cache_matches(c), "after the load CH%d's cache matches its state, s_mod included", c + 1);
     CHECK(sq_load_pending == 0 && irq_depth == 0, "stopped: applied at once, guards balanced");
     /* undo is cleared by a load */
-    boot_mock(); sq_dice_layer(0, 0); sq_preset_load(&a, 0); CHECK(sq_undo(0) == 0, "a load clears the undo records");
-    boot_mock(); sq_set_midi(0, 1); sq_preset_load(&a, 0); CHECK(sq_undo(0) == 0, "and the MIDI record");
+    boot_mock(); sq_dice_layer(0, 0); sq_preset_load(&a, NULL, 0); CHECK(sq_undo(0) == 0, "a load clears the undo records");
+    boot_mock(); sq_set_midi(0, 1); sq_preset_load(&a, NULL, 0); CHECK(sq_undo(0) == 0, "and the MIDI record");
     /* queued: the ISR lands it on the bar */
     boot_mock(); sq_on_start(); sq_now = 0;
     for (uint32_t t = 0; t < 10; t++) { sq_tick(sq_now); sq_now++; }
-    { SeqPreset live0; sq_preset_save(&live0); CHECK(sq_preset_load(&a, 1) == 0 && sq_load_pending == 1, "playing: queued");
-      sq_preset_save(&b); CHECK(!memcmp(&live0, &b, sizeof b), "state unchanged until the bar");
+    { SeqPreset live0; sq_preset_save(&live0, NULL); CHECK(sq_preset_load(&a, NULL, 1) == 0 && sq_load_pending == 1, "playing: queued");
+      sq_preset_save(&b, NULL); CHECK(!memcmp(&live0, &b, sizeof b), "state unchanged until the bar");
       while (sq_now < SQ_BAR_TICKS) { sq_tick(sq_now); sq_now++; }
       CHECK(sq_load_pending == 1 && sq_epoch == 0, "just before the bar still pending");
       sq_tick(sq_now); sq_now++;
       CHECK(sq_load_pending == 0 && sq_epoch == 1, "applied at tick 768");
-      sq_chan_sync(); sq_preset_save(&b); CHECK(!memcmp(&a, &b, sizeof a), "after the bar the state is the preset's");
-      for (int c = 0; c < SQ_NCH; c++) CHECK(cache_matches(c) || c == 1, "queued load: CH%d cache matches", c + 1); }
+      sq_chan_sync(); sq_preset_save(&b, NULL); CHECK(!memcmp(&a, &b, sizeof a), "after the bar the state is the preset's");
+      for (int c = 0; c < SQ_NCH; c++) CHECK(cache_matches(c), "queued load: CH%d cache matches", c + 1); }
     sq_on_stop();
     /* a newer load replaces a pending older one */
     boot_mock(); sq_on_start(); sq_tick(0); sq_now = 1;
-    b = a; b.ch[0].len = 5; sq_preset_load(&a, 1); sq_preset_load(&b, 1);
+    b = a; b.ch[0].len = 5; sq_preset_load(&a, NULL, 1); sq_preset_load(&b, NULL, 1);
     while (sq_now <= SQ_BAR_TICKS) { sq_tick(sq_now); sq_now++; }
     CHECK(sq_ch[0].len == 5, "the newer queued load wins");
     sq_on_stop();
     /* corrupt presets */
-    boot_mock(); sq_preset_save(&b);
-    bad = a; bad.version = 3;  CHECK(sq_preset_load(&bad, 0) == -1, "version 3 rejected");
-    bad = a; bad.version = 0;  CHECK(sq_preset_load(&bad, 0) == -1, "version 0 rejected");
-    bad = a; bad.version = 255; CHECK(sq_preset_load(&bad, 1) == -1, "version 255 rejected");
-    bad = a; bad.ch[2].algo = SQ_NALGO; CHECK(sq_preset_load(&bad, 0) == -1, "algorithm 6 rejected");
-    bad = a; bad.ch[3].algo = 200;      CHECK(sq_preset_load(&bad, 0) == -1, "algorithm 200 rejected");
-    { SeqPreset now; sq_preset_save(&now); CHECK(!memcmp(&b, &now, sizeof b) && sq_load_pending == 0, "a rejected load changes nothing"); }
+    boot_mock(); sq_preset_save(&b, NULL);
+    bad = a; bad.version = 3;  CHECK(sq_preset_load(&bad, NULL, 0) == -1, "version 3 rejected");
+    bad = a; bad.version = 0;  CHECK(sq_preset_load(&bad, NULL, 0) == -1, "version 0 rejected");
+    bad = a; bad.version = 255; CHECK(sq_preset_load(&bad, NULL, 1) == -1, "version 255 rejected");
+    bad = a; bad.ch[2].algo = SQ_NALGO; CHECK(sq_preset_load(&bad, NULL, 0) == -1, "algorithm 6 rejected");
+    bad = a; bad.ch[3].algo = 200;      CHECK(sq_preset_load(&bad, NULL, 0) == -1, "algorithm 200 rejected");
+    { SeqPreset now; sq_preset_save(&now, NULL); CHECK(!memcmp(&b, &now, sizeof b) && sq_load_pending == 0, "a rejected load changes nothing"); }
     /* clamping */
     bad = a;
     bad.bpm = 5; bad.g.key = 40; bad.g.octave = -9; bad.g.scale = 99; bad.g.gate = 0; bad.g.div = 77; bad.g.swing = 200;
@@ -390,7 +416,7 @@ static void t_preset(void)
     bad.ch[1].midi_ch = 4; bad.ch[2].midi_ch = 4; bad.ch[3].midi_ch = 4; bad.ch[1].len = 200; bad.ch[1].st[1].morph[1] = 0;
     bad.ch[2].ed[7].note = 0xFF; bad.ch[2].ed[7].vel = 255; bad.ch[2].ed[7].gr = 0xFF; bad.ch[2].ed[7].fl = 0xFF;
     bad.harm.len = 0x2F; bad.harm.vm = 0xFF; bad.harm.drone = 99; bad.harm.deg[0] = 0xFF; bad.harm.deg[1] = 0xFF; bad.harm.deg[2] = 0xFF; bad.harm.rsv = 5;
-    CHECK(sq_preset_load(&bad, 0) == 0, "out-of-range fields load, clamped");
+    CHECK(sq_preset_load(&bad, NULL, 0) == 0, "out-of-range fields load, clamped");
     CHECK(sq_bpm == 40 && sq_gdb[sq_gidx].s.key == 11 && sq_gdb[sq_gidx].s.octave == -2 && sq_gdb[sq_gidx].s.scale == 15 && sq_gdb[sq_gidx].s.gate == 10 &&
           sq_gdb[sq_gidx].s.div == 5 && sq_gdb[sq_gidx].s.swing == 75, "global fields clamped, bpm 40");
     CHECK(sq_ch[0].midi_ch == SQ_MIDI_OFF && sq_ch[0].len == 1 && sq_ch[0].muted == 1 && sq_ch[0].st[0].morph[0] == 16 && sq_ch[0].pg_used == 0x0F, "CH1: midi 200 -> OFF, len 1, muted 1, morph clamped to max, pg_used & 15");
@@ -430,7 +456,7 @@ static void fuzz(long nticks)
     boot_mock(); fz_s = fz_seed ? fz_seed : 1u; mock_free = 128;
     sq_on_start();
     for (uint8_t c = 0; c < SQ_NCH; c++) { sq_ch[c].pad[0] = (c & 1u) ? 0x80u : 0u; sq_ch[c].muted = 0; }   /* ch 2 and 4 preview; all unmuted */
-    sq_preset_save(&saved);
+    sq_preset_save(&saved, NULL);
     while (done < nticks) {
         uint32_t r = fz_rnd(1000); uint8_t c = (uint8_t)fz_rnd(SQ_NCH); uint32_t eh[SQ_NCH]; const char *what = "tick";
         sq_cur_dbg = sq_now;
@@ -444,13 +470,13 @@ static void fuzz(long nticks)
         else if (r < 215) { sq_set_midi(c, (uint8_t)fz_rnd(19)); what = "midi"; }
         else if (r < 235) { sq_set_algo(c, (uint8_t)fz_rnd(SQ_NALGO + 1)); what = "algo"; }
         else if (r < 255) { sq_set_mute(c, (uint8_t)(fz_rnd(4) == 0)); what = "mute"; }
-        else if (r < 262) { sq_preset_save(&saved); what = "save"; }
-        else if (r < 268) { sq_preset_load(&saved, (uint8_t)fz_rnd(2)); what = "load"; for (int i = 0; i < SQ_NCH; i++) eh[i] = edhash((uint8_t)i); }
+        else if (r < 262) { sq_preset_save(&saved, NULL); what = "save"; }
+        else if (r < 268) { sq_preset_load(&saved, NULL, (uint8_t)fz_rnd(2)); what = "load"; for (int i = 0; i < SQ_NCH; i++) eh[i] = edhash((uint8_t)i); }
         else if (r < 272) {                                            /* random junk: must be rejected or clamped into a valid state */
             uint8_t *p = (uint8_t *)&junk; for (size_t i = 0; i < sizeof junk; i++) p[i] = (uint8_t)fz_rnd(256);
             for (int k = 0; k < SQ_NCH; k++) junk.ch[k].pad[0] = sq_ch[k].pad[0];   /* a preview toggle mid-note is the preview task's (P2-024), not this API's */
             if (fz_rnd(4)) { junk.version = 4; for (int k = 0; k < SQ_NCH; k++) junk.ch[k].algo = (uint8_t)fz_rnd(SQ_NALGO + (fz_rnd(8) == 0)); }
-            sq_preset_load(&junk, (uint8_t)fz_rnd(2)); what = "junk load"; for (int i = 0; i < SQ_NCH; i++) eh[i] = edhash((uint8_t)i); }
+            sq_preset_load(&junk, NULL, (uint8_t)fz_rnd(2)); what = "junk load"; for (int i = 0; i < SQ_NCH; i++) eh[i] = edhash((uint8_t)i); }
         else if (r < 280) { sq_req |= (r & 1u) ? SQ_REQ_STOP : SQ_REQ_START; }
         else if (r < 285) { if (!sq_load_pending && sq_playing) put_edits(c); for (int i = 0; i < SQ_NCH; i++) eh[i] = edhash((uint8_t)i); }
         if (what[0] != 't' && what[0] != 'l' && what[0] != 'j' && what[0] != 's' && what[0] != 'u')   /* morph / dice / midi / algo / mute never touch edits */
@@ -486,7 +512,7 @@ static void t_rot(void)
 int main(int argc, char **argv)
 {   if (argc > 1) fz_seed = (uint32_t)strtoul(argv[1], NULL, 0);
     printf("sq_chan channel state API\n");
-    t_rows_1_2(); t_morph(); t_undo(); t_midi(); t_algo(); t_rebuild(); t_defaults(); t_preset(); t_rot();
+    t_rows_1_2(); t_morph(); t_undo(); t_midi(); t_algo(); t_rebuild(); t_defaults(); t_modsave(); t_preset(); t_rot();
     fuzz(100000);
     printf("%s\n", fails ? "SQ_CHAN FAIL" : "SQ_CHAN PASS");
     return fails ? 1 : 0; }

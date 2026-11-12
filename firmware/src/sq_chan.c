@@ -11,7 +11,7 @@
  * What the API never touches: ChanSave.ed[] (SEQUENCER_UX 1.2: a dice, a morph or an algorithm change rewrites the generated layer
  * only), ChanRT, the event queue, sq_emit. Only a preset load replaces the edits.
  *
- * Not modelled here (other tasks): ModSave beyond the one s_mod per channel and algorithm the dice needs (P4-023), the CRC (storage
+ * Not modelled here (other tasks): ModSave's device and slots (the MOD tasks; their 13 B are reserved zero), the CRC (storage
  * layer, P7), HARMONY's use of HarmonySave (stored and validated only), the reset family and the edit-layer writers (P4-006 / P6). */
 
 #ifndef SQ_IRQ_OFF
@@ -29,13 +29,23 @@
 static UndoRec     sq_undo_rec[SQ_NCH];  /* one record per channel (decision 46); what == 0 = empty */
 static UndoMidi    sq_um;                /* the MIDI-reassignment record (SEQUENCER_UX 4.4); latest while sq_um_valid */
 static uint8_t     sq_um_valid;
-static uint16_t    sq_smod[SQ_NCH][SQ_NALGO];   /* s_mod: ModSave holds it (MODULATION 7); the dice and undo need it before P4-023 */
+static uint16_t    sq_smod[SQ_NCH][SQ_NALGO];   /* s_mod, one per channel and algorithm; saved and loaded as ModSave (P4-023) */
+
+/* ModSave (MODULATION 7): 25 B per channel, a SIBLING array of SeqPreset (ADR-0003 22: 1556 + 100 = a 1656 B slot), so sizeof(SeqPreset)
+ * is untouched. dev and slot[] (the MOD device and its four slots) are the MOD tasks'; here they are reserved and load as 0. */
+typedef struct {
+    uint8_t  dev;
+    uint8_t  slot[4][3];           /* param, level, depth */
+    uint8_t  smod[2 * SQ_NALGO];   /* s_mod of each algorithm, little endian bytes (keeps the struct 25 B, no padding) */
+} ModSave;
+_Static_assert(sizeof(ModSave) == 25, "ModSave");
 static HarmonySave sq_harm;
 static uint16_t    sq_bpm = SQ_BPM_DEFAULT;
 static uint16_t    sq_dice_n;            /* counts dice: keeps two dice at the same sample count different */
 static uint8_t     sq_seen_epoch;        /* sq_chan_sync: the epoch the undo records were last cleared for */
 static HarmonySave sq_stage_harm;        /* a queued load's HARMONY and BPM, applied by sq_chan_sync when the ISR lands the load */
 static uint16_t    sq_stage_bpm;
+static uint16_t    sq_stage_smod[SQ_NCH][SQ_NALGO];   /* a queued load's s_mod; the staged caches are built from it, sq_chan_sync takes it */
 static uint8_t     sq_stage_valid;
 
 static void sq_chan_sync(void);
@@ -43,11 +53,11 @@ static void sq_chan_sync(void);
 /* ------------------------------------------------------------------ rebuild (ADR-0003 6) */
 
 /* Build channel c's algorithm into cache buffer `buf` for global g. The seventh slot is s_mod. */
-static void sq_build_buf(uint8_t c, uint8_t buf, const SeqGlobal *g, const ChanSave *cs)
+static void sq_build_buf(uint8_t c, uint8_t buf, const SeqGlobal *g, const ChanSave *cs, const uint16_t *smod)
 {   const AlgoDesc *a = &ALGOS[cs->algo];
     uint16_t sd[SQ_NSEED + 1];
     for (uint8_t i = 0; i < SQ_NSEED; i++) sd[i] = cs->st[cs->algo].seed[i];
-    sd[SQ_SEED_MOD] = sq_smod[c][cs->algo];
+    sd[SQ_SEED_MOD] = smod[cs->algo];
     a->build(cs->st[cs->algo].morph, sd, g, sq_cache[c][buf]);
     sq_calgo[c][buf] = cs->algo; }
 
@@ -61,7 +71,7 @@ static uint8_t sq_rebuild(uint8_t ch)
         if (sq_load_pending) return 0;
         ep = sq_epoch;
         buf = (uint8_t)(sq_cidx[ch] ^ 1u);
-        sq_build_buf(ch, buf, &sq_gdb[sq_gidx], &sq_ch[ch]);
+        sq_build_buf(ch, buf, &sq_gdb[sq_gidx], &sq_ch[ch], sq_smod[ch]);
         SQ_IRQ_OFF();
         ok = (uint8_t)(ep == sq_epoch && !sq_load_pending);
         if (ok) sq_cidx[ch] = buf;
@@ -247,7 +257,7 @@ static void sq_boot(void)
     for (uint8_t c = 0; c < SQ_NCH; c++) {
         sq_default_chan(c, &sq_ch[c]);
         for (uint8_t a = 0; a < SQ_NALGO; a++) sq_smod[c][a] = SQ_SMOD_DEFAULT(c);
-        sq_build_buf(c, 0, &sq_gdb[0], &sq_ch[c]);
+        sq_build_buf(c, 0, &sq_gdb[0], &sq_ch[c], sq_smod[c]);
         sq_cidx[c] = 0;
     }
     memset(sq_rt, 0, sizeof sq_rt);
@@ -256,8 +266,10 @@ static void sq_boot(void)
 
 /* ------------------------------------------------------------------ presets (ADR-0003 10; RAM only) */
 
-static int sq_preset_save(SeqPreset *out)
-{   memset(out, 0, sizeof *out);
+/* ms: the sibling ModSave array (SQ_NCH entries) or NULL to skip it. */
+static int sq_preset_save(SeqPreset *out, ModSave *ms)
+{   if (ms) for (uint8_t c = 0; c < SQ_NCH; c++) { memset(&ms[c], 0, sizeof ms[c]); for (uint8_t a = 0; a < SQ_NALGO; a++) { ms[c].smod[2 * a] = (uint8_t)sq_smod[c][a]; ms[c].smod[2 * a + 1] = (uint8_t)(sq_smod[c][a] >> 8); } }
+      memset(out, 0, sizeof *out);
     out->version = SQ_PRESET_VERSION; out->flags = 0; out->bpm = sq_bpm;
     out->g = sq_gdb[sq_gidx].s;
     for (uint8_t c = 0; c < SQ_NCH; c++) out->ch[c] = sq_ch[c];
@@ -283,8 +295,8 @@ static void sq_clean_edit(StepEdit *e)                               /* SEQUENCE
 /* Validate and clamp `in` into the staging copies (ADR-0003 10). Rejects (returns -1, nothing touched) a wrong version or an algorithm
  * id out of range: those cannot be clamped into something meaningful. Everything else is clamped; channels sharing a non-OFF MIDI channel
  * keep it on the lowest-numbered one only. when 0: applied at once (under the ISR guard); when 1: queued to the next 768-tick bar
- * (applied at once if stopped). The caches are built into the inactive buffers first; sq_load_pending is set last. */
-static int sq_preset_load(const SeqPreset *in, uint8_t when)
+ * (applied at once if stopped). ms (SQ_NCH entries) carries s_mod; NULL keeps the live s_mod. The caches are built into the inactive buffers first; sq_load_pending is set last. */
+static int sq_preset_load(const SeqPreset *in, const ModSave *ms, uint8_t when)
 {   SeqGlobal *sg;
     if (in->version != SQ_PRESET_VERSION) return -1;
     for (uint8_t c = 0; c < SQ_NCH; c++) if (in->ch[c].algo >= SQ_NALGO) return -1;
@@ -299,6 +311,8 @@ static int sq_preset_load(const SeqPreset *in, uint8_t when)
     sg->s.div = sq_clamp8(sg->s.div, 0, 5);
     sg->s.swing = sq_clamp8(sg->s.swing, 50, 75);
     sq_gbuild(sg);
+    for (uint8_t c = 0; c < SQ_NCH; c++)
+        for (uint8_t a = 0; a < SQ_NALGO; a++) sq_stage_smod[c][a] = ms ? (uint16_t)(ms[c].smod[2 * a] | ms[c].smod[2 * a + 1] << 8) : sq_smod[c][a];
     for (uint8_t c = 0; c < SQ_NCH; c++) {
         ChanSave *s = &sq_stage_ch[c];
         *s = in->ch[c];
@@ -313,7 +327,7 @@ static int sq_preset_load(const SeqPreset *in, uint8_t when)
             for (uint8_t i = 0; i < SQ_NMORPH; i++)
                 s->st[a].morph[i] = sq_clamp8(s->st[a].morph[i], ALGOS[a].morph[i].min, ALGOS[a].morph[i].max);
         for (uint8_t i = 0; i < SQ_NSTEP; i++) sq_clean_edit(&s->ed[i]);
-        sq_build_buf(c, (uint8_t)(sq_cidx[c] ^ 1u), sg, s);
+        sq_build_buf(c, (uint8_t)(sq_cidx[c] ^ 1u), sg, s, sq_stage_smod[c]);
     }
     sq_stage_bpm = in->bpm < 40u ? 40u : in->bpm > 240u ? 240u : in->bpm;
     sq_stage_harm = in->harm;
@@ -342,6 +356,6 @@ static void sq_chan_sync(void)
     sq_seen_epoch = sq_epoch;
     memset(sq_undo_rec, 0, sizeof sq_undo_rec);
     sq_um_valid = 0;
-    if (sq_stage_valid) { sq_harm = sq_stage_harm; sq_bpm = sq_stage_bpm; sq_stage_valid = 0; }
-    for (uint8_t c = 0; c < SQ_NCH; c++) (void)sq_rebuild(c);        /* s_mod is not in the preset: a dice or undo while the load was pending changed it, the staged cache never saw it */
+    if (sq_stage_valid) { sq_harm = sq_stage_harm; sq_bpm = sq_stage_bpm; memcpy(sq_smod, sq_stage_smod, sizeof sq_smod); sq_stage_valid = 0; }
+    for (uint8_t c = 0; c < SQ_NCH; c++) (void)sq_rebuild(c);        /* a dice or undo while the load was pending changed s_mod; the staged smod replaced it above */
 }
