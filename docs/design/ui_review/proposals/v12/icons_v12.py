@@ -146,3 +146,5 @@ ICONS["dice_hits"] = die("""
 
 from el import IC as _IC
 ICONS["spkx"] = _IC["spkx"]   # the muted speaker (el.py), for the remove-channel hold
+for _n in ("left", "right", "rst"):   # P4-029: the black-key glyphs PG- PG+ RST / BACK (el.py), so the firmware table has them too
+    ICONS[_n] = _IC[_n]

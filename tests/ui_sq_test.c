@@ -11,7 +11,7 @@
  *     tests/design/widths.tsv against its limit, and the cue / toast strings against the Z6 width;
  *   - redraw by signature: nothing is blitted twice for an unchanged state, ui.force redraws everything, a state change redraws only
  *     the blit it belongs to;
- *   - the toast: 2000 ms, same text restarts, new text replaces, dropped while HOME is held, never queued.
+ *   - the toast: 1000 ms (SCREEN_SPEC_V2 5.1), same text restarts, new text replaces, dropped while HOME is held, never queued.
  *   cc -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o /tmp/ui_sq_test tests/ui_sq_test.c -lm && /tmp/ui_sq_test [outdir]
  * Run from the repo root (it reads tests/design/widths.tsv). */
 #include <stdio.h>
@@ -309,13 +309,15 @@ int main(int argc, char **argv)
     uisq_sel = 0; uisq_page = UI_PG_PERF; sq_playing = 1; sq_rt[0].p = 6; fresh();
     CHECK(blits == 2, "the first frame draws the two strips, drew %d", blits);
     shot("frame_playing", 0, 0, 240, 240);
-    { /* the empty frame of `playing`: the boxes of SCREEN_SPEC_V2 2 hold their colour, their surround is BG */
+    { /* the empty frame of `playing` (uisq_draw_frame alone: the elements draw over it, tests/ui_sq_v12_test.c proves those): the boxes of SCREEN_SPEC_V2 2 hold their colour, their surround is BG */
       const uint16_t bg = swap16(T_BG), sf = swap16(T_SURF), dc = swap16(T_DICE), rs = swap16(T_RAISE);
 #define PX(x, y) fb[(y) * 240 + (x)]
       for (int k = 0; k < 4; k++) {
           const int x = 1 + 60 * k;
           CHECK(PX(x, 24) == sf && PX(x + 57, 39) == sf && PX(x, 41) == sf && PX(x + 57, 41) == sf, "knob tile %d: label band 24-39 and value area 41-76 are T_SURF (the corners; the meter fills from the bottom)", k);
           CHECK(PX(x + 20, 40) == bg && PX(x + 20, 23) == bg && PX(x + 20, 77) == bg && (x == 1 || PX(x - 1, 50) == bg) && PX(x + 58, 50) == bg, "knob tile %d: 1 px gap and BG surround", k); }
+      /* the knob tiles above are checked on the full frame; the tiles and keys below on the frame alone */
+      for (int st = 0; st < 2; st++) { cv_begin(240, 120, T_BG); cv_oy = -120 * st; uisq_draw_frame(); cv_oy = 0; cv_blit(0, (uint32_t)(120 * st)); }
       for (int i = 0; i < 12; i++) {
           const int x = 1 + 40 * (i % 6), y = 146 + 18 * (i / 6);
           const uint16_t want = uisq_btn_dice[i] ? dc : sf;
@@ -350,10 +352,10 @@ int main(int argc, char **argv)
     /* ---- the toast ---- */
     blits = blit_a = blit_b = blit_c = 0; fm1_ms = 5000;
     ui_sq_toast("SAVED P05"); frame(); CHECK(blit_a == 1 && blit_b == 0, "a toast redraws strip 0 (the message slot) only: A%d B%d", blit_a, blit_b);
-    { uint16_t id = uisq_toast_id; fm1_ms += 1000; ui_sq_toast("SAVED P05"); CHECK(uisq_toast_id == id, "the same text only restarts the timer");
+    { uint16_t id = uisq_toast_id; fm1_ms += 500; ui_sq_toast("SAVED P05"); CHECK(uisq_toast_id == id, "the same text only restarts the timer");
       ui_sq_toast("UNDO: pattern"); CHECK(uisq_toast_id != id && uisq_streq(uisq_toast, "UNDO: pattern"), "a new text replaces the one showing (no queue)"); }
-    fm1_ms += 1950; frame(); CHECK(uisq_toast_until != 0, "the toast is still up 1967 ms after it was raised");
-    fm1_ms += 40; frame(); CHECK(uisq_toast_until == 0, "the toast is gone 2000 ms after it was raised");
+    fm1_ms += 950; frame(); CHECK(uisq_toast_until != 0, "the toast is still up 967 ms after it was raised");
+    fm1_ms += 40; frame(); CHECK(uisq_toast_until == 0, "the toast is gone 1000 ms after it was raised");
     ui_sq_home_held_set(1); ui_sq_toast("HOME"); CHECK(uisq_toast_until == 0, "a toast raised while HOME is held is dropped"); ui_sq_home_held_set(0);
     ui_sq_toast("P3 READS 17-32: NO PAGE PLAYS IT"); frame(); CHECK(W(uisq_toast) <= 236, "the longest locked toast fits");
     uisq_toast_until = 0;

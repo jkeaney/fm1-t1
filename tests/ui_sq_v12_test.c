@@ -1,9 +1,9 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
-/* ui_sq_v12_test.c (P4-028): the screen v2 elements of firmware/src/ui_sq.c (header, knob tiles, status line, music row; SCREEN_SPEC_V2 4.1-4.4)
+/* ui_sq_v12_test.c (P4-028, P4-029): the screen v2 elements of firmware/src/ui_sq.c (header, knob tiles, status line, music row, buttons, keybed, footer and
+ * message slot; SCREEN_SPEC_V2 4.1-4.6 and 5)
  * drawn on the host for every scene of the v12 mock (docs/design/ui_review/proposals/v12/v12.py, exported to build/gen/v12_scenes.h by
  * tests/v12_export.py). The real ui_sq.c draws each scene from a UisqView built from the exported scene data; the 240x240 frames go to
- * build/ui_sq/v12/<scene>.png and tests/v12_compare.py compares them with the mock's renders (the elements of this task only: y 0-141, the message
- * slot masked in the scenes that have a message). The algorithm rows are the mock's (knob_map.tsv) except ACID, which is the firmware's own row.
+ * build/ui_sq/v12/<scene>.png and tests/v12_compare.py compares them with the mock's renders (the whole 240 x 240 frame). The algorithm rows are the mock's (knob_map.tsv) except ACID, which is the firmware's own row.
  * This file also asserts uisq_view_fill() (the state -> view mapping) and that no algorithm is named by the screen code.
  *   cc -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o /tmp/ui_sq_v12_test tests/ui_sq_v12_test.c -lm && /tmp/ui_sq_v12_test [outdir]
  * Run from the repo root after tests/v12_export.py and ./build.sh (needs build/gen). */
@@ -148,6 +148,10 @@ static void scene_view(UisqView *v, const V12Scene *s)
     heard_byte = s->heard; v->cache = &heard_byte;
     uisq_view_texts(v);
     v->preset = s->preset; v->pend = s->pend; v->pages = s->pages; v->vpage = s->vpage; v->ppage = s->ppage; v->follow_off = s->follow_off;
+    v->btn_lit = s->lit >= 0 ? (uint16_t)(1u << s->lit) : 0u; v->btn_dim = uisq_btn_dimmask(a);
+    v->held_m = s->held_m; v->held_mv = s->held_mv; v->cue = s->cue;
+    v->msg.kind = s->mk; v->msg.chip = s->mchip; v->msg.icon = s->micon; v->msg.frac = s->mfrac;
+    strcpy(v->msg.a, s->ma); strcpy(v->msg.b, s->mb);
     v->ph = s->ph; v->len16 = s->len16; v->cursor = s->cursor; v->diced = s->diced;
     for (int i = 0; i < 16; i++) {
         const V12Step *p = &s->lane[s->sel][i];
@@ -246,6 +250,62 @@ int main(int argc, char **argv)
         CHECK(v.turn == 2, "a touched knob is the turning one");
         CHECK(v.turn_old == (uint8_t)(100u * (uint32_t)(old - v.tile[1]->min) / (uint32_t)(v.tile[1]->max - v.tile[1]->min)), "the ticks sit at the level before the turn (%d)", v.turn_old);
         uisq_now += UISQ_HOT_MS + 1; uisq_view_fill(&v); CHECK(v.turn == 0, "the turning frame ends %d ms after the last detent", UISQ_HOT_MS); } }
+
+    /* ---- P4-029: buttons, keybed, footer, message slot ---- */
+    { UisqView v;
+      /* the generated message table: every row fits the slot by the rule of SCREEN_SPEC_V2 5 (tools/gen_ui_tables.py proves it at build time; the same rule here, on the real fonts) */
+      CHECK(UI_N_MSG == UI_MSG_COUNT && UI_N_MSG >= 30, "the message table has %d rows", UI_N_MSG);
+      for (int i = 0; i < UI_N_MSG; i++) {
+          const char *a = ui_msgs[i].a, *b = ui_msgs[i].b;
+          const int ma = text_w(&AF_M, a) < text_w(&AF_S, a) ? text_w(&AF_M, a) : text_w(&AF_S, a), mb = text_w(&AF_M, b) < text_w(&AF_S, b) ? text_w(&AF_M, b) : text_w(&AF_S, b);
+          int need = ui_msgs[i].kind == UI_MK_TOUCH ? text_w(&AF_S, a) + 6 + 8 + mb : ui_msgs[i].kind == UI_MK_HOLD ? 22 + ma : 3 + 17 + ma + 6 + text_w(&AF_S, b) + 3;
+          CHECK(need <= 136, "message %d `%s` `%s` needs %d of 136 px", i, a, b, need); }
+      CHECK(text_w(&AF_M, uisq_foot_cue) + text_w(&AF_M, "CH4") + 8 <= 240 && text_w(&AF_M, uisq_foot_rec) + text_w(&AF_S, uisq_foot_done) + 4 <= 240 &&
+            text_w(&AF_M, uisq_foot_midi) + text_w(&AF_M, uisq_foot_back) + 4 <= 240 && text_w(&AF_M, uisq_foot_steps) + text_w(&AF_M, uisq_foot_edit) + 4 <= 240, "the footer lines fit 240 px");
+      /* hold times come from the TSVs: EDIT / GLO 0.4 s, SAVE 0.7 s, the keys 0.4 s; HOME acts on release */
+      CHECK(uisq_hold_ms(UI_C_B_EDIT) == 400 && uisq_hold_ms(UI_C_B_GLO) == 400 && uisq_hold_ms(UI_C_B_SAVE) == 700 && uisq_hold_ms(UI_C_KEY_B04_CS4) == 400 && uisq_hold_ms(UI_C_B_HOME) == 0,
+            "hold times: EDIT %d GLO %d SAVE %d HOME %d", uisq_hold_ms(UI_C_B_EDIT), uisq_hold_ms(UI_C_B_GLO), uisq_hold_ms(UI_C_B_SAVE), uisq_hold_ms(UI_C_B_HOME));
+      /* timing and priority of the slot */
+      fm1_ms = 10000; uisq_now = fm1_ms; uisq_home_held = 0; uisq_toast_until = uisq_touch_until = 0; uisq_hold_on = uisq_touch_held = 0; uisq_touch_a[0] = 0;
+      uisq_page = UI_PG_PERF;
+      uisq_msg_pick(&v.msg, fm1_ms, uisq_page, 0); CHECK(v.msg.kind == UI_MK_NONE, "an idle slot is empty");
+      uisq_page = UI_PG_CHAN; uisq_msg_pick(&v.msg, fm1_ms, uisq_page, 1); CHECK(v.msg.kind == UI_MK_TOUCH && !strcmp(v.msg.a, "CHN") && !strcmp(v.msg.b, "CH2 SETUP"), "the CHAN page names itself: `%s %s`", v.msg.a, v.msg.b);
+      uisq_page = UI_PG_PERF;
+      ui_sq_toast_id(UI_MSG_TOAST_NOTES_EDIT_UNDO, 0);
+      uisq_msg_pick(&v.msg, fm1_ms, uisq_page, 0); CHECK(v.msg.kind == UI_MK_TOAST && v.msg.chip == 1 && !strcmp(v.msg.a, "NOTES") && !strcmp(v.msg.b, "EDIT=UNDO"), "a toast: [1] NOTES EDIT=UNDO");
+      uisq_page = UI_PG_CHAN; uisq_msg_pick(&v.msg, fm1_ms, uisq_page, 0); CHECK(v.msg.kind == UI_MK_TOAST, "a toast outranks the page title"); uisq_page = UI_PG_PERF;
+      uisq_msg_pick(&v.msg, fm1_ms + 999, uisq_page, 0); CHECK(v.msg.kind == UI_MK_TOAST, "the toast is up at 999 ms");
+      uisq_msg_pick(&v.msg, fm1_ms + 1000, uisq_page, 0); CHECK(v.msg.kind == UI_MK_NONE, "the toast is gone at 1000 ms");
+      ui_sq_touch_id(UI_MSG_ENC_SELECT_CH2_EUCLID, 0);
+      uisq_msg_pick(&v.msg, fm1_ms, uisq_page, 0); CHECK(v.msg.kind == UI_MK_TOUCH && !strcmp(v.msg.a, "SELECT"), "a touched control outranks a toast (the toast is still pending)");
+      uisq_msg_pick(&v.msg, fm1_ms + 1000, uisq_page, 0); CHECK(v.msg.kind == UI_MK_NONE, "a touched control is named ~1 s after the last touch (the toast ended too)");
+      ui_sq_touch("SOLO", "CH1 SOLO", 1);
+      uisq_msg_pick(&v.msg, fm1_ms + 5000, uisq_page, 0); CHECK(v.msg.kind == UI_MK_TOUCH, "a held key stays named until let go");
+      fm1_ms += 5000; ui_sq_touch_end(); uisq_msg_pick(&v.msg, fm1_ms + 999, uisq_page, 0); CHECK(v.msg.kind == UI_MK_TOUCH, "... and 1 s after");
+      uisq_msg_pick(&v.msg, fm1_ms + 1000, uisq_page, 0); CHECK(v.msg.kind == UI_MK_NONE, "... then it goes");
+      ui_sq_toast_id(UI_MSG_TOAST_UNDO_EDIT_REDO, 2); ui_sq_touch("PRESETS", "P02 AT BAR", 0);
+      ui_sq_hold_ctl(UI_MSG_HOLD_RESET, SQI_UNDO, UI_C_B_EDIT);
+      uisq_msg_pick(&v.msg, fm1_ms + 249, uisq_page, 0); CHECK(v.msg.kind == UI_MK_TOUCH, "a hold shows nothing before 0.25 s");
+      uisq_msg_pick(&v.msg, fm1_ms + 250, uisq_page, 0); CHECK(v.msg.kind == UI_MK_HOLD && !strcmp(v.msg.a, "RESET") && v.msg.icon == SQI_UNDO && v.msg.frac == 62, "from 0.25 s the hold hint outranks all (bar %d%% of the 0.4 s EDIT hold)", v.msg.frac);
+      uisq_msg_pick(&v.msg, fm1_ms + 400, uisq_page, 0); CHECK(v.msg.frac == 100, "the bar is full at the fire time");
+      ui_sq_hold_end(); ui_sq_hold_ctl(UI_MSG_HOLD_HELP_MENU, SQI_HOME, UI_C_B_HOME);
+      uisq_msg_pick(&v.msg, fm1_ms + 300, uisq_page, 0); CHECK(v.msg.kind == UI_MK_HOLD && v.msg.frac == 100, "HOME acts on release: a full bar");
+      ui_sq_hold_end(); ui_sq_hold_begin("REMOVE CH4", SQI_SPKX, UISQ_REMOVE_MS);
+      uisq_msg_pick(&v.msg, fm1_ms + 750, uisq_page, 0); CHECK(v.msg.frac == 50, "the remove hold's bar is half full at 0.75 s of 1.5 s, got %d", v.msg.frac);
+      ui_sq_hold_end(); uisq_touch_until = uisq_toast_until = 0;
+      /* the message slot belongs to strip 0 only */
+      { UisqView a, b; uisq_view_fill(&a); ui_sq_toast_msg(0xFF, "PAGE 2?", "PG+=ADD"); uisq_view_fill(&b);
+        CHECK(uisq_view_sig(&a) == uisq_view_sig(&b) && uisq_msg_sig(&a) != uisq_msg_sig(&b), "a toast changes the slot's signature only (strip 1 is not redrawn)"); uisq_toast_until = 0; }
+      /* the view fill: buttons, keybed, cue */
+      uisq_sel = 0; sq_ch[0].midi_ch = 1; uisq_new = 0; uisq_btn_down = 0; ui_sq_btn_down(4, 1); ui_sq_held_m_set(2); ui_sq_held_mv_set(3);
+      uisq_view_fill(&v);
+      CHECK(v.btn_lit == 0x10 && v.held_m == 2 && v.held_mv == 3 && v.cue == 0, "fill: EDIT pressed, M2 and ROL held, no setup cue for a channel with a MIDI channel");
+      ui_sq_btn_down(4, 0); ui_sq_held_m_set(0); ui_sq_held_mv_set(0);
+      ui_sq_new_set(0, 1); uisq_view_fill(&v); CHECK(v.cue == 1, "fill: a new channel shows the setup cue");
+      ui_sq_new_set(0, 0); sq_ch[0].midi_ch = SQ_MIDI_OFF; uisq_view_fill(&v); CHECK(v.cue == 1, "fill: MIDI OFF shows the setup cue");
+      sq_ch[0].midi_ch = 1; uisq_view_fill(&v); CHECK(v.cue == 0, "fill: the cue clears when the channel gets a MIDI channel");
+      CHECK(uisq_btn_dimmask(&ALGO_DEMO) == (1u << 2), "DEMO lacks ACCNT: only the ENV die is dim (mask %x)", uisq_btn_dimmask(&ALGO_DEMO));
+      CHECK(uisq_btn_dimmask(&ALGOS[1]) == 0, "an algorithm with all layers dims nothing"); }
 
     /* ---- no algorithm is named by the screen code ---- */
     { FILE *f = fopen("firmware/src/ui_sq.c", "r"); char ln[600]; int hits = 0;

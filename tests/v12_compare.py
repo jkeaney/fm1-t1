@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""v12_compare.py (P4-028): compares the host renders of ui_sq.c (build/ui_sq/v12/<scene>.png, tests/ui_sq_v12_test.c) with the v12 mock.
+"""v12_compare.py (P4-028, P4-029): compares the host renders of ui_sq.c (build/ui_sq/v12/<scene>.png, tests/ui_sq_v12_test.c) with the v12 mock.
 
    python3 tests/v12_compare.py [renders_dir]
 
-Two references, both pixel for pixel on the elements of P4-028 (header, knob tiles, status line, music row: y 0-141 of a scene, the message slot
-x 104-239 y 0-21 masked in the scenes that show a message; the buttons, keybed and footer are P4-029; the knob sheets whole):
+Two references, both pixel for pixel over the WHOLE 240 x 240 frame of a scene (header, knob tiles, status line, music row, buttons, keybed, footer and
+message slot: P4-028 + P4-029; the knob sheets whole):
   1. the mock re-rendered NOW from v12.py with the repo's fonts (build/ui_sq/v12_ref): must match exactly, bar the one listed difference below;
   2. the committed goldens docs/design/ui_review/proposals/v12/out/*.png: reported, and it fails only on a difference that is not text anti-aliasing
      (the goldens were rendered with an earlier text placement of the mock: 0-4 % of the pixels of a scene differ, always inside glyphs).
@@ -23,7 +23,7 @@ SCENES = os.path.join(ROOT, "build", "gen", "v12_scenes.h")
 def names():
     import re
     txt = open(SCENES).read()
-    sc = re.findall(r'\{ \.name = "(\w+)", \.msg = (\d)', txt)
+    sc = [(n, 0) for n in re.findall(r'\{ \.name = "(\w+)",', txt) if not n.startswith("sheet_")]
     sh = re.findall(r'\{ "(sheet_\w+)", \d, \d', txt)
     return sc, sh
 
@@ -73,7 +73,7 @@ def main():
         mine = Image.open(os.path.join(out, name + ".png")).convert("RGB")
         regen = Image.open(os.path.join(ref, "v12_%s.png" % name)).convert("RGB")
         gold = Image.open(os.path.join(V12, "out", "v12_%s.png" % name)).convert("RGB")
-        y1 = 240 if sheet else 142
+        y1 = 240
         sel = 0 if sheet else sel_of(txt, name)
         a, b, g = px(mine), px(regen), px(gold)
         bad_regen = tol = bad_gold = 0

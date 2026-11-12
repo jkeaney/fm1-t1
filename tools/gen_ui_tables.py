@@ -262,8 +262,11 @@ def build():
     for r in km:
         if names is not None and r["context"] not in ok_ctx:
             bad("%s: unknown context %r (not * or an SQ_ALGO_ name of sq_types.h: %s)" % (r["_at"], r["context"], " ".join(sorted(names))))
+    msgs = load_messages()
+    if msgs is None:
+        bad("MESSAGES not found in %s" % os.path.relpath(MOCK_V12, ROOT))
     return dict(ps=ps, cm=cm, bm=bm, km=km, ky=ky, ht=ht, pages=pages, ctls=ctls, knobs=knobs, ctxs=ctxs,
-                labels=labels)
+                labels=labels, msgs=msgs or [])
 
 
 # ---- P4-027 (ADR-0007): the algorithm-descriptor check -------------------------------------------------------------------------------------
@@ -597,6 +600,26 @@ def emit(t):
           [("", "uint8_t ctl"), ("", "uint8_t page"), ("", "const char *line1"), ("", "const char *line2")],
           [["UI_C_" + ident(r["control"]), "UI_PG_" + ident(r["context"]), cstr(r["line1"]), cstr(r["line2"])]
            for r in t["ht"]], "UI_N_HELP_TEXT")
+    # P4-029: the message slot (SCREEN_SPEC_V2 5). Every string of MESSAGES (mock v12.py) is a row; the widths are proved by algo_check above.
+    mk = {"toast": "UI_MK_TOAST", "enc": "UI_MK_TOUCH", "hold": "UI_MK_HOLD"}
+    ids = enum("UI_MSG_", ["%s_%s_%s" % (m[0], m[1], m[2]) for m in t["msgs"]], "messages")
+    for m in t["msgs"]:
+        if m[0] not in mk:
+            bad("MESSAGES: unknown kind %r" % (m[0],))
+    L += ["/* the message slot: kind (toast / touched control / hold hint), the word or printed name, the hint or what it does now */",
+          "typedef enum { UI_MK_NONE = 0, UI_MK_TOAST, UI_MK_TOUCH, UI_MK_HOLD } ui_mkind_t;", "typedef enum {"]
+    L += ["    %s%s" % (n, " = 0," if i == 0 else ",") for i, n in enumerate(ids)]
+    L += ["    UI_MSG_COUNT", "} ui_msg_id_t;"]
+    table("ui_msgs", "ui_msg_row_t", [("", "uint8_t kind"), ("", "const char *a"), ("", "const char *b")],
+          [[mk.get(m[0], "UI_MK_NONE"), cstr(m[1]), cstr(m[2])] for m in t["msgs"]], "UI_N_MSG")
+    # hold times: the "0.4 s" of a PERF hold row of button_modes.tsv / key_map.tsv (the hint's bar fills to it); a control without one acts on release
+    holds = []
+    for rows, key in ((t["bm"], "control"), (t["ky"], "key")):
+        for r in rows:
+            m = re.match(r"(?:held )?(\d+(?:\.\d+)?) s\b", r["action"])
+            if r["page"] == "PERF" and r.get("mode", r.get("gesture")) == "hold" and m:
+                holds.append(["UI_C_" + ident(r[key]), str(int(round(float(m.group(1)) * 1000)))])
+    table("ui_hold_rows", "ui_hold_row_t", [("", "uint8_t ctl"), ("", "uint16_t ms")], holds, "UI_N_HOLD")
     return "\n".join(L)
 
 
