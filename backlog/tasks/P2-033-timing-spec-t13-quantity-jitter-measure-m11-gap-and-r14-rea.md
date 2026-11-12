@@ -3,7 +3,7 @@ id: P2-033
 title: TIMING_SPEC fixes from the P4-009 review (T13 quantity, jitter measure, M11.3 gap, R14 reading)
 phase: P2
 type: task
-status: todo
+status: in_progress
 priority: 3
 executor: sonnet
 depends_on: []
