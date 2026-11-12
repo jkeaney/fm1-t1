@@ -158,6 +158,11 @@ fi
 ${CC%% *} $SQC -o "$OUT/sq_core_test" tests/sq_core_test.c
 run "sequencer scheduler: sq_core.c event goldens 1-9 (tests/golden/sq_core_*.txt) + 100000-tick invariant fuzz" "$OUT/sq_core_test"
 
+# Channel state API (P4-005): firmware sq_chan.c (morph, dice, undo, unique MIDI, algorithm, rebuild, defaults, RAM presets) against a test ALGOS
+# table with the v1 morph / seed / layer tables; SEQUENCER_UX 1.2 rows, unique-MIDI table, defaults field by field, and a 100000-tick API fuzz
+${CC%% *} $SQC -o "$OUT/sq_chan_test" tests/sq_chan_test.c
+run "sequencer channel API: sq_chan.c UX 1.2 rows, unique MIDI, undo/redo, defaults, presets + 100000-tick API fuzz" "$OUT/sq_chan_test"
+
 [ -f build/felucca.fwsc ] || { echo "run ./build.sh first"; exit 1; }
 
 $CC -DOWN_PKG=1 -o "$OUT/ota_test" tests/ota_test.c
