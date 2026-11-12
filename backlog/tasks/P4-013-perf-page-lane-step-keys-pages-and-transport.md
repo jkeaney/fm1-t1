@@ -3,7 +3,7 @@ id: P4-013
 title: PERF page: lane, step keys, pages and transport
 phase: P4
 type: task
-status: review
+status: todo
 priority: 2
 executor: haiku
 depends_on: [P4-012]
@@ -81,3 +81,11 @@ Verdict: FAIL, back to todo. F1 (preview bit cleared, restored by undo), F3 (M h
 ### 2026-11-13 executor (Sonnet 5.5), review 2 fix
 - F5: the removal push drops the oldest when the 4-entry stack is full; the SELECT add empties it. Audit: the pop index is n-1 with n <= 4, the dice and page-add paths set n = 0, no other index of uisq_gone_*. Test "remove then add six times", plus nine removals into a full stack, then EDIT.
 - `sh tools/check.sh` -> CHECK PASS; ui_sq_perf_test 0 failures.
+
+### 2026-11-13 review 3 (sonnet)
+Verdict: FAIL (one stale-state bug found in the one-pass scan; F5 itself is fixed).
+Checked: uisq_gone_* push (ui_sq.c:898-901, n<=3 after the drop-oldest shift), pop (:935-937, i=n-1), reset (:872, :930, :976): all in bounds; ch always 0..3 (slot&0x7F<4 at :1017). New tests (ui_sq_perf_test.c:302-309) cover bounded stack, add-empties, EDIT pops one. `sh tools/check.sh`: CHECK PASS. `RAM .data+.bss 29192 B of 73728` (headroom 44536 B).
+Findings (full list from the state-machine scan):
+- [ ] F6 ui_sq.c:1017-1019 vs :1033-ish key_down: holding an M key of a channel NOT in use for 1.5 s still reaches uisq_do_remove (key_down returns early without arming, but uisq_keys_tick has no used-check; uisq_do_remove has none either). It pushes a phantom entry, mutes the unused channel and toasts GONE; EDIT then "restores" a channel that never existed (sets its used bit, selects it). Fix: in uisq_keys_tick (or at the top of uisq_do_remove) return when !(uisq_used >> ch & 1u); set key_fired so no tap fires on release; add a test (hold M3 while only CH1-2 used: gone_n stays 0, used unchanged, no toast).
+- [ ] F7 (minor) uisq_undone is not cleared by the removal-restore path (:937) or by a channel add (:872); the next sq_undo toast can say REDO after an unrelated action. Clear it in both.
+No other unbounded index found: uisq_key_t0/fired indexed by k<27; uisq_vpage guarded by uisq_view_page; uisq_edit_key guarded by >=UISQ_NKEY.
