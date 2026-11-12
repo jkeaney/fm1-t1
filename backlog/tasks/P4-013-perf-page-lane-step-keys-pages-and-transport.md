@@ -3,7 +3,7 @@ id: P4-013
 title: PERF page: lane, step keys, pages and transport
 phase: P4
 type: task
-status: review
+status: done
 priority: 2
 executor: haiku
 depends_on: [P4-012]
@@ -94,3 +94,6 @@ No other unbounded index found: uisq_key_t0/fired indexed by k<27; uisq_vpage gu
 - F6: `uisq_do_remove` returns early when the channel's `uisq_used` bit is clear (no stack entry, no mute). Test added.
 - F7: `uisq_undone` is cleared on a removal restore and on a channel add. Tests added.
 - `sh tools/check.sh` -> CHECK PASS.
+
+### 2026-11-13 review 4 (sonnet)
+Verdict: PASS. F6 (ui_sq.c:897 guard on unused channel; release returns at :993 so no tap) and F7 (uisq_undone cleared at :872 add and :937 restore) fixed and tested (ui_sq_perf_test.c:311-321). `sh tools/check.sh` = CHECK PASS. `RAM .data+.bss 29192 B of 73728` (headroom 44536 B, OK). No regressions.
