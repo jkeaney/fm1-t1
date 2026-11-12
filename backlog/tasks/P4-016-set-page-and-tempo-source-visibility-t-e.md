@@ -3,7 +3,7 @@ id: P4-016
 title: SET page and tempo-source visibility (T-E)
 phase: P4
 type: task
-status: review
+status: todo
 priority: 2
 executor: haiku
 depends_on: [P4-013, P4-009, P4-024]
@@ -67,3 +67,14 @@ Producer-facing. Use case: `docs/design/features/P4-016-set-page-and-tempo-sourc
 - Verification: `sh tools/check.sh` -> `CHECK PASS`. Build line: `image 194416 B; RAM .data+.bss 29352 B of 73728; pool 78520 B of 368640` (headroom 44376 B >= 8192). Host tests: ui_sq_set_test OK (0 failures); v12_compare `52 scenes/sheets, 0 failed`; ui_test 4 new rows ok; check_scenarios / check_help / check_sequencer_ux pass.
 - Hazards checked: (1) bounds: BPM 40..240 clamp both at the request and on screen (a stored 9 or 400 is drawn 40 / 240, tested), SWING 50..75, GATE 10..100, DIV 0..5, OCTAVE -2..+2, every one clamped without wrap; SET keeps no stack or history (4 tile rows, 6 names, one request word). (2) stale state: the K1 mirror reads `sq_bpm` per frame, EXT -> INT restores the own tempo in the tile in the same frame (tested), the tile values come from `sq_gdb[sq_gidx]` each frame (a refused `sq_global_set` while a load is pending changes nothing and is not echoed), a pending-preset pill stays on SET, the view signature covers clock, port and octave (they are in UisqView before `msg`), a preset landing drops a pending BPM request (`sq_frame`). (3) surface sync: tables, specs, scenarios and use case edited and the checkers run (use case section 5). (4) test harness: `tests/v12_compare.py` rendered the mock into a relative path under the mock's cwd and read a stale `build/ui_sq/v12_ref` copy; it now uses an absolute path, so every scene (not only SET) is compared with a fresh render (all 44 older scenes still pass).
 - Debt for the reviewer: GLO acts on press (hold = HARMONY is P5-006); ALGO encoder works on CHAN only (P4-032); the external-clock source is not wired (P4-031 calls `ui_sq_clock_set`); `midi_clock.c` still overwrites `song.g[G_BPM]` under a host clock, so the own tempo is not kept on the device until P4-031 / P2-010 lands; real unit: HW-1.
+
+### 2026-11-13 review (sonnet)
+Verdict: FAIL on documentation accuracy only; the firmware and tests are sound. Send back for a docs-only fix.
+Verified: `sh tools/check.sh` CHECK PASS; `./build.sh`: `RAM .data+.bss 29352 B of 73728` (headroom 44376 B >= 8192). tests.log: ui_sq_set_test, ui_sq_v12_test, ui_tables_test OK; v12 existing-scene goldens unchanged (the diff only adds `out/v12_set_*`; out_set and v12_set.py removed; mock now in v12.py). `check_control_map.py` FAIL 78 is a pre-existing baseline (same 78 with docs/design at HEAD~1).
+Hazard scan, no defects: K1 BPM goes ui_sq.c:1454 (clamp 40..240, d clamped +-127) -> `uisq_bpm_req` -> `sq_frame` (main loop, same thread as the UI, so no ISR race) -> `song.g[G_BPM]` clamped by GP; the ISR reads it per block via `sq_beat_q4`, so a mid-play change is safe and divide-by-zero is impossible. A preset epoch drops a pending request. SWING / GATE / DIV / OCTAVE all reach the core (`sq_core.c:334,380,541`, `sq_prims.h:52`); no inert SET knob. `midi_clock_pulse` only runs when menu G_CLOCK equals the source, default internal, so a stopped internal-clock unit (HW-1) keeps its tempo; acceptable. Tables, set_text.tsv, generated `ui_st_text`, width asserts, section 5 edits, S09/S10/S12 regeneration all present.
+Gate B: sections 7-9 walk is consistent with the host evidence; ease scores accepted (12/11/12/12). Real unit pending HW-1.
+Findings (fix these, then resubmit):
+- [ ] docs/design/features/P4-016-*.md section 6, "Survives stop/start, clock-source change": says "the user's tempo is never overwritten by the host", which section 7 and midi_clock.c:63 contradict. Reword to the as-built state ("overwritten under a host clock until P4-031") and mark that line "no, P4-031".
+- [ ] The debt is filed nowhere: backlog/tasks/P4-031 does not mention it. Add a deliverable and an acceptance criterion there: "a followed clock never writes song.g[G_BPM]; the own tempo returns when the host stops (P2-010 rule)".
+- [ ] "The own tempo is kept (P4-016)" is stated as fact in knob_map.tsv:58, control_map.tsv:175, CONTROL_MAP.md:341, SCREEN_SPEC_V2.md:99, SEQUENCER_UX.md:432 and S06 rows 4 and 15. Change the attribution to "(P4-031)" or "from P4-031" so the docs do not describe unbuilt behaviour as built (re-run gen_ui_tables, gen_sweeps, check_scenarios, check_help).
+- [ ] S06-clock-ableton-then-fm1-master.md rows 5, 9, 10, 12, 15 and 16 still describe the clock dot (amber dot, ring, "dot keeps blinking") although row-8 banner says there is none; rewrite them to the header text states.
