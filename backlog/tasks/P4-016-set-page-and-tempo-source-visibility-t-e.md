@@ -3,7 +3,7 @@ id: P4-016
 title: SET page and tempo-source visibility (T-E)
 phase: P4
 type: task
-status: todo
+status: review
 priority: 2
 executor: haiku
 depends_on: [P4-013, P4-009, P4-024]
@@ -48,3 +48,14 @@ Producer-facing. Use case: `docs/design/features/P4-016-set-page-and-tempo-sourc
 
 ## Log
 - 2026-11-12: re-pointed by the screen design lock: draw to docs/design/SCREEN_SPEC_V2.md (ADR-0006) and its v12 renders, not SCREEN_SPEC.md zones; the CHAN band/page is specified there (P4-015).
+
+### 2026-11-13 executor (sonnet): Gate A proposal only, build deferred for owner sign-off
+- Per the orchestrator's brief the SET page is not drawn in SCREEN_SPEC_V2, so the renders come first (Gate A). Nothing in firmware/ or the locked v12 scene set changed.
+- Added `docs/design/ui_review/proposals/v12/v12_set.py` (imports v12.py, overrides knob row / tiles / status / footer / slot for page SET) and rendered 8 scenes to `docs/design/ui_review/proposals/v12/out_set/` (each `.png`, `_4x.png`, `_grid.png`): `v12_set_set_int`, `_int_stopped`, `_turn_swing`, `_octave`, `_ext_live`, `_ext_k1_turned`, `_ext_wait`, `_ext_lost`.
+- `check_messages()` on the SET strings: `[]` (all fit the 136 px slot); the mock asserts the status-line blocks and footers fit.
+- Use case `docs/design/features/P4-016-*.md` filled for Gate A (steps, ease scores, sync table, live checklist, hazards, five owner questions). Owner approval NOT marked.
+- Pointers added (docs only): SCREEN_SPEC.md 6.5 (zones superseded), SCREEN_SPEC_V2.md section 8. The locked tables (page_states, knob_map, button_modes) and scenarios S06/S07/S12 are deliberately NOT edited until sign-off (they feed generated tests); the use case section 5 lists each edit the build commit makes.
+- Hazards checked: bounds (BPM 40..240, SWING 50..75, GATE 10..100, DIV 0..5, OCTAVE -2..+2 clamped, no stack or history on SET); stale state (EXT mirror reads the source per frame, view signature must include clock and octave, K1 touch frame clears on leaving SET, EXT -> INT restores own tempo in the same frame); surface sync (TEMPO/OUT status lines and OCT tag column in SCREEN_SPEC 6.5/7, SEQUENCER_UX 2.4, page_states SET, S06/S07/S12); width (check_messages + asserts).
+- Deviation to flag: the task text asks for the blinking clock dot; SCREEN_SPEC_V2 4.1 (locked) has none. Proposal follows V2 (owner question 1). The header strings INT / EXT / WAIT / `--` are already drawn by ui_sq.c (P4-028); this task would add their host test.
+- Verification: `sh tools/check.sh` -> `CHECK PASS`; `RAM .data+.bss 29224 B of 73728` (headroom 44504 B, unchanged: no firmware change).
+- Acceptance criteria left unticked: the build (SET page code, tests/ui_sq tests, grep of strings) has not been done; it follows owner approval of the renders.

@@ -122,7 +122,7 @@ knob sheets for every algorithm and row.
 
 ## 8. Not covered here (other specs / tasks)
 NOTE_EDIT, SET, SCALE/HARMONY, RESET, HELP and MENU pages keep their current specs until re-drawn on this system (P4-014,
-P4-016, P5-006, P4-018 re-pointed to this spec); the RIG page (HW_SUPPORT_LOWLEVEL 9) likewise.
+P4-016, P5-006, P4-018 re-pointed to this spec; SET is proposed in `features/P4-016-*.md` with renders in `proposals/v12/out_set/`, awaiting owner sign-off, then it moves into sections 4 and 5); the RIG page (HW_SUPPORT_LOWLEVEL 9) likewise.
 
 ## 9. Known gaps accepted at lock (critique v11, owner "good enough, move on")
 Other-channel strips are 3 px (~3.7 arcmin at 35 cm); the playhead column is 2.6:1 on black; the knob fill can read as
