@@ -181,6 +181,10 @@ python3 tools/gen_sq_icons.py --ref build/gen/sq_icons_ref.txt || { echo ">>> ST
 ${CC%% *} -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/ui_sq_test" tests/ui_sq_test.c -lm
 run "sequencer UI framework: ui_sq.c screen v2 bands + two-strip plan + empty frame, colour tokens, icons pixel-identical to the mock, labels fit (real text_w), redraw by signature, toast; PNGs in build/ui_sq" "$OUT/ui_sq_test" build/ui_sq
 
+# PERF page controls (P4-013): ui_sq.c's key / button / knob / SELECT handlers on the host: step taps, hold = NOTE_EDIT, M-key mute / preview / remove, SELECT add, K1-K4, dice, EDIT, PG-/PG+, OCT rows
+${CC%% *} -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/ui_sq_perf_test" tests/ui_sq_perf_test.c -lm
+run "PERF page controls: tap step ON/OFF, hold 0.4 s NOTE_EDIT, M key tap/preview/remove, SELECT adds a channel, K1-K4 morph, dice + EDIT undo, PG-/PG+ with the add prompt, OCT rows; PNGs in build/ui_sq/perf_*" "$OUT/ui_sq_perf_test" build/ui_sq
+
 # Algorithm UI descriptor (P4-027, ADR-0007): the real ui_sq.c draws the knob tiles of ACID (real row) and a dummy DEMO row through the descriptor alone
 ${CC%% *} -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/sq_algodesc_test" tests/sq_algodesc_test.c -lm
 run "algorithm UI descriptor: value text / one font / dots / short name from AlgoDesc, a dummy algorithm's knob tiles through ui_sq.c unchanged" "$OUT/sq_algodesc_test"
