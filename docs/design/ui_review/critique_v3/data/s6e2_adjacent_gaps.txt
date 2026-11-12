@@ -1,0 +1,2 @@
+tightest gap between adjacent knob LABEL inks (px): (5, 'ARP', 2, 'min', 'OFFSET', 'LEGATO')
+tightest gap between adjacent knob VALUE inks (px): (13, 'ARP', 1, 'long', 'KEY', 'THMB')

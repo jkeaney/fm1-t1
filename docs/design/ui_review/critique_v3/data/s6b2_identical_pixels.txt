@@ -1,0 +1,18 @@
+rep 2 pixel-identical to rep 1: False
+rep 3 pixel-identical to rep 1: False
+rep 4 pixel-identical to rep 1: False
+rep 5 pixel-identical to rep 1: False
+rep 6 pixel-identical to rep 1: True
+rep 7 pixel-identical to rep 1: True
+rep 8 pixel-identical to rep 1: True
+rep6==rep7==rep8: True
+vel 1 normal  ON step vs rest step pixel-identical: False
+vel 1 playing ON step vs rest step pixel-identical: True
+vel 1 muted   ON step vs rest step pixel-identical: False
+vel 3 normal  ON step vs rest step pixel-identical: False
+vel 3 playing ON step vs rest step pixel-identical: True
+vel 3 muted   ON step vs rest step pixel-identical: False
+vel 4 normal  ON step vs rest step pixel-identical: False
+vel 4 playing ON step vs rest step pixel-identical: False
+vel 4 muted   ON step vs rest step pixel-identical: False
+all muted+OFF: roles drawn: ['OFF chip', 'algo name', 'bpm', 'chan number', 'knob label', 'knob value', 'preset'] M chips: 0 OFF chips: 4

@@ -1,0 +1,67 @@
+sheet ACID strips: ROW1 min,max,long then ROW2 min,max,long (each 240x76 = y144..220 of the screen)
+sheet EUCLID strips: ROW1 min,max,long then ROW2 min,max,long (each 240x76 = y144..220 of the screen)
+sheet SNAKE strips: ROW1 min,max,long then ROW2 min,max,long (each 240x76 = y144..220 of the screen)
+sheet STAGE strips: ROW1 min,max,long then ROW2 min,max,long (each 240x76 = y144..220 of the screen)
+sheet ARP strips: ROW1 min,max,long then ROW2 min,max,long (each 240x76 = y144..220 of the screen)
+sheet PATTERNS strips: ROW1 min,max,long then ROW2 min,max,long (each 240x76 = y144..220 of the screen)
+--- MAP
+  ACID     row1 K1  row1 `DENS` ink 151..181  row2 `OFFSET` ink 196..239  gap 15  row2 right edge 239
+  ACID     row1 K2  row1 `SLIDE` ink 151..181  row2 `PEDAL` ink 196..231  gap 15  row2 right edge 231
+  ACID     row1 K3  row1 `JUMP` ink 151..182  row2 `PUNCH` ink 196..236  gap 14  row2 right edge 236
+  ACID     row1 K4  row1 `ACCNT` ink 151..191  row2 `DIR` ink 196..214  gap 5  row2 right edge 214
+RENDER j_map_ACID_row1 warnings: none min gap row1->row2 label 5
+  ACID     row2 K1  row1 `DENS` ink 151..181  row2 `OFFSET` ink 196..239  gap 15  row2 right edge 239
+  ACID     row2 K2  row1 `SLIDE` ink 151..181  row2 `PEDAL` ink 196..231  gap 15  row2 right edge 231
+  ACID     row2 K3  row1 `JUMP` ink 151..182  row2 `PUNCH` ink 196..236  gap 14  row2 right edge 236
+  ACID     row2 K4  row1 `ACCNT` ink 151..191  row2 `DIR` ink 196..214  gap 5  row2 right edge 214
+RENDER j_map_ACID_row2 warnings: none min gap row1->row2 label 5
+  EUCLID   row1 K1  row1 `HITS` ink 151..176  row2 `LEN` ink 196..217  gap 20  row2 right edge 217
+  EUCLID   row1 K2  row1 `OFFSET` ink 151..194  row2 `SPAN` ink 196..225  gap 2  row2 right edge 225
+  EUCLID   row1 K3  row1 `RATCH` ink 151..187  row2 `PUNCH` ink 196..236  gap 9  row2 right edge 236
+  EUCLID   row1 K4  row1 `ACCNT` ink 151..191  row2 `CURVE` ink 196..234  gap 5  row2 right edge 234
+RENDER j_map_EUCLID_row1 warnings: none min gap row1->row2 label 2
+  EUCLID   row2 K1  row1 `HITS` ink 151..176  row2 `LEN` ink 196..217  gap 20  row2 right edge 217
+  EUCLID   row2 K2  row1 `OFFSET` ink 151..194  row2 `SPAN` ink 196..225  gap 2  row2 right edge 225
+  EUCLID   row2 K3  row1 `RATCH` ink 151..187  row2 `PUNCH` ink 196..236  gap 9  row2 right edge 236
+  EUCLID   row2 K4  row1 `ACCNT` ink 151..191  row2 `CURVE` ink 196..234  gap 5  row2 right edge 234
+RENDER j_map_EUCLID_row2 warnings: none min gap row1->row2 label 2
+  SNAKE    row1 K1  row1 `DENS` ink 151..181  row2 `OFFSET` ink 196..239  gap 15  row2 right edge 239
+  SNAKE    row1 K2  row1 `LEN` ink 151..172  row2 `GLEN` ink 196..225  gap 24  row2 right edge 225
+  SNAKE    row1 K3  row1 `RANGE` ink 151..189  row2 `DYN` ink 196..219  gap 7  row2 right edge 219
+  SNAKE    row1 K4  row1 `PATH` ink 151..179  row2 `DIR` ink 196..214  gap 17  row2 right edge 214
+RENDER j_map_SNAKE_row1 warnings: none min gap row1->row2 label 7
+  SNAKE    row2 K1  row1 `DENS` ink 151..181  row2 `OFFSET` ink 196..239  gap 15  row2 right edge 239
+  SNAKE    row2 K2  row1 `LEN` ink 151..172  row2 `GLEN` ink 196..225  gap 24  row2 right edge 225
+  SNAKE    row2 K3  row1 `RANGE` ink 151..189  row2 `DYN` ink 196..219  gap 7  row2 right edge 219
+  SNAKE    row2 K4  row1 `PATH` ink 151..179  row2 `DIR` ink 196..214  gap 17  row2 right edge 214
+RENDER j_map_SNAKE_row2 warnings: none min gap row1->row2 label 7
+  STAGE    row1 K1  row1 `DENS` ink 151..181  row2 `OFFSET` ink 196..239  gap 15  row2 right edge 239
+  STAGE    row1 K2  row1 `TOTAL` ink 151..186  row2 `RDIV` ink 196..222  gap 10  row2 right edge 222
+  STAGE    row1 K3  row1 `DIR` ink 151..169  row2 `DYN` ink 196..219  gap 27  row2 right edge 219
+  STAGE    row1 K4  row1 `RATCH` ink 151..187  row2 `RANGE` ink 196..234  gap 9  row2 right edge 234
+RENDER j_map_STAGE_row1 warnings: none min gap row1->row2 label 9
+  STAGE    row2 K1  row1 `DENS` ink 151..181  row2 `OFFSET` ink 196..239  gap 15  row2 right edge 239
+  STAGE    row2 K2  row1 `TOTAL` ink 151..186  row2 `RDIV` ink 196..222  gap 10  row2 right edge 222
+  STAGE    row2 K3  row1 `DIR` ink 151..169  row2 `DYN` ink 196..219  gap 27  row2 right edge 219
+  STAGE    row2 K4  row1 `RATCH` ink 151..187  row2 `RANGE` ink 196..234  gap 9  row2 right edge 234
+RENDER j_map_STAGE_row2 warnings: none min gap row1->row2 label 9
+  ARP      row1 K1  row1 `DENS` ink 151..181  row2 `OFFSET` ink 196..239  gap 15  row2 right edge 239
+  ARP      row1 K2  row1 `SHAPE` ink 151..188  row2 `LEGATO` ink 196..239  gap 8  row2 right edge 239
+  ARP      row1 K3  row1 `OCTS` ink 151..182  row2 `DYN` ink 196..219  gap 14  row2 right edge 219
+  ARP      row1 K4  row1 `RATE` ink 151..178  row2 `DIR` ink 196..214  gap 18  row2 right edge 214
+RENDER j_map_ARP_row1 warnings: none min gap row1->row2 label 8
+  ARP      row2 K1  row1 `DENS` ink 151..181  row2 `OFFSET` ink 196..239  gap 15  row2 right edge 239
+  ARP      row2 K2  row1 `SHAPE` ink 151..188  row2 `LEGATO` ink 196..239  gap 8  row2 right edge 239
+  ARP      row2 K3  row1 `OCTS` ink 151..182  row2 `DYN` ink 196..219  gap 14  row2 right edge 219
+  ARP      row2 K4  row1 `RATE` ink 151..178  row2 `DIR` ink 196..214  gap 18  row2 right edge 214
+RENDER j_map_ARP_row2 warnings: none min gap row1->row2 label 8
+  PATTERNS row1 K1  row1 `DENS` ink 151..181  row2 `PICK` ink 196..221  gap 15  row2 right edge 221
+  PATTERNS row1 K2  row1 `VARY` ink 151..180  row2 `SLIDE` ink 196..226  gap 16  row2 right edge 226
+  PATTERNS row1 K3  row1 `SPAN` ink 151..180  row2 `DYN` ink 196..219  gap 16  row2 right edge 219
+  PATTERNS row1 K4  row1 `ACCNT` ink 151..191  row2 `CTONE` ink 196..235  gap 5  row2 right edge 235
+RENDER j_map_PATTERNS_row1 warnings: none min gap row1->row2 label 5
+  PATTERNS row2 K1  row1 `DENS` ink 151..181  row2 `PICK` ink 196..221  gap 15  row2 right edge 221
+  PATTERNS row2 K2  row1 `VARY` ink 151..180  row2 `SLIDE` ink 196..226  gap 16  row2 right edge 226
+  PATTERNS row2 K3  row1 `SPAN` ink 151..180  row2 `DYN` ink 196..219  gap 16  row2 right edge 219
+  PATTERNS row2 K4  row1 `ACCNT` ink 151..191  row2 `CTONE` ink 196..235  gap 5  row2 right edge 235
+RENDER j_map_PATTERNS_row2 warnings: none min gap row1->row2 label 5

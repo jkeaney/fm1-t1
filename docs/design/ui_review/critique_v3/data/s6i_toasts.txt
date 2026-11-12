@@ -1,0 +1,50 @@
+### toasts: ink boxes (screen coords)
+| toast | title | title ink x0..x1 (w) | detail | detail ink x0..x1 (w) | box limit | free margin L/R in box |
+|---|---|---|---|---|---|---|
+| algo ACID | ACID | 88..151 (63) | CH 1 ALGORITHM | 60..180 (120) | 0..240 | title 88/89, detail 60/60 | []
+| algo EUCLID | EUCLID | 72..167 (95) | CH 1 ALGORITHM | 60..180 (120) | 0..240 | title 72/73, detail 60/60 | []
+| algo SNAKE | SNAKE | 75..164 (89) | CH 1 ALGORITHM | 60..180 (120) | 0..240 | title 75/76, detail 60/60 | []
+| algo STAGE | STAGE | 77..162 (85) | CH 1 ALGORITHM | 60..180 (120) | 0..240 | title 77/78, detail 60/60 | []
+| algo ARP | ARP | 93..146 (53) | CH 1 ALGORITHM | 60..180 (120) | 0..240 | title 93/94, detail 60/60 | []
+| algo PATTERNS | PATTERNS | 52..187 (135) | CH 1 ALGORITHM | 60..180 (120) | 0..240 | title 52/53, detail 60/60 | []
+| dice ALL | ALL | 121..170 (49) | CH 1  NEW PITCHES | 78..213 (135) | 66..226 | title 55/56, detail 12/13 | []
+| dice NOTES | NOTES | 102..190 (88) | CH 1  NEW PITCHES | 78..213 (135) | 66..226 | title 36/36, detail 12/13 | []
+| dice ACCNT | ACCNT | 98..193 (95) | CH 1  NEW PITCHES | 78..213 (135) | 66..226 | title 32/33, detail 12/13 | []
+| dice SHAPE | SHAPE | 102..190 (88) | CH 1  NEW PITCHES | 78..213 (135) | 66..226 | title 36/36, detail 12/13 | []
+| dice ARTIC | ARTIC | 106..185 (79) | CH 1  NEW PITCHES | 78..213 (135) | 66..226 | title 40/41, detail 12/13 | []
+| dice HITS | HITS | 116..175 (59) | CH 1  NEW PITCHES | 78..213 (135) | 66..226 | title 50/51, detail 12/13 | []
+| undo ALL | UNDO | 107..184 (77) | DICE ALL | 115..176 (61) | 66..226 | title 41/42, detail 49/50 | []
+| undo NOTES | UNDO | 107..184 (77) | DICE NOTES | 104..187 (83) | 66..226 | title 41/42, detail 38/39 | []
+| undo ACCNT | UNDO | 107..184 (77) | DICE ACCNT | 103..188 (85) | 66..226 | title 41/42, detail 37/38 | []
+| undo SHAPE | UNDO | 107..184 (77) | DICE SHAPE | 105..187 (82) | 66..226 | title 41/42, detail 39/39 | []
+| undo ARTIC | UNDO | 107..184 (77) | DICE ARTIC | 107..184 (77) | 66..226 | title 41/42, detail 41/42 | []
+| undo HITS | UNDO | 107..184 (77) | DICE HITS | 112..179 (67) | 66..226 | title 41/42, detail 46/47 | []
+preset toast P16: toast title P16 (84, 162, 135, 184) x0 of ? glyph 142 ..+15 = 157
+preset toast P16: toast detail SAVE = SAVE HERE (56, 195, 183, 208) x0 of ? glyph 142 ..+15 = 157
+--- candidate strings the proposal does not define (widths only)
+P16>                         AF_M advance  36 ink  36
+P16?                         AF_M advance  34 ink  34
+CH 1  NEW PITCHES            AF_M advance 136 ink 135
+DICE ARTIC                   AF_M advance  78 ink  77
+CH 1  GT+SLD                 AF_M advance  95 ink  95
+CH 1  NEW ACCENTS            AF_M advance 144 ink 143
+MIDI CH 16                   AF_M advance  75 ink  75
+CH 1  MIDI 16                AF_M advance  91 ink  91
+MIDI CH 16 TAKEN FROM CH 2   AF_M advance 205 ink 205
+UNDO                         AF_L advance  79 ink  77
+100                          AF_L advance  54 ink  50
+127                          AF_L advance  54 ink  49
+-2                           AF_L advance  30 ink  28
++2                           AF_L advance  36 ink  33
+OCT -2                       AF_M advance  49 ink  49
+glyph '>' in M -> index 120 (a missing glyph maps to the fallback)
+glyph '?' in M -> index 124 (a missing glyph maps to the fallback)
+glyph '?' in L -> index 0 (a missing glyph maps to the fallback)
+glyph '>' in L -> index 0 (a missing glyph maps to the fallback)
+glyph 'Z' in L -> index 0 (a missing glyph maps to the fallback)
+glyph ':' in L -> index 0 (a missing glyph maps to the fallback)
+glyph '-' in L -> index 6 (a missing glyph maps to the fallback)
+glyph '+' in L -> index 4 (a missing glyph maps to the fallback)
+glyph 'Z' in M -> index 232 (a missing glyph maps to the fallback)
+header: P16? ink 34 EXT 126 ink 57 EXT 126 x30 ends 87 preset starts 110, page boxes 172; P16? at 110 ends 144
+ink of '?' vs 'P16?' etc

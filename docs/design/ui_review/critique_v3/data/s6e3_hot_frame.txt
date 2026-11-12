@@ -1,0 +1,8 @@
+hot-frame interior 54 px exceeded: ('EUCLID', 2, 'K4', 'CURVE', 48, 'AUT', 'L', 56)
+hot-frame interior 54 px exceeded: ('EUCLID', 2, 'K4', 'CURVE', 48, 'ARC', 'L', 55)
+hot-frame interior 54 px exceeded: ('ARP', 2, 'K2', 'LEGATO', 55, '0', 'L', 16)
+hot-frame interior 54 px exceeded: ('ARP', 2, 'K4', 'DIR', 23, 'ORD', 'L', 55)
+hot-frame interior 54 px exceeded: ('ARP', 2, 'K4', 'DIR', 23, 'CRD', 'L', 55)
+warn []
+warn []
+ARP S2 LEGATO hot: label ink (62, 149, 117, 162) cell x 61..119, frame columns 61,62 and 117,118 ; ink x0 62 x1(excl) 117

@@ -1,0 +1,115 @@
+### geometry vs 5 px module (screen coords)
+| element | x | y | w | h | x%5 | y%5 | w%5 | h%5 | right edge | bottom edge | on 5px grid? |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Z0 transport glyph | 6 | 4 | 15 | 16 | 1 | 4 | 0 | 1 | 21 | 20 | no |
+| page box 1 | 172 | 5 | 14 | 14 | 2 | 0 | 4 | 4 | 186 | 19 | no |
+| page box 2 | 188 | 5 | 14 | 14 | 3 | 0 | 4 | 4 | 202 | 19 | no |
+| page box 3 | 204 | 5 | 14 | 14 | 4 | 0 | 4 | 4 | 218 | 19 | no |
+| page box 4 | 220 | 5 | 14 | 14 | 0 | 0 | 4 | 4 | 234 | 19 | no |
+| page playing marker (box1) | 177 | 10 | 4 | 4 | 2 | 0 | 4 | 4 | 181 | 14 | no |
+| Z1 cell 1 | 1 | 26 | 58 | 44 | 1 | 1 | 3 | 4 | 59 | 70 | no |
+| Z1 cell 2 | 61 | 26 | 58 | 44 | 1 | 1 | 3 | 4 | 119 | 70 | no |
+| Z1 cell 3 | 121 | 26 | 58 | 44 | 1 | 1 | 3 | 4 | 179 | 70 | no |
+| Z1 cell 4 | 181 | 26 | 58 | 44 | 1 | 1 | 3 | 4 | 239 | 70 | no |
+| Z1 number box (cell1) | 4 | 31 | 24 | 21 | 4 | 1 | 4 | 1 | 28 | 52 | no |
+| Z1 strike (cell1) | 7 | 40 | 20 | 3 | 2 | 0 | 0 | 3 | 27 | 43 | no |
+| Z1 OFF chip (cell1) | 29 | 30 | 29 | 18 | 4 | 0 | 4 | 3 | 58 | 48 | no |
+| Z1 M chip (cell1) | 35 | 30 | 22 | 18 | 0 | 0 | 2 | 3 | 57 | 48 | no |
+| Z1 activity square (cell1) | 41 | 32 | 14 | 14 | 1 | 2 | 4 | 4 | 55 | 46 | no |
+| Z2 lane column n=0 | 0 | 72 | 14 | 70 | 0 | 2 | 4 | 0 | 14 | 142 | no |
+| Z2 lane column n=15 | 225 | 72 | 14 | 70 | 0 | 2 | 4 | 0 | 239 | 142 | no |
+| Z2 accent triangle | 1 | 75 | 11 | 6 | 1 | 0 | 1 | 1 | 12 | 81 | no |
+| Z2 tie bar | 0 | 83 | 15 | 6 | 0 | 3 | 0 | 1 | 15 | 89 | no |
+| Z2 bar (full width) | 1 | 90 | 12 | 44 | 1 | 0 | 2 | 4 | 13 | 134 | no |
+| Z2 rest dash | 1 | 130 | 12 | 4 | 1 | 0 | 2 | 4 | 13 | 134 | no |
+| Z2 beat pip | 4 | 137 | 6 | 3 | 4 | 2 | 1 | 3 | 10 | 140 | no |
+| Z3 knob cell 1 | 1 | 144 | 58 | 66 | 1 | 4 | 3 | 1 | 59 | 210 | no |
+| Z3 knob cell 2 | 61 | 144 | 58 | 66 | 1 | 4 | 3 | 1 | 119 | 210 | no |
+| Z3 knob cell 3 | 121 | 144 | 58 | 66 | 1 | 4 | 3 | 1 | 179 | 210 | no |
+| Z3 knob cell 4 | 181 | 144 | 58 | 66 | 1 | 4 | 3 | 1 | 239 | 210 | no |
+| Z3 meter (cell1) | 7 | 194 | 46 | 10 | 2 | 4 | 1 | 0 | 53 | 204 | no |
+| Z3 ROW bar left | 1 | 210 | 118 | 10 | 1 | 0 | 3 | 0 | 119 | 220 | no |
+| Z3 ROW bar right | 121 | 210 | 118 | 10 | 1 | 0 | 3 | 0 | 239 | 220 | no |
+| Z4 cue strip | 0 | 220 | 240 | 16 | 0 | 0 | 0 | 1 | 240 | 236 | no |
+| toast block | 0 | 146 | 240 | 88 | 0 | 1 | 0 | 3 | 240 | 234 | no |
+| toast countdown | 40 | 214 | 160 | 10 | 0 | 4 | 0 | 0 | 200 | 224 | no |
+| toast algo pips | 45 | 212 | 20 | 14 | 0 | 2 | 0 | 4 | 65 | 226 | no |
+
+### ink margins of text in its cell (glance_playing, stress, mutes)
+| scene | role | string | cell x,y,w,h | ink x0..x1 | L margin | R margin | ink centre - cell centre (x) | T margin | B margin | ink centre - cell centre (y) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| glance_playing | chan number | `1` | 1,26,58,44 | 11..21 | 10 | 38 | -14.0 | 5 | 18 | -6.5 |
+| glance_playing | algo name | `ACID` | 1,26,58,44 | 13..46 | 12 | 13 | -0.5 | 28 | 3 | +12.5 |
+| glance_playing | chan number | `2` | 61,26,58,44 | 68..83 | 7 | 36 | -14.5 | 5 | 18 | -6.5 |
+| glance_playing | algo name | `EUCLID` | 61,26,58,44 | 65..115 | 4 | 4 | +0.0 | 28 | 3 | +12.5 |
+| glance_playing | chan number | `3` | 121,26,58,44 | 128..144 | 7 | 35 | -14.0 | 5 | 17 | -6.0 |
+| glance_playing | algo name | `SNAKE` | 121,26,58,44 | 126..173 | 5 | 6 | -0.5 | 28 | 3 | +12.5 |
+| glance_playing | OFF chip | `OFF` | 149,30,29,18 | 150..177 | 1 | 1 | +0.0 | 3 | 2 | +0.5 |
+| glance_playing | chan number | `4` | 181,26,58,44 | 188..204 | 7 | 35 | -14.0 | 5 | 18 | -6.5 |
+| glance_playing | algo name | `STAGE` | 181,26,58,44 | 187..232 | 6 | 7 | -0.5 | 28 | 3 | +12.5 |
+| glance_playing | MUTE chip | `M` | 215,30,22,18 | 220..232 | 5 | 5 | +0.0 | 4 | 3 | +0.5 |
+| glance_playing | knob label | `DENS` | 1,144,58,66 | 11..49 | 10 | 10 | +0.0 | 5 | 48 | -21.5 |
+| glance_playing | knob value | `12` | 1,144,58,66 | 14..46 | 13 | 13 | +0.0 | 21 | 24 | -1.5 |
+| glance_playing | knob label | `SLIDE` | 61,144,58,66 | 71..109 | 10 | 10 | +0.0 | 5 | 48 | -21.5 |
+| glance_playing | knob value | `6` | 61,144,58,66 | 82..98 | 21 | 21 | +0.0 | 21 | 23 | -1.0 |
+| glance_playing | knob label | `JUMP` | 121,144,58,66 | 130..170 | 9 | 9 | +0.0 | 6 | 48 | -21.0 |
+| glance_playing | knob value | `5` | 121,144,58,66 | 142..157 | 21 | 22 | -0.5 | 21 | 23 | -1.0 |
+| glance_playing | knob label | `ACCNT` | 181,144,58,66 | 185..235 | 4 | 4 | +0.0 | 5 | 48 | -21.5 |
+| glance_playing | knob value | `3` | 181,144,58,66 | 202..218 | 21 | 21 | +0.0 | 21 | 23 | -1.0 |
+| stress | chan number | `1` | 1,26,58,44 | 11..21 | 10 | 38 | -14.0 | 5 | 18 | -6.5 |
+| stress | algo name | `ARP` | 1,26,58,44 | 16..44 | 15 | 15 | +0.0 | 29 | 4 | +12.5 |
+| stress | chan number | `2` | 61,26,58,44 | 68..83 | 7 | 36 | -14.5 | 5 | 18 | -6.5 |
+| stress | algo name | `PATT` | 61,26,58,44 | 73..107 | 12 | 12 | +0.0 | 29 | 4 | +12.5 |
+| stress | chan number | `3` | 121,26,58,44 | 128..144 | 7 | 35 | -14.0 | 5 | 17 | -6.0 |
+| stress | algo name | `SNAKE` | 121,26,58,44 | 126..173 | 5 | 6 | -0.5 | 28 | 3 | +12.5 |
+| stress | OFF chip | `OFF` | 149,30,29,18 | 150..177 | 1 | 1 | +0.0 | 3 | 2 | +0.5 |
+| stress | chan number | `4` | 181,26,58,44 | 188..204 | 7 | 35 | -14.0 | 5 | 18 | -6.5 |
+| stress | algo name | `STAGE` | 181,26,58,44 | 187..232 | 6 | 7 | -0.5 | 28 | 3 | +12.5 |
+| stress | MUTE chip | `M` | 215,30,22,18 | 220..232 | 5 | 5 | +0.0 | 4 | 3 | +0.5 |
+| stress | knob label | `DENS` | 1,144,58,66 | 11..49 | 10 | 10 | +0.0 | 5 | 48 | -21.5 |
+| stress | knob value | `8` | 1,144,58,66 | 22..38 | 21 | 21 | +0.0 | 21 | 23 | -1.0 |
+| stress | knob label | `TOTAL` | 61,144,58,66 | 67..112 | 6 | 7 | -0.5 | 5 | 48 | -21.5 |
+| stress | knob value | `64` | 61,144,58,66 | 73..107 | 12 | 12 | +0.0 | 21 | 23 | -1.0 |
+| stress | knob label | `DIR` | 121,144,58,66 | 138..161 | 17 | 18 | -0.5 | 6 | 49 | -21.5 |
+| stress | knob value | `P-P` | 121,144,58,66 | 128..172 | 7 | 7 | +0.0 | 21 | 24 | -1.5 |
+| stress | knob label | `RATCH` | 181,144,58,66 | 186..233 | 5 | 6 | -0.5 | 5 | 48 | -21.5 |
+| stress | knob value | `8` | 181,144,58,66 | 202..218 | 21 | 21 | +0.0 | 21 | 23 | -1.0 |
+| mutes | chan number | `1` | 1,26,58,44 | 11..21 | 10 | 38 | -14.0 | 5 | 18 | -6.5 |
+| mutes | algo name | `ACID` | 1,26,58,44 | 13..46 | 12 | 13 | -0.5 | 28 | 3 | +12.5 |
+| mutes | chan number | `2` | 61,26,58,44 | 68..83 | 7 | 36 | -14.5 | 5 | 18 | -6.5 |
+| mutes | algo name | `EUCLID` | 61,26,58,44 | 65..115 | 4 | 4 | +0.0 | 28 | 3 | +12.5 |
+| mutes | MUTE chip | `M` | 95,30,22,18 | 100..112 | 5 | 5 | +0.0 | 4 | 3 | +0.5 |
+| mutes | chan number | `3` | 121,26,58,44 | 128..144 | 7 | 35 | -14.0 | 5 | 17 | -6.0 |
+| mutes | algo name | `SNAKE` | 121,26,58,44 | 126..173 | 5 | 6 | -0.5 | 28 | 3 | +12.5 |
+| mutes | chan number | `4` | 181,26,58,44 | 188..204 | 7 | 35 | -14.0 | 5 | 18 | -6.5 |
+| mutes | algo name | `STAGE` | 181,26,58,44 | 187..232 | 6 | 7 | -0.5 | 28 | 3 | +12.5 |
+| mutes | MUTE chip | `M` | 215,30,22,18 | 220..232 | 5 | 5 | +0.0 | 4 | 3 | +0.5 |
+| mutes | knob label | `DENS` | 1,144,58,66 | 11..49 | 10 | 10 | +0.0 | 5 | 48 | -21.5 |
+| mutes | knob value | `10` | 1,144,58,66 | 14..46 | 13 | 13 | +0.0 | 21 | 23 | -1.0 |
+| mutes | knob label | `LEN` | 61,144,58,66 | 77..103 | 16 | 16 | +0.0 | 6 | 49 | -21.5 |
+| mutes | knob value | `7` | 61,144,58,66 | 82..97 | 21 | 22 | -0.5 | 21 | 24 | -1.5 |
+| mutes | knob label | `RANGE` | 121,144,58,66 | 126..174 | 5 | 5 | +0.0 | 5 | 48 | -21.5 |
+| mutes | knob value | `12` | 121,144,58,66 | 134..166 | 13 | 13 | +0.0 | 21 | 24 | -1.5 |
+| mutes | knob label | `PATH` | 181,144,58,66 | 192..227 | 11 | 12 | -0.5 | 6 | 49 | -21.5 |
+| mutes | knob value (M) | `SNK3` | 181,144,58,66 | 191..229 | 10 | 10 | +0.0 | 25 | 28 | -1.5 |
+
+knob cell label ink y 149..162, value ink y 165..186 -> gap 3 px; value bottom to meter top(194) = 8 px; meter bottom 204 to cell bottom 210 = 6
+knob cell label ink y 149..162, value ink y 165..187 -> gap 3 px; value bottom to meter top(194) = 7 px; meter bottom 204 to cell bottom 210 = 6
+knob cell label ink y 150..162, value ink y 165..187 -> gap 3 px; value bottom to meter top(194) = 7 px; meter bottom 204 to cell bottom 210 = 6
+knob cell label ink y 149..162, value ink y 165..187 -> gap 3 px; value bottom to meter top(194) = 7 px; meter bottom 204 to cell bottom 210 = 6
+channel cell number ink y 31..52, algo ink y 54..67 -> gap 2 px; algo bottom to cell bottom(70) = 3; number top from cell top(26) = 5
+channel cell number ink y 31..52, algo ink y 54..67 -> gap 2 px; algo bottom to cell bottom(70) = 3; number top from cell top(26) = 5
+channel cell number ink y 31..53, algo ink y 54..67 -> gap 1 px; algo bottom to cell bottom(70) = 3; number top from cell top(26) = 5
+channel cell number ink y 31..52, algo ink y 54..67 -> gap 2 px; algo bottom to cell bottom(70) = 3; number top from cell top(26) = 5
+glance_playing [('120', (31, 6, 57, 19)), ('P01', (110, 6, 134, 19))] page boxes start at x=172
+stress [('EXT 126', (30, 6, 87, 19)), ('P16', (110, 6, 137, 19))] page boxes start at x=172
+pips n=3 gap 2 pw 14 total 46 left margin in 46: 0 right: 0
+pips n=6 gap 2 pw 6 total 46 left margin in 46: 0 right: 0
+pips n=7 gap 2 pw 4 total 40 left margin in 46: 3 right: 3
+pips n=14 gap 1 pw 2 total 41 left margin in 46: 2 right: 3
+ratchet x2: bar width 5, spans (rel to x+1) [(0, 5), (7, 12)], gaps between bars [2]
+ratchet x3: bar width 3, spans (rel to x+1) [(0, 3), (4, 7), (9, 12)], gaps between bars [1, 2]
+ratchet x4: bar width 2, spans (rel to x+1) [(0, 2), (3, 5), (7, 9), (10, 12)], gaps between bars [1, 2, 1]
+ratchet x5: bar width 2, spans (rel to x+1) [(0, 2), (2, 4), (5, 7), (8, 10), (10, 12)], gaps between bars [0, 1, 1, 0]
+ratchet x6: bar width 2, spans (rel to x+1) [(0, 2), (2, 4), (4, 6), (6, 8), (8, 10), (10, 12)], gaps between bars [0, 0, 0, 0, 0]
+ratchet x8: bar width 2, spans (rel to x+1) [(0, 2), (1, 3), (3, 5), (4, 6), (6, 8), (7, 9), (9, 11), (10, 12)], gaps between bars [-1, 0, -1, 0, -1, 0, -1]

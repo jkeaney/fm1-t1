@@ -1,0 +1,75 @@
+GREY tokens: {'BG': '0x0841 #080808', 'SURF': '0x2104 #202020', 'TEXT': '0xCE59 #cdcacd', 'THEME': '0xEF5D #eeeaee', 'ACCENT': '0xFFDF #fffaff', 'MID': '0x9492 #949194', 'DIM': '0x5ACB #5a595a', 'LINE': '0x2945 #292829', 'SEL': '0xBDD7 #bdbabd', 'TINT': '0x2104 #202020', 'INK': '0x0841 #080808', 'REC': '0xFFDF #fffaff', 'RAISE': '0x39C7 #393839', 'KEY': '0xA514 #a4a1a4', 'LANE': '0x39C7 #393839', 'GRID': '0x2945 #292829'}
+| # | pair | fg | bg | GREY ratio | need | verdict |
+|---|---|---|---|---|---|---|
+| 1 | TEXT: bpm/preset/cue AF_M | TEXT | BG | 12.33:1 | 4.5 | ok |
+| 2 | TEXT: unselected channel number+algo AF_L/M on RAISE | TEXT | RAISE | 7.19:1 | 4.5 | ok |
+| 3 | TEXT: selected channel number+algo on SEL (INK on SEL) | INK | SEL | 10.42:1 | 4.5 | ok |
+| 4 | TEXT: muted channel number/algo/OFF text MID on BG | MID | BG | 6.42:1 | 4.5 | ok |
+| 5 | TEXT: M letter on muted chip (INK on MID) | INK | MID | 6.42:1 | 4.5 | ok |
+| 6 | TEXT: M letter on selected muted chip (SEL on INK) | SEL | INK | 10.42:1 | 4.5 | ok |
+| 7 | TEXT: knob label/value TEXT on SURF | TEXT | SURF | 10.03:1 | 4.5 | ok |
+| 8 | TEXT: toast title/detail INK on SEL | INK | SEL | 10.42:1 | 4.5 | ok |
+| 9 | TEXT MAP: encoder/OCT/printed name MID on SURF | MID | SURF | 5.23:1 | 4.5 | ok |
+| 10 | TEXT MAP: white-key number TEXT on RAISE | TEXT | RAISE | 7.19:1 | 4.5 | ok |
+| 11 | TEXT MAP: knob ids MID on BG | MID | BG | 6.42:1 | 4.5 | ok |
+| 12 | NT playhead column PH vs LANE column | PH | LANE | 6.46:1 | 3.0 | ok |
+| 13 | NT playhead column PH vs BG (gap, neighbours) | PH | BG | 11.08:1 | 3.0 | ok |
+| 14 | NT bar inside playhead column BG on PH | BG | PH | 11.08:1 | 3.0 | ok |
+| 15 | NT normal bar TEXT on LANE | TEXT | LANE | 7.19:1 | 3.0 | ok |
+| 16 | NT accent bar AC on LANE | AC | LANE | 6.25:1 | 3.0 | ok |
+| 17 | NT accent bar AC vs normal bar TEXT (distinguishing colour) | AC | TEXT | 1.15:1 | 3.0 | UNDER |
+| 18 | NT accent triangle AC on LANE | AC | LANE | 6.25:1 | 3.0 | ok |
+| 19 | NT slide tie bar TEXT on LANE | TEXT | LANE | 7.19:1 | 3.0 | ok |
+| 20 | NT slide tie bar in the 1 px gap column (x+14) TEXT on BG | TEXT | BG | 12.33:1 | 3.0 | ok |
+| 21 | NT rest dash MID on LANE | MID | LANE | 3.75:1 | 3.0 | ok |
+| 22 | NT beat pip MID on LANE | MID | LANE | 3.75:1 | 3.0 | ok |
+| 23 | NT lane column LANE vs BG | LANE | BG | 1.72:1 | 3.0 | UNDER |
+| 24 | NT muted selected hollow bar frame MID on LANE | MID | LANE | 3.75:1 | 3.0 | ok |
+| 25 | NT muted unselected cell: frame MID on BG | MID | BG | 6.42:1 | 3.0 | ok |
+| 26 | NT live unselected cell fill RAISE vs BG | RAISE | BG | 1.72:1 | 3.0 | UNDER |
+| 27 | NT selected cell fill SEL vs BG | SEL | BG | 10.42:1 | 3.0 | ok |
+| 28 | NT selected SEL vs unselected RAISE | SEL | RAISE | 6.07:1 | 3.0 | ok |
+| 29 | NT muted cell (BG+MID frame) vs live cell (RAISE)  [fill vs fill] | BG | RAISE | 1.72:1 | 3.0 | UNDER |
+| 30 | NT M chip fill MID vs BG | MID | BG | 6.42:1 | 3.0 | ok |
+| 31 | NT M chip fill INK(sel) vs SEL cell | INK | SEL | 10.42:1 | 3.0 | ok |
+| 32 | NT struck-through line MID on BG | MID | BG | 6.42:1 | 3.0 | ok |
+| 33 | NT strike INK on SEL (selected muted) | INK | SEL | 10.42:1 | 3.0 | ok |
+| 34 | NT OFF chip frame+text TEXT on RAISE (live, unselected, MIDI OFF) | TEXT | RAISE | 7.19:1 | 3.0 | ok |
+| 35 | NT OFF chip frame+text MID on BG (muted, unselected, MIDI OFF) | MID | BG | 6.42:1 | 3.0 | ok |
+| 36 | NT activity square PH on RAISE | PH | RAISE | 6.46:1 | 3.0 | ok |
+| 37 | NT activity square INK on SEL | INK | SEL | 10.42:1 | 3.0 | ok |
+| 38 | NT meter fill TEXT vs track LANE | TEXT | LANE | 7.19:1 | 3.0 | ok |
+| 39 | NT meter track LANE vs cell SURF | LANE | SURF | 1.40:1 | 3.0 | UNDER |
+| 40 | NT enum pips unselected MID on SURF | MID | SURF | 5.23:1 | 3.0 | ok |
+| 41 | NT enum pip selected TEXT on SURF | TEXT | SURF | 10.03:1 | 3.0 | ok |
+| 42 | NT hot-knob frame TEXT on SURF | TEXT | SURF | 10.03:1 | 3.0 | ok |
+| 43 | NT knob cell SURF vs BG | SURF | BG | 1.23:1 | 3.0 | UNDER |
+| 44 | NT ROW bar live TEXT on BG | TEXT | BG | 12.33:1 | 3.0 | ok |
+| 45 | NT ROW bar I/II INK on TEXT | INK | TEXT | 12.33:1 | 3.0 | ok |
+| 46 | NT ROW bar idle frame MID on BG | MID | BG | 6.42:1 | 3.0 | ok |
+| 47 | NT ROW bar idle numerals MID on BG | MID | BG | 6.42:1 | 3.0 | ok |
+| 48 | NT page box viewed TEXT on BG | TEXT | BG | 12.33:1 | 3.0 | ok |
+| 49 | NT page box other MID on BG | MID | BG | 6.42:1 | 3.0 | ok |
+| 50 | NT page playing marker PH on BG (hollow page) | PH | BG | 11.08:1 | 3.0 | ok |
+| 51 | NT page playing marker BG on TEXT (viewed page) | BG | TEXT | 12.33:1 | 3.0 | ok |
+| 52 | NT transport play PH on BG | PH | BG | 11.08:1 | 3.0 | ok |
+| 53 | NT transport stop MID on BG | MID | BG | 6.42:1 | 3.0 | ok |
+| 54 | NT REC disc RD on BG | RD | BG | 5.99:1 | 3.0 | ok |
+| 55 | NT toast algo unchosen pips MID on SEL | MID | SEL | 1.62:1 | 3.0 | UNDER |
+| 56 | NT toast countdown track MID on SEL | MID | SEL | 1.62:1 | 3.0 | UNDER |
+| 57 | NT toast fill INK on SEL | INK | SEL | 10.42:1 | 3.0 | ok |
+| 58 | NT toast block SEL vs BG | SEL | BG | 10.42:1 | 3.0 | ok |
+
+Mono fallback (PH=AC=RD=TEXT): 
+| playhead col TEXT vs LANE | 7.19:1 |
+| bar in playhead column BG on TEXT | 12.33:1 |
+| accent bar vs normal bar (both TEXT) | 1.00:1 |
+| REC disc TEXT vs BG | 12.33:1 |
+| play triangle TEXT vs BG | 12.33:1 |
+| activity square TEXT vs RAISE | 7.19:1 |
+| playing page marker TEXT on BG | 12.33:1 |
+| playing page marker on hollow page | 12.33:1 |
+new tokens vs each other: PH-AC 1.03, PH-RD 1.85, AC-RD 1.79
+new tokens vs TEXT: PH 1.11 AC 1.15 RD 2.06
+GREY RD in mono = TEXT; triangle vs disc: shape only
+pixel samples glance_playing: playhead col (5*15+7,100) 0xFD80 lane col other (7,100) 0x39C7 gap (14,100) 0x0841

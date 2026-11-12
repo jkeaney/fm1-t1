@@ -1,0 +1,45 @@
+RENDER a_all_muted_sel1                   warnings: none 
+RENDER a_all_muted_sel3                   warnings: none 
+RENDER a_all_muted_all_off                warnings: none (all four muted AND MIDI OFF)
+RENDER b_full_ph1                         warnings: none 
+RENDER b_full_ph8                         warnings: none 
+RENDER b_full_ph16                        warnings: none 
+RENDER b_full_vel1_ph8                    warnings: none 
+RENDER b_full_muted_ph8                   warnings: none 
+RENDER b_ratchet_sweep_1to8               warnings: none (rep 1..8 twice; NOTE_EDIT K4 range is 1x..4x, so rep 5..8 is hypothetical)
+RENDER b_slide_chain_ph8                  warnings: none (slide on all 16, no accent/ratchet)
+RENDER c_empty_playing                    warnings: none 
+RENDER c_empty_stopped                    warnings: none 
+RENDER d_view_p2_playhead_p4              warnings: none 
+RENDER d_view_p4_playhead_p1              warnings: none 
+RENDER d_view_p2_playhead_p2              warnings: none (playhead on the viewed page: reference)
+RENDER f_ext_unknown_stopped              warnings: none (bpm 0: draw prints 'EXT 0'; no 'EXT --' / 'WAIT' state exists in draw())
+RENDER f_ext126_playing                   warnings: none 
+RENDER f_ext126_stopped                   warnings: none (stopped on external clock)
+RENDER f_rec_armed_playing                warnings: none 
+RENDER f_rec_armed_stopped                warnings: none (same inputs as recording-while-playing minus 'playing')
+RENDER f_rec_ext_playing                  warnings: none 
+RENDER g_sel_muted_off_ref                warnings: none (ch3 of glance_playing is already muted + OFF; selected here)
+RENDER g_sel_ch1_muted_off_snd            warnings: none (selected ch1 muted + OFF + snd0=1)
+RENDER g_sel_muted_off_lane_full          warnings: none 
+RENDER h_preset_p16_pending_header        warnings: none 
+RENDER h_preset_p16_pending_toast         warnings: none 
+RENDER h_preset_p16_ext126_rec_header     warnings: none 
+RENDER i_toast_algo_ACID                  warnings: none 
+RENDER i_toast_algo_EUCLID                warnings: none 
+RENDER i_toast_algo_SNAKE                 warnings: none 
+RENDER i_toast_algo_STAGE                 warnings: none 
+RENDER i_toast_algo_ARP                   warnings: none 
+RENDER i_toast_algo_PATTERNS              warnings: none 
+RENDER i_toast_dice_ALL                   warnings: none (detail string is the proposal's only one: NOTES)
+RENDER i_toast_dice_NOTES                 warnings: none (detail string is the proposal's only one: NOTES)
+RENDER i_toast_dice_ACCNT                 warnings: none (detail string is the proposal's only one: NOTES)
+RENDER i_toast_dice_SHAPE                 warnings: none (detail string is the proposal's only one: NOTES)
+RENDER i_toast_dice_ARTIC                 warnings: none (detail string is the proposal's only one: NOTES)
+RENDER i_toast_dice_HITS                  warnings: none (detail string is the proposal's only one: NOTES)
+RENDER i_toast_undo_ALL                   warnings: none 
+RENDER i_toast_undo_NOTES                 warnings: none 
+RENDER i_toast_undo_ACCNT                 warnings: none 
+RENDER i_toast_undo_SHAPE                 warnings: none 
+RENDER i_toast_undo_ARTIC                 warnings: none 
+RENDER i_toast_undo_HITS                  warnings: none 

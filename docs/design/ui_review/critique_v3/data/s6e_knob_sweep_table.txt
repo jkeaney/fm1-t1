@@ -1,0 +1,69 @@
+### proposal KNOBS vs knob_map.tsv (label, lo, hi)
+DIFF SNAKE 3 tsv ('PATH', 1, 14) proposal ('PATH', 0, 13)
+diffs: 1
+
+### (e) knob cell sweep: min / max / longest-name value, per algorithm and knob (60 px cell, 58 px drawable, AF_L ink limit 56)
+| algo | K | label (AF_M ink) | min -> text (font, ink) | max -> text (font, ink) | longest value -> text (font, ink) | verdict |
+|---|---|---|---|---|---|---|
+| ACID | K1 | DENS (38) | 0 -> `KEY` (AF_L, 52) | 16 -> `16` (AF_L, 32) | 0 -> `KEY` (AF_L, 52) | fits |
+| ACID | K2 | SLIDE (38) | 0 -> `0` (AF_L, 16) | 8 -> `8` (AF_L, 16) | 0 -> `0` (AF_L, 16) | fits |
+| ACID | K3 | JUMP (40) | 0 -> `0` (AF_L, 16) | 20 -> `20` (AF_L, 33) | 20 -> `20` (AF_L, 33) | fits |
+| ACID | K4 | ACCNT (50) | 0 -> `0` (AF_L, 16) | 8 -> `8` (AF_L, 16) | 0 -> `0` (AF_L, 16) | fits |
+| ACID | S1 | OFFSET (54) | 0 -> `0` (AF_L, 16) | 15 -> `15` (AF_L, 32) | 10 -> `10` (AF_L, 32) | fits |
+| ACID | S2 | PEDAL (45) | 0 -> `0` (AF_L, 16) | 12 -> `12` (AF_L, 32) | 10 -> `10` (AF_L, 32) | fits |
+| ACID | S3 | PUNCH (50) | 0 -> `0` (AF_L, 16) | 47 -> `47` (AF_L, 33) | 30 -> `30` (AF_L, 34) | fits |
+| ACID | S4 | DIR (23) | 0 -> `UP` (AF_L, 35) | 2 -> `P-P` (AF_L, 44) | 2 -> `P-P` (AF_L, 44) | fits |
+| EUCLID | K1 | HITS (32) | 0 -> `KEY` (AF_L, 52) | 16 -> `16` (AF_L, 32) | 0 -> `KEY` (AF_L, 52) | fits |
+| EUCLID | K2 | OFFSET (54) | 0 -> `0` (AF_L, 16) | 15 -> `15` (AF_L, 32) | 10 -> `10` (AF_L, 32) | fits |
+| EUCLID | K3 | RATCH (47) | 0 -> `0` (AF_L, 16) | 8 -> `8` (AF_L, 16) | 0 -> `0` (AF_L, 16) | fits |
+| EUCLID | K4 | ACCNT (50) | 0 -> `0` (AF_L, 16) | 8 -> `8` (AF_L, 16) | 0 -> `0` (AF_L, 16) | fits |
+| EUCLID | S1 | LEN (26) | 2 -> `2` (AF_L, 15) | 16 -> `16` (AF_L, 32) | 10 -> `10` (AF_L, 32) | fits |
+| EUCLID | S2 | SPAN (37) | 0 -> `0` (AF_L, 16) | 24 -> `24` (AF_L, 33) | 20 -> `20` (AF_L, 33) | fits |
+| EUCLID | S3 | PUNCH (50) | 0 -> `0` (AF_L, 16) | 47 -> `47` (AF_L, 33) | 30 -> `30` (AF_L, 34) | fits |
+| EUCLID | S4 | CURVE (48) | 0 -> `AUT` (AF_L, 56) | 6 -> `INV` (AF_L, 44) | 0 -> `AUT` (AF_L, 56) | fits |
+| SNAKE | K1 | DENS (38) | 0 -> `KEY` (AF_L, 52) | 16 -> `16` (AF_L, 32) | 0 -> `KEY` (AF_L, 52) | fits |
+| SNAKE | K2 | LEN (26) | 1 -> `1` (AF_L, 10) | 16 -> `16` (AF_L, 32) | 10 -> `10` (AF_L, 32) | fits |
+| SNAKE | K3 | RANGE (48) | 0 -> `0` (AF_L, 16) | 48 -> `48` (AF_L, 34) | 30 -> `30` (AF_L, 34) | fits |
+| SNAKE | K4 | PATH (35) | 0 -> `ROW1` (AF_M, 40) | 13 -> `SPI4` (AF_M, 30) | 1 -> `ROW2` (AF_M, 43) | drops to AF_M |
+| SNAKE | S1 | OFFSET (54) | 0 -> `0` (AF_L, 16) | 15 -> `15` (AF_L, 32) | 10 -> `10` (AF_L, 32) | fits |
+| SNAKE | S2 | GLEN (37) | 1 -> `1` (AF_L, 10) | 16 -> `16` (AF_L, 32) | 10 -> `10` (AF_L, 32) | fits |
+| SNAKE | S3 | DYN (29) | 0 -> `0` (AF_L, 16) | 10 -> `10` (AF_L, 32) | 10 -> `10` (AF_L, 32) | fits |
+| SNAKE | S4 | DIR (23) | 0 -> `UP` (AF_L, 35) | 2 -> `P-P` (AF_L, 44) | 2 -> `P-P` (AF_L, 44) | fits |
+| STAGE | K1 | DENS (38) | 0 -> `KEY` (AF_L, 52) | 8 -> `8` (AF_L, 16) | 0 -> `KEY` (AF_L, 52) | fits |
+| STAGE | K2 | TOTAL (45) | 8 -> `8` (AF_L, 16) | 64 -> `64` (AF_L, 34) | 30 -> `30` (AF_L, 34) | fits |
+| STAGE | K3 | DIR (23) | 0 -> `UP` (AF_L, 35) | 2 -> `P-P` (AF_L, 44) | 2 -> `P-P` (AF_L, 44) | fits |
+| STAGE | K4 | RATCH (47) | 0 -> `0` (AF_L, 16) | 8 -> `8` (AF_L, 16) | 0 -> `0` (AF_L, 16) | fits |
+| STAGE | S1 | OFFSET (54) | 0 -> `0` (AF_L, 16) | 63 -> `63` (AF_L, 34) | 30 -> `30` (AF_L, 34) | fits |
+| STAGE | S2 | RDIV (33) | 1 -> `1` (AF_L, 10) | 4 -> `4` (AF_L, 16) | 3 -> `3` (AF_L, 16) | fits |
+| STAGE | S3 | DYN (29) | 0 -> `0` (AF_L, 16) | 10 -> `10` (AF_L, 32) | 10 -> `10` (AF_L, 32) | fits |
+| STAGE | S4 | RANGE (48) | 0 -> `0` (AF_L, 16) | 36 -> `36` (AF_L, 34) | 30 -> `30` (AF_L, 34) | fits |
+| ARP | K1 | DENS (38) | 0 -> `KEY` (AF_L, 52) | 16 -> `16` (AF_L, 32) | 0 -> `KEY` (AF_L, 52) | fits |
+| ARP | K2 | SHAPE (46) | 0 -> `LINE` (AF_M, 30) | 5 -> `WAVE` (AF_M, 40) | 2 -> `THMB` (AF_M, 42) | drops to AF_M |
+| ARP | K3 | OCTS (39) | 1 -> `1` (AF_L, 10) | 4 -> `4` (AF_L, 16) | 3 -> `3` (AF_L, 16) | fits |
+| ARP | K4 | RATE (35) | 0 -> `1/4` (AF_L, 42) | 5 -> `4X` (AF_L, 35) | 0 -> `1/4` (AF_L, 42) | fits |
+| ARP | S1 | OFFSET (54) | 0 -> `0` (AF_L, 16) | 15 -> `15` (AF_L, 32) | 10 -> `10` (AF_L, 32) | fits |
+| ARP | S2 | LEGATO (55) | 0 -> `0` (AF_L, 16) | 8 -> `8` (AF_L, 16) | 0 -> `0` (AF_L, 16) | fits |
+| ARP | S3 | DYN (29) | 0 -> `0` (AF_L, 16) | 10 -> `10` (AF_L, 32) | 10 -> `10` (AF_L, 32) | fits |
+| ARP | S4 | DIR (23) | 0 -> `UP` (AF_L, 35) | 5 -> `CRD` (AF_L, 55) | 4 -> `ORD` (AF_L, 55) | fits |
+| PATTERNS | K1 | DENS (38) | 0 -> `KEY` (AF_L, 52) | 16 -> `16` (AF_L, 32) | 0 -> `KEY` (AF_L, 52) | fits |
+| PATTERNS | K2 | VARY (37) | 0 -> `0` (AF_L, 16) | 8 -> `8` (AF_L, 16) | 0 -> `0` (AF_L, 16) | fits |
+| PATTERNS | K3 | SPAN (37) | 1 -> `1` (AF_L, 10) | 4 -> `4` (AF_L, 16) | 3 -> `3` (AF_L, 16) | fits |
+| PATTERNS | K4 | ACCNT (50) | 0 -> `0` (AF_L, 16) | 8 -> `8` (AF_L, 16) | 0 -> `0` (AF_L, 16) | fits |
+| PATTERNS | S1 | HOUSE,FUNK,TECH (49) | 1 -> `1` (AF_L, 10) | 120 -> `20` (AF_L, 33) | 80 -> `20` (AF_L, 33) | fits |
+| PATTERNS | S2 | SLIDE (38) | 0 -> `0` (AF_L, 16) | 8 -> `8` (AF_L, 16) | 0 -> `0` (AF_L, 16) | fits |
+| PATTERNS | S3 | DYN (29) | 0 -> `0` (AF_L, 16) | 14 -> `14` (AF_L, 32) | 10 -> `10` (AF_L, 32) | fits |
+| PATTERNS | S4 | CTONE (49) | 0 -> `0` (AF_L, 16) | 8 -> `8` (AF_L, 16) | 0 -> `0` (AF_L, 16) | fits |
+
+### enum font choice (one font per enum)
+DIR3 all in AF_L AF_L inks [35, 37, 44] AF_M inks [20, 20, 38]
+ARPDIR all in AF_L AF_L inks [35, 37, 49, 54, 55, 55] AF_M inks [20, 45, 40, 40, 36, 40]
+CURVE all in AF_L AF_L inks [56, 42, 40, 48, 43, 55, 44] AF_M inks [40, 31, 21, 40, 38, 39, 24]
+SHAPE AF_M (fallback) AF_L inks [39, 52, 54, 59, 50, 62] AF_M inks [30, 31, 42, 40, 36, 40]
+RATE all in AF_L AF_L inks [42, 42, 33, 34, 34, 35] AF_M inks [22, 22, 18, 19, 18, 19]
+PATH AF_M (fallback) AF_L inks [None, None, None, None, None, None, None, None, None, None, None, None, None, None] AF_M inks [40, 43, 35, 38, 35, 38, 38, 38, 29, 32, 27, 30, 30, 30]
+enum names in AF_L: 22 in AF_M: 20 total 42
+widest AF_L numeric value strings:
+0 16 | 8 16 | 10 32 | 16 32 | 20 33 | 24 33 | 36 34 | 47 33 | 48 34 | 63 34 | 64 34 | 100 50 | 127 49 | -2 28 | +2 33 | 
+largest hi of any knob: 120 ; any lo<0: False
+PICK labels ink AF_M: {'ACID': 33, 'DUB': 30, 'FUNK': 39, 'HOUSE': 49, 'MEL': 29, 'TECH': 38} numbers 1..20 max AF_L ink 33
+KEY (v=0 on DENS/HITS): AF_L ink 52 ; firmware KEYS 68

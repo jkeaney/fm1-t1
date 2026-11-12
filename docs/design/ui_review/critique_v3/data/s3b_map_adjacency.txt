@@ -1,0 +1,14 @@
+ACCNT adv 39 ink 40
+NOTES adv 38 ink 37
+SHAPE adv 37 ink 37
+ALGORITHM adv 66 ink 65
+10 adv 14 ink 13
+16 adv 14 ink 13
+OFFSET adv 42 ink 43
+PUNCH adv 40 ink 40
+CURVE adv 38 ink 38
+PRESETS adv 49 ink 49
+MAP texts 82
+('ACCNT', 'SHAPE', 'hgap', 1, 'vov', 10, (80, 106, 120, 116), (121, 106, 158, 116))
+ink min x 2 max x1 239 max y1 232
+[('OFFSET', (196, 17, 239, 27)), ('RST', (218, 180, 239, 190))]

@@ -1,0 +1,168 @@
+cap_h measured S 9 line 15
+cap_h measured M 11 line 19
+cap_h measured L 21 line 35
+## glance_idle warnings: none strings 21 {'L': 8, 'M': 13, 'S': 0} roles 9
+## glance_playing warnings: none strings 20 {'L': 8, 'M': 12, 'S': 0} roles 8
+## row2 warnings: none strings 21 {'L': 8, 'M': 13, 'S': 0} roles 9
+## mutes warnings: none strings 20 {'L': 7, 'M': 13, 'S': 0} roles 8
+## stress warnings: none strings 20 {'L': 8, 'M': 12, 'S': 0} roles 8
+## stress_row2 warnings: none strings 20 {'L': 8, 'M': 12, 'S': 0} roles 8
+## glance_playing_mono warnings: none strings 20 {'L': 8, 'M': 12, 'S': 0} roles 8
+## stress_mono warnings: none strings 20 {'L': 8, 'M': 12, 'S': 0} roles 8
+## map warnings: none strings 82 {'L': 0, 'M': 0, 'S': 82} roles 16
+## toast_algo warnings: none strings 14 {'L': 5, 'M': 9, 'S': 0} roles 8
+## toast_preset_pending warnings: none strings 14 {'L': 5, 'M': 9, 'S': 0} roles 8
+## toast_dice_notes warnings: none strings 14 {'L': 5, 'M': 9, 'S': 0} roles 8
+## toast_undo warnings: none strings 14 {'L': 5, 'M': 9, 'S': 0} roles 8
+
+###  glance_idle
+| # | role | string | font | advance px | ink px (w x h) | cap px | cap mm | arcmin@50cm | ink box (x0,y0,x1,y1) | fg/bg contrast |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | bpm | `120` | M | 27 | 26x13 | 11 | 1.375 | 9.5 | 31,6,57,19 | 12.33 |
+| 2 | preset | `P01` | M | 27 | 24x13 | 11 | 1.375 | 9.5 | 110,6,134,19 | 12.33 |
+| 3 | chan number | `1` | L | 18 | 10x21 | 21 | 2.625 | 18.0 | 11,31,21,52 | 10.42 |
+| 4 | algo name | `ACID` | M | 33 | 33x13 | 11 | 1.375 | 9.5 | 13,54,46,67 | 10.42 |
+| 5 | chan number | `2` | L | 18 | 15x21 | 21 | 2.625 | 18.0 | 68,31,83,52 | 7.19 |
+| 6 | algo name | `EUCLID` | M | 51 | 50x13 | 11 | 1.375 | 9.5 | 65,54,115,67 | 7.19 |
+| 7 | chan number | `3` | L | 18 | 16x22 | 21 | 2.625 | 18.0 | 128,31,144,53 | 6.42 |
+| 8 | algo name | `SNAKE` | M | 47 | 47x13 | 11 | 1.375 | 9.5 | 126,54,173,67 | 6.42 |
+| 9 | OFF chip | `OFF` | M | 27 | 27x13 | 11 | 1.375 | 9.5 | 150,33,177,46 | 6.42 |
+| 10 | chan number | `4` | L | 18 | 16x21 | 21 | 2.625 | 18.0 | 188,31,204,52 | 6.42 |
+| 11 | algo name | `STAGE` | M | 45 | 45x13 | 11 | 1.375 | 9.5 | 187,54,232,67 | 6.42 |
+| 12 | MUTE chip | `M` | M | 13 | 12x11 | 11 | 1.375 | 9.5 | 220,34,232,45 | 6.42 |
+| 13 | knob label | `DENS` | M | 38 | 38x13 | 11 | 1.375 | 9.5 | 11,149,49,162 | 10.03 |
+| 14 | knob value | `12` | L | 36 | 32x21 | 21 | 2.625 | 18.0 | 14,165,46,186 | 10.03 |
+| 15 | knob label | `SLIDE` | M | 39 | 38x13 | 11 | 1.375 | 9.5 | 71,149,109,162 | 10.03 |
+| 16 | knob value | `6` | L | 18 | 16x22 | 21 | 2.625 | 18.0 | 82,165,98,187 | 10.03 |
+| 17 | knob label | `JUMP` | M | 40 | 40x12 | 11 | 1.375 | 9.5 | 130,150,170,162 | 10.03 |
+| 18 | knob value | `5` | L | 18 | 15x22 | 21 | 2.625 | 18.0 | 142,165,157,187 | 10.03 |
+| 19 | knob label | `ACCNT` | M | 50 | 50x13 | 11 | 1.375 | 9.5 | 185,149,235,162 | 10.03 |
+| 20 | knob value | `3` | L | 18 | 16x22 | 21 | 2.625 | 18.0 | 202,165,218,187 | 10.03 |
+| 21 | cue | `HOLD HOME = MAP` | M | 133 | 133x13 | 11 | 1.375 | 9.5 | 53,222,186,235 | 12.33 |
+
+###  glance_playing
+| # | role | string | font | advance px | ink px (w x h) | cap px | cap mm | arcmin@50cm | ink box (x0,y0,x1,y1) | fg/bg contrast |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | bpm | `120` | M | 27 | 26x13 | 11 | 1.375 | 9.5 | 31,6,57,19 | 12.33 |
+| 2 | preset | `P01` | M | 27 | 24x13 | 11 | 1.375 | 9.5 | 110,6,134,19 | 12.33 |
+| 3 | chan number | `1` | L | 18 | 10x21 | 21 | 2.625 | 18.0 | 11,31,21,52 | 10.42 |
+| 4 | algo name | `ACID` | M | 33 | 33x13 | 11 | 1.375 | 9.5 | 13,54,46,67 | 10.42 |
+| 5 | chan number | `2` | L | 18 | 15x21 | 21 | 2.625 | 18.0 | 68,31,83,52 | 7.19 |
+| 6 | algo name | `EUCLID` | M | 51 | 50x13 | 11 | 1.375 | 9.5 | 65,54,115,67 | 7.19 |
+| 7 | chan number | `3` | L | 18 | 16x22 | 21 | 2.625 | 18.0 | 128,31,144,53 | 6.42 |
+| 8 | algo name | `SNAKE` | M | 47 | 47x13 | 11 | 1.375 | 9.5 | 126,54,173,67 | 6.42 |
+| 9 | OFF chip | `OFF` | M | 27 | 27x13 | 11 | 1.375 | 9.5 | 150,33,177,46 | 6.42 |
+| 10 | chan number | `4` | L | 18 | 16x21 | 21 | 2.625 | 18.0 | 188,31,204,52 | 6.42 |
+| 11 | algo name | `STAGE` | M | 45 | 45x13 | 11 | 1.375 | 9.5 | 187,54,232,67 | 6.42 |
+| 12 | MUTE chip | `M` | M | 13 | 12x11 | 11 | 1.375 | 9.5 | 220,34,232,45 | 6.42 |
+| 13 | knob label | `DENS` | M | 38 | 38x13 | 11 | 1.375 | 9.5 | 11,149,49,162 | 10.03 |
+| 14 | knob value | `12` | L | 36 | 32x21 | 21 | 2.625 | 18.0 | 14,165,46,186 | 10.03 |
+| 15 | knob label | `SLIDE` | M | 39 | 38x13 | 11 | 1.375 | 9.5 | 71,149,109,162 | 10.03 |
+| 16 | knob value | `6` | L | 18 | 16x22 | 21 | 2.625 | 18.0 | 82,165,98,187 | 10.03 |
+| 17 | knob label | `JUMP` | M | 40 | 40x12 | 11 | 1.375 | 9.5 | 130,150,170,162 | 10.03 |
+| 18 | knob value | `5` | L | 18 | 15x22 | 21 | 2.625 | 18.0 | 142,165,157,187 | 10.03 |
+| 19 | knob label | `ACCNT` | M | 50 | 50x13 | 11 | 1.375 | 9.5 | 185,149,235,162 | 10.03 |
+| 20 | knob value | `3` | L | 18 | 16x22 | 21 | 2.625 | 18.0 | 202,165,218,187 | 10.03 |
+
+###  row2
+| # | role | string | font | advance px | ink px (w x h) | cap px | cap mm | arcmin@50cm | ink box (x0,y0,x1,y1) | fg/bg contrast |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | bpm | `120` | M | 27 | 26x13 | 11 | 1.375 | 9.5 | 31,6,57,19 | 12.33 |
+| 2 | preset | `P01` | M | 27 | 24x13 | 11 | 1.375 | 9.5 | 110,6,134,19 | 12.33 |
+| 3 | chan number | `1` | L | 18 | 10x21 | 21 | 2.625 | 18.0 | 11,31,21,52 | 10.42 |
+| 4 | algo name | `ACID` | M | 33 | 33x13 | 11 | 1.375 | 9.5 | 13,54,46,67 | 10.42 |
+| 5 | chan number | `2` | L | 18 | 15x21 | 21 | 2.625 | 18.0 | 68,31,83,52 | 7.19 |
+| 6 | algo name | `EUCLID` | M | 51 | 50x13 | 11 | 1.375 | 9.5 | 65,54,115,67 | 7.19 |
+| 7 | chan number | `3` | L | 18 | 16x22 | 21 | 2.625 | 18.0 | 128,31,144,53 | 6.42 |
+| 8 | algo name | `SNAKE` | M | 47 | 47x13 | 11 | 1.375 | 9.5 | 126,54,173,67 | 6.42 |
+| 9 | OFF chip | `OFF` | M | 27 | 27x13 | 11 | 1.375 | 9.5 | 150,33,177,46 | 6.42 |
+| 10 | chan number | `4` | L | 18 | 16x21 | 21 | 2.625 | 18.0 | 188,31,204,52 | 6.42 |
+| 11 | algo name | `STAGE` | M | 45 | 45x13 | 11 | 1.375 | 9.5 | 187,54,232,67 | 6.42 |
+| 12 | MUTE chip | `M` | M | 13 | 12x11 | 11 | 1.375 | 9.5 | 220,34,232,45 | 6.42 |
+| 13 | knob label | `OFFSET` | M | 54 | 54x13 | 11 | 1.375 | 9.5 | 3,149,57,162 | 10.03 |
+| 14 | knob value | `0` | L | 18 | 16x22 | 21 | 2.625 | 18.0 | 22,165,38,187 | 10.03 |
+| 15 | knob label | `PEDAL` | M | 45 | 45x11 | 11 | 1.375 | 9.5 | 67,150,112,161 | 10.03 |
+| 16 | knob value | `4` | L | 18 | 16x21 | 21 | 2.625 | 18.0 | 82,165,98,186 | 10.03 |
+| 17 | knob label | `PUNCH` | M | 51 | 50x13 | 11 | 1.375 | 9.5 | 125,149,175,162 | 10.03 |
+| 18 | knob value | `40` | L | 36 | 34x22 | 21 | 2.625 | 18.0 | 133,165,167,187 | 10.03 |
+| 19 | knob label | `DIR` | M | 23 | 23x11 | 11 | 1.375 | 9.5 | 198,150,221,161 | 10.03 |
+| 20 | knob value | `UP` | L | 36 | 35x22 | 21 | 2.625 | 18.0 | 192,165,227,187 | 10.03 |
+| 21 | cue | `HOLD HOME = MAP` | M | 133 | 133x13 | 11 | 1.375 | 9.5 | 53,222,186,235 | 12.33 |
+
+###  mutes
+| # | role | string | font | advance px | ink px (w x h) | cap px | cap mm | arcmin@50cm | ink box (x0,y0,x1,y1) | fg/bg contrast |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | bpm | `120` | M | 27 | 26x13 | 11 | 1.375 | 9.5 | 31,6,57,19 | 12.33 |
+| 2 | preset | `P01` | M | 27 | 24x13 | 11 | 1.375 | 9.5 | 110,6,134,19 | 12.33 |
+| 3 | chan number | `1` | L | 18 | 10x21 | 21 | 2.625 | 18.0 | 11,31,21,52 | 7.19 |
+| 4 | algo name | `ACID` | M | 33 | 33x13 | 11 | 1.375 | 9.5 | 13,54,46,67 | 7.19 |
+| 5 | chan number | `2` | L | 18 | 15x21 | 21 | 2.625 | 18.0 | 68,31,83,52 | 6.42 |
+| 6 | algo name | `EUCLID` | M | 51 | 50x13 | 11 | 1.375 | 9.5 | 65,54,115,67 | 6.42 |
+| 7 | MUTE chip | `M` | M | 13 | 12x11 | 11 | 1.375 | 9.5 | 100,34,112,45 | 6.42 |
+| 8 | chan number | `3` | L | 18 | 16x22 | 21 | 2.625 | 18.0 | 128,31,144,53 | 10.42 |
+| 9 | algo name | `SNAKE` | M | 47 | 47x13 | 11 | 1.375 | 9.5 | 126,54,173,67 | 10.42 |
+| 10 | chan number | `4` | L | 18 | 16x21 | 21 | 2.625 | 18.0 | 188,31,204,52 | 6.42 |
+| 11 | algo name | `STAGE` | M | 45 | 45x13 | 11 | 1.375 | 9.5 | 187,54,232,67 | 6.42 |
+| 12 | MUTE chip | `M` | M | 13 | 12x11 | 11 | 1.375 | 9.5 | 220,34,232,45 | 6.42 |
+| 13 | knob label | `DENS` | M | 38 | 38x13 | 11 | 1.375 | 9.5 | 11,149,49,162 | 10.03 |
+| 14 | knob value | `10` | L | 36 | 32x22 | 21 | 2.625 | 18.0 | 14,165,46,187 | 10.03 |
+| 15 | knob label | `LEN` | M | 27 | 26x11 | 11 | 1.375 | 9.5 | 77,150,103,161 | 10.03 |
+| 16 | knob value | `7` | L | 18 | 15x21 | 21 | 2.625 | 18.0 | 82,165,97,186 | 10.03 |
+| 17 | knob label | `RANGE` | M | 49 | 48x13 | 11 | 1.375 | 9.5 | 126,149,174,162 | 10.03 |
+| 18 | knob value | `12` | L | 36 | 32x21 | 21 | 2.625 | 18.0 | 134,165,166,186 | 10.03 |
+| 19 | knob label | `PATH` | M | 36 | 35x11 | 11 | 1.375 | 9.5 | 192,150,227,161 | 10.03 |
+| 20 | knob value (M) | `SNK3` | M | 38 | 38x13 | 11 | 1.375 | 9.5 | 191,169,229,182 | 10.03 |
+
+###  stress
+| # | role | string | font | advance px | ink px (w x h) | cap px | cap mm | arcmin@50cm | ink box (x0,y0,x1,y1) | fg/bg contrast |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | bpm | `EXT 126` | M | 57 | 57x13 | 11 | 1.375 | 9.5 | 30,6,87,19 | 12.33 |
+| 2 | preset | `P16` | M | 27 | 27x13 | 11 | 1.375 | 9.5 | 110,6,137,19 | 12.33 |
+| 3 | chan number | `1` | L | 18 | 10x21 | 21 | 2.625 | 18.0 | 11,31,21,52 | 7.19 |
+| 4 | algo name | `ARP` | M | 28 | 28x11 | 11 | 1.375 | 9.5 | 16,55,44,66 | 7.19 |
+| 5 | chan number | `2` | L | 18 | 15x21 | 21 | 2.625 | 18.0 | 68,31,83,52 | 7.19 |
+| 6 | algo name | `PATT` | M | 35 | 34x11 | 11 | 1.375 | 9.5 | 73,55,107,66 | 7.19 |
+| 7 | chan number | `3` | L | 18 | 16x22 | 21 | 2.625 | 18.0 | 128,31,144,53 | 7.19 |
+| 8 | algo name | `SNAKE` | M | 47 | 47x13 | 11 | 1.375 | 9.5 | 126,54,173,67 | 7.19 |
+| 9 | OFF chip | `OFF` | M | 27 | 27x13 | 11 | 1.375 | 9.5 | 150,33,177,46 | 7.19 |
+| 10 | chan number | `4` | L | 18 | 16x21 | 21 | 2.625 | 18.0 | 188,31,204,52 | 10.42 |
+| 11 | algo name | `STAGE` | M | 45 | 45x13 | 11 | 1.375 | 9.5 | 187,54,232,67 | 10.42 |
+| 12 | MUTE chip | `M` | M | 13 | 12x11 | 11 | 1.375 | 9.5 | 220,34,232,45 | 10.42 |
+| 13 | knob label | `DENS` | M | 38 | 38x13 | 11 | 1.375 | 9.5 | 11,149,49,162 | 10.03 |
+| 14 | knob value | `8` | L | 18 | 16x22 | 21 | 2.625 | 18.0 | 22,165,38,187 | 10.03 |
+| 15 | knob label | `TOTAL` | M | 45 | 45x13 | 11 | 1.375 | 9.5 | 67,149,112,162 | 10.03 |
+| 16 | knob value | `64` | L | 36 | 34x22 | 21 | 2.625 | 18.0 | 73,165,107,187 | 10.03 |
+| 17 | knob label | `DIR` | M | 23 | 23x11 | 11 | 1.375 | 9.5 | 138,150,161,161 | 10.03 |
+| 18 | knob value | `P-P` | L | 45 | 44x21 | 21 | 2.625 | 18.0 | 128,165,172,186 | 10.03 |
+| 19 | knob label | `RATCH` | M | 47 | 47x13 | 11 | 1.375 | 9.5 | 186,149,233,162 | 10.03 |
+| 20 | knob value | `8` | L | 18 | 16x22 | 21 | 2.625 | 18.0 | 202,165,218,187 | 10.03 |
+
+### MAP
+| role | font | count | strings | min contrast | max advance |
+|---|---|---|---|---|---|
+| map title | S | 1 | `TOUCH = HELP   LET GO = MENU` | 12.33 | 176 |
+| map encoder name | S | 4 | `MASTER`, `SELECT`, `PRESETS`, `ALGORITHM` | 5.23 | 66 |
+| map encoder role | S | 4 | `VOLUME`, `CHANNEL`, `P01-P16`, `OF CH 1` | 10.03 | 54 |
+| map OCT name | S | 2 | `OCT-`, `OCT+` | 5.23 | 30 |
+| map OCT role | S | 2 | `ROW 1`, `ROW 2` | 10.03 | 36 |
+| map knob id | S | 4 | `K1`, `K2`, `K3`, `K4` | 6.42 | 14 |
+| map knob row1 | S | 4 | `DENS`, `SLIDE`, `JUMP`, `ACCNT` | 12.33 | 39 |
+| map knob row2 | S | 4 | `OFFSET`, `PEDAL`, `PUNCH`, `DIR` | 6.42 | 42 |
+| map legend | S | 1 | `= HOLD` | 12.33 | 41 |
+| map button printed | S | 12 | `FX`, `SCL`, `ENV`, `LFO`, `EDIT`, `GLO`, `HOME`, `SAVE` ... | 5.23 | 34 |
+| map button tap | S | 12 | `ALL`, `NOTES`, `ACCNT`, `SHAPE`, `UNDO`, `SET`, `HOME`, `SAVE` ... | 10.03 | 39 |
+| map button hold | S | 4 | `RESET`, `HARM`, `MENU`, `BACK` | 10.03 | 35 |
+| map black key | S | 8 | `M1`, `M2`, `M3`, `M4`, `CHN`, `PG-`, `PG+`, `RST` | 12.33 | 25 |
+| map black key hold | S | 3 | `SOL`, `FIL`, `ROL` | 12.33 | 22 |
+| map caption | S | 1 | `STEPS 1-16: TAP ON/OFF  HOLD EDIT` | 12.33 | 199 |
+| map white key | S | 16 | `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8` ... | 7.19 | 14 |
+MAP total strings 82 roles 16 fonts {'AF_L': 0, 'AF_M': 0, 'AF_S': 0, 'L': 0, 'M': 0, 'S': 82}
+any AF_S on glance scenes: {'glance_idle': 0, 'glance_playing': 0, 'row2': 0, 'mutes': 0, 'stress': 0, 'toast_algo': 0, 'toast_preset_pending': 0, 'toast_dice_notes': 0, 'toast_undo': 0}
+fonts names: {'M', 'L'}
+glance_idle roles ['MUTE chip', 'OFF chip', 'algo name', 'bpm', 'chan number', 'cue', 'knob label', 'knob value', 'preset'] 9
+glance_playing roles ['MUTE chip', 'OFF chip', 'algo name', 'bpm', 'chan number', 'knob label', 'knob value', 'preset'] 8
+row2 roles ['MUTE chip', 'OFF chip', 'algo name', 'bpm', 'chan number', 'cue', 'knob label', 'knob value', 'preset'] 9
+mutes roles ['MUTE chip', 'algo name', 'bpm', 'chan number', 'knob label', 'knob value', 'knob value (M)', 'preset'] 8
+stress roles ['MUTE chip', 'OFF chip', 'algo name', 'bpm', 'chan number', 'knob label', 'knob value', 'preset'] 8
+--- text ink wider than its declared cell
+map map button tap ACCNT ink 40 cell 38
