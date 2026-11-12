@@ -26,7 +26,7 @@ Design points (all from existing locks unless marked NEW):
 - Knob tiles per knob_map SET rows: K1 BPM 40..240 (AF_L, meter), K2 SWING 50..75 %, K3 GATE 10..100 %, K4 DIV 1/32 1/16T 1/16 1/8T 1/8 1/4 (a 6-name list: dots, no meter). One font per knob for its whole range (`value_font`); the percent knobs resolve to AF_M. Every tile is a global value: the meter uses the neutral amber of the selected channel as on PERF (NEW question 3).
 - Status line (NEW, replaces PERF's ROW boxes and PAGE which have no meaning here): preset `Pnn` left; centre = clock out (`OUT MASTER` while playing as master, `OUT ON PLAY` stopped, `OUT FOLLOW` on any external source; SCREEN_SPEC 6.4) preceded, when external, by `EXT USB` or `EXT TRS` (the port the clock came from); right = `OCT -2..+2` (OCTAVE moved here by HARMONY, P2-012; OCT- / OCT+ are named in the slot while touched, as on PERF).
 - Tempo source in the header on every page (SCREEN_SPEC_V2 4.1, already drawn by P4-028 in `ui_sq.c`): INT = `120`; EXT = `EXT` over the BPM; waiting = `EXT` / `WAIT`; lost = `EXT` / `--` in `T_REC`. This task adds the host test of the four strings and their widths, not new header code.
-- EXT: K1 is a read-only mirror, not a control. The shape changes (label `HOST`, no fill, dashed frame), not only the colour. Turning it names why (toast). The user's own tempo is never touched and returns when the host stops (SEQUENCER_UX 2.8; TIMING_SPEC).
+- EXT: K1 is a read-only mirror, not a control. The shape changes (label `HOST`, no fill, dashed frame), not only the colour. Turning it names why (toast). Keeping the user's own tempo while a host clock is followed, and returning it when the host stops (SEQUENCER_UX 2.8; TIMING_SPEC), is P4-031's: as built, `midi_clock.c:63` still overwrites `song.g[G_BPM]` under a host clock, and SET shows whatever `sq_bpm` holds.
 
 ## 1. Who and when
 A producer wants to set the tempo, swing, gate length and step division for all channels, and to see at a glance whether the tempo is their own or a host's, without a menu.
@@ -41,7 +41,7 @@ A producer wants to set the tempo, swing, gate length and step division for all 
 | 5 | Host clock starts (S06): header becomes `EXT` / `124` | K1 tile becomes `HOST 124`, footer `HOST SETS TEMPO`, status `EXT USB  OUT FOLLOW` | the FM-1 follows the host |
 | 6 | Turn K1 while EXT | nothing changes; slot `K1  HOST SETS TEMPO` | none |
 | 7 | PLAY while EXT and the host has not started | header `EXT` / `WAIT`; tile `HOST --`; footer `WAIT FOR HOST START` / `PLAY=CANCEL` | none until the host's Start (P4-031 owns the transport) |
-| 8 | The host clock stops | header `EXT` / `--` in red for the lost period; footer `CLOCK LOST: STOPPED`; then back to INT: the own tempo (unchanged) is in the BPM tile | transport stopped, note-offs |
+| 8 | The host clock stops | header `EXT` / `--` in red for the lost period; footer `CLOCK LOST: STOPPED`; then back to INT: the BPM tile shows `sq_bpm` (the own tempo once P4-031 stops the host overwriting it) | transport stopped, note-offs |
 | 9 | Tap GLO or HOME | back to PERF | none |
 
 ## 3. Functions and class
@@ -75,12 +75,12 @@ Pass: performance >= 11 and no sub-score < 2; setup >= 9 and no 0.
 - [x] Screen shows the value within one frame; sound changes by the next step (BPM: at once)
 - [x] One-handed
 - [x] Does not change another channel (or says so on screen): the page is labelled `ALL CHANNELS`
-- [x] Survives stop/start, clock-source change, preset load: the tile and header re-read the source each frame; the user's tempo is never overwritten by the host; a preset load changes the global values and the tile shows them next frame
+- [x] Survives stop/start, clock-source change, preset load: the tile and header re-read the source each frame; the tile reads the live tempo and returns to the own tempo only if P4-031 stops the host clock overwriting it (not true of the device today: midi_clock.c:63); a preset load changes the global values and the tile shows them next frame
 - [x] Cost recorded (RAM headroom >= 8 KB): `RAM .data+.bss 29352 B of 73728` (headroom 44376 B; was 29224 before the task: +128 B = the SET tile rows and view fields)
 
 Hazards checked in the design (scan for bounds, stale state, surface sync):
 1. Bounds: BPM 40..240 (clamped; fast = 5), SWING 50..75, GATE 10..100, DIV 0..5, OCTAVE -2..+2 (stored as a signed int8 in `GlobalSave`; every turn and tap clamps, no wrap), the `EXT` host tempo shown is the clamped 40..240 integer (never 3 digits + sign). No stack grows: SET keeps no list or history.
-2. Stale state: the BPM tile mirror must read the source each frame (`clk_ext_bpm`, never a cached copy) and `bpm_own` when INT; `ui.force` / the view signature must include the clock state and the octave, or the tile and status line stay old; a pending K1 touch frame must clear on leaving SET; EXT -> INT must put the own tempo back in the tile in the same frame; LOST has no last-host-tempo state (SCREEN_SPEC 6.2).
+2. Stale state: the BPM tile mirror must read the source each frame (`clk_ext_bpm`, never a cached copy) and `bpm_own` when INT; `ui.force` / the view signature must include the clock state and the octave, or the tile and status line stay old; a pending K1 touch frame must clear on leaving SET; EXT -> INT must show the live `sq_bpm` in the tile in the same frame (that it is the own tempo is P4-031's); LOST has no last-host-tempo state (SCREEN_SPEC 6.2).
 3. Surface sync: the table rows and scenarios named in section 5 are the ones that still describe the older screen (the `TEMPO INT n` status line and the OCT tag column); the build commit edits them and re-runs `check_scenarios.py` / `gen_sweeps.py`.
 4. Width: every new string is measured with the mock's `text_w`: `GLO ALL CHANNELS`, `K1 HOST SETS TEMPO`, `OCT+ OCTAVE +1`, `OCT- OCTAVE -2` fit the 136 px slot (`check_messages()` returns no failure); the status line asserts the clock-out blocks end before the OCT readout (`EXT USB  OUT FOLLOW` is the widest); the footers are asserted to fit 240 px (`WAIT FOR HOST START` + `PLAY=CANCEL` in AF_S).
 
@@ -101,7 +101,7 @@ Method: host tests (`tests/ui_sq_set_test.c` drives the handlers as ui_sq_glue.c
 | 5 EXT clock | header `EXT` over `124`; K1 tile `HOST 124`; status `EXT USB OUT FOLLOW`; footer `HOST SETS TEMPO` | follows the host (P4-031) |
 | 6 K1 under EXT / WAIT / lost | nothing changes (tempo and request unchanged); slot `K1 HOST SETS TEMPO`; white frame | none |
 | 7 WAIT / lost | header `EXT` over `WAIT` / `--` (red); tile `HOST --`; footers `WAIT FOR HOST START  PLAY=CANCEL` / `CLOCK LOST: STOPPED  PLAY=START` (AF_S) | none |
-| 8 back to INT | the own tempo is in the tile the same frame (tested: 133 kept) | - |
+| 8 back to INT | the tile reads the live tempo the same frame (host test: a value held in `sq_bpm` shows at once; keeping the own tempo across a host clock is P4-031's) | - |
 | 9 keys, CHN, held step, GLO / HOME | steps toggle, M1 mutes, CHN opens CHAN, a held key opens NOTE_EDIT, SELECT selects without adding, a dice works and the page stays; GLO and HOME return to PERF; GLO inert in REC | as PERF |
 Differences from the prediction: none. Debt: the ALGO encoder still works only on CHAN (P4-032 widens it, as the SET knob_map row says); hold GLO = HARMONY and GLO acting on release are P5-006; the external clock source itself is P4-031 (`ui_sq_clock_set(src, port)` is its hook; until then the source is always INT on the device); `midi_clock.c` still writes the host tempo into `song.g[G_BPM]`, so under EXT the HOST tile shows the host value but the own tempo is not preserved (P4-031 / P2-010's "never overwritten" rule).
 

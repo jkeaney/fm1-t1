@@ -3,7 +3,7 @@
 
 ## Gate A (before the build)
 - **Who/when:** a producer syncing the FM-1 to a DAW or a clock box during a live set.
-- **Steps:** (1) connect the host or TRS clock; (2) press PLAY on the host; (3) the header shows EXT over the BPM and the pattern starts on the host's start; (4) change tempo on the host, the BPM follows; (5) stop the host: the FM-1 stops, notes off; (6) clock disappears while playing: header shows WAIT then the red lost mark; the FM-1 keeps its last tempo.
+- **Steps:** (1) connect the host or TRS clock; (2) press PLAY on the host; (3) the header shows EXT over the BPM and the pattern starts on the host's start; (4) change tempo on the host, the BPM follows; (5) stop the host: the FM-1 stops, notes off; (6) clock disappears while playing: header shows WAIT then the red lost mark; the FM-1 keeps its last tempo. (7) The own tempo is kept: following a host clock never overwrites it (today midi_clock.c:63 does), and after the host stops the BPM tile on SET and the header show the tempo from before (required by the P4-016 review; acceptance criterion of P4-031).
 - **Panel:** no new control; PLAY on the panel acts as clkx_play/clkx_stop.
 - **Screen:** header tempo slot per SCREEN_SPEC_V2 (EXT / WAIT / lost); no new element.
 - **Live-performance check:** no menu visit is needed; the state is readable at a glance.

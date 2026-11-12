@@ -96,7 +96,7 @@ Every band of PERF stays: header, message slot, music row, button icons, keybed 
 - Slot while open (page title, lowest priority): `GLO` + `ALL CHANNELS` (every value here is global).
 - Tiles (knob_map SET rows): K1 BPM 40..240 (AF_L, meter), K2 SWING 50..75 % and K3 GATE 10..100 % (AF_M, meter), K4 DIV 1/32 1/16T 1/16 1/8T 1/8 1/4 (AF_M, six dots).
   Meters use the selected channel's colour. K1 under an external clock (EXT, WAIT or lost): label `HOST`, no fill, a dashed MID frame, the host tempo (`--` until
-  known) in MID (AF_L); a turn only frames it white and names why in the slot (`K1 HOST SETS TEMPO`); the own tempo is kept and is back in the tile the frame the source is INT.
+  known) in MID (AF_L); a turn only frames it white and names why in the slot (`K1 HOST SETS TEMPO`); the own tempo returning in the tile the frame the source is INT, with the host never overwriting it, is P4-031's (today midi_clock.c overwrites `song.g[G_BPM]`; the tile shows whatever `sq_bpm` holds).
 - Status line (replaces ROW and PAGE): preset `Pnn` (or the `Pnn?` pill) left; `EXT USB` / `EXT TRS` (external only) then `OUT MASTER` (own clock, playing) /
   `OUT ON PLAY` (own clock, stopped) / `OUT FOLLOW` (external); `OCT -2..+2` right (OCT- / OCT+ change it and are named in the slot while touched: `OCT+ OCTAVE +1`).
 - Footer: INT `KEYS = STEPS` / `GLO = BACK`; EXT `HOST SETS TEMPO` / `GLO = BACK`; WAIT `WAIT FOR HOST START` / `PLAY=CANCEL` and lost `CLOCK LOST: STOPPED` (T_REC) / `PLAY=START`, both AF_S.

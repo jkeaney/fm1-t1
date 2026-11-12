@@ -3,7 +3,7 @@ id: P4-016
 title: SET page and tempo-source visibility (T-E)
 phase: P4
 type: task
-status: todo
+status: review
 priority: 2
 executor: haiku
 depends_on: [P4-013, P4-009, P4-024]
@@ -78,3 +78,10 @@ Findings (fix these, then resubmit):
 - [ ] The debt is filed nowhere: backlog/tasks/P4-031 does not mention it. Add a deliverable and an acceptance criterion there: "a followed clock never writes song.g[G_BPM]; the own tempo returns when the host stops (P2-010 rule)".
 - [ ] "The own tempo is kept (P4-016)" is stated as fact in knob_map.tsv:58, control_map.tsv:175, CONTROL_MAP.md:341, SCREEN_SPEC_V2.md:99, SEQUENCER_UX.md:432 and S06 rows 4 and 15. Change the attribution to "(P4-031)" or "from P4-031" so the docs do not describe unbuilt behaviour as built (re-run gen_ui_tables, gen_sweeps, check_scenarios, check_help).
 - [ ] S06-clock-ableton-then-fm1-master.md rows 5, 9, 10, 12, 15 and 16 still describe the clock dot (amber dot, ring, "dot keeps blinking") although row-8 banner says there is none; rewrite them to the header text states.
+
+### 2026-11-13 executor (sonnet): review fixes (docs only)
+- (1) Use case P4-016 sections 2, 5 (steps), 6 (live checklist, hazard 2) and 7 now say as-built: SET shows the live `sq_bpm`; the own tempo is NOT kept on the device (midi_clock.c:63 overwrites `song.g[G_BPM]`). The "EXT -> INT restores the own tempo" wording of the 2026-11-13 hazards entry above is withdrawn: the test checks the tile follows `sq_bpm` the same frame, nothing more.
+- (2) P4-031 task: new acceptance criterion (followed clock never writes `song.g[G_BPM]`; own tempo back after the host stops; host test) + Log line; P4-031 use case step 7.
+- (3) "own tempo kept" now credited to P4-031 in knob_map.tsv, control_map.tsv, CONTROL_MAP.md, SCREEN_SPEC_V2 4.7, SEQUENCER_UX 2.8, S06 rows 4, 10, 15.
+- (4) S06 rows 1, 2, 5, 8, 9, 10, 12, 14, 15, 16: clock-dot wording replaced by the header text of the as-built screen.
+- Tables regenerated (gen_sweeps), checkers run: check_scenarios, check_help, check_sequencer_ux pass; check_control_map stays at 78; `sh tools/check.sh` CHECK PASS.

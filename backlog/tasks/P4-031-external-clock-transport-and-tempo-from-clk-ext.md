@@ -24,6 +24,7 @@ When the FM-1 follows a host or TRS clock, Start / Continue / Stop and tempo are
 
 ## Acceptance criteria
 - [ ] A followed clock starts, continues and stops the core; tempo follows the PLL.
+- [ ] The own tempo is kept while a host clock is followed: a followed clock never writes `song.g[G_BPM]` (the PLL tempo is a separate value the header and the SET HOST tile read), and the own tempo is in the BPM tile again the frame the source returns to INT (today midi_clock.c:63 overwrites `song.g[G_BPM]`; P4-016 shows whatever `sq_bpm` holds). Host test: follow 126 BPM, stop the clock, tempo is the value before.
 - [ ] Internal clock behaviour is unchanged (existing tests pass).
 - [ ] `sh tools/check.sh` ends CHECK PASS; RAM headroom >= 8 KB.
 
@@ -40,3 +41,4 @@ Producer-visible only through the header tempo/EXT/WAIT/lost indicator already s
 
 ## Log
 - 2026-11-13: filed from FB-017 item 1.
+- 2026-11-13: P4-016 review: added the own-tempo-kept criterion (SET shows the source; keeping the tempo is this task's, with `ui_sq_clock_set(src, port)` as the screen hook).

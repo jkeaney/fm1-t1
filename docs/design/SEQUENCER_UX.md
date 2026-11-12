@@ -430,7 +430,7 @@ and tests: [TIMING_SPEC.md](TIMING_SPEC.md).
 Timeout rule: 500 ms without a pulse (24 pulses at 120 BPM) returns the source to INT; the check also runs while
 stopped. If it happens while playing the transport stops (as it does today). On SET, K1 BPM stays ignored while an
 external clock runs, as locked in `knob_map.tsv` (the cell mirrors the incoming BPM); the user's own tempo is kept and
-shows again when the host stops. PLAY while a host clock is accepted waits for the host's Start (cue strip
+shows again when the host stops (required of P4-031; until then midi_clock.c overwrites it). PLAY while a host clock is accepted waits for the host's Start (cue strip
 `WAIT FOR HOST START  PLAY=cancel`); it never falls back to the internal clock silently.
 
 ## 3. Button modes
