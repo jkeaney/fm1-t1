@@ -3,7 +3,7 @@ id: BUG-006
 title: sq_core stale queued OFF of a HOLD note can cut a later same-pitch note short
 phase: P4
 type: bug
-status: review
+status: done
 priority: 2
 executor: sonnet
 depends_on: [P4-004]
@@ -58,3 +58,12 @@ Fix (deviates from the suggested one, deliberately): a purge in the sq_emit guar
 After fix: golden 10 = ... OFF 60 @128, ON 60 @128, OFF 60 @143 (repeat plays its full length), ON 60 @144.
 Verification: the 9 existing goldens report ok (unchanged, git shows no golden modified); fuzz 100000 ticks under ASan/UBSan, seeds 0x1234567, 7, 99: SQ_CORE PASS each.
 `sh tools/check.sh`: CHECK PASS. RAM line: "RAM .data+.bss 23828 B of 73728" (headroom 49900 B).
+
+### 2026-11-12 review (sonnet)
+Verdict: PASS (gate none). 
+- (a) Scratch copy with HEAD~1 sq_core.c: the new g10 test FAILS (stale HOLD OFF at 142; golden differs at byte 157). On the fix: passes, under ASan/UBSan.
+- (b) sq_evq_purge_off_after (sq_core.c:215, called :344) read case by case. HOLD OFF due before the repeat ON: kept (tick > on_t is false). HOLD OFF due after: dropped, and the repeat's ON ends the HOLD via the sq_emit guard, so no stuck note and no double OFF. Primary's own OFF: always < rr[0].off, kept. A previous repeat's OFF: len <= sp-1, so it is < the next ON, kept. PO_TIE and HOLD steps never ratchet (:334), so the purge cannot run there. Different channel: filtered by c. Slide-out never ratchets. Slide-in step whose repeat pitch equals the slid-from note: that OFF (S+D) is dropped only if D > the repeat offset (>= 3); the repeat ON then ends it a little later. No hang, no unpaired event.
+- Fuzz 100000 ticks ASan/UBSan: 11 seeds (0x1234567, 7, 99, 1, 2, 3, 0xdeadbeef, 12345, 424242, 777, 31337) all PASS. Extra pressure variant (scratch only, not committed: 2 distinct pitches, 60 % ratchet, 40 % hold, 90 % hits, sub_note algos in play) on 8 more seeds: all PASS.
+- (c) Residual (an earlier-scheduled same-pitch pair with ON after this repeat's ON): not reachable. Earlier pairs come from earlier steps (ONs < S) or from this step's primary and lower-numbered repeats (ONs ascending), so no. Also only sub_note (ARP, not in the firmware build: acid has sub_note = 0) makes a repeat differ from the primary, and with sub_note NULL the primary's same-pitch guard already purges. No bug filed.
+- (d) git diff HEAD~1 tests/golden: only the new sq_core_10 added; the nine goldens are untouched.
+- sh tools/check.sh: CHECK PASS. RAM .data+.bss 23828 B of 73728 (headroom 49900 B, above 8192).
