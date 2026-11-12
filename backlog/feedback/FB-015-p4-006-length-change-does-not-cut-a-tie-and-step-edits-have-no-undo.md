@@ -3,7 +3,7 @@ id: FB-015
 title: P4-006 leaves two spec rules open: a LENGTH change does not cut a TIE, and step edits have no undo
 phase: P4
 type: feedback
-status: todo
+status: done
 priority: 1
 executor: sonnet
 depends_on: []
@@ -54,3 +54,5 @@ python3 tools/backlog.py check
 
 ## Log
 ### 2026-11-12 filed by the P4-006 reviewer
+
+- 2026-11-12 orchestrator triage: option A. Folded into P4-024 (tie cut on LENGTH change, step-edit undo, SLIDE-on-TIE rule, PROB_LOW derivation, ADR API-name amendments, P4-013 checklist line). No owner decision needed.
