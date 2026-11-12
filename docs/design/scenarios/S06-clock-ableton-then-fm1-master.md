@@ -2,8 +2,7 @@
 
 Walks SEQUENCER_UX 2.8, SCREEN_SPEC 6 and TIMING_SPEC 4 to 5 literally. Setup: FM-1 USB-C -> Mac running Ableton Live;
 Ableton routes the FM-1 notes to the TB-3 through a USB-MIDI host box; CH1 ACID on MIDI channel 2; the FM-1 is stopped, BPM
-`120`, no clock heard since power-on. Rows marked HOST are Ableton actions, not FM-1 controls. Notation as S01; `o`
-is the clock dot. Rule ids R1 to R15 are TIMING_SPEC 4.2; M12 is TIMING_SPEC section 3.
+`120`, no clock heard since power-on. Rows marked HOST are Ableton actions, not FM-1 controls. Notation as S01. Rule ids R1 to R15 are TIMING_SPEC 4.2; M12 is TIMING_SPEC section 3.
 
 **Screen words after P4-016 (SCREEN_SPEC_V2 4.1, 4.7; owner-approved 2026-11-13): the header has no clock dot and the cue strip is the footer line.** Read `HD o INT n` as the header `n`, `EXT n` as `EXT` over `n`, `EXT --` (the first pulses) as `EXT` over the tempo (v12 draws no separate first-pulses state; the SET K1 tile reads `HOST --` until the tempo is known), `WAIT` as `EXT` over `WAIT`, the lost state as `EXT` over `--` in red. The SET rows below (3, 4, 8, 10, 11, 12) are written in the as-built SET screen; the other rows keep their older words until the external clock task (P4-031) re-draws them.
 
@@ -32,7 +31,7 @@ tempo; cyan ring with a 4 x 4 hole blinking at 2 Hz = armed, waiting for the hos
 
 Result against the locked tables:
 - Every source state (INT, EXT SYNC, EXT LIVE, WAIT) and every transition of R1 to R10 is readable from the header, the
-  dot, the SET status lines and the PLAY LED, so rule 1 of the vision holds for the clock.
+  SET status lines and the PLAY LED, so rule 1 of the vision holds for the clock.
 - Gaps found by this walk, all fixed by P2-011 (see FINDINGS): stale and conflicting cue rows 13 / 13a / 13b (F-01, now rows
   10a / 10b above row 13); a host Start that arrives while the FM-1 is stopped on its own clock, before any pulse, was not in the
   rule table (F-07, now TIMING_SPEC R16); `OUT MASTER` was drawn while stopped although nothing is sent (F-08, now `OUT ON PLAY`);

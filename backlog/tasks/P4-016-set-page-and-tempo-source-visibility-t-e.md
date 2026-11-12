@@ -3,7 +3,7 @@ id: P4-016
 title: SET page and tempo-source visibility (T-E)
 phase: P4
 type: task
-status: todo
+status: done
 priority: 2
 executor: haiku
 depends_on: [P4-013, P4-009, P4-024]
@@ -92,3 +92,4 @@ Findings 1-3 verified fixed: use case P4-016 reworded as-built; P4-031 task has 
 Fix (one complete list):
 - [ ] docs/design/scenarios/S06-clock-ableton-then-fm1-master.md:5 still says "Notation as S01; `o` is the clock dot." Drop the `o` clause (no dot in v12).
 - [ ] S06:34 closing result says each state is "readable from the header, the dot, the SET status lines and the PLAY LED". Remove "the dot" (rule 1 claim must match the owner ruling: no clock dot).
+- 2026-11-13 orchestrator: removed the two remaining clock-dot lines in S06 (lines 5-6, 34-35) per review finding; check_scenarios and check_help OK. Closing.
