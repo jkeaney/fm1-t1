@@ -25,6 +25,8 @@ Switch the device to the new sequencer: `events_block` calls `sq_block`, keys an
 
 - (P4-009 review) define `SQ_IS_MASTER()` as `clkx_master()` (clk_ext.c) and act on the clk_ext action bits (Start/Continue/SPP, source changes) in the cut-over; `grep -n SQ_IS_MASTER firmware/src` shows the new definition
 
+- (FB-014, P5-001 review) a null-row guard: `sq_rebuild` and every other caller of an `ALGOS[]` function pointer treats a row with a NULL `build`/`step` as an inert (silent) channel and never dereferences it, because rows 1-5 of `ALGOS[]` stay empty until P5-002..P5-004 and P5-007/P5-008 fill them; `sq_default_chan` may keep EUCLID/SNAKE/STAGE as the intended defaults. A host test selects each empty row, runs ticks, and checks no crash and no MIDI from that channel.
+
 ## Acceptance criteria
 - [ ] `grep -n sq_half_begin firmware/src/audio.c` shows the call in the half-buffer interrupt
 - [ ] `grep -rn 't1_block\|t1_mode\|ui_t1' firmware/src` returns nothing

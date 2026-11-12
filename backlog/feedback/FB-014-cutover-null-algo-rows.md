@@ -3,7 +3,7 @@ id: FB-014
 title: P4-012 cut-over would run channels 2-4 on ALGOS[] rows with NULL build/step
 phase: P4
 type: feedback
-status: todo
+status: done
 priority: 2
 executor: sonnet
 depends_on: []
@@ -36,3 +36,5 @@ python3 tools/backlog.py check
 n/a, internal robustness; no producer-facing change.
 
 ## Log
+
+- 2026-11-12 orchestrator triage: added a null-row guard and test to the P4-012 Deliverable instead of making P4-012 wait for P5-002..P5-004 (the first hardware flash only needs ACID).
