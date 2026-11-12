@@ -46,3 +46,4 @@ Producer-facing. Use case: `docs/design/features/P4-014-note-edit-page.md` from 
 
 ## Log
 - 2026-11-12: re-pointed by the screen design lock: draw to docs/design/SCREEN_SPEC_V2.md (ADR-0006) and its v12 renders, not SCREEN_SPEC.md zones; the CHAN band/page is specified there (P4-015).
+- 2026-11-13: carried from P4-013 F4: replace the uisq_pg_note_edit stand-in and close the sq_note_edit_begin session.
