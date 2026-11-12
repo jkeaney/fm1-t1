@@ -3,7 +3,7 @@ id: FB-018
 title: P4-015 CHAN debt: no ONE PAGE / 64 STEPS toasts, K3 SOURCE inert, a steal can name a removed channel
 phase: P4
 type: feedback
-status: todo
+status: done
 priority: 3
 executor: human
 depends_on: [P4-015]
@@ -38,3 +38,4 @@ python3 tools/backlog.py check
 n/a, triage item.
 
 ## Log
+- 2026-11-13: triaged by the orchestrator. Item 1 -> noted on P4-032. Item 2 -> P4-033 (priority 3, not on the HW-1 path). Item 3 -> BUG-011. Item 4 dropped: LENGTH is documented as not undoable (SEQUENCER_UX 1.6); minor.

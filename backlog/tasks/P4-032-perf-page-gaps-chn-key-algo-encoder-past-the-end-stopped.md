@@ -48,3 +48,4 @@ Producer-facing; extend docs/design/features/P4-013-perf-page-lane-step-keys-pag
 
 ## Log
 - 2026-11-13: filed by the P4-013 reviewer (gaps found in the P4-013 Log "Not done"; sits before HW-1 via P4-018 -> P4-020 -> P4-021).
+- 2026-11-13: from FB-018 item 1, also add the 'ONE PAGE: K1 = SHORTER' (CHAN OCT-) and '64 STEPS = MAX' (PG+) toasts: add rows to MESSAGES (v12.py) + ui_tables, one wording shared by PERF and CHAN.
