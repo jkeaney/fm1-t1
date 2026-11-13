@@ -3,7 +3,7 @@ id: FB-019
 title: P4-017 REC keys and step audition write the note queue; nothing in the ISR plays it yet
 phase: P4
 type: feedback
-status: todo
+status: done
 priority: 1
 executor: human
 depends_on: [P4-017]
@@ -39,3 +39,4 @@ n/a, triage item.
 
 ## Log
 - 2026-11-13: filed by the P4-017 executor. Not flashing; the REC page cannot be called done on hardware (HW-1) until this lands.
+- 2026-11-13: triaged into P4-034 (ISR consumer, before HW-1); P4-032 depends on it.

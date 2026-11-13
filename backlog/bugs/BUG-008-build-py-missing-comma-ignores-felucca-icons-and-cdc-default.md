@@ -3,7 +3,7 @@ id: BUG-008
 title: tools/build.py line ~190 is missing a comma, so FELUCCA_ICONS and FELUCCA_CDC_DEFAULT are silently ignored
 phase: P4
 type: bug
-status: todo
+status: done
 priority: 3
 executor: haiku
 depends_on: []
@@ -42,3 +42,5 @@ sh tools/check.sh
 n/a, build tooling.
 
 ## Log
+
+- 2026-11-13: fixed inline by the orchestrator (comma after "FELUCCA_ICONS"); verified by P4-034 check.sh (review: self).

@@ -6,7 +6,7 @@ type: task
 status: todo
 priority: 2
 executor: sonnet
-depends_on: [P4-013, P4-015]
+depends_on: [P4-013, P4-015, P4-034]
 gate: none
 ---
 ## Goal
