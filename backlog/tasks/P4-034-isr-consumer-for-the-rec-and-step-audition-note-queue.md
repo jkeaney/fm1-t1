@@ -3,7 +3,7 @@ id: P4-034
 title: ISR consumer for the REC and step-audition note queue
 phase: P4
 type: task
-status: in_progress
+status: review
 priority: 1
 executor: sonnet
 depends_on: [P4-017]
@@ -23,10 +23,10 @@ REC keys and a stopped step-on tap sound on the unit: drain the 16-slot note rin
 - Host counterpart in tests/host_sq_hooks.h if a new hook is needed
 
 ## Acceptance criteria
-- [ ] Host test counts NOTE_ON and NOTE_OFF through events_block for the cases above
-- [ ] No note stays on after REC is left or the channel changes (no hung note)
-- [ ] Interrupt path adds no loop without a bound; state the worst-case pops per block in the Log
-- [ ] `sh tools/check.sh` ends with `CHECK PASS`; paste the `RAM .data+.bss N of 73728` line, headroom at least 8192 B
+- [x] Host test counts NOTE_ON and NOTE_OFF through events_block for the cases above
+- [x] No note stays on after REC is left or the channel changes (no hung note)
+- [x] Interrupt path adds no loop without a bound; state the worst-case pops per block in the Log
+- [x] `sh tools/check.sh` ends with `CHECK PASS`; paste the `RAM .data+.bss N of 73728` line, headroom at least 8192 B
 
 ## Verification
 ```sh
@@ -41,3 +41,11 @@ n/a, internal plumbing for P4-017 and P4-032 (the producer-visible behaviour is 
 
 ## Log
 - 2026-11-13: created from FB-019 (owner ruling: before HW-1). P4-032 now depends on this.
+
+### 2026-11-13 executor (sonnet 5.5)
+- Ring moved into new firmware/src/sq_aud.h (guarded; seq.c includes it before events_block, ui_sq.c includes the same file), so every host test that links seq.c has it. `events_block` (seq.c, before `seq_audition`/`sq_block`) pops and calls `sq_live_on` / `sq_live_off`; with `sq_ready` off the events are popped and dropped (no hung note: an off with no on is a no-op).
+- Worst-case pops per block: 15 (loop bound `UISQ_AUD_N - 1`; the ring holds 15). Each pop is O(1) (sq_emit / sq_sched_one); no unbounded loop on the ISR path.
+- Tests (tests/sq_link_test.c, real events_block): on+off -> NOTE_ON/NOTE_OFF on CH1; SELECT between on and off -> both on the original channel (6); full ring drops an on (15 usable), one block pops all 15; 15 offs fit and all play; sq_live_c empty; sq_ready off drops without playing; 4000-step pseudo-random on/off/SELECT/block run, flushed: held 0, offs == ons. Leave-REC-with-key-down is the UI's owed-off (already in ui_sq_rec_test) plus the same queue road.
+- Hazards checked: ring bound (15-pop loop, full-ring test); removed/unused slot (off without on is a no-op, sq_live_c); stale state after SELECT (live test, random test); early return skipping cleanup (sq_ready-off path still pops); page-change flags (UI-side owed offs unchanged, ui_sq_rec_test).
+- `sh tools/check.sh`: CHECK PASS. `RAM .data+.bss 29576 B of 73728` (headroom 44152 B >= 8192); pool 78520 B of 368640; image 196756 B. This build includes the BUG-008 build.py comma fix and builds.
+- Docs sync: grepped FB-019, ui_sq_aud_next, "nothing in the ISR" in docs/design; fixed docs/design/features/P4-017-rec-page.md and docs/design/scenarios/S07-set-scale-chan-rec.md.

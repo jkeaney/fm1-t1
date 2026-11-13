@@ -1424,35 +1424,17 @@ static void ui_sq_algo_turn(int32_t d)
  * (performing while recording); GLO is inert and names how to finish; PRESETS is drained by the glue. SELECT picks a channel (no add) and the cursor returns to step 1.
  * State rules. Every key remembers the note it started (uisq_rec_note), so an octave change or a channel change while it is held cannot hang it; the note-off is
  * owed until the queue takes it (uisq_rec_owed, retried every frame on every page by uisq_rec_flush), on release, on leaving REC and on SELECT. The queue: the UI is
- * the producer, the ISR the consumer (ui_sq_aud_next; the ISR side calls sq_live_on / sq_live_off with what it pops: FB-019, not in this task). A full queue drops a
+ * the producer, the ISR the consumer (events_block in seq.c pops it into sq_live_on / sq_live_off; sq_aud.h). A full queue drops a
  * note-on (nothing is owed for it) and never an off. */
-#define UISQ_AUD_N      16u
+#include "sq_aud.h"               /* the queue itself (P4-034): uisq_aud_push / ui_sq_aud_next, shared with seq.c, which is included first */
 #define UISQ_REC_VEL    90u              /* the fixed velocity (FS4 fallback) */
 #define UISQ_REC_VEL_ACC 120u            /* ... with K2 ACC ON */
 #define UISQ_REC_AUD_MS 120u             /* the cursor step sounds this long when K1 moves it */
-static volatile uint16_t uisq_aud_q[UISQ_AUD_N];                       /* bit 14 = on, bits 7..13 velocity, bits 0..6 note */
-static volatile uint8_t  uisq_aud_w, uisq_aud_r;
 static uint8_t  uisq_rec_note[UISQ_NKEY];                              /* the note a held key started, +1; 0 = none */
 static uint32_t uisq_rec_owed;                                         /* bit k: the note-off of key k is still owed to the queue */
 static uint8_t  uisq_rec_aud_note;                                     /* K1's step audition: the note +1 until its off is sent */
 static uint32_t uisq_rec_aud_t0;
 static uint8_t  uisq_rec_ch = 0xFFu;                                   /* the channel the cursor belongs to: a different selection returns it to step 1 */
-static uint8_t uisq_aud_push(uint8_t on, uint8_t note, uint8_t vel)
-{   const uint8_t w = uisq_aud_w, nx = (uint8_t)((w + 1u) % UISQ_AUD_N);
-    if (nx == uisq_aud_r) return 0;
-    uisq_aud_q[w] = (uint16_t)((on ? 0x4000u : 0u) | ((uint16_t)(vel & 127u) << 7) | (note & 127u));
-    uisq_aud_w = nx;
-    return 1; }
-/* the consumer's end (the ISR task, FB-019; the host tests): the next queued note event, 0 when empty */
-static uint8_t ui_sq_aud_next(uint8_t *on, uint8_t *note, uint8_t *vel)
-{   const uint8_t r = uisq_aud_r;
-    uint16_t e;
-    if (r == uisq_aud_w) return 0;
-    e = uisq_aud_q[r];
-    *on = (uint8_t)((e >> 14) & 1u); *vel = (uint8_t)((e >> 7) & 127u); *note = (uint8_t)(e & 127u);
-    uisq_aud_r = (uint8_t)((r + 1u) % UISQ_AUD_N);
-    return 1; }
-
 static uint8_t uisq_rec_len(void) { const uint8_t n = sq_ch[uisq_sel % SQ_NCH].len; return n ? n : 1u; }
 static uint8_t uisq_rec_pos(void)                                       /* the cursor as a step of the channel, 0..len-1 */
 {   const uint32_t p = (uint32_t)uisq_vpage * SQ_PAGE + (uisq_rec_cursor ? uisq_rec_cursor - 1u : 0u);

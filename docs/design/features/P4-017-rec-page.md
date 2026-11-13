@@ -4,7 +4,7 @@
 Process: docs/project/UX_GATE.md. Gate A fills 1-6 before the build; Gate B fills 7-9 after it.
 Task: backlog/tasks/P4-017-rec-page.md   Spec: SCREEN_SPEC_V2 (4.2 REC band, 4.4 cursor frame, 4.6 keybed, 4.8 REC page), SEQUENCER_UX 2.5, 5 (U54, U67), 6.1 (FS4 fallback)   Scenario: S07 steps 9-10, 19-33, S14
 
-**STATUS: BUILT on the host (the real unit is HW-1). The keys write steps; whether they also SOUND needs the ISR end of the note queue: FB-019 (this task's scope excludes ISR code).**
+**STATUS: BUILT on the host (the real unit is HW-1). The keys write steps and sound: events_block drains the note queue into sq_live_on / sq_live_off (P4-034, host-tested; the sound itself is judged at HW-1).**
 
 ## The renders
 The screen is the v12 REC scenes (`docs/design/ui_review/proposals/v12/out/v12_rec_armed*.png`, `v12_rec_playing*.png`, locked with the v12 screen design). The firmware draws them and `tests/v12_compare.py` proves them equal pixel for pixel (52 scenes, 0 failed). The page adds no new drawn element: the band, the cursor frame, the red disc and the plain keybed were already in the v12 drawing code; this task replaced their literal strings with table reads (labels from `knob_map` REC rows, OFF / ON and the octave signs from `note_edit_text`, the footer from the `page_states` REC cue) and wired the behaviour. The host test also renders `build/ui_sq/rec_open|rec_written|rec_stopped|rec_playing|rec_glo.png`.
@@ -18,7 +18,7 @@ A producer has a channel selected and wants to play a line on the keys and have 
 | # | Producer does (control id, context) | Screen shows after | Sound / MIDI after |
 | --- | --- | --- | --- |
 | 1 | Tap REC (B_REC, PERF / NOTE_EDIT / CHAN / SET) | REC: red disc in the header, band `CURSOR 1` `ACC OFF` `SLIDE OFF` `OCT 0` in white, white frame round step 1 (round the edited step from NOTE_EDIT), keys plain, footer `PLAY KEYS TO WRITE` / `REC = DONE` | none |
-| 2 | Press a key (any of the 27), stopped | the step under the cursor fills and the cursor moves on (`CURSOR 2`) | the key's note on the selected channel's MIDI channel (the ISR end is FB-019); the step plays it from now on |
+| 2 | Press a key (any of the 27), stopped | the step under the cursor fills and the cursor moves on (`CURSOR 2`) | the key's note on the selected channel's MIDI channel (events_block plays the queue: P4-034); the step plays it from now on |
 | 3 | Turn K2 / K3 (ACC, SLIDE), then press a key | `ACC ON` / `SLIDE ON`; the written step carries an accent cap and a slide bridge | velocity 120 (ACC) instead of 90 |
 | 4 | Turn K4 or tap OCT- / OCT+ | `OCT -2..+2` in the tile (dots), clamped | the keys sound and write an octave away |
 | 5 | Turn K1 (CURSOR), stopped | the frame moves one step per detent, wraps over LENGTH, the view follows across pages | the step under the cursor sounds briefly when it hits |
@@ -56,7 +56,7 @@ Pass: performance >= 11 and no sub-score < 2; setup >= 9 and no 0.
 ## 6. Live checklist (yes / no + reason / n/a)
 - [x] Reachable from the main screen, no menu: REC is printed on the panel
 - [x] Undoable in one press or self-reverting: EDIT takes the last written note back (one record per key press); again = redo
-- [ ] Lands on a musical boundary, no hung or cut notes: writes are step edits, read at the step's next play, no note is cut; every queued note-on has its off (owed until queued, also after REC is left: host-tested incl. a full ring), BUT the ISR does not play the queue yet (FB-019), so no key sounds on a device until that lands
+- [ ] Lands on a musical boundary, no hung or cut notes: writes are step edits, read at the step's next play, no note is cut; every queued note-on has its off (owed until queued, also after REC is left: host-tested incl. a full ring), and the ISR plays the queue (P4-034, at most 15 pops a block)
 - [x] Screen shows the value within one frame; sound changes by the next step: the tiles, cursor frame and step bar redraw in the frame of the key; the written step plays at its next pass
 - [x] One-handed: keys and the knob turns are single-handed; two-handed play is not needed
 - [x] Does not change another channel (or says so on screen): writes go to the selected channel only; SELECT while a key is held ends that note on the channel it began on
@@ -85,18 +85,18 @@ Method: host tests (`tests/ui_sq_rec_test.c` drives the handlers as ui_sq_glue.c
 | 8 GLO | inert; slot `GLO REC = DONE` | none |
 | 9 SELECT / ALGO | other channel, cursor on step 1, no channel added; algorithm changes, written steps kept | as PERF |
 | 10 REC / HOME | PERF; two keys held across HOME: both notes end, their release toggles no step | note-offs |
-Differences from the prediction: none. Debt: **FB-019** (the ISR does not play the queue: keys are silent on a device); SAVE in REC and PRESETS are the preset layer's (P7), RESET (hold EDIT) is P4-018; the K1 meter is drawn over 1..16 (a channel with LENGTH under 16 wraps earlier); force sensing (P6-006) replaces the fixed 90 / 120.
+Differences from the prediction: none. Debt: none for the queue (P4-034 plays it); SAVE in REC and PRESETS are the preset layer's (P7), RESET (hold EDIT) is P4-018; the K1 meter is drawn over 1..16 (a channel with LENGTH under 16 wraps earlier); force sensing (P6-006) replaces the fixed 90 / 120.
 
 ## 8. Actual ease score
 | Function | V | I | O | L | /12 | Predicted | Delta | Pass? |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Write steps from the keys | 3 | 3 | 3 | 3 | 12 | 12 | 0 | yes (host; real unit HW-1, and only with FB-019) |
+| Write steps from the keys | 3 | 3 | 3 | 3 | 12 | 12 | 0 | yes (host; real unit HW-1) |
 | ACC / SLIDE / OCT / CURSOR | 3 | 3 | 3 | 2 | 11 | 11 | 0 | yes (host) |
 | Dice / EDIT in REC | 3 | 3 | 3 | 3 | 12 | 12 | 0 | yes (host) |
 | Leave REC | 3 | 3 | 3 | 3 | 12 | 12 | 0 | yes (host) |
 
 ## 9. Sync re-check and outcome
 - `sh tools/check.sh`: CHECK PASS; `tests/ui_sq_rec_test.c` (0 failures), `tests/ui_sq_v12_test.c`, `tests/v12_compare.py` (52 scenes, 0 failed), `tests/design/check_scenarios.py`, `check_help.py`, `tools/check_sequencer_ux.py`: pass.
-- Live checklist re-answered from the host runs: yes for seven of eight lines; the sound line is open until FB-019.
-- Outcome: Pass with debt (FB-019). Gate B (reviewer) to confirm; the real unit is HW-1 (P4-021).
+- Live checklist re-answered from the host runs: yes for seven of eight lines; the sound line is judged at HW-1 (the ISR consumer is P4-034).
+- Outcome: Pass (ISR consumer: P4-034). Gate B (reviewer) to confirm; the real unit is HW-1 (P4-021).
 - Approved: pending (reviewer; owner at HW-1)

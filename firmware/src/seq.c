@@ -65,6 +65,8 @@ static void sq_block(uint32_t n);
 static void sq_live_on(uint8_t note, uint8_t vel);      /* MIDI IN notes play on the selected channel (midi_control.c midi_event) */
 static void sq_live_off(uint8_t note);
 
+#include "sq_aud.h"                           /* the REC / step-audition note queue events_block drains (P4-034) */
+
 static uint32_t trk_index(const track_t *t) { return (uint32_t)(t - trk); }
 
 /* MENU > MIDI > MIDI IN (G_ROUTE, up to 1.1.5 GLO > SYSTEM ROUT): the first channel (0..15) of the block of four that
@@ -1304,6 +1306,19 @@ static void events_block(uint32_t n)
             } else
                 seq_n = midi_clock_advance(fm1_ms);
         }
+    }
+    /* the UI's note queue (REC keys, a stopped step tap: P4-034). At most UISQ_AUD_N - 1 = 15 pops a block (the ring's capacity; the loop is bounded by it
+     * even if the producer keeps pushing), each one sq_live_on / sq_live_off. Before the core is up nothing can play them: they are dropped. */
+    for (i = 0; i < UISQ_AUD_N - 1u; i++) {
+        uint8_t qon, qnote, qvel;
+        if (!ui_sq_aud_next(&qon, &qnote, &qvel))
+            break;
+        if (!sq_ready)
+            continue;
+        if (qon)
+            sq_live_on(qnote, qvel);
+        else
+            sq_live_off(qnote);
     }
     if (aud_req)
         seq_audition();                               /* (STEP PREVIEW: a step sounds, stopped) */
