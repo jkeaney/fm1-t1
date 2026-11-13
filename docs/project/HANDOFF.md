@@ -22,11 +22,12 @@ A UX-first sequencer firmware for the M-VAVE FM-1 (fork of Felucca 1.6 via tenso
 1. Owner: sign off P4-021 (`Approved:` line), then P4-035 triage of his findings.
 2. P4-042 bound the tie search in the ISR (before P5-008), P4-044 channel in-use, P4-041 ACID MIDI test, P4-040 ACID finish (owner approves new marks).
 3. LEDs: P4-037 HW-LED experiment -> P4-038 design (owner approves, rules on hard blinks) -> P4-039 LED-1 build. Requirement: the device LEDs follow the sequencer (blinking, solid or dark by what the active channels' playback and sequence are doing).
-4. P4-043 unwired controls (owner rules on RIG and MOD output in v1), P4-031 external clock, P4-019/P4-022 timing.
+4. P4-043 unwired controls (ALGO on NOTE_EDIT/SET, OCT peek, preview pick), P4-031 external clock, P4-019/P4-022 timing.
+4a. **RIG + MOD chain (owner rulings 2026-11-13, both IN v1):** P4-045 design reconciliation + ADR-0008 + mocks (docs only, owner approves; can run while LEDs build) -> P4-046 device-profile data + generator + TB-3 profile (a new device is data only) -> P4-047 MOD engine (ISR, full review) -> P4-048 ROW 3 knobs R1-R4 (also after P4-043) -> P4-049 RIG page (hold CHN) -> P4-050 HW-RIG on the TB-3. Order: after LEDs (P4-039) and ACID finish (P4-040/041/042/044), before the other algorithms (P5-002..); prove RIG/MOD with ACID on the TB-3 first. Known conflict P4-045 must resolve: the control tables still carry the P2-019/021 RIG design while MODULATION.md (P2-022, built engine) says ROW 3 = MOD page and no RIG page.
 5. P5 algorithms + harmony + HW-2, P6 morph/dice/keys + LED-2 (P6-004) + HW-3, P7 presets + HW-4, P8.
 
 ## Open owner items
-P4-021 `Approved:` line; the hard-blink vs breathing ruling for LEDs (P4-038, replaces the old "never a hard blink in a dark room" comment in ui_input.c); RIG in v1? and MOD output in v1? (P4-043); P7-001 flash map `Design locked:` (blocks nothing until P7-002).
+P4-021 `Approved:` line; the hard-blink vs breathing ruling for LEDs (P4-038, replaces the old "never a hard blink in a dark room" comment in ui_input.c); RIG and MOD rulings are DONE (2026-11-13, verbatim): "MOD output is IN v1." and FULL RIG in v1: "full setup so that we have everything set up to be workable. with the Tb-3 setup as the first device that we fully support, and the next device we add will easily be added in via data and not code." Owner approvals now needed in that chain: P4-045 (reconciliation and mocks), P4-048 and P4-049 (screens), P4-050 (hardware session); P7-001 flash map `Design locked:` (blocks nothing until P7-002).
 
 ## Known debts
 External clock transport/tempo not via clk_ext (P4-031); midi_clock.c overwrites BPM under a host clock; K3 SOURCE inert

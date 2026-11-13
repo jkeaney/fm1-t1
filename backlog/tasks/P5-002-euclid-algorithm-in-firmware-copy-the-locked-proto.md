@@ -46,3 +46,4 @@ Producer-facing. Use case: `docs/design/features/P5-002-euclid-algorithm-in-firm
 - Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).
 
 ## Log
+- 2026-11-13 planner (note only, no re-ordering): EUCLID's SHAPE layer is `s_mod` only, so its SHAPE dice is audible only through the MOD engine (P4-047, with a device on the channel, set up via P4-048 / P4-049). This task copies the prototype's `mod` row as is; do not wait for P4-047, but HW-2 (P5-009) must check the SHAPE dice on the TB-3.

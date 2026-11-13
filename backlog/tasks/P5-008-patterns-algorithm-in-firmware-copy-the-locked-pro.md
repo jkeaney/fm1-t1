@@ -50,3 +50,4 @@ Producer-facing. Use case: `docs/design/features/P5-008-patterns-algorithm-in-fi
 
 ## Log
 - 2026-11-13: now depends on P4-042 (bounded tie search in the ISR) before PATTERNS adds an expensive step().
+- 2026-11-13 planner (note only, no re-ordering): PATTERNS' UP/DN dice re-rolls its seed and `s_mod`; the `s_mod` half is audible only through the MOD engine (P4-047 / P4-048 / P4-049). Copy the prototype's `mod` row as is; check it on the TB-3 in HW-2 (P5-009).

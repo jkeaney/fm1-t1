@@ -45,3 +45,4 @@ Producer-facing. Use case: `docs/design/features/P5-004-stage-algorithm-in-firmw
 - Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).
 
 ## Log
+- 2026-11-13 planner (note only, no re-ordering): STAGE's LONG dice re-rolls `s_lens` and `s_mod`; the `s_mod` half is audible only through the MOD engine (P4-047 / P4-048 / P4-049). Copy the prototype's `mod` row as is; check it on the TB-3 in HW-2 (P5-009).
