@@ -6,7 +6,7 @@ type: task
 status: todo
 priority: 2
 executor: haiku
-depends_on: [P5-005]
+depends_on: [P5-005, P4-042]
 gate: none
 ---
 ## Goal
@@ -49,3 +49,4 @@ Producer-facing. Use case: `docs/design/features/P5-008-patterns-algorithm-in-fi
 - Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).
 
 ## Log
+- 2026-11-13: now depends on P4-042 (bounded tie search in the ISR) before PATTERNS adds an expensive step().

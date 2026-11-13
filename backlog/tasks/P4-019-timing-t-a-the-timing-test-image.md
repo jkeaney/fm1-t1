@@ -5,7 +5,7 @@ phase: P4
 type: task
 status: todo
 priority: 2
-executor: haiku
+executor: sonnet
 depends_on: [P4-012, P4-007]
 gate: none
 ---
@@ -42,3 +42,4 @@ n/a, internal work (tooling, plumbing, docs, process); no producer-visible contr
 - Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).
 
 ## Log
+- 2026-11-13: executor changed haiku -> sonnet (the timing image needs judgement across seq.c, console and build flags).

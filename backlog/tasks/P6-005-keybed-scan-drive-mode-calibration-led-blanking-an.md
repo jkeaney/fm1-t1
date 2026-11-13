@@ -6,7 +6,7 @@ type: task
 status: todo
 priority: 2
 executor: sonnet
-depends_on: [P6-004, P2-015]
+depends_on: [P4-039, P2-015]
 gate: none
 ---
 ## Goal
@@ -47,3 +47,4 @@ Producer-facing. Use case: `docs/design/features/P6-005-keybed-scan-drive-mode-c
 - Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).
 
 ## Log
+- 2026-11-13: dependency changed from P6-004 to P4-039 (LED-1): LED blanking builds on the LED frame; P6-004 is now LED-2.

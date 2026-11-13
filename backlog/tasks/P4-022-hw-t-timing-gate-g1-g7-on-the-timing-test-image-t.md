@@ -6,7 +6,7 @@ type: task
 status: todo
 priority: 2
 executor: human
-depends_on: [P4-019, P4-008, P4-021]
+depends_on: [P4-019, P4-008, P4-021, P4-031]
 gate: hardware-test
 ---
 ## Goal
@@ -38,3 +38,4 @@ Gate B on real hardware: the owner walks the cited use cases on the FM-1 and TB-
 - Code changes
 
 ## Log
+- 2026-11-13: added P4-031 (external clock via clk_ext) so G1-G7 measure the final clock path.

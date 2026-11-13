@@ -20,6 +20,7 @@ The chord stage every channel passes through (HARMONY.md §4), copied from the l
 
 ## Deliverable
 - firmware/src/sq_harm.c: copy of harm.c with `static`; `harm_db[2]` double buffer read once per block, `HarmRT`, `HarmUndo`, `undo_last`; `harm_apply()` called between `step()` and `sq_note()` in sq_core.c; `AlgoDesc.hi()` per algorithm; PROG dice
+- One shared `chord at this step` function, used by the scheduler (sq_core.c ~266, ~416), sq_chan.c ~310 and the screen (ui_sq.c ~441), replacing the four `sq_hc_inert` call sites, so the screen never shows other notes than the ones played
 - API for the UI: set progression slot, VOICE, MOVE, DRONE, BARS, ROLE per channel, PROG dice, undo (EDIT swaps the later of channel and harmony records)
 - tests/sq_harm_test.c: H-GOLDEN tables equal harmony_proto.py output (checked-in text), H-INERT for all four algorithms against their goldens, ROLE OFF identity for any progression, H-UNDO
 
@@ -46,3 +47,4 @@ Producer-facing. Use case: `docs/design/features/P5-005-harmony-engine-harm-appl
 - Out of scope is binding. If the spec and the code disagree, or a needed fact is missing, stop: set `blocked`, file `backlog/bugs/BUG-nnn` or `backlog/feedback/FB-nnn` from `backlog/_templates/`, and never guess (ADR-0004).
 
 ## Log
+- 2026-11-13: Deliverable extended (shared chord-at-step function) from the POC readiness review, finding 5.

@@ -65,3 +65,4 @@ Output: `166 items, 0 errors`.
 Awaiting owner: check the one choice in plain language. Do you accept putting the 16 presets in the old, unused sample-slot area of flash
 (addresses 0xA0000 to 0xBFFFF), keeping settings where they already are, and treating a preset saved by an older firmware version as
 "EMPTY, nothing loaded"? Reply "Design locked: ADR-0005 <date>" in this log to close the third criterion.
+- 2026-11-13: stays in review (owner). It blocks nothing until P7-002.

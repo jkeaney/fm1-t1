@@ -1,27 +1,32 @@
 # Handoff: current state of the project (read this first after a context reset)
 
-Updated 2026-11-13. If this disagrees with a task file, the task file and `python3 tools/backlog.py list` win.
+Updated 2026-11-13 (POC close-out, P4-036). If this disagrees with a task file, the task file and `python3 tools/backlog.py list` win.
 Decisions: `docs/project/OWNER_QUESTIONS.md`. Older handoffs: `docs/project/sessions/HANDOFF-*-archive.md`.
 **Update this file at the close of every `/next-task` cycle (state + next + open owner items).**
 
 ## What we are building
 A UX-first sequencer firmware for the M-VAVE FM-1 (fork of Felucca 1.6 via tensor-programming/fm1-t1). Rules:
-`docs/project/VISION.md`. Branch `t1-hardware-bringup`; **nothing pushed since f68d3df. Ask before any push or flash.**
+`docs/project/VISION.md`. Branch `t1-hardware-bringup`, pushed to origin at efe0dc9. **Ask before any further push or flash.**
 
 ## State
 - **Done:** P0-P3, P4-001..016 and P4-026..030, BUG-001..005, BUG-010, BUG-011. The cut-over (P4-012) is done: the
   device build boots the new sequencer core (`sq_*.c`) and the new screen (`ui_sq.c`, `ui_sq_glue.c`). Screen design
   is LOCKED: `docs/design/SCREEN_SPEC_V2.md`, ADR-0006/0007, renders `docs/design/ui_review/proposals/v12/`.
   Pages built: PERF, NOTE_EDIT, CHAN, SET. Only the ACID algorithm row is filled.
-- **Host-verified only. Nothing from the new core has been flashed.** The unit still runs the HW-0 build (old T-1).
-- RAM `29352 B of 73728` (about 44 KB headroom; floor 4 KB, E9 trigger 8 KB).
+- **HW-1 (first flash, 2026-11-13): the new core is flashed and working on the TB-3 at efe0dc9** (build sha1 8a929084..., `FM-1_900`). Owner: it works. P4-021 stays open until the owner writes his own `Approved:` line and the checklist sections B onward are run; findings go to P4-035.
+- Readiness review (read-only, 2026-11-13): core and screen are sound and ADR-0007 holds; ACID is not yet FINISHED (generated slides and ARTIC dice invisible on screen, no end-to-end MIDI golden, no HARMONY hooks, no MOD output), the LEDs still show legacy state, and the interrupt cost is unmeasured.
+- RAM `29640 B of 73728` (about 44 KB headroom; floor 4 KB, E9 trigger 8 KB).
 - Interrupt CPU cost is unmeasured (static estimate only) until HW-1 / P4-019 / P4-022.
 
-## Path to the first flash (HW-1)
-P4-017 REC page -> P4-032 PERF gaps -> P4-018 RESET/HELP/first run -> P4-020 rewrite HARDWARE_TEST.md -> **P4-021
-HW-1 (owner flashes; ask first)**. Owner rulings (2026-11-13): external clock P4-031, K3 SOURCE P4-033 wait until
-after HW-1; HW-1 is the first timing measurement.
-After HW-1: P4-019/P4-022 timing, P5 algorithms + harmony + HW-2, P6 morph/dice/keys + HW-3, P7 presets + HW-4, P8.
+## Next steps (plan after HW-1)
+1. Owner: sign off P4-021 (`Approved:` line), then P4-035 triage of his findings.
+2. P4-042 bound the tie search in the ISR (before P5-008), P4-044 channel in-use, P4-041 ACID MIDI test, P4-040 ACID finish (owner approves new marks).
+3. LEDs: P4-037 HW-LED experiment -> P4-038 design (owner approves, rules on hard blinks) -> P4-039 LED-1 build. Requirement: the device LEDs follow the sequencer (blinking, solid or dark by what the active channels' playback and sequence are doing).
+4. P4-043 unwired controls (owner rules on RIG and MOD output in v1), P4-031 external clock, P4-019/P4-022 timing.
+5. P5 algorithms + harmony + HW-2, P6 morph/dice/keys + LED-2 (P6-004) + HW-3, P7 presets + HW-4, P8.
+
+## Open owner items
+P4-021 `Approved:` line; the hard-blink vs breathing ruling for LEDs (P4-038, replaces the old "never a hard blink in a dark room" comment in ui_input.c); RIG in v1? and MOD output in v1? (P4-043); P7-001 flash map `Design locked:` (blocks nothing until P7-002).
 
 ## Known debts
 External clock transport/tempo not via clk_ext (P4-031); midi_clock.c overwrites BPM under a host clock; K3 SOURCE inert
