@@ -1,0 +1,4 @@
+# One fixed string per line; tools/check_docs.sh fails if any appears in docs/design (not ui_review, not archives).
+# Add the old wording whenever a build deviates from a spec, so stale docs fail the check (process review 2026-11-13).
+own tempo kept
+kept (P4-016

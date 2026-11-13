@@ -30,5 +30,5 @@ instead of failing the task.
 6. Then run `python3 tools/backlog.py index` and commit the task file and BACKLOG.md with the message
    `<ID>: review`. Report the verdict in at most 6 lines.
 
-For every task that changes firmware, do not re-run `./build.sh` if `build/check/stamp` exists and its tree hash
+For every task that changes firmware, do not re-run `./build.sh` if `build/check/stamp` exists and its first line (tree hash)
 equals `git rev-parse HEAD^{tree}`: quote the stamp's RAM line instead. Otherwise run `sh tools/check.sh`. Quote the `RAM .data+.bss N of 73728` line in your report and Log entry, and fail the review if the headroom (73728 - N) is under 8192 B (E9 memory trigger, docs/project/ORCHESTRATOR.md section 5).
