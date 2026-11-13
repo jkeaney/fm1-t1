@@ -163,7 +163,7 @@ the generated value under it) or the set value (bright, with a dot).
   (the page-map cells are all filled, so the limit is visible before the press). On a partial page 4 (LENGTH 49..63)
   the third prompt applies (`SHOW ALL OF PAGE 4 (L64)?`), and the press after that is the `64 STEPS = MAX` toast.
 - **Per-channel length:** CHAN page K1 `LENGTH` 1..64 (step 1, fast 4), or OCT- / OCT+ on CHAN = to the page boundary
-  below / above (20 -> 16 / 32; 32 -> 16 / 48; at 16 or less OCT- is inert with toast `ONE PAGE: K1 = SHORTER`).
+  below / above (20 -> 16 / 32; 32 -> 16 / 48; at 16 or less OCT- is inert with toast `ONE PAGE  K1=LESS`).
   Each channel loops at its own length, so CH1 at 32 against CH2 at 12 is polymeter.
 
 ### 1.4 The generator position: page sources

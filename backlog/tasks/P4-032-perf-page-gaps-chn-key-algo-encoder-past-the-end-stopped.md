@@ -3,7 +3,7 @@ id: P4-032
 title: PERF page gaps: CHN key, ALGO encoder, PAST THE END, stopped step sounds, preview toast
 phase: P4
 type: task
-status: review
+status: done
 priority: 2
 executor: sonnet
 depends_on: [P4-013, P4-015, P4-034]
@@ -59,3 +59,10 @@ Producer-facing; extend docs/design/features/P4-013-perf-page-lane-step-keys-pag
 - `sh tools/check.sh` -> CHECK PASS. `RAM .data+.bss 29576 B of 73728` (headroom 44152 B >= 8192); pool 78520 B; ui_sq_perf_test 0 failures; `v12_compare: 52 scenes/sheets, 0 failed`.
 - Docs sync: grepped PAST THE END, 64 STEPS, P4-032, silent, not wired, stopped in docs/design; CONTROL_MAP/key_map/knob_map already described the target. Fixed docs/design/features/P4-013-*.md (steps 1, 8, 11, new 13 CHN and 14 ALGO, gap notes). Gate B by the reviewer.
 - Not done (out of scope): the preview-sound turn (M key + ALGO), widths.tsv rows for the new messages (the MESSAGES width check in gen_ui_tables covers them).
+
+### 2026-11-13 review (sonnet)
+Verdict: PASS (gate none). `sh tools/check.sh` -> CHECK PASS; `RAM .data+.bss 29576 B of 73728` (headroom 44152 B >= 8192). Stamp was DIRTY so check re-run.
+Hazards walked, no defect: ALGO loop skips empty ALGOS rows (uisq_algo_ok) and breaks at both ends, no wrap; held M ignores ALGO on PERF; step audition off is owned by uisq_rec_flush at the top of every frame (any page, stop, PLAY, REC entry), a repeat tap pushes the old off first; PAST THE END returns before sq_step_tap (LENGTH not a multiple of 16 uses p >= len); PG+ at page 4 / LENGTH 64 toasts and clears pg_pend; strings all from ui_tables rows. chan_test:352 edit is right (old assertion encoded the gap) and restores the algo.
+Fixed by reviewer (doc wording): 4 spec rows (CONTROL_MAP.md, control_map.tsv, button_modes.tsv, SEQUENCER_UX.md) said `ONE PAGE: K1 = SHORTER`; now `ONE PAGE  K1=LESS` to match the MESSAGES row.
+Advisory (not blocking): `PAST THE END  LEN` and `K1=LESS` are terse; a producer reads LEN as "length" but not what to do. Better when width allows: `K1=LEN` / `PG+=ADD`. Candidate for HW-1 feedback. Also key_map says past-LENGTH keys are "dim": not verified implemented (not in this task's Deliverable).
+Gate B (P4-013 use case steps 1, 8, 11, 13, 14): all behave as written; surfaces agree after the fix above.

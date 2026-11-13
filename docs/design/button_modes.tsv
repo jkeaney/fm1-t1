@@ -220,7 +220,7 @@ PERF	B_OCTDN	hold	hold and turn a knob: ROW 1 live while held (momentary peek; t
 PERF	B_OCTDN	hold-both	both OCT held 5 s = UPDATE MODE; both at power-on = CALIBRATION (hidden maintenance, unchanged)	UPDATE	stock maintenance gesture
 NOTE_EDIT	B_OCTDN	tap	release: the edited step one octave down (OCT -2..+2), auditioned	OCT-	printed OCT = octave
 NOTE_EDIT	B_OCTDN	hold	as tap (no hold role on this page)	OCT-	printed OCT = octave
-CHAN	B_OCTDN	tap	release: LENGTH to the page boundary below (20 -> 16, 48 -> 32; at 16 or less inert, toast ONE PAGE: K1 = SHORTER); the hidden steps keep their edits	-PAGE	minus / plus a page
+CHAN	B_OCTDN	tap	release: LENGTH to the page boundary below (20 -> 16, 48 -> 32; at 16 or less inert, toast ONE PAGE  K1=LESS); the hidden steps keep their edits	-PAGE	minus / plus a page
 CHAN	B_OCTDN	hold	as tap (no hold role on this page)	-PAGE	minus / plus a page
 SET	B_OCTDN	tap	release: global OCTAVE -1 (-2..+2); the status line reads OCT -2..+2 and the slot names OCT+ / OCT- OCTAVE n while touched (moved here from the SCALE page, which uses OCT- / OCT+ for DRONE; v12 has no tag column, P4-016)	OCT-	printed OCT = octave
 SET	B_OCTDN	hold	as tap (no hold role on this page)	OCT-	printed OCT = octave

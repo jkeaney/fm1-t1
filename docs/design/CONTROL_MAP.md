@@ -292,7 +292,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `B_REC` | `MENU` | tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `close` |
 | `B_OCTDN` | `PERF` | tap: release: latch ROW 1 of the knob band // hold: hold and turn a knob: ROW 1 live while held (momentary peek; the tap is the main route; sub-label h:peek; unscored) | `ROW 1` |
 | `B_OCTDN` | `NOTE_EDIT` | tap: release: the edited step one octave down (OCT -2..+2), auditioned // hold: as tap (no hold role on this page) | `OCT-` |
-| `B_OCTDN` | `CHAN` | tap: release: LENGTH to the page boundary below (20 -> 16, 48 -> 32; at 16 or less inert, toast ONE PAGE: K1 = SHORTER); the hidden steps keep their edits // hold: as tap (no hold role on this page) | `-PAGE` |
+| `B_OCTDN` | `CHAN` | tap: release: LENGTH to the page boundary below (20 -> 16, 48 -> 32; at 16 or less inert, toast ONE PAGE  K1=LESS); the hidden steps keep their edits // hold: as tap (no hold role on this page) | `-PAGE` |
 | `B_OCTDN` | `SET` | tap: release: global OCTAVE -1 (-2..+2); the status line reads OCT -2..+2 and the slot names OCT+ / OCT- OCTAVE n while touched (moved here from the SCALE page, which uses OCT- / OCT+ for DRONE; v12 has no tag column, P4-016) // hold: as tap (no hold role on this page) | `OCT-` |
 | `B_OCTDN` | `SCALE` | tap: release: DRONE walks one candidate down (0 = OFF); the status line names the degree and marks clashes // hold: as tap (no hold role on this page) | `OCT-` |
 | `B_OCTDN` | `REC` | tap: press: the REC keyboard octave -1 (same value as K4 OCT; clamps at -2) // hold: as tap (no hold role on this page) | `OCT-` |
