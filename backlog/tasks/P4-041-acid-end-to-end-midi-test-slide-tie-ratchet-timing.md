@@ -3,7 +3,7 @@ id: P4-041
 title: ACID end-to-end MIDI test: slide, tie, ratchet timing
 phase: P4
 type: task
-status: todo
+status: review
 priority: 2
 executor: sonnet
 depends_on: [P4-034]
@@ -25,9 +25,9 @@ Prove on the host what ACID puts on the MIDI wire: slide overlap, tie and ratche
 - A checked-in golden text of the MIDI event list for one reference pattern; run_tests.sh step
 
 ## Acceptance criteria
-- [ ] Test fails if a slide has a gap or a tie retriggers (shown once by temporarily breaking the scheduler locally, not committed)
-- [ ] The golden is deterministic across two runs
-- [ ] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
+- [x] Test fails if a slide has a gap or a tie retriggers (shown once by temporarily breaking the scheduler locally, not committed)
+- [x] The golden is deterministic across two runs
+- [x] `sh tools/check.sh` ends with `CHECK PASS` (the known failures listed in CLAUDE.md are not regressions)
 
 ## Verification
 ```sh
@@ -44,3 +44,11 @@ n/a, internal work (tooling, plumbing, docs, process); no producer-visible contr
 ## Log
 - 2026-11-13: created from the POC readiness review (/tmp/readiness_review.md, copy the findings you need into the Log; /tmp may be gone).
 - haiku-able, sonnet chosen.
+
+### 2026-11-13 executor (sonnet)
+tests/sq_acid_midi_test.c (new) drives the real events_block with sq_half_begin called per 128-sample half (as the audio ISR does), reads each packet's due stamp from the captured usb.c ring (544 TIMER4 ticks = 1 sample), and checks, in ticks (192 per quarter, DIV 1/16 = 48): plain note + GATE 50 % (on 0, off 24); slide overlap (step 2 on at 96, step 1 off at 102 = L/8 later: no gap); TIE (off at the next step start, 192); same-pitch slide (one on at 240, no on at 288, one off at 312); ratchet 3x (on 336, 360, 376, each off before the next); GATE 80 % = 38 ticks, GATE 100 % = 47; bar two = bar one + 768; every stamp a whole sample; no hung note; swing 60 % (odd steps +10). The pattern is written as StepEdit on ACID's CH1 so it does not depend on what ACID generates. Two runs are compared in the test and with tests/golden/sq_acid_midi.txt (46 events, new run_tests.sh step).
+Deviations: (1) ACID never sets PO_HOLD or PO_REP, so HOLD is not testable on ACID output (still golden 4 of sq_core_test); ratchet comes from the RATCH edit. (2) The task text says the ratchet splits "evenly": the scheduler uses SP5 spacing with the default pace, 24/16/8 ticks (weights 3:2:1), so the test asserts that. Reviewer: decide whether even spacing was intended (that would be a core change, out of scope here).
+Mutation check (copy of the tree in /tmp, not committed): D = 0 in sq_step_start -> FAIL "slide overlap: step 1 off at 102 after step 2 on (on 96.00, off 96.00)"; same-pitch tie disabled -> FAIL "slide+same pitch: no retrigger; the one off at 312 (got 288.00, on=0)".
+```
+sh tools/check.sh  -> CHECK PASS (new step "ACID on the MIDI wire (P4-041)" passes)
+```

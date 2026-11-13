@@ -267,6 +267,9 @@ if [ -f build/gen/felucca_tables.h ]; then
     run "UI (P3-006, P4-012): the sequencer screen and the menu: tabs, rows, SCREEN OFF / WAKE, LEDS, header, STYLE, GREY gray, MONO neutral" "$OUT/ui_test"
     $CC -w -Ibuild/gen -Ifirmware/src -o "$OUT/sq_link_test" tests/sq_link_test.c -lm
     run "sequencer link (P4-012): the real seq.c + sq_*.c + ui_sq.c: 2 bars of ACID on MIDI channel 1, STOP sends offs then CC123, empty ALGOS rows are inert (FB-014)" "$OUT/sq_link_test"
+    $CC -w -Ibuild/gen -Ifirmware/src -o "$OUT/sq_acid_midi_test" tests/sq_acid_midi_test.c -lm
+    sq_acid_midi_cmp() { "$OUT/sq_acid_midi_test" > "$OUT/sq_acid_midi_out.txt" && "$OUT/sq_acid_midi_test" | cmp - "$OUT/sq_acid_midi_out.txt" && cmp "$OUT/sq_acid_midi_out.txt" tests/golden/sq_acid_midi.txt; }
+    run "ACID on the MIDI wire (P4-041): events_block over 2 bars, sample-stamped note-on/off: slide overlap, TIE, same-pitch slide (no retrigger), ratchet spacing, gate lengths, swing; two runs identical and equal to tests/golden/sq_acid_midi.txt" sq_acid_midi_cmp
     FV=$(sed -n 's/^#define FELUCCA_VERSION "\([^"]*\)".*/\1/p' firmware/src/felucca.c)   # (the splash, ABOUT: the real version)
     $CC -O1 -w "-DFELUCCA_VERSION=\"$FV\"" -Ibuild/gen -Ifirmware/src -Itests -o "$OUT/ui_render" tests/ui_render.c -lm
     mkdir -p build/ui_new/ppm build/ui_slot
