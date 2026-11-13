@@ -3,7 +3,7 @@ id: P4-034
 title: ISR consumer for the REC and step-audition note queue
 phase: P4
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P4-017]
@@ -49,3 +49,13 @@ n/a, internal plumbing for P4-017 and P4-032 (the producer-visible behaviour is 
 - Hazards checked: ring bound (15-pop loop, full-ring test); removed/unused slot (off without on is a no-op, sq_live_c); stale state after SELECT (live test, random test); early return skipping cleanup (sq_ready-off path still pops); page-change flags (UI-side owed offs unchanged, ui_sq_rec_test).
 - `sh tools/check.sh`: CHECK PASS. `RAM .data+.bss 29576 B of 73728` (headroom 44152 B >= 8192); pool 78520 B of 368640; image 196756 B. This build includes the BUG-008 build.py comma fix and builds.
 - Docs sync: grepped FB-019, ui_sq_aud_next, "nothing in the ISR" in docs/design; fixed docs/design/features/P4-017-rec-page.md and docs/design/scenarios/S07-set-scale-chan-rec.md.
+
+### 2026-11-13 review (sonnet)
+Verdict: PASS (gate none -> done). No findings.
+- `sh tools/check.sh`: CHECK PASS on a clean tree; stamp tree hash = HEAD tree. `RAM .data+.bss 29576 B of 73728` (headroom 44152 B >= 8192).
+- SPSC ring: w written only by the UI after the slot, r only by the ISR after the read; all three variables volatile; wrap by `% 16`; full = nx == r (15 usable), empty = r == w. Single core, one-byte indices: no torn index.
+- Bounded: loop runs at most 15 pops per block, each O(1); no early return in events_block skips it (it returns void, none before the loop). sq_ready off pops and drops (an off without an on is a no-op via sq_live_c). sq_all_off clears sq_live_c, so STOP/PANIC cannot leave a stale "held" entry that mutes the next on.
+- Off follows on: sq_live_c remembers the channel (SELECT test, 4000-step random test, offs == ons); mute after an on is gated by the slot, not the live flag; the UI owes the off after REC exit (ui_sq_rec_test). Tests drive the real events_block and would read 0 NOTE_ON without the loop.
+- Include order: sq_aud.h is guarded, included in seq.c after the stdint types and before events_block, and again (no-op) in ui_sq.c; host and device builds pass.
+- Docs sync: P4-017 use case (status, step 2, checklist, section 7-9), S07 step 20 updated; FB-019 mentions left in P4-017 task Log are history. P4-032 depends on P4-034.
+- BUG-008 (missing comma after "FELUCCA_ICONS" in tools/build.py): fix at 6c93458 is correct, the build is clean; BUG-008 already `done`, reviewed here.
