@@ -3,7 +3,7 @@ id: P4-020
 title: Rewrite HARDWARE_TEST.md for the new sequencer with TB-3 checklists
 phase: P4
 type: task
-status: review
+status: done
 priority: 2
 executor: haiku
 depends_on: [P4-018]
