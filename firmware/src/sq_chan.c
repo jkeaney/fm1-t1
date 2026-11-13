@@ -31,6 +31,7 @@
 static UndoRec     sq_undo_rec[SQ_NCH];  /* one record per channel (decision 46); what == 0 = empty */
 static UndoMidi    sq_um;                /* the MIDI-reassignment record (SEQUENCER_UX 4.4); latest while sq_um_valid */
 static uint8_t     sq_um_valid;
+static uint8_t     sq_used = 0x01u;      /* P4-044: channels in use, bit n = channel n. Main-loop owned core state (the UI reads it as uisq_used). Saved as bit 0 of ChanSave.pad[1] by sq_preset_save, taken back by sq_chan_sync after a load; power-on = CH1 only */
 static uint16_t    sq_smod[SQ_NCH][SQ_NALGO];   /* s_mod, one per channel and algorithm; saved and loaded as ModSave (P4-023) */
 
 /* ModSave (MODULATION 7): 25 B per channel, a SIBLING array of SeqPreset (ADR-0003 22: 1556 + 100 = a 1656 B slot), so sizeof(SeqPreset)
@@ -529,6 +530,19 @@ static uint8_t sq_page_add(uint8_t ch)
 /* CHAN K4 FOLLOW (1.5): the flag only. */
 static void sq_follow_set(uint8_t on) { sq_follow = on ? 1u : 0u; }
 
+/* ------------------------------------------------------------------ channels in use (P4-044) */
+
+/* A channel can be added only when its algorithm row exists (ALGOS[].build, a table read: ADR-0007). */
+static uint8_t sq_chan_addable(uint8_t ch)
+{   return (uint8_t)(ch < SQ_NCH && !(sq_used >> ch & 1u) && sq_ch[ch].algo < SQ_NALGO && ALGOS[sq_ch[ch].algo].build != NULL); }
+
+/* A mask from a loaded preset: a channel whose algorithm row does not exist is dropped, and CH1 is used when nothing else is, so the core is never empty (CH1 itself may be removed while another channel is in use). */
+static uint8_t sq_used_clean(uint8_t mask, const ChanSave *chs)
+{   uint8_t r = 0;
+    for (uint8_t c = 0; c < SQ_NCH; c++)
+        if ((mask >> c & 1u) && chs[c].algo < SQ_NALGO && ALGOS[chs[c].algo].build != NULL) r |= (uint8_t)(1u << c);
+    return r ? r : 1u; }
+
 /* ------------------------------------------------------------------ defaults (ADR-0003 12) */
 
 static void sq_default_chan(uint8_t c, ChanSave *cs)
@@ -540,6 +554,7 @@ static void sq_default_chan(uint8_t c, ChanSave *cs)
     cs->len = 16;
     cs->pg_src = 0;
     cs->pg_used = 1;                       /* page 1 holds content */
+    cs->pad[1] = c ? 0u : 1u;              /* P4-044: bit 0 = channel in use; power-on is CH1 only */
     for (uint8_t a = 0; a < SQ_NALGO; a++) {                          /* every algorithm slot, so a later switch starts from its own defaults */
         const AlgoDesc *d = &ALGOS[a];
         for (uint8_t i = 0; i < SQ_NMORPH; i++) cs->st[a].morph[i] = d->morph[i].def;
@@ -566,6 +581,7 @@ static void sq_defaults(SeqPreset *p)                                 /* the pow
  * (the cut-over, P4-012: seq.c events_block runs sq_block from then on). Call before the audio ISR starts. */
 static void sq_boot(void)
 {   sq_default_global(&sq_gdb[0]); sq_gdb[1] = sq_gdb[0];
+    sq_used = 0x01u;
     sq_gidx = 0; sq_load_pending = 0; sq_um_valid = 0; sq_stage_valid = 0; sq_ne_state = 0;
     memset(sq_undo_rec, 0, sizeof sq_undo_rec);
     sq_default_harm(&sq_harm); sq_bpm = SQ_BPM_DEFAULT;
@@ -588,7 +604,7 @@ static int sq_preset_save(SeqPreset *out, ModSave *ms)
       memset(out, 0, sizeof *out);
     out->version = SQ_PRESET_VERSION; out->flags = 0; out->bpm = sq_bpm;
     out->g = sq_gdb[sq_gidx].s;
-    for (uint8_t c = 0; c < SQ_NCH; c++) out->ch[c] = sq_ch[c];
+    for (uint8_t c = 0; c < SQ_NCH; c++) { out->ch[c] = sq_ch[c]; out->ch[c].pad[1] = (uint8_t)(sq_used >> c & 1u); }
     out->harm = sq_harm;
     out->crc = 0;                                                    /* the storage layer computes it (P7) */
     return 0; }
@@ -635,7 +651,7 @@ static int sq_preset_load(const SeqPreset *in, const ModSave *ms, uint8_t when)
         s->muted = s->muted ? 1u : 0u;
         s->len = sq_clamp8(s->len, 1, SQ_NSTEP);
         s->pg_used &= 0x0Fu;
-        s->pad[1] = 0;
+        s->pad[1] &= 1u;                                             /* P4-044: bit 0 = in use, the rest reserved */
         if (s->midi_ch > SQ_MIDI_OFF) s->midi_ch = SQ_MIDI_OFF;
         if (s->midi_ch < SQ_MIDI_OFF)
             for (uint8_t o = 0; o < c; o++) if (sq_stage_ch[o].midi_ch == s->midi_ch) { s->midi_ch = SQ_MIDI_OFF; break; }
@@ -672,6 +688,7 @@ static void sq_chan_sync(void)
     sq_seen_epoch = sq_epoch;
     memset(sq_undo_rec, 0, sizeof sq_undo_rec);
     sq_um_valid = 0; sq_ne_state = 0;
-    if (sq_stage_valid) { sq_harm = sq_stage_harm; sq_bpm = sq_stage_bpm; memcpy(sq_smod, sq_stage_smod, sizeof sq_smod); sq_stage_valid = 0; }
+    if (sq_stage_valid) { uint8_t m = 0; for (uint8_t c = 0; c < SQ_NCH; c++) m |= (uint8_t)((sq_ch[c].pad[1] & 1u) << c); sq_used = sq_used_clean(m, sq_ch);   /* P4-044: the landed load's in-use bits */
+        sq_harm = sq_stage_harm; sq_bpm = sq_stage_bpm; memcpy(sq_smod, sq_stage_smod, sizeof sq_smod); sq_stage_valid = 0; }
     for (uint8_t c = 0; c < SQ_NCH; c++) (void)sq_rebuild(c);        /* a dice or undo while the load was pending changed s_mod; the staged smod replaced it above */
 }

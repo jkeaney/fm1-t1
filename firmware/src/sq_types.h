@@ -104,7 +104,7 @@ typedef struct {
     uint8_t  len;                  /* 1..64 */
     uint8_t  pg_src;               /* bits 2k..2k+1 = the generator block page k reads (SEQUENCER_UX 1.4) */
     uint8_t  pg_used;              /* bit k = page k holds content */
-    uint8_t  pad[2];               /* pad[0] carries the P2-024 preview byte (not modelled here; PREVIEW.md) */
+    uint8_t  pad[2];               /* pad[0] carries the P2-024 preview byte (not modelled here; PREVIEW.md); pad[1] bit 0 = channel in use (P4-044), the rest reserved 0 */
     AlgoState st[SQ_NALGO];        /* 6 x 20 B, indexed by algorithm id (P2-017: ARP and PATTERNS each add 20 B per channel; SEQUENCER_UX 9.1
                                       had 4 slots) */
     StepEdit ed[SQ_NSTEP];         /* 64 x 4 B */

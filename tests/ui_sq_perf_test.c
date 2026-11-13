@@ -168,7 +168,7 @@ int main(int argc, char **argv)
     if (argc > 1) outdir = argv[1];
     snprintf(cmd, sizeof cmd, "mkdir -p '%s'", outdir); if (system(cmd)) return 1;
     crc_init(); palette_set(UI_HICON_INDEX);
-    sq_boot();
+    sq_boot(); uisq_used = 0x0F;      /* P4-044: the core boots with CH1 only; these pages are exercised with all four in use */
     fm1_ms = 1000;
     fresh();
     shot("perf_boot", 0, 0, 240, 240);
@@ -416,6 +416,31 @@ int main(int argc, char **argv)
       CHECK(!uisq_rec_aud_note, "no audition note left owed after the random run");
       CHECK(ons == offs && ons > 0, "every audition note-on got its note-off (%d on %d off)", ons, offs);
       uisq_page = UI_PG_PERF; uisq_used = 0x0F; uisq_sel = 0; uisq_vpage = 0; }
+
+    /* ---- P4-044: power-on shows CH1 only; add / remove / undo in a pseudo-random order keep the in-use invariants ---- */
+    { uint32_t rng = 0x4404u; int bad = 0;
+      sq_boot(); uisq_page = UI_PG_PERF; uisq_sel = 0; uisq_vpage = 0; uisq_gone_n = 0; uisq_undone = 0; uisq_new = 0; uisq_reset = 0; fresh();
+      CHECK(uisq_used == 0x01 && uisq_sel == 0, "power-on: one channel in use (CH1), selected");
+      CHECK(sq_ch[0].muted == 0 && sq_ch[1].muted && sq_ch[2].muted && sq_ch[3].muted, "power-on: CH1 audible, the others muted");
+      ui_sq_select_turn(-1); CHECK(uisq_sel == 0, "SELECT left of CH1 does nothing");
+      ui_sq_select_turn(1); CHECK(uisq_used == 0x03 && uisq_sel == 1 && !sq_ch[1].muted, "SELECT right adds CH2 (its algorithm row exists), unmuted");
+      uisq_do_remove(1); CHECK(uisq_used == 0x01 && sq_ch[1].muted && sq_ch[1].midi_ch == SQ_MIDI_OFF && uisq_sel == 0, "remove CH2: out of use, muted, MIDI OFF, selection back on CH1");
+      uisq_do_remove(0); CHECK(uisq_used == 0x01, "the last channel in use is never removed");
+      ui_sq_button(UI_C_B_EDIT); CHECK(uisq_used == 0x03 && uisq_sel == 1, "EDIT takes the removal back");
+      for (int i = 0; i < 4000 && bad < 10; i++) {
+          rng = rng * 1664525u + 1013904223u;
+          switch ((rng >> 24) % 5u) {
+          case 0: ui_sq_select_turn(1); break;
+          case 1: ui_sq_select_turn(-1); break;
+          case 2: uisq_do_remove((uint8_t)((rng >> 16) & 3u)); break;
+          case 3: ui_sq_button(UI_C_B_EDIT); break;
+          default: tap_key((int)((rng >> 8) % 27u)); break; }
+          uisq_toast_until = 0;
+          if (!uisq_used || (uisq_used & 0xF0u) || !(uisq_used >> uisq_sel & 1u) || uisq_gone_n > SQ_NCH) { CHECK(0, "fuzz %d: used %02X sel %u gone %u", i, uisq_used, uisq_sel, uisq_gone_n); bad++; }
+          for (uint8_t c = 0; c < SQ_NCH; c++) if (!(uisq_used >> c & 1u) && (!sq_ch[c].muted || (sq_ch[c].pad[0] & 0x80u))) { CHECK(0, "fuzz %d: CH%d out of use but audible", i, c + 1); bad++; }
+      }
+      CHECK(!bad, "4000 random SELECT / remove / EDIT / key steps keep: a channel in use, the selection in use, the stack bounded, removed channels silent");
+      sq_boot(); uisq_used = 0x0F; uisq_sel = 0; uisq_page = UI_PG_PERF; uisq_gone_n = 0; uisq_new = 0; fresh(); }
 
     /* ---- strings: every toast / hint word the page raised is a ui_msgs row word ---- */
     shot("perf_end", 0, 0, 240, 240);

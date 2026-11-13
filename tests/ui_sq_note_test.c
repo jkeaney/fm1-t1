@@ -181,7 +181,7 @@ int main(int argc, char **argv)
     if (argc > 1) outdir = argv[1];
     snprintf(cmd, sizeof cmd, "mkdir -p '%s'", outdir); if (system(cmd)) return 1;
     crc_init(); palette_set(UI_HICON_INDEX);
-    sq_boot();
+    sq_boot(); uisq_used = 0x0F;      /* P4-044: the core boots with CH1 only; these pages are exercised with all four in use */
     fm1_ms = 1000;
     sq_playing = 0;
     fresh();

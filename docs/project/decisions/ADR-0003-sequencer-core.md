@@ -693,6 +693,7 @@ The device boots straight into the sequencer: no mode, no `PREF_T1`, no `MODE` r
 | every `AlgoState` | morphs = `MorphDesc.def`; seeds per section 3.1 for each channel and algorithm |
 | pins | none (P1-017: every `StepEdit` AUTO, every `pg_src` 0, `len` 16) |
 | Global | KEY C (0), SCALE MINPEN (10), OCTAVE 0, GATE 50, DIV 1/16 (2), SWING 50, BPM 120 |
+| In use | **CH1 only** (P4-044): ChanSave.pad[1] bit 0 = channel in use, core state `sq_used`; CH2..CH4 hold their defaults but are out of use until added, and can be added only when their algorithm row exists (`ALGOS[].build`). No layout change (pad[1] was reserved) |
 | UI state | selected channel CH1, preset P01 label, keyboard OCT 0 |
 | Preview | all four channels OFF; sounds CH1 ACID, CH2 BASS, CH3 LEAD, CH4 PAD (decision 110) |
 | Transport | stopped; `sq_ready` set before the audio ISR matters |

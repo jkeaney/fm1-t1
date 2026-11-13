@@ -10,6 +10,7 @@ A producer with a TB-3 on MIDI channel 2 wants channel 1 to send on 2, pick an a
 ## 2. Steps a producer takes
 | # | Producer does (control id, context) | Screen shows after | Sound / MIDI after |
 | --- | --- | --- | --- |
+| 0 | Power on (P4-044) | only CH1 is in use and selected; CH2..CH4 are out of use until added (SELECT past the last, only if their algorithm row exists) | CH1 audible (ACID), the others silent |
 | 1 | Tap D#4 (KEY_B05_D#4, PERF) | CHAN band `LENGTH MIDI SOURCE FOLLOW`, message slot `CHN CH1 SETUP`, footer `K2 = MIDI` / `CHN = BACK` | none |
 | 2 | Turn K2 (EN_K2) | the MIDI tile and the header `MIDI n` show the new number at once | none yet: the value is pending |
 | 3 | Let K2 rest 0.6 s, or leave (HOME, D#4, PLAY, GLO, REC, SAVE, SELECT, any button) | toast `[k] MIDI OFF  n TO CH1` when another channel held n (that channel is OFF); no toast otherwise | notes now go out on the new MIDI channel; the displaced channel sends nothing |

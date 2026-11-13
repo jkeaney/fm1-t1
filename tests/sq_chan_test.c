@@ -71,7 +71,7 @@ static void t_step(const void *k, uint32_t g, const HarmChord *hc, PulseOut *o)
 #define LY(...) { __VA_ARGS__ }
 #define SM SQ_SEED_MOD
 #define ID8 { 0, 1, 2, 3, 4, 5, 6, 7 }
-static const AlgoDesc ALGOS[SQ_NALGO] = {
+static AlgoDesc ALGOS[SQ_NALGO] = {   /* not const: t_inuse blanks row 5's build() to model a row that does not exist yet */
   [0] = { .name = "ACID", .id = 0, .n_seed = 6, .flags = AF_PAIRING, .cache_bytes = sizeof(Cache), .knob_morph = ID8,
           .seed_k = { 1, 2, 3, 4, 5, 6 },
           .morph = { M("DENS",0,16,12,1,1), M("PEDAL",0,12,6,1,1), M("JUMP",0,20,5,1,1), M("ACCNT",0,8,3,1,1),
@@ -390,7 +390,7 @@ static void t_defaults(void)
         CHECK(cs->midi_ch == c, "CH%d MIDI %d", c + 1, c + 1);
         CHECK(cs->algo == algo[c], "CH%d algorithm %u", c + 1, algo[c]);
         CHECK(cs->muted == (c ? 1 : 0), "CH%d mute %d", c + 1, c ? 1 : 0);
-        CHECK(cs->len == 16 && cs->pg_src == 0 && cs->pg_used == 1 && cs->pad[0] == 0 && cs->pad[1] == 0, "CH%d len 16, pg_src 0, pg_used 1, PREVIEW off", c + 1);
+        CHECK(cs->len == 16 && cs->pg_src == 0 && cs->pg_used == 1 && cs->pad[0] == 0 && cs->pad[1] == (c ? 0 : 1), "CH%d len 16, pg_src 0, pg_used 1, PREVIEW off, in use only CH1 (P4-044)", c + 1);
         for (int i = 0; i < SQ_NSTEP; i++) CHECK(!cs->ed[i].note && !cs->ed[i].vel && !cs->ed[i].gr && !cs->ed[i].fl, "CH%d step %d is AUTO", c + 1, i);
         for (int a = 0; a < SQ_NALGO; a++) {
             for (int i = 0; i < SQ_NMORPH; i++) CHECK(cs->st[a].morph[i] == morph_def[a][i], "CH%d algo %d morph %d = MorphDesc.def %u (got %u)", c + 1, a, i, morph_def[a][i], cs->st[a].morph[i]);
@@ -438,6 +438,51 @@ static void t_modsave(void)
     sq_chan_sync();
     for (int c = 0; c < SQ_NCH; c++) CHECK(sq_smod[c][sq_ch[c].algo] == (uint16_t)(0x1234u + 0x0F0Fu * (unsigned)(c * 8 + sq_ch[c].algo) + 0x8001u * (unsigned)(sq_ch[c].algo & 1)) && cache_matches(c), "queued: CH%d s_mod landed, cache matches", c + 1);
     sq_on_stop(); }
+
+/* ---- P4-044: channels in use are core state, saved in the preset (ChanSave.pad[1] bit 0; the struct sizes do not change) ---- */
+static void t_inuse(void)
+{   SeqPreset a, b; uint32_t rng = 0x44u;
+    boot_mock();
+    CHECK(sq_used == 0x01 && sizeof(ChanSave) == 384 && sizeof(SeqPreset) == 1556, "power-on: CH1 only in use, layout unchanged");
+    sq_preset_save(&a, NULL);
+    CHECK(a.ch[0].pad[1] == 1 && a.ch[1].pad[1] == 0 && a.ch[2].pad[1] == 0 && a.ch[3].pad[1] == 0, "the power-on preset carries only CH1's bit");
+    CHECK(!sq_chan_addable(0) && sq_chan_addable(1) && sq_chan_addable(3), "add: CH1 already in use, CH2 and CH4 have filled rows");
+    ALGOS[5].build = NULL; sq_ch[2].algo = 5;                        /* a row that does not exist yet */
+    CHECK(!sq_chan_addable(2), "add: refused for a channel whose algorithm row is empty (table read)");
+    sq_ch[2].algo = 2; ALGOS[5].build = t_build;
+    sq_used |= 0x0Au; sq_preset_save(&a, NULL);
+    CHECK(a.ch[1].pad[1] == 1 && a.ch[3].pad[1] == 1 && a.ch[2].pad[1] == 0, "save writes the mask (CH1 CH2 CH4)");
+    boot_mock(); CHECK(sq_used == 0x01, "boot resets to CH1 only");
+    CHECK(sq_preset_load(&a, NULL, 0) == 0 && sq_used == 0x0B, "load round trip restores CH1 CH2 CH4");
+    sq_preset_save(&b, NULL); CHECK(!memcmp(&a, &b, sizeof a), "the mask round trip is byte-identical");
+    /* remove (what the UI does) then save: the bit goes */
+    sq_used &= (uint8_t)~2u; sq_preset_save(&b, NULL); CHECK(b.ch[1].pad[1] == 0 && sq_used == 0x09, "remove CH2: bit cleared in the saved copy");
+    /* queued load: the mask lands with the bar, not before */
+    boot_mock(); sq_on_start(); sq_now = 0; for (uint32_t t = 0; t < 10; t++) { sq_tick(sq_now); sq_now++; }
+    CHECK(sq_preset_load(&a, NULL, 1) == 0 && sq_load_pending == 1 && sq_used == 0x01, "playing: queued, the mask unchanged until the bar");
+    while (sq_now <= SQ_BAR_TICKS) { sq_tick(sq_now); sq_now++; }
+    sq_chan_sync(); CHECK(sq_used == 0x0B, "the landed load brings its mask"); sq_on_stop();
+    /* a hostile preset: no bit, a bit on an empty row, reserved bits */
+    boot_mock(); sq_preset_save(&b, NULL);
+    for (uint8_t q = 0; q < SQ_NCH; q++) b.ch[q].pad[1] = 0;
+    CHECK(sq_preset_load(&b, NULL, 0) == 0 && sq_used == 0x01, "an empty mask loads as CH1 only");
+    b.ch[0].pad[1] = 0; b.ch[1].pad[1] = 0xFFu; b.ch[2].algo = 5; b.ch[2].pad[1] = 1;
+    ALGOS[5].build = NULL;
+    CHECK(sq_preset_load(&b, NULL, 0) == 0 && sq_used == 0x02 && (sq_ch[1].pad[1] & ~1u) == 0, "a load drops a channel on an empty row, clears reserved bits");
+    ALGOS[5].build = t_build;
+    /* fuzz: add / remove / save / load / algorithm in any order keeps the invariants */
+    boot_mock();
+    for (int i = 0; i < 20000; i++) {
+        uint8_t c, k; rng = rng * 1664525u + 1013904223u; c = (uint8_t)((rng >> 16) & 3u); k = (uint8_t)((rng >> 20) % 5u);
+        if (k == 0 && sq_chan_addable(c)) sq_used |= (uint8_t)(1u << c);
+        else if (k == 1 && (sq_used & ~(1u << c))) sq_used &= (uint8_t)~(1u << c);
+        else if (k == 2) sq_set_algo(c, (uint8_t)((rng >> 24) % 6u));
+        else if (k == 3) { sq_preset_save(&a, NULL); CHECK(sq_preset_load(&a, NULL, 0) == 0, "fuzz load"); sq_preset_save(&b, NULL); if (memcmp(&a, &b, sizeof a)) { CHECK(0, "fuzz: save/load/save differs at %d", i); break; } }
+        else if (k == 4) { a = (SeqPreset){0}; sq_preset_save(&a, NULL); a.ch[c].pad[1] = (uint8_t)(rng >> 8); (void)sq_preset_load(&a, NULL, 0); }
+        if (!sq_used || (sq_used & 0xF0u)) { CHECK(0, "fuzz: mask %02X invalid at %d", sq_used, i); break; }
+        for (uint8_t q = 0; q < SQ_NCH; q++) if (!(sq_used >> q & 1u) && sq_chan_addable(q) == 0 && sq_ch[q].algo < SQ_NALGO && ALGOS[sq_ch[q].algo].build) { CHECK(0, "fuzz: free CH%d with a row is not addable", q + 1); i = 1 << 30; break; }
+    }
+    CHECK(1, "fuzz: 20000 add / remove / algorithm / load steps keep the mask valid and the round trip identical"); }
 
 /* ---- presets ---- */
 static void t_preset(void)
@@ -592,7 +637,7 @@ static void t_rot(void)
 int main(int argc, char **argv)
 {   if (argc > 1) fz_seed = (uint32_t)strtoul(argv[1], NULL, 0);
     printf("sq_chan channel state API\n");
-    t_rows_1_2(); t_morph(); t_undo(); t_midi(); t_algo(); t_rebuild(); t_defaults(); t_modsave(); t_preset(); t_global(); t_sync_first(); t_rot();
+    t_rows_1_2(); t_morph(); t_undo(); t_midi(); t_algo(); t_rebuild(); t_defaults(); t_modsave(); t_preset(); t_inuse(); t_global(); t_sync_first(); t_rot();
     fuzz(100000);
     printf("%s\n", fails ? "SQ_CHAN FAIL" : "SQ_CHAN PASS");
     return fails ? 1 : 0; }

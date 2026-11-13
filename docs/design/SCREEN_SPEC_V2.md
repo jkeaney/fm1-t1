@@ -155,7 +155,8 @@ string table with a width check in `tools/gen_ui_tables.py` (P4-029).
    MIDI OFF: `CHN KEY, K2 = MIDI   CHn`, and the CHN key lights. It clears when the channel gets a MIDI channel.
 
 ## 6. Channel lifecycle (owner decisions 2026-11-12)
-- **Add:** SELECT one detent past the last channel in use takes the next free channel (toast `[n] NEW  ALGO=PICK`, setup cue).
+- **Power-on and load (P4-044):** only CH1 is in use at power-on; the in-use set is core state, saved with the preset (ChanSave.pad[1] bit 0) and restored by a load, which keeps at least one channel.
+- **Add:** SELECT one detent past the last channel in use takes the next free channel whose algorithm row exists (toast `[n] NEW  ALGO=PICK`, setup cue).
 - **Remove:** long press the channel's mute key (M1-M4): from 0.4 s the hint reads `PREVIEW CHn`; releasing before 1.5 s
   toggles PREVIEW (as today, but on release); holding to 1.5 s removes the channel (hint `REMOVE CHn` with its bar),
   toast `[n] GONE  EDIT=UNDO`. Table change: key_map M1-M4 hold rows (P4-030).

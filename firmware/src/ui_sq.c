@@ -112,7 +112,7 @@ static uint16_t uisq_toast_id;
 static uint32_t uisq_pick_until;         /* ALGO_PICK overlay end, 0 = off */
 static uint32_t uisq_hot_until[4];
 static uint8_t  uisq_knob_ref[4];        /* each live knob's value while it was last NOT being turned: the "old level" ticks of the turning frame */
-static uint8_t  uisq_used = 0x0Fu;       /* channels in use, bit n = channel n (lifecycle, SCREEN_SPEC_V2 6: add / remove are P4-029 / the CHAN task) */
+#define uisq_used sq_used                    /* channels in use, bit n = channel n: core state since P4-044 (sq_chan.c; saved in the preset) */
 static uint8_t  uisq_clock;              /* tempo source: UISQ_CLK_INT / EXT / WAIT / LOST (the clock task, TIMING_SPEC 5, sets it) */
 static uint8_t  uisq_clock_port;         /* the port an external clock came from: 0 USB, 1 TRS (the SET status line names it; ui_sq_clock_set) */
 static uint16_t uisq_bpm_req;            /* SET K1: the tempo asked for (0 = none); sq_frame (ui_sq_glue.c) hands it to song.g[G_BPM], the one place tempo lives */
@@ -1932,7 +1932,7 @@ static void ui_sq_select_turn(int32_t d)
         if (nx != uisq_sel) uisq_sel = nx;
         else if (uisq_page == UI_PG_PERF && !uisq_reset) {              /* (CHAN, SET and RESET select only: clamped, no add) */
             uint8_t f = SQ_NCH;
-            for (uint8_t c = 0; c < SQ_NCH; c++) if (!(uisq_used >> c & 1u)) { f = c; break; }
+            for (uint8_t c = 0; c < SQ_NCH; c++) if (sq_chan_addable(c)) { f = c; break; }   /* P4-044: only a channel whose algorithm row exists */
             if (f < SQ_NCH) {                                           /* add: the next free slot, new (setup cue), unmuted */
                 uisq_used |= (uint8_t)(1u << f);
                 uisq_gone_n = 0; uisq_undone = 0;                       /* an add is a newer action than any removal or undo */

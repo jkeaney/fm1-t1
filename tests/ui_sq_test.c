@@ -173,7 +173,7 @@ int main(int argc, char **argv)
     if (argc > 1) outdir = argv[1];
     snprintf(cmd, sizeof cmd, "mkdir -p '%s'", outdir); if (system(cmd)) return 1;
     crc_init(); palette_set(UI_HICON_INDEX);
-    sq_boot();
+    sq_boot(); uisq_used = 0x0F;      /* P4-044: the core boots with CH1 only; these pages are exercised with all four in use */
     fm1_ms = 1000;
 
     /* ---- the bands (SCREEN_SPEC_V2 2) and the strip plan ---- */
@@ -243,7 +243,7 @@ int main(int argc, char **argv)
           CHECK(xe + 4 + W("MIDI") + (int)text_w(&AF_M, "OFF") + 10 <= 240, "header `%s [MIDI OFF]` runs off the screen", nm); }
       { char b[16]; b[0] = 0; uisq_catu(b, sizeof b, 240); CHECK(16 + text_w(&AF_M, b) < 46, "the tempo `240` in AF_M ends before the first channel chip at x 46");
         CHECK(16 + text_w(&AF_S, "WAIT") < 46 && 16 + text_w(&AF_S, "EXT") < 46, "EXT / WAIT in AF_S end before the first channel chip"); } }
-    sq_boot();
+    sq_boot(); uisq_used = 0x0F;      /* P4-044: the core boots with CH1 only; these pages are exercised with all four in use */
 
     /* ---- widths: every knob label (51 px cell, drawn with a 2 px margin), the tag column, the status lines ---- */
     for (uint32_t i = 0; i < UI_N_KNOB_MAP; i++) if (ui_knob_rows[i].knob <= UI_K_S4) fit("knob label", ui_knob_rows[i].label, 49);
@@ -269,7 +269,7 @@ int main(int argc, char **argv)
           CHECK(sum == 240, "page %s row %d cell widths sum to %d, not 240 (algo %d)", ui_page_names[p], row, sum, a);
           { int ink = 0; for (int i = 0; i < 6; i++) { UisqBtn b; uisq_btn_get(&b, p, (uint8_t)(row * 6 + i), 0); ink += uisq_btn_need(&b); }
             CHECK(ink + 6 <= 240, "page %s row %d: label ink %d + 6 px of padding is over 240 (algo %d)", ui_page_names[p], row, ink, a); } } }
-    sq_boot();
+    sq_boot(); uisq_used = 0x0F;      /* P4-044: the core boots with CH1 only; these pages are exercised with all four in use */
 
     /* ---- widths: black-key legend, every page: the drawn (cut) form fits the 20 px cell ---- */
     { int cut = 0;
