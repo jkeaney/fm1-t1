@@ -3,7 +3,7 @@ id: P4-041
 title: ACID end-to-end MIDI test: slide, tie, ratchet timing
 phase: P4
 type: task
-status: review
+status: done
 priority: 2
 executor: sonnet
 depends_on: [P4-034]
@@ -52,3 +52,11 @@ Mutation check (copy of the tree in /tmp, not committed): D = 0 in sq_step_start
 ```
 sh tools/check.sh  -> CHECK PASS (new step "ACID on the MIDI wire (P4-041)" passes)
 ```
+
+### 2026-11-13 review (sonnet)
+Verdict: PASS (gate none). `sh tools/check.sh` -> CHECK PASS (the new step "ACID on the MIDI wire (P4-041)" passes); `RAM .data+.bss 29640 B of 73728` (headroom 44088 B, >= 8192 B). Only tests/ files and the task changed; no firmware edit.
+- The test includes ui_test.c and drives the real `events_block` -> sq_block -> sq_core, reading each packet's due stamp from the usb.c ring; it runs the scenario twice, compares the lists, and run_tests.sh also compares two process runs and the golden (deterministic, rc non-zero on any failure).
+- Mutations redone in a /tmp copy: `D = 0` in sq_core.c:346 fails "slide overlap: step 1 off at 102 after step 2 on (on 96.00, off 96.00)"; `tie = 0` at sq_core.c:383 fails "slide+same pitch: no retrigger; the one off at 312 (got 288.00, on=0)". Both claims true; base run rc 0.
+- Ratchet spacing 24/16/8 is NOT a defect against the spec: ADR-0003 addendum row 7 (owner decision 115) stores one pace bit, "accelerates or decelerates", no "even"; sq_core.c:395-396 passes pace -1 or +1 only, never 0 (so `rat_offsets` pace 0 is unreachable); SEQUENCER_UX 1116 and acid/SPEC 135 say "SP5 spacing". The task text "splits the step evenly" was loose wording. No BUG filed. Owner question for later (not a blocker): a producer's RATCH edit on ACID always accelerates (3:2:1); if an even ratchet is wanted for the TB-3, that is a core design change (a third pace state).
+- Minor, non-blocking: the `near()` tolerance is +-1.2 ticks (~138 samples), but the golden prints 0.01-tick values and is compared byte for byte, and a separate check requires every stamp to be a whole sample, so sample accuracy is covered.
+- sound15 ENV SYNC benchmark: run 3 times alone, all ok (and ok inside check.sh); not added to the known-failures list.
