@@ -339,6 +339,84 @@ int main(int argc, char **argv)
       CHECK(uisq_vpage == 1, "PG+ shows page 2");
       CHECK(sq_undo(0) == 1 && sq_ch[0].len == 16, "the add is one undo record"); uisq_vpage = 0; }
 
+    /* ---- P4-032: CHN opens CHAN, ALGO turns the algorithm on PERF, PAST THE END, 64 STEPS = MAX, a stopped step sounds once, preview toast, ONE PAGE ---- */
+    sq_playing = 0; uisq_page = UI_PG_PERF; uisq_vpage = 0; uisq_sel = 0; uisq_used = 0x0F; uisq_gone_n = 0;
+    { uint8_t o, n, v; while (ui_sq_aud_next(&o, &n, &v)) {} }                 /* an empty queue */
+    tap_key(10); CHECK(uisq_page == UI_PG_CHAN, "D#4 tap on PERF opens CHAN");
+    tap_key(10); CHECK(uisq_page == UI_PG_PERF, "D#4 tap on CHAN is BACK");
+    { const uint8_t a0 = sq_ch[0].algo; char b[24];
+      ui_sq_algo_turn(1); frame();
+      CHECK(sq_ch[0].algo == a0 + 1, "PERF ALGO +1 changes sq_ch[sel].algo (%d -> %d)", a0, sq_ch[0].algo);
+      CHECK(!strcmp(uisq_touch_a, "ALGO"), "the touched control is named in the same frame (%s)", uisq_touch_a);
+      snprintf(b, sizeof b, "%s", uisq_touch_b); CHECK(strstr(b, "AT STEP") != NULL, "... with `AT STEP` (%s)", b);
+      ui_sq_algo_turn(100); CHECK(sq_ch[0].algo == SQ_NALGO - 1, "clamped at the last algorithm (%d)", sq_ch[0].algo);
+      ui_sq_algo_turn(-100); CHECK(sq_ch[0].algo == 0, "clamped at the first (%d)", sq_ch[0].algo);
+      uisq_held_m = 1; ui_sq_algo_turn(1); CHECK(sq_ch[0].algo == 0, "a held M key: no algorithm change"); uisq_held_m = 0; }
+    /* a step past LENGTH */
+    { (void)sq_len_set(0, 8); uisq_toast_until = 0;
+      { const StepEdit e = sq_ch[0].ed[10]; tap_key(18);                          /* white slot 10 = step 11, past LENGTH 8 */
+        CHECK(!memcmp(&e, &sq_ch[0].ed[10], sizeof e) && !strcmp(uisq_toast, "PAST THE END") && uisq_toast_chip == 1, "a tap past LENGTH toasts PAST THE END and writes nothing (%s)", uisq_toast); }
+      CHECK(!uisq_rec_aud_note, "... and does not sound");
+      (void)sq_len_set(0, 16); }
+    /* 64 STEPS = MAX on PG+ and on CHAN OCT+ */
+    { (void)sq_len_set(0, 64); uisq_vpage = 3; uisq_toast_until = 0; uisq_pg_pend = 0;
+      press(1u << 22); press(0);
+      CHECK(sq_ch[0].len == 64 && !strcmp(uisq_toast, "64 STEPS = MAX") && !uisq_pg_pend, "PG+ on page 4 at LENGTH 64: toast 64 STEPS = MAX (%s)", uisq_toast);
+      uisq_toast_until = 0; uisq_page = UI_PG_CHAN; ui_sq_button(UI_C_B_OCTUP);
+      CHECK(sq_ch[0].len == 64 && !strcmp(uisq_toast, "64 STEPS = MAX"), "CHAN OCT+ at 64: the same toast");
+      (void)sq_len_set(0, 16); uisq_vpage = 0; uisq_toast_until = 0; ui_sq_button(UI_C_B_OCTDN);
+      CHECK(sq_ch[0].len == 16 && !strcmp(uisq_toast, "ONE PAGE") && !strcmp(uisq_toast_hint, "K1=LESS"), "CHAN OCT- at one page: toast ONE PAGE (%s)", uisq_toast);
+      uisq_page = UI_PG_PERF; uisq_toast_until = 0; }
+    /* stopped: a step turned ON sounds once (queue: one on, one off); turned OFF it is silent */
+    { int ons = 0, offs = 0, p = -1, held = 0; uint8_t o, n, v, note0 = 0;
+      for (int i = 0; i < 16; i++) if (!on_of(0, (uint8_t)i)) { p = i; break; }
+      CHECK(p >= 0, "a step that is off exists");
+      if (p >= 0) {
+          static const uint8_t wk[16] = { 0, 2, 4, 6, 7, 9, 11, 12, 14, 16, 18, 19, 21, 23, 24, 26 };
+          tap_key(wk[p]); CHECK(on_of(0, (uint8_t)p) == 1, "the tap turned step %d on", p + 1);
+          while (ui_sq_aud_next(&o, &n, &v)) { if (o) { ons++; note0 = n; held++; } else { offs++; held--; } }
+          CHECK(ons == 1 && offs == 0 && held == 1, "stopped, step turned ON: one NOTE_ON queued (%d on %d off)", ons, offs);
+          wait_ms(300);
+          while (ui_sq_aud_next(&o, &n, &v)) { if (o) { ons++; held++; } else { offs++; held--; CHECK(n == note0, "the off is the on's note"); } }
+          CHECK(ons == 1 && offs == 1 && held == 0 && !uisq_rec_aud_note, "... and exactly one NOTE_OFF follows (%d on %d off)", ons, offs);
+          tap_key(wk[p]); CHECK(on_of(0, (uint8_t)p) == 0, "tapped off again");
+          wait_ms(300);
+          CHECK(!ui_sq_aud_next(&o, &n, &v), "turning a step OFF is silent");
+          /* playing: the step is the scheduler's, no audition */
+          sq_playing = 1; tap_key(wk[p]); wait_ms(300); sq_playing = 0;
+          CHECK(!ui_sq_aud_next(&o, &n, &v), "while playing a tap queues no audition"); } }
+    /* the preview toggle toasts */
+    { uisq_toast_until = 0; press(1u << 3); wait_ms(600); press(0); frame();
+      CHECK(!strncmp(uisq_toast, "PREVIEW ", 8) && uisq_toast_chip == 2, "M2 hold released: a preview toast on [2] (%s)", uisq_toast);
+      CHECK(!strcmp(uisq_toast, (sq_ch[1].pad[0] & 0x80u) ? "PREVIEW ON" : "PREVIEW OFF"), "... naming the state it set");
+      sq_ch[1].pad[0] &= 0x7Fu; uisq_toast_until = 0; }
+    /* hazards: a pseudo-random key / knob run through PERF and CHAN; the invariants hold at every step */
+    { uint32_t r = 12345u; uint8_t o, n, v; int ons = 0, offs = 0;
+      sq_playing = 0; uisq_page = UI_PG_PERF; uisq_used = 0x0F; uisq_sel = 0; uisq_gone_n = 0;
+      for (int i = 0; i < 3000; i++) {
+          r = r * 1664525u + 1013904223u;
+          switch ((r >> 24) % 9u) {
+          case 0: tap_key((uint8_t)((r >> 8) % 27u)); break;                    /* any key (white: step / past end; black: M, CHN, PG) */
+          case 1: ui_sq_algo_turn((int32_t)((r >> 8) % 5u) - 2); break;
+          case 2: ui_sq_select_turn((int32_t)((r >> 8) % 3u) - 1); break;
+          case 3: ui_sq_button((uint8_t)(((r >> 8) & 1u) ? UI_C_B_OCTUP : UI_C_B_OCTDN)); break;
+          case 4: ui_sq_knob((uint8_t)((r >> 8) & 3u), (int32_t)((r >> 12) % 7u) - 3); break;
+          case 5: (void)sq_len_set(uisq_sel % SQ_NCH, (uint8_t)(1u + (r >> 8) % 64u)); break;
+          case 6: wait_ms(50); break;
+          case 7: ui_sq_button(UI_C_B_EDIT); break;
+          default: ui_sq_button(UI_C_B_FX); break; }
+          if (uisq_page != UI_PG_PERF && uisq_page != UI_PG_CHAN && uisq_page != UI_PG_NOTE_EDIT) uisq_page = UI_PG_PERF;
+          CHECK(uisq_sel < SQ_NCH && uisq_vpage < SQ_NSTEP / SQ_PAGE && uisq_gone_n <= SQ_NCH, "bounds at step %d", i);
+          CHECK(sq_ch[uisq_sel % SQ_NCH].algo < SQ_NALGO && sq_ch[uisq_sel % SQ_NCH].len >= 1 && sq_ch[uisq_sel % SQ_NCH].len <= SQ_NSTEP, "channel state in range at step %d", i);
+          while (ui_sq_aud_next(&o, &n, &v)) { if (o) ons++; else offs++; }
+          CHECK(ons - offs >= 0 && ons - offs <= 1, "never more than one audition note held (%d on %d off)", ons, offs);
+          if (fails > 20) break; }
+      press(0); wait_ms(400);
+      while (ui_sq_aud_next(&o, &n, &v)) { if (o) ons++; else offs++; }
+      CHECK(!uisq_rec_aud_note, "no audition note left owed after the random run");
+      CHECK(ons == offs && ons > 0, "every audition note-on got its note-off (%d on %d off)", ons, offs);
+      uisq_page = UI_PG_PERF; uisq_used = 0x0F; uisq_sel = 0; uisq_vpage = 0; }
+
     /* ---- strings: every toast / hint word the page raised is a ui_msgs row word ---- */
     shot("perf_end", 0, 0, 240, 240);
     printf("ui_sq_perf_test: %d failure(s)\n", fails);

@@ -504,6 +504,8 @@ MESSAGES = [  # (kind, name-or-word, text-or-hint): every top-bar message; check
     ("toast", "UNDO", "EDIT=REDO"), ("toast", "REDO", "EDIT=UNDO"), ("toast", "MIDI OFF", "2 TO CH2"),
     ("toast", "NEW", "ALGO=PICK"), ("toast", "GONE", "EDIT=UNDO"), ("toast", "PAGE 2?", "PG+=ADD"),
     ("toast", "SAVED P02", ""), ("toast", "LAST ROW", "OCT-=1"), ("toast", "P01", "SAVE=REDO"),
+    ("toast", "PAST THE END", "LEN"), ("toast", "64 STEPS = MAX", ""), ("toast", "ONE PAGE", "K1=LESS"),
+    ("toast", "PREVIEW ON", ""), ("toast", "PREVIEW OFF", ""),
     ("enc", "SELECT", "CH2 EUCLID"), ("enc", "SELECT", "CH4 PATT"), ("enc", "ALGO", "PATT AT STEP"),
     ("enc", "ALGO", "EUCLID AT STEP"), ("enc", "PRESETS", "P16 AT BAR"), ("enc", "PRESETS", "P16 IN 1.5S"),
     ("enc", "OCT+", "ROW 2 OF 2"), ("enc", "OCT+", "ROW 3 TB-3"), ("enc", "OCT-", "ROW 1"),

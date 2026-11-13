@@ -1383,19 +1383,23 @@ static void uisq_chan_pages(uint8_t ctl)                                /* OCT- 
     uisq_pg_pend = 0;
     if (ctl == UI_C_B_OCTDN) {                                          /* LENGTH to the page boundary below (20 -> 16, 48 -> 32); at 16 or less inert */
         const uint8_t n = (uint8_t)(len ? ((len - 1u) / SQ_PAGE) * SQ_PAGE : 0u);
-        if (n >= 1u) (void)sq_len_set(sel, n); }
-    else if (len < SQ_NSTEP && sq_page_add(sel)) {                      /* a partial page is completed, else a new page (a copy of the page before) */
+        if (n >= 1u) (void)sq_len_set(sel, n);
+        else ui_sq_toast_id(UI_MSG_TOAST_ONE_PAGE_K1_LESS, sel); }       /* already one page: say how to shorten it */
+    else if (len >= SQ_NSTEP) ui_sq_toast_id(UI_MSG_TOAST_64_STEPS_MAX, sel);
+    else if (sq_page_add(sel)) {                      /* a partial page is completed, else a new page (a copy of the page before) */
         uisq_gone_n = 0; uisq_undone = 0;
         uisq_vpage = (uint8_t)((sq_ch[sel].len - 1u) / SQ_PAGE); }
     uisq_chan_pages_clamp(); }
 
 /* the ALGO encoder: the algorithm of the selected channel, over the ALGOS[] rows that are written; no wrap; it lands at the next step (sq_set_algo). Only on
- * CHAN here; P4-032 widens the page test to PERF. The strip lists the algorithms for 2 s (ALGO_PICK) and the touched control names the new one. */
+ * CHAN, REC and PERF (P4-032; a held M key is the preview sound's, not this). The strip lists the algorithms for 2 s (ALGO_PICK) and the touched control names the new one. */
 static void ui_sq_algo_turn(int32_t d)
 {   const uint8_t sel = uisq_sel % SQ_NCH;
     int32_t n = sq_ch[sel].algo, left = d < 0 ? -d : d;
     const int32_t dir = d < 0 ? -1 : 1;
-    if ((uisq_page != UI_PG_CHAN && uisq_page != UI_PG_REC) || !d) return;
+    if ((uisq_page != UI_PG_CHAN && uisq_page != UI_PG_REC && uisq_page != UI_PG_PERF) || !d) return;
+    if (uisq_page == UI_PG_PERF && uisq_held_m) return;                 /* PERF with a mute key held: PREVIEW.md's sound turn, not wired yet: no algorithm change by accident */
+    uisq_pg_pend = 0;
     if (left > SQ_NALGO) left = SQ_NALGO;
     while (left-- > 0) {
         int32_t m = n + dir;
@@ -1518,6 +1522,15 @@ static void uisq_rec_flush(void)
         if (!uisq_rec_note[k]) { uisq_rec_owed &= ~(1u << k); continue; }
         if (uisq_aud_push(0, (uint8_t)(uisq_rec_note[k] - 1u), 0)) { uisq_rec_note[k] = 0; uisq_rec_owed &= ~(1u << k); } }
     if (uisq_rec_aud_note && (int32_t)(uisq_now - uisq_rec_aud_t0) >= (int32_t)UISQ_REC_AUD_MS && uisq_aud_push(0, (uint8_t)(uisq_rec_aud_note - 1u), 0)) uisq_rec_aud_note = 0; }
+
+/* A step turned ON while the sequencer is stopped sounds once (key_map PERF white key): the note goes on through the queue (P4-034) and its off is pushed by
+ * uisq_rec_flush after UISQ_REC_AUD_MS, every frame on every page, so it ends whichever page or channel the player moves to. Shares K1's audition slot. */
+static void uisq_step_audition(uint8_t ch, uint8_t p)
+{   UisqStep L;
+    if (sq_playing || ch >= SQ_NCH) return;
+    uisq_step_read(&L, ch, p);
+    if (uisq_rec_aud_note && uisq_aud_push(0, (uint8_t)(uisq_rec_aud_note - 1u), 0)) uisq_rec_aud_note = 0;   /* the last one first */
+    if (L.on && !uisq_rec_aud_note && uisq_aud_push(1, L.note, L.vel)) { uisq_rec_aud_note = (uint8_t)(L.note + 1u); uisq_rec_aud_t0 = UISQ_MS(); } }
 
 static void uisq_pg_rec(void)                                           /* the page's frame: the cursor follows the playhead */
 {   const uint8_t len = uisq_rec_len();
@@ -1755,6 +1768,7 @@ static void uisq_key_down(uint8_t k)
             uisq_vpage = vp;
             if (uisq_pg_pend) { (void)sq_page_add(uisq_sel); uisq_pg_pend = 0; uisq_vpage = (uint8_t)(vp + 1u); uisq_gone_n = 0; uisq_undone = 0; }
             else { uisq_pg_pend = 1; uisq_msg_toast_n(UI_MSG_TOAST_PAGE_2_PG_ADD, uisq_sel, (uint8_t)(vp + 2u)); } }
+        else { uisq_pg_pend = 0; ui_sq_toast_id(UI_MSG_TOAST_64_STEPS_MAX, uisq_sel); }   /* page 4 at LENGTH 64: nothing to add */
         break; }
     default: uisq_pg_pend = 0; break; } }
 
@@ -1769,7 +1783,10 @@ static void uisq_key_up(uint8_t k)
         if (!fired) {
             const uint8_t p = (uint8_t)(uisq_view_page() * SQ_PAGE + slot);
             const StepEdit was = sq_ch[uisq_sel % SQ_NCH].ed[p % SQ_NSTEP];
-            if (sq_step_tap(uisq_sel, p) && uisq_page == UI_PG_NOTE_EDIT && uisq_ne_cmp(&was, &sq_ch[uisq_sel % SQ_NCH].ed[p % SQ_NSTEP])) uisq_ne_wrote(); }   /* (NOTE_EDIT: EDIT may take it back) */
+            if (p >= sq_ch[uisq_sel % SQ_NCH].len) { ui_sq_toast_id(UI_MSG_TOAST_PAST_THE_END_LEN, uisq_sel); return; }   /* past LENGTH: say so, change nothing */
+            if (sq_step_tap(uisq_sel, p)) {
+                if (uisq_page == UI_PG_NOTE_EDIT && uisq_ne_cmp(&was, &sq_ch[uisq_sel % SQ_NCH].ed[p % SQ_NSTEP])) uisq_ne_wrote();   /* (NOTE_EDIT: EDIT may take it back) */
+                uisq_step_audition(uisq_sel, p); } }
         return; }
     if (slot == (0x80u | 4u)) {                                         /* CHN (D#4): a tap opens CHAN from PERF / NOTE_EDIT, and closes it (key_map CHN / BACK); a longer hold is RIG (P4-032) */
         const uint16_t hold = uisq_hold_ms(UI_C_KEY_B05_DS4);
@@ -1780,7 +1797,7 @@ static void uisq_key_up(uint8_t k)
         ui_sq_held_m_set(0); ui_sq_hold_end();
         if (fired || !(uisq_used >> c & 1u)) return;
         if (el < uisq_hold_ms(uisq_key_ctl(k))) sq_set_mute(c, (uint8_t)!sq_ch[c].muted);
-        else sq_ch[c].pad[0] ^= 0x80u; } }                              /* PREVIEW on/off: bit 7 of the preview byte (PREVIEW.md) */
+        else { sq_ch[c].pad[0] ^= 0x80u; ui_sq_toast_id((sq_ch[c].pad[0] & 0x80u) ? UI_MSG_TOAST_PREVIEW_ON : UI_MSG_TOAST_PREVIEW_OFF, c); } } }                              /* PREVIEW on/off: bit 7 of the preview byte (PREVIEW.md) */
 
 /* the keys: diff against the last frame, then the hold timers (the white key 0.4 s -> NOTE_EDIT, the M key 1.5 s -> remove) */
 static void ui_sq_keys(uint32_t mask)

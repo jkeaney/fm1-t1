@@ -12,18 +12,20 @@ A producer with a TB-3 on MIDI channel 2, the bass line playing, wants to enter 
 ## 2. Steps a producer takes
 | # | Producer does (control id, context) | Screen shows after | Sound / MIDI after |
 | --- | --- | --- | --- |
-| 1 | Tap white key (KEY_Wnn, PERF) | the step cell flips ON/OFF in the next frame (music row and keybed) | the step plays or not from the next pass |
+| 1 | Tap white key (KEY_Wnn, PERF) | the step cell flips ON/OFF in the next frame (music row and keybed); past LENGTH: toast `PAST THE END  LEN`, nothing changes | the step plays or not from the next pass; stopped, a step turned ON sounds once (0.12 s) |
 | 2 | Tap the same key again | the step returns to its generated state (AUTO) | as generated |
 | 3 | Hold a white key 0.4 s | NOTE_EDIT on that step (stand-in until P4-014) | none |
 | 4 | Turn K1..K4 (EN_K1..K4) | the tile value, hot, same frame | the pattern morphs at the next step |
 | 5 | Press SCL / SEQ / ENV / ARP / LFO / FX | toast `NOTES` / `HITS` / `ACCNT` / `ARTIC` / `SHAPE` / `ALL`  `EDIT=UNDO` on the channel chip; changed steps hatched 2 s; a dim button (layer absent) does nothing | new layer from the next step |
 | 6 | Press EDIT | toast `UNDO  EDIT=REDO`, again `REDO` | previous state back |
 | 7 | Tap M1..M4 | mute toggles | channel silent / sounding |
-| 8 | Hold M1..M4, release before 1.5 s | hint `PREVIEW CHn` with a bar, then the preview toggles | preview synth on/off |
+| 8 | Hold M1..M4, release before 1.5 s | hint `PREVIEW CHn` with a bar, then the preview toggles and the toast `[n] PREVIEW ON` / `PREVIEW OFF` | preview synth on/off |
 | 9 | Hold M1..M4 1.5 s | toast `[n] GONE  EDIT=UNDO`, channel leaves the screen | channel silent; EDIT brings it back |
 | 10 | Turn SELECT past the last channel | toast `[n] NEW  ALGO=PICK`, setup cue | none |
-| 11 | PG- / PG+ (black keys C#5 / D#5) | lane page changes, FOLLOW off; PG+ on the last page: `PAGE n?  PG+=ADD`, again adds it | the added page copies the one before |
+| 11 | PG- / PG+ (black keys C#5 / D#5) | lane page changes, FOLLOW off; PG+ on the last page: `PAGE n?  PG+=ADD`, again adds it; page 4 at LENGTH 64: toast `64 STEPS = MAX` | the added page copies the one before |
 | 12 | OCT+ / OCT- | knob band ROW 2 / ROW 1 (`LAST ROW  OCT-=1` at the end) | none |
+| 13 | Tap CHN (D#4) | the CHAN page of the selected channel opens; tap again = back | none |
+| 14 | Turn ALGO | the touched control names `ALGO  <NAME> AT STEP`, the strip lists the algorithms 2 s; clamped, no wrap; a held M key ignores it | the new algorithm from the next step |
 
 ## 3. Functions and class
 | Function | Class |
@@ -58,7 +60,7 @@ Pass: performance >= 11, setup >= 9, no sub-score < 2.
 - [x] Survives stop/start, clock change, preset load: state is in sq_* (reads after SQ_FRAME_SYNC); the lane follows a load.
 - [x] Cost: build line `RAM .data+.bss 29192 B of 73728` (headroom 44536 B).
 - HW-1 (FB-015) item: on AF_PAIRING algorithms (ACID) a tap or an ON edit made during step p-1 is heard from the next pass, not at step p (the pairing snapshot is taken one step ahead). Not a bug; confirm it feels acceptable.
-- Not wired in this task (gaps, see the task log): a tap past LENGTH shows no `PAST THE END` toast and `64 STEPS = MAX` is silent (no message row in MESSAGES); a step turned ON while stopped does not sound once; the hard-tap ACCENT; SOL / FIL / ROL / RST / CHN keys; the ALGO and PRESETS encoders; the preview has no toast.
+- Closed by P4-032: PAST THE END, 64 STEPS = MAX, the stopped step sounding once (via the P4-034 queue), the CHN key (P4-015), the PERF ALGO encoder, the preview toast. Still not wired: the hard-tap ACCENT; SOL / FIL / ROL / RST keys; the PRESETS encoder.
 
 Design locked: cited from the locked tables (P4-030) and SCREEN_SPEC_V2 (ADR-0006); Gate A by the executor, the reviewer confirms.
 
@@ -68,7 +70,7 @@ Steps 1-2, 4-8, 10-12 behave as predicted (test cases for tap, K1 hot tile, dice
 - Step 3: NOTE_EDIT is a stand-in that closes when the key is released (P4-014).
 - Step 9: removal leaves the channel's preview bit ON, so a removed channel can still be heard on the built-in synth (finding F1).
 - Step 9 twice in a row: the first channel's EDIT=UNDO is lost (one-slot undo, finding F2).
-- Not wired: CHN key, ALGO encoder (P4-032), PAST THE END, step-on-while-stopped, preview toast.
+- Not wired at review time (closed by P4-032): CHN key, ALGO encoder, PAST THE END, step-on-while-stopped, preview toast.
 
 ## 8. Actual ease score
 | Function | V | I | O | L | /12 | Pass? |

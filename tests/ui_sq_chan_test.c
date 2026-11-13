@@ -349,7 +349,7 @@ int main(int argc, char **argv)
 
     /* ---- the ALGO encoder picks the algorithm of the selected channel on CHAN ---- */
     reset_world();
-    ui_sq_algo_turn(1); CHECK(sq_ch[0].algo == 0, "ALGO on PERF is not this task's (P4-032): inert here");
+    ui_sq_algo_turn(1); CHECK(sq_ch[0].algo == 1, "ALGO on PERF changes the algorithm (P4-032)"); ui_sq_algo_turn(-1);
     chn_tap();
     { const uint8_t a0 = sq_ch[0].algo;
       ui_sq_algo_turn(1); frame();
