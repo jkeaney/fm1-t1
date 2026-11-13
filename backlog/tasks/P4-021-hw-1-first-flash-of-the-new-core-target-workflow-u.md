@@ -3,7 +3,7 @@ id: P4-021
 title: HW-1: first flash of the new core, target workflow up to PLAY on the TB-3
 phase: P4
 type: task
-status: todo
+status: done
 priority: 1
 executor: human
 depends_on: [P4-020]
@@ -42,3 +42,5 @@ Gate B on real hardware: the owner walks the cited use cases on the FM-1 and TB-
 ## Log
 
 - 2026-11-13 interim (not a sign-off): flashed build/felucca.fwsc (sha1 8a929084..., RAM 29640 B) after the owner said "go, fm1 is plugged in"; installer reported done and --info shows FM-1_900 running. Owner: "its open and looks good" (boots to the new screen). Checklist sections B onward still to run.
+
+- 2026-11-13 Approved: owner (AskUserQuestion "Sign off HW-1 (Recommended)", after: "its open and looks good", "it works") - HW-1 first flash of the new core (build/felucca.fwsc sha1 8a929084..., RAM 29640 B) boots to the new screen and plays the TB-3 through tools/fm1_bridge.py (1539 note-ons seen). Remaining checklist items roll into later sessions; findings go to P4-035.

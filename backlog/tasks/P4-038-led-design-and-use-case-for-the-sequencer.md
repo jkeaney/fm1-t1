@@ -52,3 +52,5 @@ Producer-facing. The use case is the deliverable: `docs/design/features/P4-038-l
 ## Log
 - 2026-11-13: created from the POC readiness review (/tmp/readiness_review.md, copy the findings you need into the Log; /tmp may be gone).
 - Gate: owner must approve the scheme and rule on hard blinks vs breathing.
+
+- 2026-11-13 owner ruling (AskUserQuestion): hard on/off blink only for the playhead and the beat flash; everything else solid, dark or slow breathing. Overrides the old "never a hard blink in a dark room" for those two only.

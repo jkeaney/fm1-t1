@@ -50,3 +50,5 @@ Producer-facing. Use cases to update: P4-013 (PERF), P4-014 (NOTE_EDIT), P4-016 
 ## Log
 - 2026-11-13: created from the POC readiness review (/tmp/readiness_review.md, copy the findings you need into the Log; /tmp may be gone).
 - Decision step first: the executor of step 1 is the owner via the orchestrator; step 2 may be reassigned to sonnet after the rulings.
+
+- 2026-11-13 owner ruling (AskUserQuestion): MOD output IS in v1. RIG decision pending: owner asked for plain-language context (asked again).
