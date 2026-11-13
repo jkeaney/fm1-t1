@@ -291,14 +291,21 @@ static uint8_t sq_slide_out(uint8_t c, uint8_t p, uint8_t pairing, uint8_t gen_n
     if (sl == 2u) return 0u;
     return (uint8_t)(pairing && gen_next_slide_in); }
 
+/* P4-042: the longest tie search, in steps, per tick (the ISR bound). One probe = one sq_eval = one step() call, so a tick costs at most
+ * SQ_TIE_SCAN + 2 evals per channel (this one, THE next, the search) instead of up to 63 + 2. A pattern of 17 steps or fewer never
+ * reaches the bound, so its behaviour is exactly the full search's (the goldens, the fuzz). */
+#define SQ_TIE_SCAN 16
+
 /* SEQUENCER_UX 9.2, TIE: the tick at which a tied note ends = the start of the next sounding step, searched forward with the same wrap as n
  * (free-running step count tf + d, so the pass moves at the wrap). At most one loop: when no other step sounds before the tied step comes
- * round again, the note ends at that start. o = this step's swing offset, G / L as in sq_step_start. */
+ * round again, the note ends at that start. P4-042: and at most SQ_TIE_SCAN steps ahead, so a tie over more silent steps than that ends
+ * there (the note is held SQ_TIE_SCAN + 1 steps). o = this step's swing offset, G / L as in sq_step_start. */
 static uint32_t sq_tie_end(uint8_t c, uint8_t p, uint16_t pass, uint8_t len, const AlgoDesc *a, const void *k, const SeqGlobal *g,
                            uint32_t G, uint32_t L, uint32_t o)
 {   const uint32_t tf = (uint32_t)pass * len + p;
-    uint32_t d, hd = len;
-    for (d = 1; d < len; d++) {
+    const uint32_t lim = len < SQ_TIE_SCAN + 1u ? len : SQ_TIE_SCAN + 1u;   /* the fallback distance; probes d = 1 .. lim - 1 */
+    uint32_t d, hd = lim;
+    for (d = 1; d < lim; d++) {
         PulseOut q;
         const uint32_t t = tf + d;
         sq_eval(c, (uint8_t)(t % len), (uint16_t)(t / len), a, k, g, &q);
@@ -416,7 +423,7 @@ static void sq_step_start(uint8_t c, uint32_t now, uint8_t L)
             const HarmChord *hcp = (a->flags & AF_CHORD) ? &sq_hc_inert : NULL;
             for (uint8_t j = 0; j < nr; j++) {
                 uint8_t note = out.note;
-                if (a->sub_note) note = (uint8_t)(a->sub_note(k, p, (uint8_t)(j + 1u), hcp) & 0x7Fu);
+                if (a->sub_note) note = (uint8_t)(a->sub_note(k, sq_gen_pos(&sq_ch[c], p), (uint8_t)(j + 1u), hcp) & 0x7Fu);
                 sq_evq_purge_off_after(c, note, S + rr[j].off);
                 (void)sq_sched_pair(chan, S + rr[j].off, S + rr[j].off + rr[j].len, note, rr[j].vel);
             }

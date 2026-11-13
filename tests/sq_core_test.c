@@ -75,8 +75,12 @@ static void trk_note_off(track_t *t, uint32_t note)
 typedef struct { uint8_t n, pad; PulseOut s[9]; } Tbl;           /* 56 B <= SQ_CACHE_MAX */
 _Static_assert(sizeof(Tbl) <= SQ_CACHE_MAX, "Tbl fits a cache");
 static uint8_t  tbl_len(const void *k) { return ((const Tbl *)k)->n; }
+static long     tbl_calls;                                       /* P4-042: step() calls, counted per tick by the worst-case test */
+static int      wc_mode;                                         /* P4-042: 1 = the generator position 0 is a hit with PO_TIE, every other position a rest */
 static void     tbl_step(const void *k, uint32_t g, const HarmChord *hc, PulseOut *o)
-{   const Tbl *t = (const Tbl *)k; (void)hc; *o = t->s[g % t->n]; }
+{   const Tbl *t = (const Tbl *)k; (void)hc; tbl_calls++;
+    if (wc_mode) { memset(o, 0, sizeof *o); o->note = 40; o->vel = 90; o->gate = 50; o->flags = (uint8_t)(g == 0 ? (PO_HIT | PO_TIE) : 0); return; }
+    *o = t->s[g % t->n]; }
 static uint8_t  tbl_sub(const void *k, uint32_t g, uint8_t kk, const HarmChord *hc)
 {   const Tbl *t = (const Tbl *)k; (void)hc; return (uint8_t)(t->s[g % t->n].note + 3u * kk); }
 static void     tbl_nobuild(const uint8_t m[SQ_NMORPH], const uint16_t seed[SQ_NSEED], const SeqGlobal *g, void *k)
@@ -354,6 +358,36 @@ static void g11_preview_flag_flips(void)
     run(1, 30);
     CHECK(count_lines("PRV") == 0, "no preview OFF for a note whose ON never went to the voice\n%s", logbuf); }
 
+/* P4-042 (sub_note): the repeat pitch of an ARP ratchet is asked for with the GENERATOR position (sq_gen_pos), as step() is. A 18-step
+ * channel on algo 5 (sub_note = note + 3k): steps 1, 10 (slot 10 % 9) and 17 read generator position 1 (page 1 reads block 0), so its
+ * repeat is 42 + 3 = 45 again (notes are 40 + 2i, all even). The old call gave sub_note the step index 17 (table slot 17 % 9 = 8): 56 + 3 = 59. */
+static void g12_sub_note_position(void)
+{   Tbl *t; reset_all();
+    t = tbl_of(0, 0, 5, 9);
+    for (uint8_t i = 0; i < 9; i++) put(t, i, 1, (uint8_t)(40 + 2 * i), 100, 50, i == 1 ? (uint8_t)(1u << PO_REP_SHIFT) : 0, 0);
+    sq_ch[0].midi_ch = 0; sq_ch[0].len = 18; sq_ch[0].pg_src = 0;
+    start(); run(0, 17 * 48 + 47);
+    CHECK(count_lines("ON  n= 45") == 3, "steps 1, 10 and 17 (table slot 1 each) all repeat on 45 (got %d)\n%s", count_lines("ON  n= 45"), logbuf);
+    CHECK(count_lines("ON  n= 59") == 0, "no repeat on the step-index pitch 59\n%s", logbuf); }
+
+/* P4-042 (tie bound): the worst case for the tie search. Four channels of 64 steps, only the step at generator position 0 sounds and it is a
+ * TIE (the pages read their own blocks 1..3, so steps 16, 32, 48 are rests): the search from step 0 finds no hit and used to walk all 63
+ * steps. Counts step() calls per sq_tick over two passes. Before: 4 * (1 + 1 + 63) = 260 on the first tick; after: 4 * (1 + 1 + 16) = 72.
+ * Also the tie length: with no hit within SQ_TIE_SCAN steps the note ends SQ_TIE_SCAN + 1 steps after its start (17 * 48 = 816). */
+static void g13_tie_bound(void)
+{   long worst = 0, at = -1; reset_all(); log_on = 1; wc_mode = 1;
+    for (uint8_t c = 0; c < SQ_NCH; c++) {
+        sq_ch[c].midi_ch = c; sq_ch[c].len = 64; sq_ch[c].algo = 1; sq_ch[c].pg_src = (uint8_t)((1u << 2) | (2u << 4) | (3u << 6)); }
+    start();
+    for (uint32_t tk = 0; tk <= 2u * 64u * 48u; tk++) {
+        long n; mock_free = 128; log_tick_now = tk; tbl_calls = 0; sq_tick(tk); n = tbl_calls;
+        if (n > worst) { worst = n; at = (long)tk; } }
+    printf("  tie bound: worst step() calls in one tick = %ld (tick %ld); bound 4 * (2 + %d) = %d\n", worst, at, SQ_TIE_SCAN, 4 * (2 + SQ_TIE_SCAN));
+    CHECK(worst <= 4 * (2 + SQ_TIE_SCAN), "step() calls per tick %ld exceed the bound %d", worst, 4 * (2 + SQ_TIE_SCAN));
+    CHECK(strstr(logbuf, "    0 MIDI ch= 1 ON  n= 40") && strstr(logbuf, "  816 MIDI ch= 1 OFF n= 40"),
+          "the unfound tie ends at the 17th step start (816)\n%s", logbuf);
+    wc_mode = 0; }
+
 /* ---- sq_block: the accumulator runs 192 ticks per beat from the first block ---- */
 static void t_block(void)
 {   reset_all(); log_on = 0;
@@ -454,7 +488,7 @@ static void fuzz(long nticks)
 int main(int argc, char **argv)
 {   if (argc > 1) fz_seed = (uint32_t)strtoul(argv[1], NULL, 0);
     printf("sq_core scheduler\n");
-    g1_slide(); g2_swing(); g3_ratchet(); g4_hold(); g5_mute(); g6_stop(); g7_queue_full(); g8_midi_change(); g9_preset_bar(); g10_stale_hold_off(); g11_preview_flag_flips();
+    g1_slide(); g2_swing(); g3_ratchet(); g4_hold(); g5_mute(); g6_stop(); g7_queue_full(); g8_midi_change(); g9_preset_bar(); g10_stale_hold_off(); g11_preview_flag_flips(); g12_sub_note_position(); g13_tie_bound();
     t_block(); t_reserve();
     fuzz(100000);
     printf("%s\n", fails ? "SQ_CORE FAIL" : "SQ_CORE PASS");
