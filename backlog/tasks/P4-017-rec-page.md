@@ -3,7 +3,7 @@ id: P4-017
 title: REC page
 phase: P4
 type: task
-status: review
+status: done
 priority: 2
 executor: haiku
 depends_on: [P4-014]
@@ -73,3 +73,13 @@ python3 tools/backlog.py check            -> 165 items, 0 errors
 ```
 Host render vs v12 REC scenes (`rec_armed`, `rec_playing`): 0 differences (v12_compare). Stale-state and bound hazards checked: use case section 6 (list of 4 items, each with its host test).
 For the reviewer: (1) FB-019 is the one real gap; (2) the K1 meter spans 1..16 whatever LENGTH is; (3) `sq_rt` / `sq_now` are read plain from the main loop (nearest step), see use case hazard 4; (4) ui_sq_perf/note/chan/set tests are unchanged and pass.
+
+### 2026-11-13 review (sonnet)
+Verdict: PASS (gate none). One complete scan, no findings that need a fix.
+- `sh tools/check.sh` re-run: CHECK PASS (build, RAM, tests, backlog, docs wording). Stamp tree cf3c8b2b. `RAM .data+.bss 29576 B of 73728` -> headroom 44152 B (>= 8192).
+- v12_compare: 52 scenes, 0 failed (rec_armed, rec_playing included). ui_sq_rec_test OK (0 failures). REC block of ui_sq.c has no string literal (labels/footer/OFF-ON/octave signs from tables).
+- Hazards: key queue (16 slots, 15 usable; a full ring drops a note-on and owes no off, offs retried every frame on every page incl. after leaving REC) sound; key note remembered per key so OCT/SELECT/leave cannot hang a note; held keys at REC close marked fired (no PERF toggle); cursor/vpage clamped to LENGTH every frame, K1 modulo cannot go negative, 1..len; pitch folded 0..96, note clamped 0..127, vel 90/120; one undo record per key, EDIT undo/redo moves the cursor (`at` read before sq_undo); sq_rt.p/grid read plain from the main loop, worst case the neighbour step at a boundary (accepted). Non-blocking: K1 meter spans 1..16 regardless of LENGTH (cursor itself is bounded).
+- Docs sync: SCREEN_SPEC_V2 4.7/4.8, SEQUENCER_UX 2.5 as-built note, CONTROL_MAP, control_map/button_modes/knob_map/page_states tsv, S07 (9, 19-28, 30, 32), S14, use case, help_text (still true; no stale `LEAVE REC FIRST` / `REC: tap REC to finish` toast left outside the use-case history) all agree.
+- Deviation (GLO tap = slot `GLO REC = DONE`; EDIT hold and PRESETS turn inert): judged acceptable, no owner needed. It keeps the "inert plus how to finish" intent of the old toast with one fewer string, EDIT hold must stay free for RESET (P4-018), PRESETS is P7's; every table, scenario and spec was edited to match and help_text still reads true. Only cost: the EDIT-hold and PRESETS turn give no feedback, which the band label `-` already states.
+- FB-019 confirmed sound: the producer/consumer ring is single-writer main loop, single-reader ISR on a single core; the consumer calls sq_live_on/off, which remember the channel per note; not required here. P4-032's stopped-step audition shares the road.
+- Gate B (use case sections 7-9): walked each step against the host tests and renders; actual V/I/O/L equal the prediction (12/11/12/12), pass rule met. Five surfaces agree. Live checklist: sound line open until FB-019; real-unit check is HW-1 (P4-021).
