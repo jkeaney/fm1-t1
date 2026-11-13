@@ -1,5 +1,7 @@
 # T-1 sequencer: issues found in review
 
+> **History (2026-11-13).** The T-1 pipeline, state, ui, glue and screen files named below were removed in the cut-over (P4-012). This list records the old code; it is not a live defect list.
+
 A single record of every defect, inconsistency and gap found while reviewing the Torso T-1 sequencer (`firmware/src/torso_t1*.c`, `t1_glue.c`, `ui_t1.c`).
 Background and the algorithm write-ups are in [t1-algorithms/](t1-algorithms/README.md); the reproduction programs and their captured output are in [t1-algorithms/verification/](t1-algorithms/verification/).
 

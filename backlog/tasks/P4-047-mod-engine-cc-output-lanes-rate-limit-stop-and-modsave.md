@@ -4,7 +4,7 @@ title: MOD engine: CC output from the scheduler, lanes, rate limit, stop and mut
 phase: P4
 type: task
 status: todo
-priority: 1
+priority: 8
 executor: sonnet
 depends_on: [P4-046, P4-042]
 gate: none

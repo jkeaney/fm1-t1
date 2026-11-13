@@ -4,7 +4,7 @@ title: PERF ROW 3 knobs R1-R4: live level of each wire, OCT row switching, toast
 phase: P4
 type: task
 status: todo
-priority: 1
+priority: 9
 executor: sonnet
 depends_on: [P4-047, P4-043]
 gate: human-review

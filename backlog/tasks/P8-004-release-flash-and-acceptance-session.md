@@ -4,9 +4,9 @@ title: Release flash and acceptance session
 phase: P8
 type: task
 status: todo
-priority: 1
+priority: 35
 executor: human
-depends_on: [P8-003, P7-004, P6-008, P4-022]
+depends_on: [P8-003, P7-004, P6-008, P4-022, P4-050]
 gate: hardware-test
 ---
 ## Goal

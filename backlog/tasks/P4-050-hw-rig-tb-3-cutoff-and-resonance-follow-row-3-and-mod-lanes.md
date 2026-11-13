@@ -4,7 +4,7 @@ title: HW-RIG: TB-3 cutoff, resonance and the others follow ROW 3 and the MOD la
 phase: P4
 type: task
 status: todo
-priority: 1
+priority: 11
 executor: human
 depends_on: [P4-049]
 gate: hardware-test

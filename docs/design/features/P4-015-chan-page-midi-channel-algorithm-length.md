@@ -39,7 +39,7 @@ Pass: performance >= 11 and no sub-score < 2; setup >= 9 and no 0.
 ## 5. Sync check (row or section, added or changed in this task)
 | Surface | Row / section | Agrees? |
 | --- | --- | --- |
-| Buttons and knobs (control_map, button_modes, knob_map, key_map) | CHAN rows K1, K2, K4, OCT-, OCT+, ALGO, SELECT, dice, EDIT, HOME, D#4; K3 SOURCE and the `ONE PAGE: K1 = SHORTER` / `64 STEPS = MAX` toasts are not built (no MESSAGES row) | yes, with the debt |
+| Buttons and knobs (control_map, button_modes, knob_map, key_map) | CHAN rows K1, K2, K4, OCT-, OCT+, ALGO, SELECT, dice, EDIT, HOME, D#4; K3 SOURCE and the `ONE PAGE  K1=LESS` (built; P4-040 changes the hint to K1=LEN) / `64 STEPS = MAX` toasts are not built (no MESSAGES row) | yes, with the debt |
 | UI / screen (SCREEN_SPEC_V2, page_states, widths) | chan_page and chan_midi_clash scenes: tests/v12_compare.py 0 failed; the footer halves and the page title now come from page_states.tsv and ui_msgs | yes |
 | UX / help (help_text, UX_REVIEW) | no new words | yes |
 | Workflow (scenario step) | S01 steps 2-4 reproduce in tests/ui_sq_chan_test.c (the S01 toast wording is the v12 `MIDI OFF  n TO CHk`, which supersedes the older `CH2 IS MIDI OFF` line) | yes |
@@ -78,5 +78,5 @@ Differences from the prediction: none found on the host. K3 SOURCE is drawn and 
 
 ## 9. Sync re-check and outcome
 - `sh tools/check.sh`: CHECK PASS; tests/ui_sq_chan_test.c: 0 failures; v12_compare 44 scenes, 0 failed.
-- Debt: K3 SOURCE (offered-block list); toasts `ONE PAGE: K1 = SHORTER` and `64 STEPS = MAX` (need MESSAGES rows in v12.py); GLO / REC / SAVE actions from CHAN (their pages' tasks); PERF ALGO encoder and the CHN hold = RIG (P4-032).
+- Debt: K3 SOURCE (offered-block list); toasts `ONE PAGE  K1=LESS` (built; P4-040 changes the hint to K1=LEN) and `64 STEPS = MAX` (need MESSAGES rows in v12.py); GLO / REC / SAVE actions from CHAN (their pages' tasks); PERF ALGO encoder and the CHN hold = RIG (P4-032).
 - Outcome: Pass with debt. Reviewer to confirm (Gate B).

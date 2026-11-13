@@ -4,7 +4,7 @@ title: SNAKE algorithm in firmware (copy the locked prototype)
 phase: P5
 type: task
 status: todo
-priority: 2
+priority: 16
 executor: haiku
 depends_on: [P5-001]
 gate: none

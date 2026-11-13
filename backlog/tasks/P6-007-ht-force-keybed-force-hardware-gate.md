@@ -4,7 +4,7 @@ title: HT-FORCE: keybed force hardware gate
 phase: P6
 type: task
 status: todo
-priority: 2
+priority: 27
 executor: human
 depends_on: [P6-006]
 gate: hardware-test

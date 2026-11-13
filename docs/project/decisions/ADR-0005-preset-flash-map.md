@@ -1,6 +1,6 @@
 # ADR-0005: Preset and settings flash map
 
-Status: proposed (P7-001, awaiting owner). Flash line numbers below are as of commit 939c424.
+Status: accepted, design locked by the owner 2026-11-13 (P7-001). Flash line numbers below are as of commit 939c424.
 
 ## Context
 

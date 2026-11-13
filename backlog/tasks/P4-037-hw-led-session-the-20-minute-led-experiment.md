@@ -4,7 +4,7 @@ title: HW-LED session: the 20-minute LED experiment
 phase: P4
 type: task
 status: todo
-priority: 1
+priority: 2
 executor: human
 depends_on: [P4-021]
 gate: hardware-test

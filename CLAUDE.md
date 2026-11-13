@@ -160,8 +160,8 @@ sequencer core (`sq_emit`) and from live key presses.
   (stage sequencer), steparp, rhythmic-steps, melodic-steps, and t1 (this code).
 - Claims are tagged **[V]** verified, **[I]** inferred, or **⚠** unconfirmed. Treat ⚠ items as hypotheses.
 - `docs/t1-algorithms/verification/` holds host probe programs that compile the real T-1 sources.
-- `docs/T1_ISSUES.md` is the live defect list for the T-1 code (F1–F19, each OPEN/FIXED/PARTIAL with a
-  reproduction). Check it before changing T-1 code, and update a status when you fix an issue.
+- `docs/T1_ISSUES.md` is the defect list of the old T-1 code (F1–F19). Most of that code was removed in the cut-over
+  (P4-012), so it is history; read it only when you touch `torso_t1_algo.c` or port a T-1 behaviour.
 - `TORSO_T1_GUIDE.md` and `PLAN.md` describe the upstream T-1 design. They don't always match the code: the guide's
   control mapping conflicts with itself, and the code ignores some documented parameters. Trust the code and
   T1_ISSUES.md.
@@ -174,6 +174,6 @@ sequencer core (`sq_emit`) and from live key presses.
 - New files carry the `SPDX-License-Identifier: GPL-3.0-only` header.
 - Match Felucca's comment style: dense, explaining why, naming the cross-file hooks.
 - When music theory and a test disagree, the theory wins: fix the fixture, as was done for the scale masks.
-- Keep generation deterministic: random lines come from per-track seeded LFSRs and repeat by `random_rate`.
-- `t1_lfsr_next` shifts only one bit per call, so take independent decisions from fresh bits (`t1_lfsr_byte`).
+- Keep generation deterministic: every random choice comes from the seeded xorshift32 of `sq_prims.c` (SP1), derived per
+  channel and layer, so the same seed and settings give the same pattern (no clock or hardware entropy).
 - Every change must be checked on a real FM-1 before it counts as done. Host tests render the screen to PNG (build/ui_sq/) but hardware is the judge.

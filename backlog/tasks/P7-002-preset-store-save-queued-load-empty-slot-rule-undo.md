@@ -4,9 +4,9 @@ title: Preset store: save, queued load, empty-slot rule, undo of a load
 phase: P7
 type: task
 status: todo
-priority: 1
-executor: haiku
-depends_on: [P7-001, P5-005, P6-002, P4-023]
+priority: 29
+executor: sonnet
+depends_on: [P7-001, P5-005, P6-002, P4-023, P4-047]
 gate: none
 ---
 ## Goal

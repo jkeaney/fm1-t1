@@ -4,8 +4,8 @@ title: v2 cleaned-up firmware: remove the legacy groovebox and unused subsystems
 phase: P9
 type: epic
 status: todo
-priority: 3
-executor: haiku
+priority: 36
+executor: sonnet
 depends_on: [E8]
 gate: human-review
 ---

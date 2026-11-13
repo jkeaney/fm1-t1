@@ -4,8 +4,8 @@ title: Hardening: long fuzz, sanitizers, stuck notes, disconnects; T1_ISSUES clo
 phase: P8
 type: task
 status: todo
-priority: 2
-executor: haiku
+priority: 32
+executor: sonnet
 depends_on: [P7-003, P6-007]
 gate: none
 ---

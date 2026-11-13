@@ -4,8 +4,8 @@ title: LED-2: algorithm-aware layers, FILL/ROLL and dice flash
 phase: P6
 type: task
 status: todo
-priority: 2
-executor: haiku
+priority: 24
+executor: sonnet
 depends_on: [P4-039, P6-003]
 gate: none
 ---

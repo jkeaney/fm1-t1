@@ -4,9 +4,9 @@ title: HW-3: the whole workflow without the menu, with morph, dice and mute on t
 phase: P6
 type: task
 status: todo
-priority: 2
+priority: 28
 executor: human
-depends_on: [P6-004, P5-009]
+depends_on: [P6-004, P5-009, P4-050]
 gate: hardware-test
 ---
 ## Goal

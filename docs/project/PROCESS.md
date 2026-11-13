@@ -96,7 +96,7 @@ assignment. Tasks reference ADRs in **Read first**.
 ## Running the loop
 
 ```sh
-python3 tools/backlog.py next              # the next ready task (highest priority, lowest id)
+python3 tools/backlog.py next              # the next ready task (lowest priority number first, then lowest id)
 python3 tools/backlog.py next --executor haiku
 python3 tools/backlog.py list [--phase P1] # status table
 python3 tools/backlog.py show P1-001

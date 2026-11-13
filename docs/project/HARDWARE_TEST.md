@@ -68,8 +68,8 @@ USB-MIDI host box (standalone, no computer):
 
 Each item is a checkbox with the expected sound or screen text. Screen text is quoted as drawn (SCREEN_SPEC_V2,
 `overlay_text.tsv`, `page_states.tsv`). A failed item becomes feedback (below); do not fix it in the session. Session
-IDs are the ones the hardware tasks use: HW-1 (P4-021), HW-T (P4-022), HW-2 (P5-009), HW-3 (P6-008), HT-FORCE, HW-4
-(P7-004), Release (P8-004).
+IDs are the ones the hardware tasks use: HW-1 (P4-021, signed off 2026-11-13), HW-LED (P4-037), HW-RIG (P4-050), HW-T (P4-022), HW-2 (P5-009), HW-3 (P6-008), HT-FORCE, HW-4
+(P7-004), Release (P8-004). HW-LED and HW-RIG have their checklists in their task files until they run.
 
 ### HW-1 core: first flash of the new sequencer, up to PLAY on the TB-3 (P4-021)
 
@@ -81,13 +81,13 @@ and the listener cannot share the port either: if Ableton holds it, read the TB-
 **A. Flash and boot**
 - [ ] The owner has said "go" for flashing. `fm1_install.py --info --port "JIANT"` ran before the install and shows the old identity.
 - [ ] Install `build/felucca.fwsc` as in Flashing and restoring. The FM-1 reboots and `--info` reports `FM-1_9xx`.
-- [ ] Power-cycle. A splash (about 0.4 s) then the PERF screen: header `INT 120`, chip `1` selected, `ACID`, `MIDI 1`; four knob tiles `DENS 12`, `SLIDE 4`, `JUMP 5`, `ACCNT 3`; 12 button tiles; the keybed footer. No crash, no reboot loop.
+- [ ] Power-cycle. A splash (about 0.4 s) then the PERF screen: header `INT 120`, chip `1` selected (only CH1 is in use; CH2 to CH4 start MIDI OFF and not in use), `ACID`, `MIDI 1`; four knob tiles `DENS 12`, `SLIDE 4`, `JUMP 5`, `ACCNT 3`; 12 button tiles; the keybed footer. No crash, no reboot loop.
 - [ ] First-run strip: the footer is inverted `CHN KEY, K2 = MIDI   CH1` and the D#4 (CHN) black key is lit. The amber/INT tempo shows `120`.
 - [ ] Nothing sounds on its own while stopped. The speaker is silent (PREVIEW is off at power-on).
 
 **B. CH1 to MIDI 2 (two gestures)**
 - [ ] Tap black key D#4 (CHN). Page CHAN: slot `CHN CH1 SETUP`, tiles `LENGTH 16`, `MIDI 1`, `SOURCE OWN`, `FOLLOW ON`, footer `K2 = MIDI` / `CHN = BACK`.
-- [ ] Turn K2 one detent clockwise: tile `MIDI 2`, header `MIDI 2`. The first-run strip changes to `PRESS PLAY`. After about 0.6 s CH2 turns to MIDI OFF with the toast `CH2 IS MIDI OFF: CH1 TAKES 2` (the TB-3 default clashes with CH2's default; this is the unique-MIDI rule).
+- [ ] Turn K2 one detent clockwise: tile `MIDI 2`, header `MIDI 2`. The first-run strip changes to `PRESS PLAY`. No clash toast appears: CH2 to CH4 start at MIDI OFF and are not in use, so CH1 takes MIDI 2 without touching another channel (P4-044).
 - [ ] Tap HOME: back to PERF, strip `PRESS PLAY`, header `ACID` `MIDI 2`.
 
 **C. PLAY, ACID on the TB-3, STOP**
@@ -119,8 +119,8 @@ and the listener cannot share the port either: if Ableton holds it, read the TB-
 **G. ALGO encoder, mutes, channels**
 - [ ] Turn the ALGO encoder one detent: slot `ALGO <NAME> AT STEP`, the cue strip lists the algorithms. With only ACID built the pattern stays ACID (see Known gaps). Turning with an M key held does nothing.
 - [ ] Tap black F#3 (M1): CH1 mutes, its notes stop, its chip shows muted; tap again: notes return from the next step.
-- [ ] Turn SELECT one detent clockwise past the last channel: a channel is added, toast `[2] NEW  ALGO=PICK`, footer cue `CHN KEY, K2 = MIDI   CH2`. Hold G#3 (M2): at 0.4 s the slot reads `PREVIEW CH2`, at 1.5 s `REMOVE CH2` with a filling bar, then toast `[2] GONE  EDIT=UNDO`. EDIT restores it.
-- [ ] Hold M2 and release before 1.5 s: PREVIEW toggles with a toast naming the state (`PREVIEW ON` / `PREVIEW OFF`); with it on, the speaker plays that channel.
+- [ ] Turn SELECT one detent clockwise with only CH1 in use: nothing is added, no toast. A channel can be added only when its algorithm row is built (`ALGOS[].build`), and only ACID is, so adding CH2 cannot be tested until EUCLID lands (P5-002). From then on: SELECT past the last channel adds the first free one, toast `[2] NEW  ALGO=PICK`, footer cue `CHN KEY, K2 = MIDI   CH2`, and the new channel starts at MIDI OFF. Hold G#3 (M2): at 0.4 s the slot reads `PREVIEW CH2`, at 1.5 s `REMOVE CH2` with a filling bar, then toast `[2] GONE  EDIT=UNDO`. EDIT restores it.
+- [ ] (Needs a second channel in use, so P5-002 or later.) Hold M2 and release before 1.5 s: PREVIEW toggles with a toast naming the state (`PREVIEW ON` / `PREVIEW OFF`); with it on, the speaker plays that channel.
 
 **H. SET, RESET, HELP**
 - [ ] Tap GLO: page SET, slot `GLO ALL CHANNELS`, tiles `BPM 120` `SWING 50%` `GATE 50%` `DIV 1/16`, status `OUT MASTER` (playing) or `OUT ON PLAY` (stopped), `OCT 0`, footer `KEYS = STEPS` / `GLO = BACK`.
@@ -228,7 +228,7 @@ These are designed, filed and not built yet. A failure that matches one is not f
 - **PRESETS encoder (P7-002):** turning it does nothing; SAVE and load are not built, so HW-4 cannot run at HW-1.
 - **Hard-tap ACCENT** (key force, P6-006): no accent from key pressure. Use the ENV button, K3 VELO or REC `ACC`.
 - **Hold GLO = HARMONY (P5-006):** holding GLO does not open HARMONY; GLO acts on the press and opens SET.
-- **Only the ACID algorithm is filled:** EUCLID, SNAKE, STAGE, ARP and PATTERNS are empty rows, so the ALGO encoder stays on ACID (P5).
+- **Only the ACID algorithm is filled:** EUCLID, SNAKE, STAGE, ARP and PATTERNS are empty rows, so the ALGO encoder stays on ACID and no second channel can be added (P5).
 - **Live MIDI IN notes share slots** with the sequencer: a note played in from a keyboard can hit the same slot as a sequencer note.
 - **`check_control_map.py` reports 78 failures** (RIG rows, the ALGO hold clause). That is the recorded baseline, unrelated to the unit.
 - Also known: the NOTE_EDIT knob audition (a K1 detent sounding the note) is debt of P4-014; the preview-sound turn (M key held plus ALGO) is not wired; RIG (hold D#4) is not built.

@@ -4,7 +4,7 @@ title: MIDI out ring is not cleared when usb.config drops without a bus reset (s
 phase: P2
 type: bug
 status: todo
-priority: 4
+priority: 12
 executor: sonnet
 depends_on: []
 gate: none

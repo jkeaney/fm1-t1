@@ -4,7 +4,7 @@ title: HW-T: timing gate G1-G7 on the timing-test image (T-F)
 phase: P4
 type: task
 status: todo
-priority: 2
+priority: 14
 executor: human
 depends_on: [P4-019, P4-008, P4-021, P4-031]
 gate: hardware-test

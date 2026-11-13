@@ -4,7 +4,7 @@ title: Keybed scan: DRIVE mode, calibration, LED blanking and the FORCE row
 phase: P6
 type: task
 status: todo
-priority: 2
+priority: 25
 executor: sonnet
 depends_on: [P4-039, P2-015]
 gate: none

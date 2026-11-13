@@ -4,7 +4,7 @@ title: HW-4: power-cycle keeps presets and settings
 phase: P7
 type: task
 status: todo
-priority: 2
+priority: 31
 executor: human
 depends_on: [P7-003]
 gate: hardware-test

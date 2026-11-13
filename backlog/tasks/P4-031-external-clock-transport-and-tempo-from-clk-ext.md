@@ -4,7 +4,7 @@ title: External clock: transport and tempo of a followed clock come from clk_ext
 phase: P4
 type: task
 status: todo
-priority: 2
+priority: 12
 executor: sonnet
 depends_on: [P4-012]
 gate: none

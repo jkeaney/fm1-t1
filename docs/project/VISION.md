@@ -56,9 +56,9 @@ A producer has one synth, a Roland TB-3, connected:
 
 ## Starting point
 
-- The firmware is a fork of Felucca 1.6, a full groovebox, with a Torso T-1-style algorithmic sequencer added
-  (`firmware/src/torso_t1*.c`, `t1_glue.c`, `ui_t1.c`).
-- The T-1 code is working on hardware and drives a TB-3 on channel 2. It is the **starting algorithm set**, to be
-  improved, not kept as-is.
-- Its known defects are tracked in [../T1_ISSUES.md](../T1_ISSUES.md).
+- The firmware is a fork of Felucca 1.6, a full groovebox. The Torso T-1-style sequencer that was added first has
+  been replaced (cut-over P4-012) by the sequencer core `sq_*.c` and the screen `ui_sq*.c`; only the T-1's Euclidean,
+  pace, scale and contour helpers survive in `torso_t1_algo.c`. The core drives a TB-3 on channel 2 (HW-1, 2026-11-13).
+- The T-1 algorithms were the **starting algorithm set**, assessed and redesigned (docs/design/algorithms/).
+- The old T-1 defect list is history: [../T1_ISSUES.md](../T1_ISSUES.md).
 - The algorithm catalogue to assess lives in `docs/*-algorithms/`.

@@ -4,7 +4,7 @@ title: CHAN page: K3 SOURCE chooses which page a new page copies
 phase: P4
 type: task
 status: todo
-priority: 3
+priority: 15
 executor: sonnet
 depends_on: [P4-015]
 gate: none

@@ -4,7 +4,7 @@ title: Unwired controls: ALGO on NOTE_EDIT/SET, OCT peek, preview sound pick (RI
 phase: P4
 type: task
 status: todo
-priority: 2
+priority: 5
 executor: sonnet
 depends_on: [P4-021]
 gate: human-review

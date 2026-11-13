@@ -4,7 +4,7 @@ title: LED-1 build: the sequencer LED frame
 phase: P4
 type: task
 status: todo
-priority: 1
+priority: 4
 executor: sonnet
 depends_on: [P4-038, P4-021]
 gate: hardware-test

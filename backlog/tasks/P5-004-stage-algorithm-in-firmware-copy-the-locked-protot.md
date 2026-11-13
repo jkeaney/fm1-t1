@@ -4,7 +4,7 @@ title: STAGE algorithm in firmware (copy the locked prototype)
 phase: P5
 type: task
 status: todo
-priority: 2
+priority: 16
 executor: haiku
 depends_on: [P5-002, P5-003]
 gate: none

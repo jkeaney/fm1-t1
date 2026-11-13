@@ -4,7 +4,7 @@ title: HW-2: all six algorithms and HARMONY on the TB-3
 phase: P5
 type: task
 status: todo
-priority: 2
+priority: 20
 executor: human
 depends_on: [P5-006, P5-007, P5-008, P4-021]
 gate: hardware-test

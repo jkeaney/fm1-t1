@@ -4,7 +4,7 @@ title: Device profile data, generator with checks, and the TB-3 profile (a new d
 phase: P4
 type: task
 status: todo
-priority: 1
+priority: 7
 executor: sonnet
 depends_on: [P4-045]
 gate: none

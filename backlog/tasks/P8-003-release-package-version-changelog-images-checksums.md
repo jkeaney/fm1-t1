@@ -4,7 +4,7 @@ title: Release package: version, changelog, images, checksums, install and resto
 phase: P8
 type: task
 status: todo
-priority: 2
+priority: 34
 executor: haiku
 depends_on: [P8-002]
 gate: none

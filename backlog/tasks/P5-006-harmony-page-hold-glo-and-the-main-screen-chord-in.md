@@ -4,8 +4,8 @@ title: HARMONY page (hold GLO) and the main-screen chord indicator
 phase: P5
 type: task
 status: todo
-priority: 2
-executor: haiku
+priority: 18
+executor: sonnet
 depends_on: [P5-005, P4-016]
 gate: none
 ---

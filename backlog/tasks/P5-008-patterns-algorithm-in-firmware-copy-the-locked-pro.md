@@ -4,7 +4,7 @@ title: PATTERNS algorithm in firmware (copy the locked prototype)
 phase: P5
 type: task
 status: todo
-priority: 2
+priority: 19
 executor: haiku
 depends_on: [P5-005, P4-042]
 gate: none

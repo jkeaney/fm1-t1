@@ -14,3 +14,5 @@ ADD PAGE 2 = COPY OF 1?
 D#4 K2: MIDI CHANNEL
 PRESS FX: NEW PATTERN  EDIT=undo
 strip reads HOME
+K1 = SHORTER
+at most one loop

@@ -4,7 +4,7 @@ title: RIG and MOD design reconciliation: ADR-0008, device-profile data format, 
 phase: P4
 type: task
 status: todo
-priority: 1
+priority: 6
 executor: sonnet
 depends_on: [P4-021]
 gate: human-review

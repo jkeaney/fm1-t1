@@ -4,7 +4,7 @@ title: Settings persistence: globals, force floors and the first-run bit
 phase: P7
 type: task
 status: todo
-priority: 2
+priority: 30
 executor: haiku
 depends_on: [P7-002, P6-005]
 gate: none

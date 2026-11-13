@@ -4,8 +4,8 @@ title: Dice: five layers plus ALL, sub-labels, undo and redo
 phase: P6
 type: task
 status: todo
-priority: 2
-executor: haiku
+priority: 22
+executor: sonnet
 depends_on: [P6-001]
 gate: none
 ---

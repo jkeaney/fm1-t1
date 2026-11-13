@@ -4,9 +4,9 @@ title: Morph knobs: ROW 1 / ROW 2 and band labels
 phase: P6
 type: task
 status: todo
-priority: 2
-executor: haiku
-depends_on: [P4-018, P5-008]
+priority: 21
+executor: sonnet
+depends_on: [P4-018, P5-008, P4-048]
 gate: none
 ---
 ## Goal

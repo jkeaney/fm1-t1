@@ -91,9 +91,9 @@ Runs the host tests and, with Node.js, the web installer tests (and, with Emscri
 (it uses `build/` and needs `AC79_SDK` set as for the build). The suites cover flash storage and
 settings persistence, projects, the keys and knobs, MIDI (USB, TRS, clock,
 control), the metronome, USB audio, the update entry and loader, the command-line installer, the UI (the real
-drawing code against stubs: the menu and the T-1 screen are rendered and checked for clipped or
-overlapping text; PNGs land in `build/ui_new/`), the synth sound (ANALOG), the T-1 sequencer
-(`torso_phase1..5`), the modulation matrix and swing.
+drawing code against stubs: the menu and the sequencer screen are rendered and checked for clipped or
+overlapping text; PNGs land in `build/ui_new/`), the synth sound (ANALOG), the sequencer core and screen
+(`sq_*_test`, `ui_sq_*_test`, `torso_phase2_test` for the kept helpers), the modulation matrix and swing.
 
 The regression suite (`tests/regress.c`) renders every ANALOG preset and compares a
 hash of each render with `tests/golden.txt`; it also checks levels, voices and the CPU

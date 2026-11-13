@@ -4,7 +4,7 @@ title: RIG page: hold CHN opens it; wire select, PARAM, LAYER, FORM, depth, devi
 phase: P4
 type: task
 status: todo
-priority: 1
+priority: 10
 executor: sonnet
 depends_on: [P4-048]
 gate: human-review

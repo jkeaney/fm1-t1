@@ -4,7 +4,7 @@ title: LED design and use case for the sequencer
 phase: P4
 type: task
 status: todo
-priority: 1
+priority: 3
 executor: sonnet
 depends_on: [P4-037]
 gate: human-review

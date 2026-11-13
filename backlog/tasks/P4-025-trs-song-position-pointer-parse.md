@@ -4,7 +4,7 @@ title: TRS Song Position Pointer parse (midi_uart drops system common)
 phase: P4
 type: task
 status: todo
-priority: 3
+priority: 12
 executor: sonnet
 depends_on: [P4-009]
 gate: none

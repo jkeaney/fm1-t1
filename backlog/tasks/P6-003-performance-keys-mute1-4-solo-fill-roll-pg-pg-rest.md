@@ -4,8 +4,8 @@ title: Performance keys: MUTE1-4, SOLO, FILL, ROLL, PG-/PG+, RESTRT
 phase: P6
 type: task
 status: todo
-priority: 2
-executor: haiku
+priority: 23
+executor: sonnet
 depends_on: [P6-002, BUG-007]
 gate: none
 ---

@@ -4,8 +4,8 @@ title: HARMONY engine: harm_apply, double buffer, undo
 phase: P5
 type: task
 status: todo
-priority: 2
-executor: haiku
+priority: 17
+executor: sonnet
 depends_on: [P5-004, P4-005]
 gate: none
 ---

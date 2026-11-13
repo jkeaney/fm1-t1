@@ -4,8 +4,8 @@ title: Force gestures per KEYBED_USE_CASES
 phase: P6
 type: task
 status: todo
-priority: 2
-executor: haiku
+priority: 26
+executor: sonnet
 depends_on: [P6-005]
 gate: none
 ---

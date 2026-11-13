@@ -4,9 +4,9 @@ title: Timing T-A: the timing-test image
 phase: P4
 type: task
 status: todo
-priority: 2
+priority: 13
 executor: sonnet
-depends_on: [P4-012, P4-007]
+depends_on: [P4-012, P4-007, P4-047]
 gate: none
 ---
 ## Goal

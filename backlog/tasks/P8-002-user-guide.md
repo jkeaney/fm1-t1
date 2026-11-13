@@ -4,7 +4,7 @@ title: User guide
 phase: P8
 type: task
 status: todo
-priority: 2
+priority: 33
 executor: haiku
 depends_on: [P8-001]
 gate: human-review
