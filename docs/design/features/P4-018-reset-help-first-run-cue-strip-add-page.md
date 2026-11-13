@@ -74,8 +74,8 @@ Design locked: SEQUENCER_UX 2.6, 2.7, 11 (P1-017, approved) for the behaviour; t
 Method: host tests (`tests/ui_sq_safety_test.c`, `tests/ui_test.c` through the real ui_input.c and ui_sq_glue.c). Frames in build/ui_sq/safety_*.png. Real unit: pending (HW-1). Executor-prepared; the reviewer confirms.
 
 ## 8. Actual ease score
-Pending the reviewer (Gate B).
+Reviewer (sonnet), host evidence only (real unit: HW-1). RESET one control V3 I3 O3 L2 = 11 pass; take it back 12; HELP 11; add a page 12. First run: V3 I3 O3 L3 on screen, but the pass rule FAILS on "never again": the done bit is cleared by `settings_import` on every boot (settings_persist.c:62), so the strip replays at every power-on (L drops to 1, the owner is made to dismiss it each time).
 
 ## 9. Sync re-check and outcome
-- `sh tools/check.sh`: CHECK PASS; `check_scenarios.py`, `check_help.py`, `check_sequencer_ux.py`: pass.
-- Outcome: pending (reviewer).
+- `sh tools/check.sh`: CHECK PASS (re-run by the reviewer); five surfaces agree except the persistence claim in SEQUENCER_UX 11.3 / settings_persist.c:12 / ui.c:35 ("bit 7 stored"), which the code contradicts.
+- Outcome: FAIL (first-run flag does not persist). Owner approval of the new RESET / HELP / first-run pictures still pending after the fix.
