@@ -3,7 +3,7 @@ id: P4-042
 title: Bound the tie search in the ISR; pass the generator position to sub_note
 phase: P4
 type: task
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P4-021]
@@ -71,3 +71,11 @@ n/a, internal work (tooling, plumbing, docs, process); no producer-visible contr
 ### Verification
 - `sh tools/check.sh` -> CHECK PASS
 - `image 216196 B; RAM .data+.bss 29640 B of 73728; pool 78520 B of 368640` (headroom 44088 B >= 8192)
+
+### 2026-11-13 review (sonnet)
+Verdict: PASS (gate none), with one item for the owner.
+- check.sh: CHECK PASS (re-run, stamp was DIRTY); RAM .data+.bss 29640 of 73728 (headroom 44088 B >= 8192). No struct/ABI change; goldens untouched (git diff: no tests/golden files).
+- Old code vs new tests: built the test against HEAD~1 sq_core.c: g12 fails ("got 2", repeat on 59), g13 fails (260 step() calls vs bound 72; tie ends not at 816). Both pass on new code. Worst case is real (len 64, one TIE hit, 4 channels).
+- Bound: per channel at most SQ_TIE_SCAN+2 = 18 evals; loop bound 16, probe index t % len < 64. OK. sq_gen_pos has no rotate/offset in this version (p, pg_src only), so the g12 case (len 18, wrap via page 2 reading block 0) covers the fix.
+- Locks: no algorithm SPEC/LOCK depends on tie length. STAGE long notes use PO_HOLD (hold 1..8 pulses, core-side), not PO_TIE; ACID emits no ties; PATTERNS T flag is only stored on library patterns of <= 16 steps. So the cap is safe for STAGE/PATTERNS. It DOES contradict the SEQUENCER_UX / ADR-0003 tie text ("at most one loop") for the case len > 17 with a tie followed by 16+ silent steps (a held drone on a sparse long pattern now ends after 17 steps). The task said identical behaviour and "if spec and code disagree, stop"; the executor documented the deviation instead. Impact is narrow, but it is an owner-visible change to locked text: OWNER TO RULE (accept the 17-step cap, or raise SQ_TIE_SCAN, or precompute the tie end to keep one loop).
+- Docs sync: SEQUENCER_UX pseudo-code and TIE row were updated; ADR-0003 change note (line 25) still said "at most one loop" only, fixed by me (one line). Scenario S03 step 9 ("until the next sounding step") and melodic-steps/patterns SPEC wording stay true for normal patterns; no edit needed.
