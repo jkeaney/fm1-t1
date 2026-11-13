@@ -47,7 +47,7 @@ STEP_HELD > PERF**. HOME tap leaves every state for PERF (the one escape gesture
 | `STEP_HELD` | momentary | hold a white key (a tap toggles the pin; a hold edits it) | let go of all white keys | knob band replaced by the step band, two rows like the morph rows: row 1 `NOTE ACC SLIDE RATCH`, row 2 `TIE MUTE PROB OCT`; OCT- / OCT+ cells read `STEP 1` / `STEP 2` |
 | `SET` | latched (tap GLO) or momentary (hold GLO) | tap or hold GLO | tap GLO, tap HOME, or release a hold | SET page: row 1 `GATE DIV SWING BPM`, row 2 `SCALE OCTAVE MIDI LENGTH` (the KEY is set by pressing any key) (OCT- / OCT+ pick the row); GLO cell reads `BACK`; banner `SET` |
 | `RESET` | momentary | hold UNDO past HOLD, or press any control while UNDO is held | let go of UNDO | cells tagged `RST`, buttons relabelled (`RST ALL`, `RST R1`, `RST R2`, `CLR PIN`...), cue strip `RESET: turn a knob = that morph` |
-| `REC` | latched | tap REC | tap REC or HOME | banner `REC`, REC LED lit, the knob band becomes one row `CURSOR ACC SLIDE OCT`, the lane shows the write cursor, black-key legend replaced by `KEYS = NOTES`; cue strip `REC: PLAY KEYS TO WRITE  REC=done` |
+| `REC` | latched | tap REC | tap REC or HOME | as built (P4-017, SCREEN_SPEC_V2 4.8): the header transport mark is a red disc, the REC button a red disc, the knob band becomes `CURSOR ACC SLIDE OCT` in white, a 2 px white frame marks the cursor step, every key is plain (a note); footer `PLAY KEYS TO WRITE` / `REC = DONE` |
 | `MENU` | latched | hold HOME 0.7 s (with no control pressed) | tap or hold HOME | Felucca menu; every button but PLAY and HOME reads `close` |
 
 **One held modifier at most.** Every combo is "one held thing plus a turn or a press": hold a white key then turn a knob or
@@ -223,7 +223,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `B_EDIT` | `CHAN` | tap: UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel, or the last HARMONY change when that came later (PROG dice, typed progression, BARS, VOICE, MOVE, DRONE) // hold: 0.4 s: open RESET (latched, one shot): the next control touched goes back to its default | `UNDO` |
 | `B_EDIT` | `SET` | tap: UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel, or the last HARMONY change when that came later (PROG dice, typed progression, BARS, VOICE, MOVE, DRONE) // hold: 0.4 s: open RESET (latched, one shot): the next control touched goes back to its default | `UNDO` |
 | `B_EDIT` | `SCALE` | tap: UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel, or the last HARMONY change when that came later (PROG dice, typed progression, BARS, VOICE, MOVE, DRONE) // hold: 0.4 s: open RESET (latched, one shot): the next control touched goes back to its default | `UNDO` |
-| `B_EDIT` | `REC` | tap: UNDO the last written note (the cursor steps back); again = redo // hold: inert in REC (toast LEAVE REC FIRST) | `UNDO` |
+| `B_EDIT` | `REC` | tap: UNDO the last written note (the cursor steps back); again = redo // hold: inert in REC (no reset while recording; RESET is P4-018) | `UNDO` |
 | `B_EDIT` | `RESET` | tap: cancel RESET (nothing reset), back to the page beneath // hold: inert (already in RESET) | `CANCEL` |
 | `B_EDIT` | `HELP` | tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens | `?` |
 | `B_EDIT` | `MENU` | tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `close` |
@@ -232,7 +232,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `B_GLO` | `CHAN` | tap: open SET (latched): BPM SWING GATE DIV // hold: 0.4 s: open HARMONY (latched): SCALE KEY VOICE MOVE, the progression strip, keys F3-E4 = chords 1-7 | `SET` |
 | `B_GLO` | `SET` | tap: close SET, back to PERF // hold: 0.4 s: switch to HARMONY | `BACK` |
 | `B_GLO` | `SCALE` | tap: close HARMONY, back to PERF // hold: inert (already on HARMONY) | `BACK` |
-| `B_GLO` | `REC` | tap: inert in REC (toast REC: tap REC to finish) // hold: inert in REC | `-` |
+| `B_GLO` | `REC` | tap: inert in REC; the slot reads GLO REC = DONE // hold: inert in REC | `-` |
 | `B_GLO` | `RESET` | tap: inert (nothing to reset; toast NOTHING TO RESET) // hold: inert | `-` |
 | `B_GLO` | `HELP` | tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens | `?` |
 | `B_GLO` | `MENU` | tap: press: closes the menu (no other action) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `close` |
@@ -295,7 +295,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `B_OCTDN` | `CHAN` | tap: release: LENGTH to the page boundary below (20 -> 16, 48 -> 32; at 16 or less inert, toast ONE PAGE: K1 = SHORTER); the hidden steps keep their edits // hold: as tap (no hold role on this page) | `-PAGE` |
 | `B_OCTDN` | `SET` | tap: release: global OCTAVE -1 (-2..+2); the status line reads OCT -2..+2 and the slot names OCT+ / OCT- OCTAVE n while touched (moved here from the SCALE page, which uses OCT- / OCT+ for DRONE; v12 has no tag column, P4-016) // hold: as tap (no hold role on this page) | `OCT-` |
 | `B_OCTDN` | `SCALE` | tap: release: DRONE walks one candidate down (0 = OFF); the status line names the degree and marks clashes // hold: as tap (no hold role on this page) | `OCT-` |
-| `B_OCTDN` | `REC` | tap: release: the REC keyboard octave -1 (same value as K4 OCT) // hold: as tap (no hold role on this page) | `OCT-` |
+| `B_OCTDN` | `REC` | tap: press: the REC keyboard octave -1 (same value as K4 OCT; clamps at -2) // hold: as tap (no hold role on this page) | `OCT-` |
 | `B_OCTDN` | `RESET` | tap: from PERF: reset the four morphs of ROW 1; from NOTE_EDIT: the step octave to AUTO; from HARMONY: DRONE OFF; elsewhere inert; RESET closes; EDIT tap undoes // hold: as tap | `RST R1` |
 | `B_OCTDN` | `HELP` | tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens | `?` |
 | `B_OCTDN` | `MENU` | tap: release: previous value / back (Felucca menu rule) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `-` |
@@ -304,7 +304,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `B_OCTUP` | `CHAN` | tap: release: LENGTH to the page boundary above (20 -> 32, 32 -> 48, max 64): a partial page is completed, a new page is a copy of the page before it (edits and source), a hidden page comes back as stored // hold: as tap (no hold role on this page) | `+PAGE` |
 | `B_OCTUP` | `SET` | tap: release: global OCTAVE +1 (-2..+2); the status line reads OCT -2..+2 and the slot names OCT+ / OCT- OCTAVE n while touched (moved here from the SCALE page, which uses OCT- / OCT+ for DRONE; v12 has no tag column, P4-016) // hold: as tap (no hold role on this page) | `OCT+` |
 | `B_OCTUP` | `SCALE` | tap: release: DRONE walks one candidate up (14 = top); the status line names the degree and marks clashes // hold: as tap (no hold role on this page) | `OCT+` |
-| `B_OCTUP` | `REC` | tap: release: the REC keyboard octave +1 (same value as K4 OCT) // hold: as tap (no hold role on this page) | `OCT+` |
+| `B_OCTUP` | `REC` | tap: press: the REC keyboard octave +1 (same value as K4 OCT; clamps at +2) // hold: as tap (no hold role on this page) | `OCT+` |
 | `B_OCTUP` | `RESET` | tap: from PERF: reset the four morphs of ROW 2; from NOTE_EDIT: the step octave to AUTO; from HARMONY: DRONE OFF; elsewhere inert; RESET closes; EDIT tap undoes // hold: as tap | `RST R2` |
 | `B_OCTUP` | `HELP` | tap: explain this control on the page beneath (help box + cue strip); nothing else happens // hold: as tap (explain while HOME stays down); nothing else happens | `?` |
 | `B_OCTUP` | `MENU` | tap: release: next value / do it (opens CALIBRATION, INFO, ABOUT rows) // hold: as tap (the menu has no hold roles; HOME hold 0.7 s also closes) | `-` |
@@ -331,7 +331,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `EN_PRESET` | `CHAN` | turn: choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: on the first 768-tick bar that starts at least SQ_LOAD_SETTLE 1.5 s after the last detent (header Pnn? then Pnn>), so a SAVE tap always has at least 1.5 s; SAVE tap while pending saves there instead (no load); turning back to the current slot cancels | `Pnn` |
 | `EN_PRESET` | `SET` | turn: choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: on the first 768-tick bar that starts at least SQ_LOAD_SETTLE 1.5 s after the last detent (header Pnn? then Pnn>), so a SAVE tap always has at least 1.5 s; SAVE tap while pending saves there instead (no load); turning back to the current slot cancels | `Pnn` |
 | `EN_PRESET` | `SCALE` | turn: choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: on the first 768-tick bar that starts at least SQ_LOAD_SETTLE 1.5 s after the last detent (header Pnn? then Pnn>), so a SAVE tap always has at least 1.5 s; SAVE tap while pending saves there instead (no load); turning back to the current slot cancels | `Pnn` |
-| `EN_PRESET` | `REC` | turn: inert in REC (toast REC: tap REC to finish) | `-` |
+| `EN_PRESET` | `REC` | turn: inert in REC (the preset layer is P7: nothing happens) | `-` |
 | `EN_PRESET` | `RESET` | turn: inert (toast NOTHING TO RESET) | `-` |
 | `EN_PRESET` | `HELP` | turn: explain PRESETS | `?` |
 | `EN_PRESET` | `MENU` | turn: next / previous menu row | `row` |
@@ -340,7 +340,7 @@ Columns: control, context, action, screen label. Checked by `python3 tools/check
 | `EN_K1` | `CHAN` | turn: pattern length of the selected channel; crossing into a new page fills it (copy of the page before, or the stored page); shrinking hides, never deletes | `LENGTH` |
 | `EN_K1` | `SET` | turn: tempo (internal clock). While an external MIDI clock runs K1 is inert: the tile reads HOST n (read-only mirror, no fill, dashed frame; HOST -- while the host tempo is unknown), a turn names why in the slot (K1 HOST SETS TEMPO). Keeping the own tempo while a host clock is followed, and showing it again afterwards, is the external-clock task's (P4-031): today midi_clock.c overwrites song.g[G_BPM] | `BPM` |
 | `EN_K1` | `SCALE` | turn: global scale (every algorithm and every edited pitch snaps to it) | `SCALE` |
-| `EN_K1` | `REC` | turn: move the write cursor one step per detent (stopped: the step sounds) | `CURSOR` |
+| `EN_K1` | `REC` | turn: move the write cursor one step per detent (stopped: the step under it sounds; playing: the cursor follows the nearest step and a turn only frames the tile) | `CURSOR` |
 | `EN_K1` | `RESET` | turn (any detent): that value of the page beneath back to its default (PERF: that morph of the live row; NOTE_EDIT: that property of the step to AUTO; CHAN: LENGTH 16 / MIDI default / SOURCE P1 (reads page 1) / FOLLOW ON; SET / SCALE: power-on default); RESET closes; EDIT tap undoes | `RST` |
 | `EN_K1` | `HELP` | turn (HOME held): explain this knob on the page beneath (PERF: both rows); nothing changes | `?` |
 | `EN_K1` | `MENU` | turn: change the selected row's value (Felucca menu rule) | `value` |

@@ -132,7 +132,7 @@ static void scene_view(UisqView *v, const V12Scene *s)
 {   const int dm = s->algo[s->sel] == 6;                                  /* the DEMO algorithm takes slot 5 for this scene */
     const AlgoDesc *a;
     memset(v, 0, sizeof *v);
-    uisq_set_init();
+    uisq_set_init(); uisq_rec_init();
     if (dm) ALGOS[5] = ALGO_DEMO;
     v->playing = s->playing; v->rec = s->rec; v->clock = s->clock; v->used = s->used; v->sel = s->sel; v->bpm = s->bpm;
     for (int i = 0; i < 4; i++) { v->ch_algo[i] = s->algo[i] == 6 ? 5 : s->algo[i]; v->ch_midi[i] = s->midi[i]; v->ch_muted[i] = s->muted[i]; }
@@ -264,7 +264,8 @@ int main(int argc, char **argv)
           CHECK(need <= 136, "message %d `%s` `%s` needs %d of 136 px", i, a, b, need); }
       char fl[24], fr[24]; uisq_cue_split(uisq_page_cue(UI_PG_CHAN), fl, sizeof fl, fr, sizeof fr);
       const int chan_foot_w = text_w(&AF_M, fl) + text_w(&AF_M, fr);
-      CHECK(text_w(&AF_M, uisq_foot_cue) + text_w(&AF_M, "CH4") + 8 <= 240 && text_w(&AF_M, uisq_foot_rec) + text_w(&AF_S, uisq_foot_done) + 4 <= 240 &&
+      char rl[24], rr[24]; uisq_cue_split(uisq_page_cue(UI_PG_REC), rl, sizeof rl, rr, sizeof rr);
+      CHECK(text_w(&AF_M, uisq_foot_cue) + text_w(&AF_M, "CH4") + 8 <= 240 && text_w(&AF_M, rl) + text_w(&AF_S, rr) + 4 <= 240 &&
             chan_foot_w + 4 <= 240 && text_w(&AF_M, uisq_foot_steps) + text_w(&AF_M, uisq_foot_edit) + 4 <= 240, "the footer lines fit 240 px");
       /* hold times come from the TSVs: EDIT / GLO 0.4 s, SAVE 0.7 s, the keys 0.4 s; HOME acts on release */
       CHECK(uisq_hold_ms(UI_C_B_EDIT) == 400 && uisq_hold_ms(UI_C_B_GLO) == 400 && uisq_hold_ms(UI_C_B_SAVE) == 700 && uisq_hold_ms(UI_C_KEY_B04_CS4) == 400 && uisq_hold_ms(UI_C_B_HOME) == 0,

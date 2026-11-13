@@ -63,7 +63,7 @@ SCALE	*	K1	SCALE	global scale (every algorithm and every edited pitch snaps to i
 SCALE	*	K2	KEY	global key: the scale and every chord move with it (also sounds the new root)	C..B, default C
 SCALE	*	K3	VOICE	voicing of every chord: 0 root only, 1 root and fifth, 2 plain triad (neutral), 3 seventh, 4 ninth, 5 open ninth, 6 wide; changes the chord tones every AUTO channel is pulled to and what FULL channels play	0..6, default 2
 SCALE	*	K4	MOVE	voice-leading distance between chords: 8 = every chord in root position (neutral), 0 = common tones kept and the smallest step per voice; changes FULL channels only	0..8, default 8
-REC	*	K1	CURSOR	move the write cursor one step per detent (stopped: the step sounds)	1..LENGTH, wraps
+REC	*	K1	CURSOR	move the write cursor one step per detent (stopped: the step under it sounds; playing: the cursor follows the nearest step and a turn only frames the tile)	1..LENGTH, wraps
 REC	*	K2	ACC	written notes get ACCENT (velocity 120) when ON; with force sensing the landing force picks the level (SOFT 64 / MED 90 / HARD 120) and ACC forces 120	OFF ON
 REC	*	K3	SLIDE	written notes get SLIDE when ON	OFF ON
 REC	*	K4	OCT	REC keyboard octave (also OCT- / OCT+)	-2..+2, default 0
@@ -100,7 +100,7 @@ SCALE	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAG
 SCALE	*	PRESET	Pnn	turn: choose a preset slot P01..P16; it becomes PENDING (header Pnn?, strip Pnn: SAVE = save here); stopped: it loads 1.5 s after the last detent (SQ_LOAD_SETTLE); playing: on the first 768-tick bar that starts at least SQ_LOAD_SETTLE 1.5 s after the last detent (header Pnn? then Pnn>), so a SAVE tap always has at least 1.5 s; SAVE tap while pending saves there instead (no load); turning back to the current slot cancels	P01..P16
 REC	*	SELECT	CH n	turn: select channel; the cursor goes to step 1	CH1..CH4
 REC	*	ALGO	ALGO	turn: algorithm of the selected channel ACID EUCLID SNAKE STAGE ARP PATTERNS; lands at the next step; morphs and seeds kept per algorithm (S7); edits kept	6 algorithms
-REC	*	PRESET	-	turn: inert in REC (toast REC: tap REC to finish)	P01..P16
+REC	*	PRESET	-	turn: inert in REC (the preset layer is P7: nothing happens)	P01..P16
 RESET	*	SELECT	CH n	turn: select channel CH1..CH4 (clamped, no wrap)	CH1..CH4
 RESET	*	ALGO	-	turn: inert (toast NOTHING TO RESET)	6 algorithms
 RESET	*	PRESET	-	turn: inert (toast NOTHING TO RESET)	P01..P16

@@ -351,6 +351,8 @@ are replaced by the progression strip and the chord keys; OCTAVE moved to OCT- /
 
 ### 2.5 REC (tap REC)
 
+**As built (P4-017, SCREEN_SPEC_V2 4.8; the picture below is the P1 mock-up and is superseded for the screen, not for the behaviour):** header with the red disc; the knob band `CURSOR ACC SLIDE OCT` in white; the music row with a 2 px white frame round the cursor step; every key plain; footer `PLAY KEYS TO WRITE` / `REC = DONE`. There is no banner, no `^` row and no status line (a REC has no ROW boxes). Behaviour: all 27 keys write ON + PITCH + VEL (+ SLIDE) in one undo record, at the cursor when stopped (then the cursor advances, wrapping over LENGTH and across pages) and at the nearest step when playing (the step now sounding, or the next one in the second half of the step). Velocity is the FS4 fallback, 90 or 120 with ACC (U67, force sensing is P6-006). K1 moves the cursor (stopped only: playing, the cursor follows the nearest step), EDIT undoes the last write and puts the cursor back on it, GLO is inert (slot `GLO REC = DONE`), SELECT picks a channel without adding one and returns the cursor to step 1.
+
 ```
 +----------------------------------------+
 |> 120 P01  CH1 ACID M1  [1][2]. .  L32  |

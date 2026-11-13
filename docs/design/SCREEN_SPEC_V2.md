@@ -102,8 +102,19 @@ Every band of PERF stays: header, message slot, music row, button icons, keybed 
 - Footer: INT `KEYS = STEPS` / `GLO = BACK`; EXT `HOST SETS TEMPO` / `GLO = BACK`; WAIT `WAIT FOR HOST START` / `PLAY=CANCEL` and lost `CLOCK LOST: STOPPED` (T_REC) / `PLAY=START`, both AF_S.
 - Header tempo source on every page (4.1): INT `n`; EXT `EXT` over `n`; waiting `EXT` over `WAIT`; lost `EXT` over `--` in `T_REC`. No clock dot (owner 2026-11-13). The first
   seven pulses of a new host clock (`EXT --`) are not a separate state: the header already shows `EXT` over the tempo, the SET tile reads `HOST --` until it is known.
-- Exits: GLO or HOME tap; CHN opens CHAN; a held step key opens NOTE_EDIT; REC is inert-armed (GLO does nothing in REC). Hold GLO = HARMONY is P5-006.
+- Exits: GLO or HOME tap; CHN opens CHAN; a held step key opens NOTE_EDIT; REC opens REC (4.8; GLO is inert there and the slot reads `GLO REC = DONE`). Hold GLO = HARMONY is P5-006.
 Renders (`proposals/v12/out/`): `v12_set_int`, `_int_stopped`, `_turn_swing`, `_octave`, `_ext_live`, `_ext_k1_turned`, `_ext_wait`, `_ext_lost`.
+
+### 4.8 The REC page (REC tap; P4-017)
+Every band of PERF stays except what a recording does not need: header (the transport mark is the red disc, with a white play mark in it while playing), message slot, music row, buttons, keybed. What differs:
+- Tiles (knob_map REC rows), all white (4.2): K1 CURSOR 1..16 (AF_L, meter; stepping wraps over LENGTH and across pages, the view follows), K2 ACC and K3 SLIDE OFF / ON (a two-name list: dots), K4 OCT -2..+2 (a five-name list: dots). Labels, OFF / ON and the octave signs come from the tables (knob_map, note_edit_text).
+- No status line content: a REC has no ROW boxes and no PAGE counter (the lane page is the cursor's).
+- Music row: a 2 px white frame round the CURSOR step (4.4). Stopped: the cursor moves after each write and with K1. Playing: the cursor is the nearest step to the playhead and K1 only frames its tile.
+- Keybed: every key plain (T_KEY fronts, plain black keys): all 27 are notes. Footer `PLAY KEYS TO WRITE` (AF_M) / `REC = DONE` (AF_S, `T_MID`), the page_states cue.
+- Slot: nothing standing (REC has no page title). GLO tap: `GLO` + `REC = DONE` (touched control, GLO is inert); a dice or EDIT toast as on PERF.
+- Exits: the REC button or a HOME tap. Entry from PERF (cursor on step 1 of the viewed page), NOTE_EDIT (the edited step), CHAN and SET.
+- Writes: ON + PITCH + VEL 90 (120 with ACC) + SLIDE (K3 ON; OFF writes AUTO), one undo record per key press; EDIT takes the last one back and the cursor returns to it.
+Renders (`proposals/v12/out/`): `v12_rec_armed`, `v12_rec_playing`; the host test also renders `build/ui_sq/rec_*`.
 
 ## 5. The message slot (x104-239, y0-21)
 Every string is in `MESSAGES` (`v12.py`); `check_messages()` proves each fits (AF_M, else AF_S, never cut). Firmware: a

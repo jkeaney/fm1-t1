@@ -510,6 +510,7 @@ MESSAGES = [  # (kind, name-or-word, text-or-hint): every top-bar message; check
     ("enc", "SOLO", "CH1 SOLO"), ("enc", "FILL", "60%  LET GO"), ("enc", "ROLL", "3X  LET GO"),
     ("enc", "CHN", "CH2 SETUP"), ("enc", "GLO", "ALL CHANNELS"), ("enc", "K1", "HOST SETS TEMPO"),
     ("enc", "OCT+", "OCTAVE +1"), ("enc", "OCT-", "OCTAVE -2"),
+    ("enc", "GLO", "REC = DONE"),
     ("hold", "RESET", ""), ("hold", "HARMONY", ""), ("hold", "UNDO LOAD", ""), ("hold", "HELP / MENU", ""),
     ("hold", "REMOVE CH4", ""), ("hold", "PREVIEW CH4", ""),
 ]

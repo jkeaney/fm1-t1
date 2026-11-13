@@ -110,7 +110,7 @@ under the table. The per-context detail (six contexts, 294 rows) is control_map.
 
 - The five layer dice and FX have **no hold role** (nothing to learn but "press"), so they act on press.
 - In **MENU** all 27 keys are inert (the black keys too: B inconsistently let them mute while a setting was changed). The MENU shows `close` on the buttons.
-- `GLO` is inert while a step key or EDIT is held or while recording (one held modifier at most); the cue strip says so (`FINISH THE STEP`, `REC: tap REC to finish`).
+- `GLO` is inert while a step key or EDIT is held or while recording (one held modifier at most); the screen says so (`FINISH THE STEP`; in REC the slot reads `GLO REC = DONE`).
 - **In REC** the knob band is one row (`CURSOR ACC SLIDE OCT`), OCT-/OCT+, GLO and PRESETS are inert and say why in a toast; the 27 keys are notes.
 - **Reserved slots (ninth-round requirements R1-R4, interface for P1-016 and P1-015, section 3.3):** `PAGE` (D#4), pattern `LENGTH` (hold PAGE + key; SET row 2 K4), per-step property rows (step band), and the `[R4]` keybed-expression slot on the white keys. Their control and screen contracts are fixed here; their ranges, storage and algorithm interaction are not.
 - There are no live-note keys in PERF (see section 3.1 for why, and REC for where they went).
@@ -318,7 +318,7 @@ Rules: **any other control also counts as dismissing** (the strip clears and the
 | 17 | "I pressed EDIT right after loading a preset and nothing came back" | toast `NO UNDO: SAVE hold = undo load` (a load clears the undo record; the load itself is undone by SAVE hold) |
 | 18 | "I held HOME and the menu opened" | the strip said `touch=HELP  let go=MENU` from the first moment; HOME tap leaves the menu |
 | 19 | "I pressed the wrong REC pitch" | EDIT tap takes the last written note back; K1 moves the cursor |
-| 20 | "Two buttons held, nothing happens" | one modifier at a time: the second control is inert and the strip says `FINISH THE STEP` / `REC: tap REC to finish` / `LET GO FIRST` |
+| 20 | "Two buttons held, nothing happens" | one modifier at a time: the second control is inert and the strip says `FINISH THE STEP` / (REC) the slot `GLO REC = DONE` / `LET GO FIRST` |
 
 ### 5.6 States the first version left undefined, now defined
 

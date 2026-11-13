@@ -82,7 +82,7 @@ SET	B_EDIT	hold	0.4 s: open RESET (latched, one shot): the next control touched 
 SCALE	B_EDIT	tap	UNDO / REDO the last dice, dice-all, step edit, page add, page clear or reset of the selected channel, or the last HARMONY change when that came later (PROG dice, typed progression, BARS, VOICE, MOVE, DRONE)	UNDO	EDIT = take back, everywhere
 SCALE	B_EDIT	hold	0.4 s: open RESET (latched, one shot): the next control touched goes back to its default	RESET	hold = open the page of that button; named on PERF by the sub-label h:RST
 REC	B_EDIT	tap	UNDO the last written note (the cursor steps back); again = redo	UNDO	EDIT = take back, everywhere
-REC	B_EDIT	hold	inert in REC (toast LEAVE REC FIRST)	UNDO	one latched page at a time
+REC	B_EDIT	hold	inert in REC (no reset while recording; RESET is P4-018)	UNDO	one latched page at a time
 RESET	B_EDIT	tap	cancel RESET (nothing reset), back to the page beneath	CANCEL	the button that opened it closes it
 RESET	B_EDIT	hold	inert (already in RESET)	CANCEL	one modifier at a time
 HELP	B_EDIT	tap	explain this control on the page beneath (help box + cue strip); nothing else happens	?	HELP: touch to learn, nothing acts
@@ -99,7 +99,7 @@ SET	B_GLO	tap	close SET, back to PERF	BACK	the button that opened it closes it
 SET	B_GLO	hold	0.4 s: switch to HARMONY	HARM	hold = the second global page
 SCALE	B_GLO	tap	close HARMONY, back to PERF	BACK	the button that opened it closes it
 SCALE	B_GLO	hold	inert (already on HARMONY)	BACK	hold = the second global page
-REC	B_GLO	tap	inert in REC (toast REC: tap REC to finish)	-	one latched page at a time
+REC	B_GLO	tap	inert in REC; the slot reads GLO REC = DONE	-	one latched page at a time
 REC	B_GLO	hold	inert in REC	-	one latched page at a time
 RESET	B_GLO	tap	inert (nothing to reset; toast NOTHING TO RESET)	-	RESET touches values only
 RESET	B_GLO	hold	inert	-	RESET touches values only
@@ -226,7 +226,7 @@ SET	B_OCTDN	tap	release: global OCTAVE -1 (-2..+2); the status line reads OCT -2
 SET	B_OCTDN	hold	as tap (no hold role on this page)	OCT-	printed OCT = octave
 SCALE	B_OCTDN	tap	release: DRONE walks one candidate down (0 = OFF); the status line names the degree and marks clashes	OCT-	printed OCT override (owner decision 48), as on PERF; the pedal walk is shown beside it
 SCALE	B_OCTDN	hold	as tap (no hold role on this page)	OCT-	printed OCT override (owner decision 48)
-REC	B_OCTDN	tap	release: the REC keyboard octave -1 (same value as K4 OCT)	OCT-	printed OCT = octave
+REC	B_OCTDN	tap	press: the REC keyboard octave -1 (same value as K4 OCT; clamps at -2)	OCT-	printed OCT = octave
 REC	B_OCTDN	hold	as tap (no hold role on this page)	OCT-	printed OCT = octave
 RESET	B_OCTDN	tap	from PERF: reset the four morphs of ROW 1; from NOTE_EDIT: the step octave to AUTO; from HARMONY: DRONE OFF; elsewhere inert; RESET closes; EDIT tap undoes	RST R1	hold EDIT then touch = back to default
 RESET	B_OCTDN	hold	as tap	RST R1	one shot
@@ -245,7 +245,7 @@ SET	B_OCTUP	tap	release: global OCTAVE +1 (-2..+2); the status line reads OCT -2
 SET	B_OCTUP	hold	as tap (no hold role on this page)	OCT+	printed OCT = octave
 SCALE	B_OCTUP	tap	release: DRONE walks one candidate up (14 = top); the status line names the degree and marks clashes	OCT+	printed OCT override (owner decision 48), as on PERF; the pedal walk is shown beside it
 SCALE	B_OCTUP	hold	as tap (no hold role on this page)	OCT+	printed OCT override (owner decision 48)
-REC	B_OCTUP	tap	release: the REC keyboard octave +1 (same value as K4 OCT)	OCT+	printed OCT = octave
+REC	B_OCTUP	tap	press: the REC keyboard octave +1 (same value as K4 OCT; clamps at +2)	OCT+	printed OCT = octave
 REC	B_OCTUP	hold	as tap (no hold role on this page)	OCT+	printed OCT = octave
 RESET	B_OCTUP	tap	from PERF: reset the four morphs of ROW 2; from NOTE_EDIT: the step octave to AUTO; from HARMONY: DRONE OFF; elsewhere inert; RESET closes; EDIT tap undoes	RST R2	hold EDIT then touch = back to default
 RESET	B_OCTUP	hold	as tap	RST R2	one shot
