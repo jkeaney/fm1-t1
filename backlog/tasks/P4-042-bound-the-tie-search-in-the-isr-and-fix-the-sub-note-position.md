@@ -81,3 +81,5 @@ Verdict: PASS (gate none), with one item for the owner.
 - Docs sync: SEQUENCER_UX pseudo-code and TIE row were updated; ADR-0003 change note (line 25) still said "at most one loop" only, fixed by me (one line). Scenario S03 step 9 ("until the next sounding step") and melodic-steps/patterns SPEC wording stay true for normal patterns; no edit needed.
 
 - 2026-11-13 owner ruling (open-items 1A): accept the 16-step tie cap (SQ_TIE_SCAN); update the locked wording ("at most one loop") in SEQUENCER_UX / ADR-0003 to say a tie ends at the next sounding step or after 17 steps, whichever is first. Follow-up: wording edit pending (orchestrator, after the running executor finishes).
+
+- 2026-11-13 orchestrator: tie wording follow-up verified done (SEQUENCER_UX 1035 and ADR-0003 change note carry the 17-step rule).
