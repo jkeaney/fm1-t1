@@ -4,7 +4,7 @@ title: A MIDI-channel steal hits a removed (unused) channel and the toast names 
 phase: P4
 type: bug
 status: todo
-priority: 3
+priority: 1
 executor: sonnet
 depends_on: [P4-015]
 gate: none
@@ -43,3 +43,6 @@ n/a, bug fix; no new producer-visible element.
 
 ## Log
 - 2026-11-13: filed from FB-018.
+
+## Log
+- 2026-11-13 owner ruled (open-items 3A): fix before the first flash (HW-1). Same ruling: P4-031 and P4-033 stay after HW-1 (1A, 2A); HW-1 is the first timing measurement (4A).
