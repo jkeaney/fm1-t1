@@ -3,7 +3,7 @@ id: P4-044
 title: Channel in-use persistence: start with CH1 only
 phase: P4
 type: task
-status: review
+status: done
 priority: 2
 executor: sonnet
 depends_on: []
@@ -78,3 +78,12 @@ Hazards checked: unused-channel state after load/remove/add (F1-F3 tests, 4000-s
 ```
 sh tools/check.sh -> CHECK PASS ; RAM .data+.bss 29640 B of 73728 (headroom 44088 B)
 ```
+
+### 2026-11-13 review round 2 (sonnet)
+Verdict: PASS (gate none). Verified ad939c6 only. `sh tools/check.sh` -> CHECK PASS; `RAM .data+.bss 29640 B of 73728` (headroom 44088 B).
+- F1: sq_default_chan gives CH2..CH4 MIDI OFF; ADD sets OFF (ui_sq.c:1940); remove already sets OFF; the S01 step 3 case (CH1 -> MIDI 2, no toast, CH2 untouched) is a test in ui_sq_perf_test. BUG-011 intact: the steal toast can no longer name an unused channel, the undo-of-removal restore rule (only if free) is untouched. Tests that assumed MIDI 1..4 now set it explicitly.
+- F2: sq_chan_sync forces muted, PREVIEW off and MIDI OFF on every channel out of use after a landed load.
+- F3: `sq_load_landed` is set in sq_chan_sync (both paths), consumed once in sq_frame (flag or epoch change); two loads before a frame give one cleanup, which is correct because the mask is the latest; test covers the immediate path and a second frame doing nothing.
+- F4: S01, S04, SEQUENCER_UX U01 / power-on, ADR-0003 12, SYSTEM_MAP consistent. I fixed the remaining stale one-liners myself: SCREEN_SPEC.md:456, SEQUENCER_UX.md:482, 556, 1257, 1298 (decision 73 note). First-run strip text `CHN KEY, K2 = MIDI` still right for CH1 MIDI 1.
+- Minor, non-blocking (P7 note): a hand-made preset where an out-of-use lower channel holds the MIDI number of an in-use one loads the in-use one as OFF (sq_preset_load uniqueness runs before the out-of-use reset). Presets saved by the device are consistent, so only hostile files hit it.
+P4-041 status confirmed done.

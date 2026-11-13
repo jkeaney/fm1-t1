@@ -479,7 +479,7 @@ ARP articulation = slide, LFO movement = chance, SCL notes = a new note, FX all 
 | --- | --- | --- | --- | --- | --- |
 | PERF | live row, column 1 | column 2 | column 3 | column 4 | ROW 1 / ROW 2 by OCT- / OCT+ (4.2) |
 | NOTE_EDIT | `PITCH` scale degree per detent, sounds | `GATE` 10..100 %, TIE | `VELO` 1..127 (`ACC` >= 100) | `RATCH` 1x..4x | one row; each starts at AUTO |
-| CHAN | `LENGTH` 1..64 | `MIDI` 1..16, OFF (defaults CH1..CH4 = 1..4; **unique** across the four channels, 4.4) | `SOURCE` of the viewed page: the blocks earlier pages play, labelled `Pm` by the first page `m` that plays each, then `OWN` (1.4) | `FOLLOW` ON / OFF | one row |
+| CHAN | `LENGTH` 1..64 | `MIDI` 1..16, OFF (default CH1 = 1, CH2..CH4 OFF until added, P4-044; **unique** across the four channels, 4.4) | `SOURCE` of the viewed page: the blocks earlier pages play, labelled `Pm` by the first page `m` that plays each, then `OWN` (1.4) | `FOLLOW` ON / OFF | one row |
 | SET | `BPM` 40..240 | `SWING` 50..75 % | `GATE` 10..100 % (50 neutral) | `DIV` 1/32..1/4 | one row |
 | SCALE (HARMONY) | `SCALE` 16 scales | `KEY` C..B | `VOICE` 0..6 (2) | `MOVE` 0..8 (8) | one row; OCT- / OCT+ = DRONE 0..14 |
 | REC | `CURSOR` | `ACC` OFF / ON | `SLIDE` OFF / ON | `OCT` -2..+2 | one row |
@@ -553,7 +553,7 @@ No two of the four sequencer channels ever send on the same MIDI channel, so a c
 | Removed channels | a removed (out of use) channel gives its MIDI channel up: it becomes OFF when removed, so a displacement never hits it and no toast names it (BUG-011). Undoing the removal restores the MIDI channel; a re-added channel starts at OFF with the setup cue |
 | Undo | EDIT tap undoes the reassignment as ONE record (`UndoMidi`: the channel, its old MIDI channel, the displaced channel, its old MIDI channel, 4 B, ADR-0003); again = redo. It is the latest record until the next undoable action. Toast `UNDO: MIDI 2 BACK ON CH2` |
 | Preview synth | amended by P2-024 (decision 110): amended by P2-025 (decision 111): OFF and mute close **only the MIDI gate**. The preview has its own gate: a channel is heard if its PREVIEW is ON (all four are OFF at power-on; hold a mute key 0.4 s to switch it, PREVIEW.md 1.4), and it plays the same events it would send as MIDI, whether or not its MIDI is open. A muted or MIDI OFF channel with PREVIEW on is a CUE (cell label `CUE n` / `CUE OFF`). SOLO acts on the MIDI gate only |
-| Presets, autosave | `sq_preset_load` validates uniqueness: if a stored preset has two channels on one MIDI channel the lower-numbered channel keeps it and the others load as OFF. Defaults CH1..CH4 = 1..4 are distinct |
+| Presets, autosave | `sq_preset_load` validates uniqueness: if a stored preset has two channels on one MIDI channel the lower-numbered channel keeps it and the others load as OFF. Defaults (CH1 = 1, the unused ones OFF; P4-044) are distinct, and a load forces every channel out of use to OFF and muted |
 | Gestures and scores | unchanged: U40 stays 2 gestures (D#4, K2) and scores 10; the displacement is a side effect of the same turn, and its undo is the existing EDIT tap (1 gesture). No other function's gesture count changes, so no score is re-computed |
 
 ## 5. Input -> processing -> output traces
@@ -1254,7 +1254,7 @@ When the owner approves this document, the following are locked for the dev task
 5. NOTE_EDIT: K1 PITCH, K2 GATE, K3 VELO, K4 RATCH, OCT- / OCT+ octave, FX dice step, SCL dice pitch, SEQ on/off,
    ENV accent, ARP slide, LFO chance 100/50, EDIT tap undo of the last step change (the visit, or a later tap on
    another key: the last change wins), hold another key = move.
-6. CHAN (D#4): LENGTH, MIDI (unique across channels, a taken one sets the other channel to OFF, 4.4; defaults CH1..CH4 = 1..4; first-run step 1 prompts for it), SOURCE, FOLLOW, OCT = to the page boundary below / above.
+6. CHAN (D#4): LENGTH, MIDI (unique across channels, a taken one sets the other channel to OFF, 4.4; default CH1 = 1, CH2..CH4 OFF until added (P4-044); first-run step 1 prompts for it), SOURCE, FOLLOW, OCT = to the page boundary below / above.
    Presets: PRESETS turn = pending slot `Pnn?` (stopped: loads after 1.5 s; playing: on the first bar starting at
    least 1.5 s after the last detent); SAVE tap while
    pending = save there; SAVE hold = undo the last load (state and slot). SET (GLO tap): BPM, SWING, GATE, DIV. HARMONY (GLO
@@ -1295,7 +1295,7 @@ When the owner approves this document, the following are locked for the dev task
     Accept? Under the P1-014 letter 23 setup functions fall to 9 and 43 of 69 pass (8.5); under the restated rule 66
     of 69 pass with three listed exceptions.
 73. Default MIDI channels: CH1..CH4 send on MIDI 1..4 (owner ruling 2026-11-10: the 2-5 default was REJECTED), and
-    step 1 of the first run is `CHN KEY, K2 = MIDI`, so the TB-3 (factory channel 2) is two visible gestures away. ANSWERED.
+    step 1 of the first run is `CHN KEY, K2 = MIDI`, so the TB-3 (factory channel 2) is two visible gestures away. ANSWERED. (P4-044: only CH1 is in use at power-on; CH2..CH4 start with MIDI OFF until added.)
 
 77. (P2-011) MIDI channels are unique across the four channels; a taken one turns the other channel's MIDI OFF (4.4). ANSWERED.
 78. (P2-011) Setup functions may take two gestures, performance functions one. ANSWERED.

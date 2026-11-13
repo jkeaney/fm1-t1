@@ -453,7 +453,7 @@ silently breaks a row); `widths.tsv` is its starting table.
 | Step | What the screen shows | Where it is specified |
 | --- | --- | --- |
 | Power-on | splash 400 ms (`draw_splash`), then the PERF main screen straight away: channel 1 selected, stopped, no menu, no mode or groovebox choice, no page reached by a menu | ADR-0003 12 |
-| Defaults on screen | CH1 `ACID` MIDI 1 unmuted; CH2..CH4 `EUCL SNAK STAG` MIDI 2..4 muted; scale `MINPEN`, key `C`, octave 0, BPM `INT 120` (the header, clock out MASTER), length `L16` | ADR-0003 12 `SQ_DEFAULTS` |
+| Defaults on screen | CH1 `ACID` MIDI 1 unmuted; CH2..CH4 `EUCL SNAK STAG` muted, MIDI OFF, out of use until added (P4-044); scale `MINPEN`, key `C`, octave 0, BPM `INT 120` (the header, clock out MASTER), length `L16` | ADR-0003 12 `SQ_DEFAULTS` |
 | Audible with no setup | PLAY starts CH1's acid line on the preview synth with default morphs; nothing needs setting first | ADR-0003 12 step 7 |
 | First-run cue strip (once) | `CHN KEY, K2 = MIDI`, then `PRESS PLAY`, `TURN K1 TO MORPH IT`, `PRESS FX: NEW PATTERN`, `TAP A WHITE KEY: ON/OFF`, `HOLD A WHITE KEY: EDIT`, `PG+ TWICE: ADD PAGE 2`; HOME skips | SEQUENCER_UX 11.3 |
 | The tempo | power-on is INT, so the header reads `INT 120` with the amber clock dot, blinking on the beat; a host that sends clock is picked up by itself (AUTO): the dot turns cyan with a hole and the header shows `EXT --` then `EXT <bpm>`; when the host stops the FM-1 returns to its own tempo | 6 |
