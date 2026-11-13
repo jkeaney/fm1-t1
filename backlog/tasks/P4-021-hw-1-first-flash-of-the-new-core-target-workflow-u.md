@@ -40,3 +40,5 @@ Gate B on real hardware: the owner walks the cited use cases on the FM-1 and TB-
 - Code changes
 
 ## Log
+
+- 2026-11-13 interim (not a sign-off): flashed build/felucca.fwsc (sha1 8a929084..., RAM 29640 B) after the owner said "go, fm1 is plugged in"; installer reported done and --info shows FM-1_900 running. Owner: "its open and looks good" (boots to the new screen). Checklist sections B onward still to run.
