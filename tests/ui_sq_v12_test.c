@@ -265,8 +265,11 @@ int main(int argc, char **argv)
       char fl[24], fr[24]; uisq_cue_split(uisq_page_cue(UI_PG_CHAN), fl, sizeof fl, fr, sizeof fr);
       const int chan_foot_w = text_w(&AF_M, fl) + text_w(&AF_M, fr);
       char rl[24], rr[24]; uisq_cue_split(uisq_page_cue(UI_PG_REC), rl, sizeof rl, rr, sizeof rr);
-      CHECK(text_w(&AF_M, uisq_foot_cue) + text_w(&AF_M, "CH4") + 8 <= 240 && text_w(&AF_M, rl) + text_w(&AF_S, rr) + 4 <= 240 &&
-            chan_foot_w + 4 <= 240 && text_w(&AF_M, uisq_foot_steps) + text_w(&AF_M, uisq_foot_edit) + 4 <= 240, "the footer lines fit 240 px");
+      char sl[28], sr[16], cl[28], cr[12], tl[28], tr[16];          /* PERF `KEYS = STEPS` / `HOLD = EDIT`, the setup cue, RESET: all page_states cues (P4-018) */
+      uisq_cue_split(uisq_page_cue(UI_PG_PERF), sl, sizeof sl, sr, sizeof sr); uisq_cue_split(uisq_page_cue(UI_PG_FIRST_RUN), cl, sizeof cl, cr, sizeof cr);
+      uisq_cue_split(uisq_page_cue(UI_PG_RESET), tl, sizeof tl, tr, sizeof tr);
+      CHECK(text_w(&AF_M, cl) + text_w(&AF_M, "CH4") + 8 <= 240 && text_w(&AF_M, rl) + text_w(&AF_S, rr) + 4 <= 240 && text_w(&AF_M, tl) + text_w(&AF_S, tr) + 4 <= 240 &&
+            chan_foot_w + 4 <= 240 && text_w(&AF_M, sl) + text_w(&AF_M, sr) + 4 <= 240, "the footer lines fit 240 px");
       /* hold times come from the TSVs: EDIT / GLO 0.4 s, SAVE 0.7 s, the keys 0.4 s; HOME acts on release */
       CHECK(uisq_hold_ms(UI_C_B_EDIT) == 400 && uisq_hold_ms(UI_C_B_GLO) == 400 && uisq_hold_ms(UI_C_B_SAVE) == 700 && uisq_hold_ms(UI_C_KEY_B04_CS4) == 400 && uisq_hold_ms(UI_C_B_HOME) == 0,
             "hold times: EDIT %d GLO %d SAVE %d HOME %d", uisq_hold_ms(UI_C_B_EDIT), uisq_hold_ms(UI_C_B_GLO), uisq_hold_ms(UI_C_B_SAVE), uisq_hold_ms(UI_C_B_HOME));

@@ -1,4 +1,4 @@
-> **Superseded for PERF, CHAN, REC and the overlays by [SCREEN_SPEC_V2.md](SCREEN_SPEC_V2.md) (ADR-0006).** Kept for the pages not yet redrawn: NOTE_EDIT, SET, SCALE, RESET, HELP, MENU, RIG.
+> **Superseded for PERF, CHAN, REC and the overlays by [SCREEN_SPEC_V2.md](SCREEN_SPEC_V2.md) (ADR-0006).** Kept for the pages not yet redrawn: NOTE_EDIT, SCALE, MENU, RIG (RESET, HELP, FIRST_RUN, ADD_PAGE and MOVE_HELD are SCREEN_SPEC_V2 4.9-4.11).
 
 # SCREEN_SPEC: the 240x240 screen, zone by zone (P2-003)
 
@@ -195,12 +195,12 @@ the slot of a control is repainted with the held-role text, the page beneath is 
 | Held | Relabelled slots | Text |
 | --- | --- | --- |
 | `HOME` (HELP, 0.25 s after press) | all of Z3, Z4 dimmed; help box over y=108..212; Z6 | the touched control's line 1 in Z6, both lines in the help box: the text is the table `docs/design/help_text.tsv` (control x page; `HITS: re-roll where notes fall` is its SEQ row on PERF) |
-| `EDIT` hold 0.4 s (RESET) | every resettable cell gains a `RST` tag (T_ACCENT) in the corner of its slot; Z6 | `RESET: TOUCH WHAT TO RESET  EDIT=no` |
+| `EDIT` hold 0.4 s (RESET) | every resettable cell gains a `RST` tag (T_ACCENT) in the corner of its slot; Z6 | `TOUCH WHAT TO RESET   EDIT = NO` |
 | `GLO` hold 0.4 s (HARMONY) | Z2 becomes the progression strip; Z3 becomes the HARMONY band (SCALE KEY VOICE MOVE); Z4 SCL LFO ARP SEQ read PROG BARS ROLE NEW | `HARM: KEYS F3-E4 = CHORD 1-7` |
 | `OCT-` / `OCT+` hold (peek) | the other knob row's cells are drawn filled for as long as the hold lasts | none |
 | a white key held 0.4 s | NOTE_EDIT opens (page change, not a relabel) | |
-| `SOLO` / `FILL` / `ROLL` black key held | the held Z5 cell inverted; FILL / ROLL cell shows the live amount | `ROLL 3x: let go to stop` |
-| `PG+` while on the last page | ghost page cell in Z2 header row | `ADD PAGE 2 = COPY OF 1? PG+ = yes` |
+| `SOLO` / `FILL` / `ROLL` black key held | the held Z5 cell inverted; FILL / ROLL cell shows the live amount | `ROLL 2X  LET GO` (V2 4.11) |
+| `PG+` while on the last page | ghost page cell in Z2 header row | `PAGE 2?  PG+=ADD` (V2 4.11) |
 | pending preset (`Pnn?`) | H3 shows `P05?`; SAVE (Z4 row 2 cell 2) label reads `SAVE` still | `P05: SAVE = save here` |
 
 ## 5. Text length limits (per zone, with fonts)
@@ -219,7 +219,7 @@ the slot of a control is repainted with the held-role text, the page beneath is 
 | Band status line | AF_S | 34 | 204 | |
 | Button tap / sub-label | AF_S | 6 | the cell width of 2.5 | a label with a space may wrap onto the two lines (9, F2) on pages that have no sub-labels |
 | Black-key label | AF_S | 6 | 20 | `RESTRT` is 42 px and does not fit a 20 px cell: labels over 20 px are cut to what fits plus the ellipsis glyph and the full word is in HELP (9, F3) |
-| Cue strip | AF_S | 34 nominal | 240 | the widest locked strings: `CH1: K1 LENGTH  OCT=+-PAGE  D#4=back` 229 px (36 characters, so the pixel limit binds, not the character count), `RESET: TOUCH WHAT TO RESET  EDIT=no` 222 |
+| Cue strip | AF_S | 34 nominal | 240 | the widest locked strings: `CH1: K1 LENGTH  OCT=+-PAGE  D#4=back` 229 px (36 characters, so the pixel limit binds, not the character count), `TOUCH WHAT TO RESET   EDIT = NO` 222 |
 | Toast | AF_S | 34 nominal | 240 | 2.7 |
 
 ## 6. Tempo source, clock out and the clock dot (FB-001; owner rulings 2026-11-10, final form from P2-010)
@@ -455,7 +455,7 @@ silently breaks a row); `widths.tsv` is its starting table.
 | Power-on | splash 400 ms (`draw_splash`), then the PERF main screen straight away: channel 1 selected, stopped, no menu, no mode or groovebox choice, no page reached by a menu | ADR-0003 12 |
 | Defaults on screen | CH1 `ACID` MIDI 1 unmuted; CH2..CH4 `EUCL SNAK STAG` MIDI 2..4 muted; scale `MINPEN`, key `C`, octave 0, BPM `INT 120` (the header, clock out MASTER), length `L16` | ADR-0003 12 `SQ_DEFAULTS` |
 | Audible with no setup | PLAY starts CH1's acid line on the preview synth with default morphs; nothing needs setting first | ADR-0003 12 step 7 |
-| First-run cue strip (once) | `D#4 K2: MIDI CHANNEL`, then `PRESS PLAY`, `TURN K1 TO MORPH IT`, `PRESS FX: NEW PATTERN  EDIT=undo`, `TAP A WHITE KEY: STEP ON/OFF`, `HOLD A WHITE KEY: EDIT THAT NOTE`, `PG+ TWICE: ADD PAGE 2 (A COPY)`; HOME skips | SEQUENCER_UX 11.3 |
+| First-run cue strip (once) | `CHN KEY, K2 = MIDI`, then `PRESS PLAY`, `TURN K1 TO MORPH IT`, `PRESS FX: NEW PATTERN`, `TAP A WHITE KEY: ON/OFF`, `HOLD A WHITE KEY: EDIT`, `PG+ TWICE: ADD PAGE 2`; HOME skips | SEQUENCER_UX 11.3 |
 | The tempo | power-on is INT, so the header reads `INT 120` with the amber clock dot, blinking on the beat; a host that sends clock is picked up by itself (AUTO): the dot turns cyan with a hole and the header shows `EXT --` then `EXT <bpm>`; when the host stops the FM-1 returns to its own tempo | 6 |
 
 > **Owner rulings 2026-11-10 (applied by P2-010; section 6 and TIMING_SPEC carry them in full):**

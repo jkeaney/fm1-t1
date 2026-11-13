@@ -119,6 +119,25 @@ static uint16_t uisq_bpm_req;            /* SET K1: the tempo asked for (0 = non
 static uint8_t  uisq_rec;                /* REC armed (set with uisq_page == UI_PG_REC by uisq_rec_open): the header disc, the REC knob band, the cursor frame */
 static uint8_t  uisq_rec_cursor = 1;     /* REC: the step being written, 1..16 of the viewed page (K1 CURSOR) */
 static uint8_t  uisq_rec_acc, uisq_rec_slide, uisq_rec_oct = 2;   /* REC knobs ACC / SLIDE (0/1) and OCT (0..4 = -2..+2) */
+/* P4-018: RESET (hold EDIT 0.4 s), HELP (HOME held + a control touched), FIRST_RUN (once per device), MOVE_HELD. RESET and HELP are overlays: uisq_page stays the
+ * page beneath, so every handler below it keeps working; the handlers of RESET come first, HELP is routed by the glue (ui_sq_help_touch) before any action. */
+static uint8_t  uisq_pg_pend;            /* PG+ on the last page was pressed once: the next PG+ adds the page (the ADD_PAGE prompt) */
+static uint8_t  uisq_reset;              /* RESET open over uisq_page: the next control touched is put back to its default, then it closes (one shot) */
+static uint8_t  uisq_edit_dn, uisq_edit_fired;   /* EDIT is down (ui_sq_edit); its 0.4 s hold has fired: no tap on release */
+static uint32_t uisq_edit_t0;
+static uint8_t  uisq_help;               /* 1 + the control id the HELP box explains (0 = none): HOME is down and a control was touched */
+static uint8_t  uisq_help_pg;            /* the page the help rows are read for: the page beneath (RESET counts as a page) */
+static uint8_t  uisq_help_used;          /* a control was touched since HOME went down: its release is no tap and opens no MENU (ui_input.c asks ui_sq_help_used) */
+static uint8_t  uisq_hold_home;          /* the hold hint on screen is HOME's */
+static uint32_t uisq_help_keys;          /* keys pressed while HOME was down: masked from the page until they are physically up */
+#define UISQ_FR_STEPS 7                  /* SEQUENCER_UX 11.3: steps 1 (the setup cue) to 7 */
+static uint8_t  uisq_fr_on;              /* the first-run strip is running (the glue sets it from the settings bit; the host test sets it directly) */
+static uint8_t  uisq_fr_step = 1;        /* 1..UISQ_FR_STEPS */
+static uint8_t  uisq_fr_other;           /* step 7: controls used since it began (three end it) */
+static uint8_t  uisq_fr_save;            /* the strip ended: the glue stores the "done" bit once and clears this */
+enum { UISQ_FR_PLAY, UISQ_FR_KNOB, UISQ_FR_DICE, UISQ_FR_TAP, UISQ_FR_HOLD, UISQ_FR_PAGE, UISQ_FR_MIDI, UISQ_FR_OTHER };
+static void uisq_fr_event(uint8_t ev);
+static void uisq_fr_end(void);
 static uint16_t uisq_diced;              /* steps of the viewed page just re-rolled (white with a hatch) until uisq_diced_until */
 static uint32_t uisq_diced_until;
 /* CHAN K2 (P4-015): the MIDI channel turned to and not yet committed (0..15, SQ_MIDI_OFF; UISQ_CM_NONE = none), the channel it was turned for, and the
@@ -271,9 +290,9 @@ static const UisqPage uisq_pages[UI_PG_COUNT] = {
     [UI_PG_SCALE]     = { uisq_pg_stub, NULL, "", "", 0 },
     [UI_PG_REC]       = { uisq_pg_rec, NULL, "", "", 0 },
     [UI_PG_RESET]     = { uisq_pg_stub, NULL, "", "", 0 },
-    [UI_PG_HELP]      = { uisq_pg_stub, "HELP: let go = back", "", "", 0 },
+    [UI_PG_HELP]      = { uisq_pg_stub, NULL, "", "", 0 },
     [UI_PG_MENU]      = { uisq_pg_stub, "", "", "", 0 },                       /* the Felucca menu draws itself (ui_menu.c) */
-    [UI_PG_FIRST_RUN] = { uisq_pg_stub, "D#4 K2: MIDI CHANNEL", "", "", 1 },
+    [UI_PG_FIRST_RUN] = { uisq_pg_stub, NULL, "", "", 1 },
     [UI_PG_ADD_PAGE]  = { uisq_pg_stub, NULL, "", "", 1 },
     [UI_PG_MOVE_HELD] = { uisq_pg_stub, NULL, "", "", 1 },
     [UI_PG_ALGO_PICK] = { uisq_pg_stub, "", "", "", 1 },                       /* the strip is built from the algorithm list */
@@ -567,6 +586,10 @@ typedef struct {
     int8_t   octave;                                   /* SET: the global OCTAVE -2..+2 (status line) */
     uint8_t  port;                                     /* SET: the external clock's port, 0 USB, 1 TRS */
     uint8_t  held_m, held_mv, cue;                     /* held mute key (1 + channel), held move key (1 SOL 2 FIL 3 ROL), the setup cue (new channel or MIDI OFF) */
+    /* ---- P4-018: RESET, HELP, FIRST_RUN; all zero on a plain page ---- */
+    uint8_t  cue_row, fr, reset, help, help_pg;        /* SEQUENCER_UX 11.2 row selected; first-run step shown in the footer (2..7); RESET open; 1 + the control HELP explains, and its page */
+    uint8_t  reset_k;                                  /* RESET: bit k = knob tile k goes back to its default (its label band is inverted) */
+    uint16_t reset_btn, reset_keys;                    /* RESET: panel buttons (bit = panel order) and white keys that reset something (white outline); D#4 = COPY lights */
     /* ---- the message slot: hashed by strip 0 only (it lives in y 0-21), so a toast or a filling hold bar never redraws strip 1 ---- */
     UisqMsg  msg;
     /* ---- pointers: not in the signature ---- */
@@ -613,7 +636,9 @@ static uint16_t uisq_btn_dimmask(const AlgoDesc *a)
 /* the message slot (5): hold hint > touched control > toast > page title. `now` is a parameter so the host test can walk the timers. */
 static void uisq_msg_pick(UisqMsg *m, uint32_t now, uint8_t page, uint8_t sel)
 {   memset(m, 0, sizeof *m);
-    if (uisq_hold_on && (int32_t)(now - uisq_hold_t0) >= (int32_t)UISQ_HINT_MS) {
+    if (uisq_help) {                                                   /* HOME held and a control touched (11.2 row 1): the slot says why nothing acts; the box explains */
+        m->kind = UI_MK_TOUCH; uisq_cpy(m->a, sizeof m->a, ui_msgs[UI_MSG_ENC_HELP_LET_GO_BACK].a); uisq_cpy(m->b, sizeof m->b, ui_msgs[UI_MSG_ENC_HELP_LET_GO_BACK].b); }
+    else if (uisq_hold_on && (int32_t)(now - uisq_hold_t0) >= (int32_t)UISQ_HINT_MS) {
         const uint32_t el = now - uisq_hold_t0;
         m->kind = UI_MK_HOLD; m->icon = uisq_hold_icon; uisq_cpy(m->a, sizeof m->a, uisq_hold_text);
         m->frac = (uint8_t)(!uisq_hold_fire || el >= uisq_hold_fire ? 100u : 100u * el / uisq_hold_fire); }
@@ -621,6 +646,8 @@ static void uisq_msg_pick(UisqMsg *m, uint32_t now, uint8_t page, uint8_t sel)
         m->kind = UI_MK_TOUCH; uisq_cpy(m->a, sizeof m->a, uisq_touch_a); uisq_cpy(m->b, sizeof m->b, uisq_touch_b); }
     else if (uisq_toast_until && (int32_t)(now - uisq_toast_until) < 0) {
         m->kind = UI_MK_TOAST; m->chip = uisq_toast_chip; uisq_cpy(m->a, sizeof m->a, uisq_toast); uisq_cpy(m->b, sizeof m->b, uisq_toast_hint); }
+    else if (uisq_reset) {                                             /* RESET names itself (the page title of the overlay) */
+        m->kind = UI_MK_TOUCH; uisq_cpy(m->a, sizeof m->a, ui_msgs[UI_MSG_ENC_RESET_TOUCH_ONE].a); uisq_cpy(m->b, sizeof m->b, ui_msgs[UI_MSG_ENC_RESET_TOUCH_ONE].b); }
     else if (page == UI_PG_SET) {                                      /* SET names itself: GLO  ALL CHANNELS (every value here is global) */
         m->kind = UI_MK_TOUCH; uisq_cpy(m->a, sizeof m->a, ui_msgs[UI_MSG_ENC_GLO_ALL_CHANNELS].a); uisq_cpy(m->b, sizeof m->b, ui_msgs[UI_MSG_ENC_GLO_ALL_CHANNELS].b); }
     else if (page == UI_PG_CHAN) {                                     /* a page names itself while it is open */
@@ -688,6 +715,46 @@ static void uisq_ne_fill(UisqView *v, uint8_t vp)
         uisq_cat(v->ne_chip[nc], sizeof v->ne_chip[0], uisq_ne_w(sh > 0 ? UI_NE_PLUS : UI_NE_MINUS));
         uisq_catu(v->ne_chip[nc], sizeof v->ne_chip[0], (uint32_t)(sh > 0 ? sh : -sh)); nc++; } }
 
+/* ---- the cue priority (SEQUENCER_UX 11.2: first match wins), as the V2 screen realises it. Rows 1-15 keep their numbers; the text of each is drawn where
+ * SCREEN_SPEC_V2 puts it (slot: hold hint / HELP box / touched control / toast / page title; footer: the keys' mode line, the setup cue, a first-run step, a
+ * page cue). The function is pure over the UI state, so a test can set the state of each row and read which cue wins. ---- */
+enum { UISQ_CR_NONE = 0, UISQ_CR_HELP, UISQ_CR_RESET, UISQ_CR_ADD_PAGE, UISQ_CR_REC, UISQ_CR_NOTE_EDIT, UISQ_CR_FR_PAGE, UISQ_CR_CHAN, UISQ_CR_SCALE,
+       UISQ_CR_SET_EXT, UISQ_CR_SET, UISQ_CR_MOVE_HELD, UISQ_CR_PRESET, UISQ_CR_WAIT, UISQ_CR_LOST, UISQ_CR_JUST_DONE, UISQ_CR_FIRST_RUN,
+       UISQ_CR_STOPPED, UISQ_CR_PLAY1, UISQ_CR_PLAY2, UISQ_CR_COUNT };
+static uint8_t uisq_cue_row(void)
+{   const uint8_t pg = uisq_page;
+    if (uisq_home_dn) return UISQ_CR_HELP;                                                   /* 1  HOME held: the hold hint, then the touched control's help */
+    if (uisq_reset) return UISQ_CR_RESET;                                                    /* 2  RESET */
+    if (uisq_pg_pend) return UISQ_CR_ADD_PAGE;                                         /* 3  the ADD PAGE prompt (PG+ pressed once on the last page) */
+    if (pg == UI_PG_REC) return UISQ_CR_REC;                                                 /* 4  REC */
+    if (pg == UI_PG_NOTE_EDIT) return UISQ_CR_NOTE_EDIT;                                     /* 5  NOTE_EDIT */
+    if (uisq_fr_on && uisq_fr_step <= 2u && (pg == UI_PG_CHAN || pg == UI_PG_SCALE || pg == UI_PG_SET)) return UISQ_CR_FR_PAGE;   /* 5a first-run step 1 / 2 on another page */
+    if (pg == UI_PG_CHAN) return UISQ_CR_CHAN;                                               /* 6  CHAN */
+    if (pg == UI_PG_SCALE) return UISQ_CR_SCALE;                                             /* 7  SCALE */
+    if (pg == UI_PG_SET && uisq_clock != UISQ_CLK_INT) return UISQ_CR_SET_EXT;               /* 8a SET under an external clock */
+    if (pg == UI_PG_SET) return UISQ_CR_SET;                                                 /* 8  SET */
+    if (uisq_held_mv) return UISQ_CR_MOVE_HELD;                                              /* 9  SOLO / FILL / ROLL held */
+    if (uisq_preset_pend) return UISQ_CR_PRESET;                                             /* 10 a preset slot pending */
+    if (uisq_clock == UISQ_CLK_WAIT) return UISQ_CR_WAIT;                                    /* 10a waiting for the host's start */
+    if (uisq_clock == UISQ_CLK_LOST) return UISQ_CR_LOST;                                    /* 10b the host clock was lost */
+    if (uisq_toast_until && (int32_t)(uisq_now - uisq_toast_until) < 0 && uisq_streq(uisq_toast_hint, ui_msgs[UI_MSG_TOAST_NOTES_EDIT_UNDO].b)) return UISQ_CR_JUST_DONE;   /* 11 just after a dice / reset / clear */
+    if (uisq_fr_on) return UISQ_CR_FIRST_RUN;                                                /* 12 a first-run step */
+    if (!sq_playing) return UISQ_CR_STOPPED;                                                 /* 13 stopped */
+    return uisq_row ? UISQ_CR_PLAY2 : UISQ_CR_PLAY1; }                                       /* 14 playing, ROW 1 / 15 ROW 2 */
+
+/* RESET: what each control of the page beneath would put back (the white outlines and inverted labels of the overlay), from the sequencer state */
+static void uisq_reset_fill(UisqView *v)
+{   const uint8_t note = (uint8_t)(v->band == UISQ_BAND_NOTE);
+    if (note) v->reset_k = 0xFu;
+    else if (v->band == UISQ_BAND_CHAN) v->reset_k = 0xBu;                                   /* LENGTH, MIDI, FOLLOW (SOURCE has no default to go back to) */
+    else if (v->band == UISQ_BAND_SET) v->reset_k = (uint8_t)(0xEu | (v->clock == UISQ_CLK_INT ? 1u : 0u));
+    else v->reset_k = v->row < 2u ? 0xFu : 0u;
+    for (uint32_t i = 0; i < 12u; i++) {
+        const uint8_t ctl = uisq_btn_ctl[i];
+        const int8_t ly = uisq_layer_of(ctl);
+        if (ly >= 0 ? (note || v->algo->layer[ly].n != 0) : (ctl == UI_C_B_FX || ctl == UI_C_B_REC)) v->reset_btn |= (uint16_t)(1u << i); }
+    for (uint32_t i = 0; i < SQ_PAGE; i++) if (i < v->len16) v->reset_keys |= (uint16_t)(1u << i); }
+
 static void uisq_view_fill(UisqView *v)
 {   const uint8_t sel = uisq_sel < SQ_NCH ? uisq_sel : 0u;
     const ChanSave *c = &sq_ch[sel];
@@ -752,6 +819,10 @@ static void uisq_view_fill(UisqView *v)
     if (v->band == UISQ_BAND_NOTE) uisq_ne_fill(v, vp);
     v->held_m = uisq_held_m; v->held_mv = uisq_held_mv;
     v->cue = (uint8_t)((uisq_new >> sel & 1u) || c->midi_ch >= SQ_MIDI_OFF);   /* the one standing cue; it clears when the channel gets a MIDI channel */
+    v->cue_row = uisq_cue_row();
+    v->reset = uisq_reset; v->help = uisq_help; v->help_pg = uisq_help_pg;
+    v->fr = (uisq_fr_on && uisq_page == UI_PG_PERF && v->band == UISQ_BAND_ROW && uisq_fr_step >= 2u) ? uisq_fr_step : 0u;
+    if (uisq_reset) uisq_reset_fill(v);
     uisq_msg_pick(&v->msg, uisq_now, uisq_page, sel);
     for (uint8_t i = 0; i < SQ_NCH; i++) {
         UisqStep L[SQ_PAGE];
@@ -834,7 +905,8 @@ static void uisq_draw_knobs(const UisqView *v, int32_t y)
         const int32_t span = (int32_t)m->max - m->min, d = (int32_t)v->val[k] - m->min;
         uint16_t bgv = T_SURF;
         cv_rect(x, y, 58, 16, T_SURF);
-        uisq_text_c(x, 58, y + 3, &AF_M, host ? uisq_st_w(UI_ST_HOST) : m->label, T_MID, T_SURF);
+        if (v->reset && (v->reset_k >> k & 1u)) { cv_rect(x, y, 58, 16, UISQ_WHITE); uisq_text_c(x, 58, y + 3, &AF_M, m->label, UISQ_INK, UISQ_WHITE); }   /* RESET: this tile goes back to its default */
+        else uisq_text_c(x, 58, y + 3, &AF_M, host ? uisq_st_w(UI_ST_HOST) : m->label, T_MID, T_SURF);
         cv_rect(x, y + 17, 58, 36, T_SURF);
         if (host) {                                                    /* no fill (the shape changes, not only the colour), a dashed frame, the host tempo in MID */
             for (int32_t i = 0; i < 58; i += 6) { cv_rect(x + i, y + 17, 3, 1, T_MID); cv_rect(x + i, y + 52, 3, 1, T_MID); }
@@ -874,7 +946,8 @@ static void uisq_draw_notetiles(const UisqView *v, int32_t y)
         const uint16_t bgv = set ? fc : T_SURF, fg = set ? UISQ_WHITE : T_MID;
         const int32_t tw = text_w(f, t) + uw, tx = x + HALF_UP(58 - tw), cap = f == &AF_L ? y + 19 : y + 23;
         cv_rect(x, y, 58, 16, T_SURF);
-        uisq_text_c(x, 58, y + 3, &AF_M, uisq_knob_label(UI_PG_NOTE_EDIT, UI_CTX_ANY, (uint8_t)k), T_MID, T_SURF);
+        if (v->reset && (v->reset_k >> k & 1u)) { cv_rect(x, y, 58, 16, UISQ_WHITE); uisq_text_c(x, 58, y + 3, &AF_M, uisq_knob_label(UI_PG_NOTE_EDIT, UI_CTX_ANY, (uint8_t)k), UISQ_INK, UISQ_WHITE); }
+        else uisq_text_c(x, 58, y + 3, &AF_M, uisq_knob_label(UI_PG_NOTE_EDIT, UI_CTX_ANY, (uint8_t)k), T_MID, T_SURF);
         cv_rect(x, y + 17, 58, 36, bgv);
         if (set) { cv_rect(x, y + 17, 7, 2, col); cv_rect(x + 51, y + 17, 7, 2, col); cv_rect(x + 3, y + 22, 5, 5, UISQ_WHITE); }   /* the level edge and the set marker */
         if (t[0]) {
@@ -1004,11 +1077,10 @@ static void uisq_draw_buttons(const UisqView *v)
             if (tog[i] >= 0 && (v->ne_btn >> tog[i] & 1u)) { bg = T_CH(v->sel); fg = UISQ_INK; cv_rect(x, y, UISQ_BTN_W, UISQ_BTN_TH, bg); cv_rect(x, y + UISQ_BTN_TH - 2, UISQ_BTN_W, 2, UISQ_WHITE); }
             cv_frame(x, y, UISQ_BTN_W, UISQ_BTN_TH, UISQ_WHITE); }       /* a white outline round the six "this step" tiles: the page differs from PERF without reading an icon */
         if (v->btn_lit >> i & 1u) { bg = UISQ_WHITE; fg = UISQ_INK; cv_rect(x, y, UISQ_BTN_W, UISQ_BTN_TH, bg); }
+        else if (v->reset && (v->reset_btn >> i & 1u)) cv_frame(x, y, UISQ_BTN_W, UISQ_BTN_TH, UISQ_WHITE);   /* RESET: this button puts something back */
         cv_icon(x + (UISQ_BTN_W - SQI_TAB[ic].w) / 2, y + (UISQ_BTN_TH - SQI_TAB[ic].h) / 2, ic, fg); } }
 
 /* ---- 4.6 keybed: white keys = the steps of the viewed page; black keys carry their role (panel order M1 M2 M3 M4 CHN SOL FIL ROL PG- PG+ RST); REC: plain keys ---- */
-static const char *const uisq_foot_steps = "KEYS = STEPS", *const uisq_foot_edit = "HOLD = EDIT";
-static const char *const uisq_foot_cue = "CHN KEY, K2 = MIDI";
 /* a page cue of page_states.tsv is `left   right` (three spaces): the footer's two halves (CHAN: `K2 = MIDI` / `CHN = BACK`, P4-015) */
 static void uisq_cue_split(const char *cue, char *l, uint32_t ln, char *r, uint32_t rn)
 {   uint32_t k = 0, j = 0;
@@ -1017,6 +1089,7 @@ static void uisq_cue_split(const char *cue, char *l, uint32_t ln, char *r, uint3
     while (cue[k] == ' ') k++;
     while (cue[k] && j + 1u < rn) r[j++] = cue[k++];
     r[j] = 0; }
+static int32_t uisq_fitm(int32_t x, int32_t ycap, const char *t, uint16_t fg, uint16_t bg, int32_t maxw);
 static void uisq_draw_keybed(const UisqView *v)
 {   const int32_t y = UISQ_KEY_Y, kh = UISQ_WKEY_H, bh = UISQ_BKEY_H;
     const uint8_t rec = v->rec, chan = v->band == UISQ_BAND_CHAN;
@@ -1026,6 +1099,7 @@ static void uisq_draw_keybed(const UisqView *v)
         if (rec) cv_rect(x + 1, y, 14, kh, T_KEY);                      /* REC: plain playable keys */
         if (i >= v->len16) { uisq_hatch(x + 1, y, 14, kh, T_LINE, 3); continue; }   /* this key is past LENGTH */
         if (!rec && v->lane[i].on) cv_rect(x + 1, y + bh + 2, 14, kh - bh - 2, T_CH(sel));   /* the step is on: the key's front in the channel colour */
+        if (v->reset && (v->reset_keys >> i & 1u)) cv_frame(x + 1, y + bh + 1, 14, kh - bh - 1, UISQ_WHITE);   /* RESET: this key clears its step */
         if (i == v->ph && !rec) cv_rect(x + 1, y + kh, 14, 2, UISQ_WHITE); }   /* the playing step: a white bar under its key */
     for (uint32_t k = 0; k < 11u; k++) {
         const int32_t x = (int32_t)uisq_bkey_cx[k] - UISQ_BKEY_W / 2, gy = y + 7;
@@ -1036,7 +1110,8 @@ static void uisq_draw_keybed(const UisqView *v)
             if (v->held_m == k + 1u) { cv_rect(x, y, UISQ_BKEY_W, bh, UISQ_WHITE); cv_rect(x + 2, gy, 6, 7, T_CH(k)); }
             else if (v->used >> k & 1u) { if (v->ch_muted[k]) cv_icon(x + 2, gy, SQI_X7, T_MID); else cv_rect(x + 2, gy, 6, 7, T_CH(k)); } }
         else if (k == 4u) {                                             /* CHN: channel setup; BACK on the CHAN page; lit under the setup cue */
-            if (chan) { cv_rect(x, y, UISQ_BKEY_W, bh, UISQ_WHITE); cv_icon(x + 3, gy, SQI_LEFT, UISQ_INK); }
+            if (v->reset) { cv_rect(x, y, UISQ_BKEY_W, bh, UISQ_WHITE); cv_icon(x + 3, gy, SQI_RST, UISQ_INK); }   /* RESET: D#4 re-copies the page before */
+            else if (chan) { cv_rect(x, y, UISQ_BKEY_W, bh, UISQ_WHITE); cv_icon(x + 3, gy, SQI_LEFT, UISQ_INK); }
             else if (v->cue) { cv_rect(x, y, UISQ_BKEY_W, bh, UISQ_WHITE); cv_icon(x + 2, gy + 1, SQI_MIDI_S, UISQ_INK); }
             else cv_icon(x + 2, gy + 1, SQI_MIDI_S, T_TEXT); }
         else if (k <= 7u) {                                             /* SOL FIL ROL: AF_S letters, the held one inverted */
@@ -1050,7 +1125,11 @@ static void uisq_draw_keybed(const UisqView *v)
         cv_frame(x + 1, fy + 1, 12, y + kh - fy - 2, UISQ_INK); }
     { const int32_t ym = y + kh + 6;                                    /* the footer: the keys' mode line, or the setup cue (inverted) */
       char b[8];
-      if (rec) {                                                      /* REC: the page_states cue, `PLAY KEYS TO WRITE` / `REC = DONE` */
+      if (v->reset) {                                                 /* RESET: the page_states cue, `TOUCH WHAT TO RESET` / `EDIT = NO` */
+          char l[28], r[16];
+          uisq_cue_split(uisq_page_cue(UI_PG_RESET), l, sizeof l, r, sizeof r);
+          uisq_text(2, ym, &AF_M, l, T_TEXT, T_BG); uisq_text_r(238, ym + 1, &AF_S, r, T_MID, T_BG); }
+      else if (rec) {                                                 /* REC: the page_states cue, `PLAY KEYS TO WRITE` / `REC = DONE` */
           char l[24], r[24];
           uisq_cue_split(uisq_page_cue(UI_PG_REC), l, sizeof l, r, sizeof r);
           uisq_text(2, ym, &AF_M, l, T_TEXT, T_BG); uisq_text_r(238, ym + 1, &AF_S, r, T_MID, T_BG); }
@@ -1067,12 +1146,20 @@ static void uisq_draw_keybed(const UisqView *v)
           uisq_text(2, small ? ym + 2 : ym, ff, l, c == UISQ_CLK_LOST ? T_REC : T_TEXT, T_BG);
           uisq_text_r(238, small ? ym + 2 : ym, ff, r, T_MID, T_BG); }
       else if (chan) { char l[24], r[24]; uisq_cue_split(uisq_page_cue(UI_PG_CHAN), l, sizeof l, r, sizeof r); uisq_text(2, ym, &AF_M, l, T_TEXT, T_BG); uisq_text_r(238, ym, &AF_M, r, T_MID, T_BG); }
-      else if (v->cue) {
-          b[0] = 'C'; b[1] = 'H'; b[2] = (char)('1' + sel); b[3] = 0;
+      else if (v->cue) {                                              /* the setup cue (the FIRST_RUN page_states cue): `CHN KEY, K2 = MIDI` / `CHn`, the digit put in */
+          char l[28], r[12];
+          uisq_cue_split(uisq_page_cue(UI_PG_FIRST_RUN), l, sizeof l, r, sizeof r);
+          for (uint32_t i = 0; r[i]; i++) if (r[i] >= '0' && r[i] <= '9') r[i] = (char)('1' + sel);
           cv_rect(0, ym - 3, UISQ_W, 16, UISQ_WHITE);
-          uisq_text(4, ym, &AF_M, uisq_foot_cue, UISQ_INK, UISQ_WHITE);
-          uisq_text_r(236, ym, &AF_M, b, UISQ_INK, UISQ_WHITE); }
-      else { uisq_text(2, ym, &AF_M, uisq_foot_steps, T_TEXT, T_BG); uisq_text_r(238, ym, &AF_M, uisq_foot_edit, T_MID, T_BG); } } }
+          uisq_text(4, ym, &AF_M, l, UISQ_INK, UISQ_WHITE);
+          uisq_text_r(236, ym, &AF_M, r, UISQ_INK, UISQ_WHITE); }
+      else if (v->fr >= 2u && v->fr <= UISQ_FR_STEPS) {               /* a first-run step (SEQUENCER_UX 11.3) in the keys' line, HOME = SKIP on the right */
+          const char *sk = ui_ov_text[UI_OV_FR_SKIP];
+          (void)uisq_fitm(2, ym, ui_ov_text[UI_OV_FR2 + (v->fr - 2u)], T_TEXT, T_BG, 232 - text_w(&AF_S, sk) - 6);
+          uisq_text_r(238, ym + 1, &AF_S, sk, T_MID, T_BG); }
+      else { char l[28], r[16];                                       /* PERF: the page_states cue, `KEYS = STEPS` / `HOLD = EDIT` */
+          uisq_cue_split(uisq_page_cue(UI_PG_PERF), l, sizeof l, r, sizeof r);
+          uisq_text(2, ym, &AF_M, l, T_TEXT, T_BG); uisq_text_r(238, ym, &AF_M, r, T_MID, T_BG); } } }
 
 /* ---- 5 the message slot (x 104-239, y 0-21): AF_M when it fits, else AF_S, never cut ---- */
 static int32_t uisq_fitm(int32_t x, int32_t ycap, const char *t, uint16_t fg, uint16_t bg, int32_t maxw)
@@ -1105,6 +1192,51 @@ static void uisq_draw_msg(const UisqView *v)
         uisq_fitm(x, 5, m->a, UISQ_INK, UISQ_WHITE, UISQ_W - 4 - hw - 6 - x);
         uisq_text_r(237, 7, &AF_S, m->b, UISQ_INK, UISQ_WHITE); } }
 
+/* ---- the HELP box (P4-018; new on V2, for the owner to approve): HOME is down and a control was touched. It covers the knob tiles, the status line and the music
+ * row (y 27-141); the header, the message slot (`HELP  LET GO = BACK`), the buttons and the keybed stay, so the touched control is still in view. A white `HELP`
+ * tag and the page's name over the two lines of the control's help_text row (AF_M, wrapped at a space; line 2 in MID); {r1} / {r2} are the labels of that knob
+ * in ROW 1 / ROW 2 of the selected algorithm, read from its descriptor. ---- */
+static const ui_help_row_t *uisq_help_row(uint8_t ctl, uint8_t pg)
+{   for (uint32_t i = 0; i < UI_N_HELP_TEXT; i++) if (ui_help_rows[i].ctl == ctl && ui_help_rows[i].page == pg) return &ui_help_rows[i];
+    return 0; }
+static void uisq_help_expand(char *d, uint32_t n, const char *t, const UisqView *v, uint8_t ctl)   /* {r1} {r2} -> the knob's label in row 1 / row 2 */
+{   const uint8_t k = (uint8_t)(ctl >= UI_C_EN_K1 && ctl <= UI_C_EN_K4 ? ctl - UI_C_EN_K1 : 0);
+    d[0] = 0;
+    for (uint32_t i = 0; t[i]; ) {
+        if (t[i] == '{' && t[i + 1] == 'r' && (t[i + 2] == '1' || t[i + 2] == '2') && t[i + 3] == '}') {
+            const uint8_t r = (uint8_t)(t[i + 2] - '1');
+            uisq_cat(d, n, v->algo->morph[v->algo->knob_morph[(r * 4u + k) & 7u] & 7u].label);
+            i += 4; }
+        else { char c[2]; c[0] = t[i++]; c[1] = 0; uisq_cat(d, n, c); } } }
+static int32_t uisq_para(int32_t x, int32_t ycap, const char *t, uint16_t fg, int32_t maxw)   /* AF_M, wrapped once at the last space that fits; returns the next cap line */
+{   char a[40];
+    uint32_t cut = 0;
+    if (text_w(&AF_M, t) <= maxw) { (void)uisq_text(x, ycap, &AF_M, t, fg, T_SURF); return ycap + 17; }
+    for (uint32_t i = 0; t[i] && i + 1u < sizeof a; i++) {
+        if (t[i] != ' ') continue;
+        { uint32_t j; for (j = 0; j < i; j++) a[j] = t[j]; a[j] = 0; }
+        if (text_w(&AF_M, a) <= maxw) cut = i; else break; }
+    if (!cut) { (void)uisq_fitm(x, ycap, t, fg, T_SURF, maxw); return ycap + 17; }
+    { uint32_t j; for (j = 0; j < cut; j++) a[j] = t[j]; a[j] = 0; }
+    (void)uisq_text(x, ycap, &AF_M, a, fg, T_SURF);
+    (void)uisq_fitm(x, ycap + 17, t + cut + 1, fg, T_SURF, maxw);
+    return ycap + 34; }
+static void uisq_draw_help(const UisqView *v)
+{   const ui_help_row_t *r = uisq_help_row((uint8_t)(v->help - 1u), v->help_pg);
+    const char *tag = ui_ov_text[UI_OV_HELP], *pn = v->help_pg < UI_PG_COUNT ? ui_page_names[v->help_pg] : "";
+    char l1[48], l2[48];
+    int32_t y;
+    cv_rect(2, 27, 236, 115, T_SURF);
+    cv_frame(2, 27, 236, 115, UISQ_WHITE);
+    cv_rect(9, 33, text_w(&AF_S, tag) + 8, 14, UISQ_WHITE);
+    (void)uisq_text(13, 37, &AF_S, tag, UISQ_INK, UISQ_WHITE);
+    uisq_text_r(231, 37, &AF_S, pn, T_MID, T_SURF);
+    if (!r) return;
+    uisq_help_expand(l1, sizeof l1, r->line1, v, (uint8_t)(v->help - 1u));
+    uisq_help_expand(l2, sizeof l2, r->line2, v, (uint8_t)(v->help - 1u));
+    y = uisq_para(9, 60, l1, T_TEXT, 220);
+    (void)uisq_para(9, y + 8, l2, T_MID, 220); }
+
 /* the elements, in the mock's order (screen v2 4.1-4.6, 5): the frame of tiles and keys first, the elements over it */
 static void uisq_draw_frame(void);
 static void uisq_draw_elements(const UisqView *v)
@@ -1113,6 +1245,7 @@ static void uisq_draw_elements(const UisqView *v)
     if (v->band == UISQ_BAND_NOTE) uisq_draw_notetiles(v, UISQ_KNOB_Y); else uisq_draw_knobs(v, UISQ_KNOB_Y);
     uisq_draw_status(v);
     uisq_draw_music(v);
+    if (v->help) uisq_draw_help(v);
     uisq_draw_buttons(v);
     uisq_draw_keybed(v);
     uisq_draw_msg(v); }
@@ -1139,7 +1272,6 @@ static void uisq_draw_frame(void)
 static uint32_t uisq_keys;                    /* the keys down at the last ui_sq_keys() */
 static uint32_t uisq_key_fired;               /* bit k: the hold action of key k has fired (no tap on release) */
 static uint32_t uisq_key_t0[UISQ_NKEY];       /* UISQ_MS() of the press */
-static uint8_t  uisq_pg_pend;                 /* PG+ on the last page was pressed once: the next PG+ adds the page */
 /* removed channels, newest last: EDIT = UNDO pops one (the channel, its mute and its preview bit come back). A dice, a page add or an EDIT
  * that undoes something else empties the stack (the removal is then no longer the latest action). */
 static uint8_t  uisq_gone_n, uisq_gone_ch[SQ_NCH], uisq_gone_muted[SQ_NCH], uisq_gone_prv[SQ_NCH], uisq_gone_midi[SQ_NCH];   /* BUG-011: a removed channel gives its MIDI channel up (OFF); the undo gives it back */
@@ -1191,7 +1323,7 @@ static uint8_t uisq_next_used(uint8_t from, int8_t dir)                 /* the n
  * uisq_ne_set(), which opens the session again first when something ended it (an EDIT undo, a tap on another step, a landed preset). A step the
  * LENGTH hides is refused by the core and nothing is written. The page leaves by: HOME tap, SELECT turn, the selection moving (a channel removed),
  * REC / GLO / CHN (their pages are later tasks: those keys are inert here until then). Not here: the audition of a changed pitch (the ISR sounds notes:
- * a request flag is a later ISR task), hard-tap ACCENT (needs key force), EDIT hold = RESET (P4-018). ---- */
+ * a request flag is a later ISR task), hard-tap ACCENT (needs key force). EDIT hold = RESET is below (P4-018). ---- */
 static void uisq_ne_leave(void)
 {   sq_note_edit_end();
     uisq_page = UI_PG_PERF;
@@ -1330,6 +1462,7 @@ static void uisq_chan_commit(void)                                      /* no-op
     {   const uint8_t was = sq_ch[ch].midi_ch;
         const int8_t other = sq_set_midi(ch, m);
         if (m < SQ_MIDI_OFF) ui_sq_new_set(ch, 0);                      /* the setup cue clears when the channel gets a MIDI channel */
+        if (sq_ch[ch].midi_ch != was) uisq_fr_event(UISQ_FR_MIDI);
         if (sq_ch[ch].midi_ch != was) { uisq_gone_n = 0; uisq_undone = 0; }   /* the MIDI record is now the latest: EDIT undoes it, not an older removal */
         if (other >= 0) uisq_chan_clash_toast((uint8_t)other, ch, m); } }
 
@@ -1387,9 +1520,13 @@ static void uisq_chan_pages(uint8_t ctl)                                /* OCT- 
         else ui_sq_toast_id(UI_MSG_TOAST_ONE_PAGE_K1_LESS, sel); }       /* already one page: say how to shorten it */
     else if (len >= SQ_NSTEP) ui_sq_toast_id(UI_MSG_TOAST_64_STEPS_MAX, sel);
     else if (sq_page_add(sel)) {                      /* a partial page is completed, else a new page (a copy of the page before) */
-        uisq_gone_n = 0; uisq_undone = 0;
+        uisq_gone_n = 0; uisq_undone = 0; uisq_fr_event(UISQ_FR_PAGE);
         uisq_vpage = (uint8_t)((sq_ch[sel].len - 1u) / SQ_PAGE); }
     uisq_chan_pages_clamp(); }
+
+static void uisq_reset_none(void);
+/* PRESETS (the preset layer is P7, the glue drains the encoder): under RESET it only says there is nothing to reset */
+static void ui_sq_preset_turn(int32_t d) { if (d && uisq_reset) uisq_reset_none(); }
 
 /* the ALGO encoder: the algorithm of the selected channel, over the ALGOS[] rows that are written; no wrap; it lands at the next step (sq_set_algo). Only on
  * CHAN, REC and PERF (P4-032; a held M key is the preview sound's, not this). The strip lists the algorithms for 2 s (ALGO_PICK) and the touched control names the new one. */
@@ -1397,6 +1534,7 @@ static void ui_sq_algo_turn(int32_t d)
 {   const uint8_t sel = uisq_sel % SQ_NCH;
     int32_t n = sq_ch[sel].algo, left = d < 0 ? -d : d;
     const int32_t dir = d < 0 ? -1 : 1;
+    if (uisq_reset && d) { uisq_reset_none(); return; }                 /* RESET: the algorithm is not a value with a default */
     if ((uisq_page != UI_PG_CHAN && uisq_page != UI_PG_REC && uisq_page != UI_PG_PERF) || !d) return;
     if (uisq_page == UI_PG_PERF && uisq_held_m) return;                 /* PERF with a mute key held: PREVIEW.md's sound turn, not wired yet: no algorithm change by accident */
     uisq_pg_pend = 0;
@@ -1564,11 +1702,174 @@ static void uisq_rec_octb(uint8_t ctl)                                  /* OCT- 
     uisq_rec_oct = (uint8_t)(n < 0 ? 0 : n > 4 ? 4 : n);
     ui_sq_knob_touch(3); }
 
+/* ---- FIRST_RUN (P4-018; SEQUENCER_UX 11.3, page_states FIRST_RUN): the strip that leads a new owner to the first sound. Step 1 is the setup cue (CH1 is new: footer
+ * `CHN KEY, K2 = MIDI`, CHN lit); steps 2-7 are the lines of overlay_text.tsv in the keys' line of PERF with `HOME = SKIP`. A step advances on the event it names;
+ * HOME tap ends the strip at once; the end sets uisq_fr_save (the glue stores the one "done" bit of ui_prefs2) and the strip never returns. ---- */
+static void uisq_fr_end(void)
+{   if (!uisq_fr_on) return;
+    uisq_fr_on = 0; uisq_fr_save = 1;
+    ui_sq_new_set(0, 0);                                                /* the first-run cue on CH1 goes with the strip */
+    ui.force = 1; }
+static void uisq_fr_event(uint8_t ev)
+{   uint8_t to = 0;
+    if (!uisq_fr_on) return;
+    switch (uisq_fr_step) {
+    case 1: if (ev == UISQ_FR_MIDI) to = 2; else if (ev == UISQ_FR_PLAY) { to = 3; ui_sq_new_set(0, 0); } break;   /* K2 changed the MIDI channel, or PLAY (the synth already listens on 1) */
+    case 2: if (ev == UISQ_FR_PLAY) to = 3; break;
+    case 3: if (ev == UISQ_FR_KNOB) to = 4; break;
+    case 4: if (ev == UISQ_FR_DICE) to = 5; break;
+    case 5: if (ev == UISQ_FR_TAP) to = 6; break;
+    case 6: if (ev == UISQ_FR_HOLD) to = 7; break;
+    default:                                                            /* 7: a page added, or any other control three times */
+        if (ev == UISQ_FR_PAGE || ++uisq_fr_other >= 3u) { uisq_fr_end(); return; }
+        break; }
+    if (to) { uisq_fr_step = to; ui.force = 1; } }
+
+static void ui_sq_play_pressed(void) { uisq_fr_event(UISQ_FR_PLAY); }        /* the glue: PLAY went down */
+
+/* ---- RESET (P4-018; SEQUENCER_UX 2.6, U59-U61, button_modes / knob_map / key_map RESET rows): hold EDIT 0.4 s opens it over the page beneath (uisq_page is
+ * unchanged); the NEXT control touched puts what it names back to its default and RESET closes (one shot, `EDIT takes it back`); a control that has nothing to
+ * reset says so (toast NOTHING TO RESET) and RESET stays; EDIT or HOME cancels. Not in REC (exclusive). What goes back, by page beneath:
+ *   PERF / CHAN / SET  K1-K4: that morph of the live row (sq_reset_morph) / CHAN LENGTH 16, MIDI = its own number, FOLLOW ON / SET the power-on BPM SWING GATE DIV
+ *   NOTE_EDIT          K1-K4: that field of the step to AUTO
+ *   FX = the algorithm (all morphs and seeds), SCL ENV LFO ARP SEQ = that layer's seeds (NOTE_EDIT: that field of the step), OCT- / OCT+ = ROW 1 / ROW 2 (NOTE_EDIT: OCT),
+ *   REC = every edit of the viewed page, white key = that step, D#4 = the page before copied over the viewed page (page 1: its edits cleared); the rest is inert.
+ * A reset that changes nothing says NOTHING TO RESET and closes. Everything that is undoable here is one EDIT tap away (LENGTH, FOLLOW and SET are not: their toast
+ * carries no hint). ---- */
+static uint8_t uisq_reset_ok_page(void)
+{   return (uint8_t)(!uisq_rec && (uisq_page == UI_PG_PERF || uisq_page == UI_PG_NOTE_EDIT || uisq_page == UI_PG_CHAN || uisq_page == UI_PG_SET)); }
+static void uisq_reset_open(void)
+{   if (uisq_reset || !uisq_reset_ok_page()) return;
+    if (uisq_page == UI_PG_CHAN) uisq_chan_commit();                    /* a pending MIDI channel lands before the overlay (it would name the old one) */
+    uisq_pg_pend = 0; uisq_reset = 1; ui.force = 1; }
+static void uisq_reset_close(void) { uisq_reset = 0; ui.force = 1; }
+static void uisq_reset_done(uint8_t changed, uint8_t id, uint8_t ch)    /* one shot: closes, and says what happened */
+{   uisq_reset_close();
+    if (changed) { uisq_gone_n = 0; uisq_undone = 0; ui_sq_toast_id(id, ch); }
+    else ui_sq_toast_id(UI_MSG_TOAST_NOTHING_TO_RESET, ch); }
+static void uisq_reset_none(void) { ui_sq_toast_id(UI_MSG_TOAST_NOTHING_TO_RESET, (uint8_t)(uisq_sel % SQ_NCH)); }   /* an inert control: RESET stays */
+static void uisq_reset_ne(int32_t field)                                /* NOTE_EDIT: one field of the edited step to AUTO, or -1 = the whole step */
+{   StepEdit was;
+    uint8_t ch = uisq_edit_ch, p = uisq_edit_step, ch_ok;
+    if (uisq_page != UI_PG_NOTE_EDIT || ch >= SQ_NCH || p >= SQ_NSTEP || p >= sq_ch[ch].len) { uisq_reset_none(); return; }
+    was = sq_ch[ch].ed[p];
+    sq_note_edit_end();                                                 /* the reset is a record of its own (EDIT = UNDO puts the step back as it was before it), not part of the visit's */
+    if (field < 0) (void)sq_step_clear(ch, p); else (void)sq_step_set(ch, p, (uint8_t)field, (int16_t)SQ_AUTO);
+    ch_ok = uisq_ne_cmp(&was, &sq_ch[ch].ed[p]);
+    if (ch_ok) uisq_ne_wrote();
+    uisq_reset_done(ch_ok, UI_MSG_TOAST_RESET_EDIT_UNDO, ch); }
+static void uisq_reset_page(uint8_t copy)                               /* REC: the viewed page's edits cleared; D#4 (copy): the page before copied over it */
+{   const uint8_t sel = uisq_sel % SQ_NCH, k = uisq_view_page();
+    const StepEdit *e = sq_ch[sel].ed;
+    uint8_t changed = 0, id = UI_MSG_TOAST_CLEAR_EDIT_UNDO;
+    if (copy && k >= 1u) {
+        changed = (uint8_t)(memcmp(&e[k * SQ_PAGE], &e[(k - 1u) * SQ_PAGE], SQ_PAGE * sizeof(StepEdit)) != 0 || ((sq_ch[sel].pg_src >> (2u * k)) & 3u) != ((sq_ch[sel].pg_src >> (2u * (k - 1u))) & 3u) || !(sq_ch[sel].pg_used >> k & 1u));
+        if (changed) changed = sq_page_recopy(sel, k);
+        id = UI_MSG_TOAST_COPIED_EDIT_UNDO; }
+    else {
+        static const StepEdit z[SQ_PAGE];
+        changed = (uint8_t)(memcmp(&e[k * SQ_PAGE], z, sizeof z) != 0);
+        if (changed) changed = sq_page_clear(sel, k); }
+    if (changed) uisq_ne_dirty = 0;                                     /* a page record replaced the step record NOTE_EDIT's EDIT would have swapped */
+    uisq_reset_done(changed, id, sel); }
+static void uisq_reset_knob(uint8_t k)
+{   const uint8_t sel = uisq_sel % SQ_NCH;
+    SeqGlobal d;
+    uint8_t changed = 0;
+    if (k >= 4u) return;
+    if (uisq_page == UI_PG_NOTE_EDIT) { static const uint8_t f[4] = { SQ_F_PITCH, SQ_F_GATE, SQ_F_VEL, SQ_F_RATCH }; uisq_reset_ne(f[k]); return; }
+    if (uisq_page == UI_PG_CHAN) {
+        if (k == 0u) { const uint8_t was = sq_ch[sel].len; (void)sq_len_set(sel, 16); uisq_chan_pages_clamp(); changed = (uint8_t)(sq_ch[sel].len != was); uisq_reset_done(changed, UI_MSG_TOAST_RESET, sel); }
+        else if (k == 1u) {                                             /* MIDI back to its own number (CHn = MIDI n): the commit does the steal, its toast and the one EDIT record */
+            const uint8_t was = sq_ch[sel].midi_ch, tid = (uint8_t)uisq_toast_id;
+            uisq_cm_val = sel; uisq_cm_ch = sel; uisq_chan_commit();
+            changed = (uint8_t)(sq_ch[sel].midi_ch != was);
+            uisq_reset_close();
+            if (!changed) ui_sq_toast_id(UI_MSG_TOAST_NOTHING_TO_RESET, sel);
+            else if ((uint8_t)uisq_toast_id == tid) ui_sq_toast_id(UI_MSG_TOAST_RESET_EDIT_UNDO, sel); }   /* (a steal toast, if any, is the more important word) */
+        else if (k == 3u) { changed = (uint8_t)!sq_follow; sq_follow_set(1); uisq_reset_done(changed, UI_MSG_TOAST_RESET, sel); }
+        else uisq_reset_none();
+        return; }
+    if (uisq_page == UI_PG_SET) {
+        sq_default_global(&d);
+        if (k == 0u) {
+            if (uisq_clock != UISQ_CLK_INT) { uisq_reset_none(); return; }
+            changed = (uint8_t)(sq_bpm != SQ_BPM_DEFAULT); sq_bpm = SQ_BPM_DEFAULT; uisq_bpm_req = SQ_BPM_DEFAULT; }
+        else {
+            const SeqGlobal *g = &sq_gdb[sq_gidx];
+            const uint8_t f = k == 1u ? SQ_G_SWING : k == 2u ? SQ_G_GATE : SQ_G_DIV;
+            const uint8_t want = k == 1u ? d.s.swing : k == 2u ? d.s.gate : d.s.div, now = k == 1u ? g->s.swing : k == 2u ? g->s.gate : g->s.div;
+            changed = (uint8_t)(now != want);
+            if (changed) (void)sq_global_set(f, (int16_t)want); }
+        uisq_reset_done(changed, UI_MSG_TOAST_RESET, sel);
+        return; }
+    if (uisq_row >= 2u) { uisq_reset_none(); return; }                  /* a RIG row has no default of the algorithm's */
+    uisq_reset_done(sq_reset_morph(sel, (uint8_t)(uisq_row * 4u + k)), UI_MSG_TOAST_RESET_EDIT_UNDO, sel); }
+static void uisq_reset_button(uint8_t ctl)
+{   const uint8_t sel = uisq_sel % SQ_NCH;
+    const int8_t ly = uisq_layer_of(ctl);
+    if (ctl == UI_C_B_EDIT) { uisq_reset_close(); return; }             /* CANCEL: nothing reset */
+    if (uisq_page == UI_PG_NOTE_EDIT) {                                 /* the edited step's field behind each button */
+        switch (ctl) {
+        case UI_C_B_FX: uisq_reset_ne(-1); break;
+        case UI_C_B_SCL: uisq_reset_ne(SQ_F_PITCH); break;
+        case UI_C_B_ENV: uisq_reset_ne(SQ_F_VEL); break;
+        case UI_C_B_LFO: uisq_reset_ne(SQ_F_PROB); break;
+        case UI_C_B_ARP: uisq_reset_ne(SQ_F_SLIDE); break;
+        case UI_C_B_SEQ: uisq_reset_ne(SQ_F_ON); break;
+        case UI_C_B_OCTDN: case UI_C_B_OCTUP: uisq_reset_ne(SQ_F_OCT); break;
+        default: uisq_reset_none(); break; }
+        return; }
+    if (ctl == UI_C_B_FX) { uisq_reset_done(sq_reset_algo(sel), UI_MSG_TOAST_RESET_EDIT_UNDO, sel); return; }
+    if (ly >= 0) {
+        if (!ALGOS[sq_ch[sel].algo % SQ_NALGO].layer[ly].n) { uisq_reset_none(); return; }   /* an absent layer: inert (dim on the button) */
+        uisq_reset_done(sq_reset_layer(sel, (uint8_t)ly), UI_MSG_TOAST_RESET_EDIT_UNDO, sel); return; }
+    if ((ctl == UI_C_B_OCTDN || ctl == UI_C_B_OCTUP) && uisq_page == UI_PG_PERF) { uisq_reset_done(sq_reset_row(sel, (uint8_t)(ctl == UI_C_B_OCTUP)), UI_MSG_TOAST_RESET_EDIT_UNDO, sel); return; }
+    uisq_reset_none(); }
+static void uisq_reset_key(uint8_t k)                                   /* a key pressed while RESET is open; its release is dropped (uisq_key_fired) */
+{   const uint8_t slot = uisq_key_slot(k), sel = uisq_sel % SQ_NCH;
+    uisq_key_fired |= 1u << k;
+    if (slot & 0x80u) { if ((slot & 0x7Fu) == 4u) uisq_reset_page(1); else uisq_reset_none(); return; }
+    {   const uint8_t p = (uint8_t)(uisq_view_page() * SQ_PAGE + slot);
+        StepEdit was;
+        if (p >= sq_ch[sel].len) { uisq_reset_none(); return; }
+        was = sq_ch[sel].ed[p];
+        if (uisq_page == UI_PG_NOTE_EDIT) sq_note_edit_end();           /* (over NOTE_EDIT too: a record of its own) */
+        (void)sq_step_clear(sel, p);
+        {   const uint8_t changed = uisq_ne_cmp(&was, &sq_ch[sel].ed[p]);
+            if (changed && uisq_page == UI_PG_NOTE_EDIT) uisq_ne_wrote();
+            uisq_reset_done(changed, UI_MSG_TOAST_CLEAR_EDIT_UNDO, sel); } } }
+
+/* EDIT (level, once per frame; the glue calls it in place of a press): a tap under 0.4 s is UNDO / REDO, on RELEASE; held 0.4 s it opens RESET (named from 0.25 s
+ * with a bar: SCREEN_SPEC_V2 5.3). In REC the hold is inert (no hint, and a long press is still an undo). While RESET is open EDIT cancels, on the press. */
+static void ui_sq_button(uint8_t ctl);
+static void ui_sq_edit(uint8_t down)
+{   if (down && !uisq_edit_dn) {
+        uisq_edit_dn = 1; uisq_edit_t0 = UISQ_MS(); uisq_edit_fired = 0;
+        ui_sq_btn_down(4, 1);
+        if (uisq_reset) { uisq_edit_fired = 1; uisq_reset_close(); }
+        else if (uisq_reset_ok_page()) ui_sq_hold_ctl(UI_MSG_HOLD_RESET, SQI_UNDO, UI_C_B_EDIT); }
+    else if (!down && uisq_edit_dn) {
+        uisq_edit_dn = 0;
+        ui_sq_btn_down(4, 0);
+        if (!uisq_hold_home) ui_sq_hold_end();
+        if (!uisq_edit_fired) ui_sq_button(UI_C_B_EDIT);
+        uisq_edit_fired = 0; } }
+static void uisq_edit_tick(void)
+{   if (!uisq_edit_dn || uisq_edit_fired || !uisq_reset_ok_page()) return;
+    if (UISQ_MS() - uisq_edit_t0 >= uisq_hold_ms(UI_C_B_EDIT)) { uisq_edit_fired = 1; ui_sq_hold_end(); uisq_reset_open(); } }
+
 /* PLAY, GLO, REC, SAVE and the buttons no page owns yet: on CHAN they commit the pending MIDI channel (an exit); their own actions are the later tasks' */
 /* GLO (P4-016): a tap opens SET from PERF, NOTE_EDIT or CHAN and closes it again (button_modes GLO rows). Acts on press for now: the hold = HARMONY (P5-006) will move it
  * to release. Inert in REC. The other buttons here are exits for a pending CHAN MIDI channel. */
 static void ui_sq_other_button(uint8_t ctl)
-{   if (ctl == UI_C_B_REC) {                                            /* REC (P4-017): latched; the same button opens and closes */
+{   if (uisq_reset) {                                                   /* RESET: REC = this page's edits, GLO / SAVE have nothing to reset; PLAY is the transport's */
+        if (ctl == UI_C_B_REC) uisq_reset_page(0);
+        else if (ctl == UI_C_B_GLO || ctl == UI_C_B_SAVE) uisq_reset_none();
+        return; }
+    uisq_pg_pend = ctl == UI_C_B_PLAY ? uisq_pg_pend : 0;               /* any other control cancels the ADD PAGE prompt (PLAY keeps it: it is the transport) */
+    if (ctl != UI_C_B_PLAY) uisq_fr_event(UISQ_FR_OTHER);
+    if (ctl == UI_C_B_REC) {                                            /* REC (P4-017): latched; the same button opens and closes */
         if (uisq_page == UI_PG_REC) uisq_rec_close();
         else if (uisq_page == UI_PG_PERF || uisq_page == UI_PG_NOTE_EDIT || uisq_page == UI_PG_CHAN || uisq_page == UI_PG_SET) uisq_rec_open();
         return; }
@@ -1580,14 +1881,41 @@ static void ui_sq_other_button(uint8_t ctl)
         if (uisq_page == UI_PG_NOTE_EDIT) uisq_ne_leave();
         uisq_pg_pend = 0; uisq_page = UI_PG_SET; ui.force = 1; } }
 
-/* HOME (level, once per frame): a tap under 0.7 s leaves NOTE_EDIT or CHAN for PERF; a longer hold is the MENU's (ui_input.c) and does not come here */
+/* HOME (level, once per frame, BEFORE the other controls of the frame): down starts the hold hint (`HELP / MENU`, from 0.25 s, the bar to 0.7 s) and the HELP
+ * window: until HOME is up a control touched is explained, not acted on (ui_sq_help_touch), and then HOME's release is no tap and opens no MENU. A release under
+ * 0.7 s with nothing touched is a tap: it leaves NOTE_EDIT / CHAN / SET / REC and cancels RESET; on PERF it cancels the ADD PAGE prompt, skips the first-run strip and
+ * says how to get HELP. A hold of 0.7 s with nothing touched is the MENU's (ui_input.c opens it at the 0.7 s mark and the release here is then no tap). */
+#define UISQ_HOME_MENU_MS 700u
+static uint8_t ui_sq_help_used(void) { return uisq_help_used; }
+static void ui_sq_help_touch(uint8_t ctl)
+{   if (!uisq_home_dn) return;                                          /* HELP exists only while HOME is down */
+    uisq_help = (uint8_t)(ctl + 1u); uisq_help_used = 1;
+    uisq_help_pg = uisq_reset ? (uint8_t)UI_PG_RESET : uisq_page;
+    if (uisq_hold_home) { ui_sq_hold_end(); uisq_hold_home = 0; }
+    uisq_toast_until = 0; uisq_touch_until = 0; uisq_touch_held = 0;    /* row 1 outranks a toast and a touched control */
+    ui.force = 1; }
 static void ui_sq_home(uint8_t down)
-{   if (down && !uisq_home_dn) { uisq_home_t0 = UISQ_MS(); uisq_chan_commit(); }     /* HOME down commits a pending MIDI channel (a hold goes to the MENU) */
-    else if (!down && uisq_home_dn && UISQ_MS() - uisq_home_t0 < 700u) {
-        if (uisq_page == UI_PG_NOTE_EDIT) uisq_ne_leave();
-        else if (uisq_page == UI_PG_CHAN) ui_sq_chan_close();
-        else if (uisq_page == UI_PG_SET) { uisq_page = UI_PG_PERF; ui.force = 1; }
-        else if (uisq_page == UI_PG_REC) uisq_rec_close(); }
+{   if (down && !uisq_home_dn) {
+        uisq_home_t0 = UISQ_MS(); uisq_chan_commit();                   /* HOME down commits a pending MIDI channel (a hold goes to the MENU) */
+        uisq_help = 0; uisq_help_used = 0; uisq_home_held = 1;
+        ui_sq_btn_down(6, 1);
+        ui_sq_hold_begin(ui_msgs[UI_MSG_HOLD_HELP_MENU].a, SQI_HOME, UISQ_HOME_MENU_MS); uisq_hold_home = 1; }
+    else if (!down && uisq_home_dn) {
+        const uint8_t tap = (uint8_t)(!uisq_help_used && UISQ_MS() - uisq_home_t0 < UISQ_HOME_MENU_MS), was_reset = uisq_reset;
+        uisq_home_held = 0; uisq_help = 0; uisq_help_used = 0;
+        ui_sq_btn_down(6, 0);
+        if (uisq_hold_home) { ui_sq_hold_end(); uisq_hold_home = 0; }
+        ui.force = 1;
+        if (tap) {
+            if (uisq_reset) uisq_reset_close();
+            if (uisq_page == UI_PG_NOTE_EDIT) uisq_ne_leave();
+            else if (uisq_page == UI_PG_CHAN) ui_sq_chan_close();
+            else if (uisq_page == UI_PG_SET) { uisq_page = UI_PG_PERF; ui.force = 1; }
+            else if (uisq_page == UI_PG_REC) uisq_rec_close();
+            else if (uisq_page == UI_PG_PERF && !was_reset) {
+                uisq_pg_pend = 0;                                       /* PERF: HOME only cancels a prompt or the first-run strip; it never opens a page */
+                uisq_fr_end();
+                ui_sq_toast_id(UI_MSG_TOAST_HOME_HOLD_HELP, 0xFFu); } } }
     uisq_home_dn = down ? 1u : 0u; }
 
 /* SELECT (U02): channel CH1..CH4 clamped; one detent past the last channel in use adds the next free one (SCREEN_SPEC_V2 6) */
@@ -1598,10 +1926,11 @@ static void ui_sq_select_turn(int32_t d)
     if ((uisq_page != UI_PG_PERF && uisq_page != UI_PG_CHAN && uisq_page != UI_PG_SET && uisq_page != UI_PG_REC) || !d) return;
     uisq_chan_commit();                                                 /* CHAN: the pending MIDI channel belongs to the channel being left */
     uisq_pg_pend = 0;
+    uisq_fr_event(UISQ_FR_OTHER);
     if (d > 0) {
         const uint8_t nx = uisq_next_used(uisq_sel, 1);
         if (nx != uisq_sel) uisq_sel = nx;
-        else if (uisq_page == UI_PG_PERF) {                             /* (CHAN and SET select only: clamped, no add) */
+        else if (uisq_page == UI_PG_PERF && !uisq_reset) {              /* (CHAN, SET and RESET select only: clamped, no add) */
             uint8_t f = SQ_NCH;
             for (uint8_t c = 0; c < SQ_NCH; c++) if (!(uisq_used >> c & 1u)) { f = c; break; }
             if (f < SQ_NCH) {                                           /* add: the next free slot, new (setup cue), unmuted */
@@ -1658,7 +1987,9 @@ static void uisq_set_oct(uint8_t ctl)
     ui_sq_touch(ui_msgs[id].a, b, 0); }
 
 static void ui_sq_knob(uint8_t k, int32_t d)
-{   if (uisq_page == UI_PG_NOTE_EDIT) { uisq_ne_knob(k, d); return; }
+{   if (uisq_reset) { if (d && k < 4u) uisq_reset_knob(k); return; }     /* RESET: any detent puts that value back (one shot) */
+    if (d && k < 4u) uisq_fr_event(UISQ_FR_KNOB);
+    if (uisq_page == UI_PG_NOTE_EDIT) { uisq_ne_knob(k, d); return; }
     if (uisq_page == UI_PG_SET && k < 4u) { if (d > 127) d = 127; if (d < -127) d = -127; uisq_set_knob(k, d); return; }
     if (uisq_page == UI_PG_CHAN && k < 4u) { if (d > 127) d = 127; if (d < -127) d = -127; uisq_chan_knob(k, d); return; }
     if (uisq_page == UI_PG_REC && k < 4u) { uisq_rec_knob(k, d); return; }
@@ -1691,6 +2022,7 @@ static const uint8_t uisq_dice_msg[SQ_NLAYER] = { UI_MSG_TOAST_NOTES_EDIT_UNDO, 
 static void ui_sq_button(uint8_t ctl)
 {   const uint8_t sel = uisq_sel % SQ_NCH;
     const int8_t ly = uisq_layer_of(ctl);
+    if (uisq_reset) { uisq_reset_button(ctl); return; }                 /* RESET: the button's layer goes back to its default (EDIT cancels) */
     if (uisq_page == UI_PG_NOTE_EDIT) { uisq_ne_button(ctl); return; }
     if (uisq_page != UI_PG_PERF && uisq_page != UI_PG_CHAN && uisq_page != UI_PG_SET && uisq_page != UI_PG_REC) return;
     if (uisq_page == UI_PG_REC && (ctl == UI_C_B_OCTDN || ctl == UI_C_B_OCTUP)) { uisq_pg_pend = 0; uisq_rec_octb(ctl); return; }
@@ -1708,6 +2040,7 @@ static void ui_sq_button(uint8_t ctl)
         if (ctl == UI_C_B_FX) { for (uint8_t l = 0; l < SQ_NLAYER; l++) any |= (uint8_t)(a->layer[l].n != 0); }
         else any = (uint8_t)(a->layer[ly].n != 0);
         if (!any) return;                                               /* an absent layer is inert: dim on the button, no change, no toast */
+        uisq_fr_event(UISQ_FR_DICE);
         uisq_lane_read(before, sel, vp);
         if (ctl == UI_C_B_FX) sq_dice_all(sel); else sq_dice_layer(sel, (uint8_t)ly);
         uisq_lane_read(after, sel, vp);
@@ -1744,6 +2077,7 @@ static void uisq_key_down(uint8_t k)
 {   const uint8_t slot = uisq_key_slot(k);
     uisq_key_t0[k] = UISQ_MS();
     if (uisq_page == UI_PG_REC) { uisq_rec_key(k, 1); return; }          /* REC: every key is a note */
+    if (uisq_reset && uisq_keys_live()) { uisq_reset_key(k); return; }   /* RESET: a white key clears its step, D#4 re-copies the page before */
     if (!uisq_keys_live()) return;       /* NOTE_EDIT: the white keys and the black keys work as on PERF */
     if (!(slot & 0x80u)) { uisq_pg_pend = 0; return; }                  /* a white key: a tap or a hold, decided by the time */
     switch (slot & 0x7Fu) {
@@ -1766,9 +2100,26 @@ static void uisq_key_down(uint8_t k)
         if (vp + 1u < pages) { uisq_vpage = (uint8_t)(vp + 1u); uisq_pg_pend = 0; }
         else if (len < SQ_NSTEP) {
             uisq_vpage = vp;
-            if (uisq_pg_pend) { (void)sq_page_add(uisq_sel); uisq_pg_pend = 0; uisq_vpage = (uint8_t)(vp + 1u); uisq_gone_n = 0; uisq_undone = 0; }
+            if (uisq_pg_pend) { (void)sq_page_add(uisq_sel); uisq_pg_pend = 0; uisq_vpage = (uint8_t)(vp + 1u); uisq_gone_n = 0; uisq_undone = 0; uisq_fr_event(UISQ_FR_PAGE); }
             else { uisq_pg_pend = 1; uisq_msg_toast_n(UI_MSG_TOAST_PAGE_2_PG_ADD, uisq_sel, (uint8_t)(vp + 2u)); } }
         else { uisq_pg_pend = 0; ui_sq_toast_id(UI_MSG_TOAST_64_STEPS_MAX, uisq_sel); }   /* page 4 at LENGTH 64: nothing to add */
+        break; }
+    case 5: case 6: case 7: {                                           /* SOL FIL ROL held (MOVE_HELD): the key is named while it is down; the move itself is P6-003's */
+        static const uint8_t mid[3] = { UI_MSG_ENC_SOLO_CH1_SOLO, UI_MSG_ENC_FILL_60_LET_GO, UI_MSG_ENC_ROLL_3X_LET_GO };
+        const uint8_t mv = (uint8_t)((slot & 0x7Fu) - 4u);
+        const uint32_t num = mv == 1u ? (uint32_t)uisq_sel % SQ_NCH + 1u : mv == 2u ? 100u : 2u;   /* SOLO: the channel; no force: FILL to the maximum, ROLL 2x (key_map) */
+        char w[18];
+        const char *t = ui_msgs[mid[mv - 1u]].b;
+        uint32_t n = 0;
+        uisq_pg_pend = 0;
+        ui_sq_held_mv_set(mv);
+        w[0] = 0;
+        while (*t && (*t < '0' || *t > '9') && n + 1u < sizeof w) { w[n++] = *t++; }   /* the row's own words around its number */
+        w[n] = 0;
+        uisq_catu(w, sizeof w, num);
+        while (*t >= '0' && *t <= '9') t++;
+        uisq_cat(w, sizeof w, t);
+        ui_sq_touch(ui_msgs[mid[mv - 1u]].a, w, 1);
         break; }
     default: uisq_pg_pend = 0; break; } }
 
@@ -1777,6 +2128,7 @@ static void uisq_key_up(uint8_t k)
     const uint32_t el = UISQ_MS() - uisq_key_t0[k];
     uisq_key_fired &= ~(1u << k);
     if ((slot & 0x80u) && (slot & 0x7Fu) < 4u) { ui_sq_held_m_set(0); ui_sq_hold_end(); }   /* the M-key hint ends with the key, on any page */
+    if ((slot & 0x80u) && (slot & 0x7Fu) >= 5u && (slot & 0x7Fu) <= 7u && uisq_held_mv == (slot & 0x7Fu) - 4u) { ui_sq_held_mv_set(0); ui_sq_touch_end(); }   /* a held move ends with its key, on any page */
     if (uisq_page == UI_PG_REC) { uisq_rec_key(k, 0); return; }
     if (!uisq_keys_live()) return;
     if (!(slot & 0x80u)) {                                              /* a white key released before the hold time: step n ON/OFF (U14) */
@@ -1786,7 +2138,8 @@ static void uisq_key_up(uint8_t k)
             if (p >= sq_ch[uisq_sel % SQ_NCH].len) { ui_sq_toast_id(UI_MSG_TOAST_PAST_THE_END_LEN, uisq_sel); return; }   /* past LENGTH: say so, change nothing */
             if (sq_step_tap(uisq_sel, p)) {
                 if (uisq_page == UI_PG_NOTE_EDIT && uisq_ne_cmp(&was, &sq_ch[uisq_sel % SQ_NCH].ed[p % SQ_NSTEP])) uisq_ne_wrote();   /* (NOTE_EDIT: EDIT may take it back) */
-                uisq_step_audition(uisq_sel, p); } }
+                uisq_step_audition(uisq_sel, p);
+                uisq_fr_event(UISQ_FR_TAP); } }
         return; }
     if (slot == (0x80u | 4u)) {                                         /* CHN (D#4): a tap opens CHAN from PERF / NOTE_EDIT, and closes it (key_map CHN / BACK); a longer hold is RIG (P4-032) */
         const uint16_t hold = uisq_hold_ms(UI_C_KEY_B05_DS4);
@@ -1822,7 +2175,8 @@ static void uisq_keys_tick(void)
                 if (sq_note_edit_begin(uisq_sel, p)) {                  /* open, or move the editor (a new snapshot: the last change wins) */
                     uisq_edit_step = p; uisq_edit_ch = uisq_sel; uisq_vpage = (uint8_t)(p / SQ_PAGE);
                     uisq_ne_dirty = 0; uisq_ne_undone = 0;
-                    uisq_page = UI_PG_NOTE_EDIT; ui.force = 1; } } }
+                    uisq_page = UI_PG_NOTE_EDIT; ui.force = 1;
+                    uisq_fr_event(UISQ_FR_HOLD); } } }
         else if ((slot & 0x7Fu) < 4u && el >= uisq_remove_ms(uisq_key_ctl(k))) {      /* the M key held 1.5 s */
             uisq_key_fired |= 1u << k; ui_sq_held_m_set(0); ui_sq_hold_end();
             uisq_do_remove((uint8_t)(slot & 0x7Fu)); } } }
@@ -1833,6 +2187,9 @@ static void ui_sq_input(void)
 {   uisq_now = UISQ_MS();
     uisq_rec_flush();
     uisq_keys_tick();
+    uisq_edit_tick();
+    if (uisq_reset && !uisq_reset_ok_page()) uisq_reset_close();        /* RESET lives only over a page that has defaults (never REC) */
+    if (uisq_help && !uisq_home_dn) uisq_help = 0;                      /* HELP exists only while HOME is down */
     if (uisq_toast_until && (int32_t)(uisq_now - uisq_toast_until) >= 0) uisq_toast_until = 0;
     if (uisq_pick_until && (int32_t)(uisq_now - uisq_pick_until) >= 0) uisq_pick_until = 0;
     if (uisq_home_held) uisq_toast_until = 0;                          /* row 1 (the HELP line) outranks a toast */

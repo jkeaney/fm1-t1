@@ -27,7 +27,7 @@ Notation as S01. Keys are named by the printed key and its number n on the lane 
 | 20 | Hold white key 13 for 0.4 s | the box moves to cell 13; header chip `STEP 13`, status line `STEP 13`; footer `HOLD KEY = MOVE`, `HOME = DONE` | audition of step 13 | KEY_W13_D5/NOTE_EDIT |
 | 21 | Tap white key 2 (G3) | cell 2 fills; the editor stays on step 13 | next pass: step 2 sounds | KEY_W02_G3/NOTE_EDIT |
 | 22 | Tap HOME | PERF; CUE `TAP STEP=ON/OFF  HOLD=EDIT NOTE` | none | B_HOME/NOTE_EDIT |
-| 23 | Tap black key D#5 (PG+) on page 1 of 1 | CUE `ADD PAGE 2 = COPY OF 1? PG+ = yes`; ghost page cell in the lane header row | none | KEY_B10_D#5/PERF |
+| 23 | Tap black key D#5 (PG+) on page 1 of 1 | toast `PAGE 2?  PG+=ADD` (V2 4.11; HOME or any other control cancels it) | none | KEY_B10_D#5/PERF |
 | 24 | Tap D#5 (PG+) again | Page 2 appears: HD `[1][2]. .` `L32`; LN `PG 2/2` then the FOLLOW word (adding a page sets FOLLOW off, like PG-/PG+: SEQUENCER_UX 15, F-13) and `hold=EDIT`; toast `PAGE 2 = COPY OF PAGE 1: CHANGE IT`; the lane shows the copy | none audible: page 2 plays the same as page 1 | KEY_B10_D#5/PERF |
 | 25 | Tap white key 4 (B3) | cell 4 filled on page 2 (step 20) | next pass of page 2: step 20 sounds | KEY_W04_B3/PERF |
 | 26 | Tap black key C#5 (PG-) | the lane shows page 1; toast `VIEW P1 . FOLLOW OFF` | none | KEY_B09_C#5/PERF |

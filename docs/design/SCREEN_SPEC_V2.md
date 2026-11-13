@@ -116,6 +116,29 @@ Every band of PERF stays except what a recording does not need: header (the tran
 - Writes: ON + PITCH + VEL 90 (120 with ACC) + SLIDE (K3 ON; OFF writes AUTO), one undo record per key press; EDIT takes the last one back and the cursor returns to it.
 Renders (`proposals/v12/out/`): `v12_rec_armed`, `v12_rec_playing`; the host test also renders `build/ui_sq/rec_*`.
 
+### 4.9 The RESET overlay (hold EDIT 0.4 s; P4-018; NEW on V2, drawn from the V2 tokens, for the owner to approve)
+Every band of the page beneath stays (PERF, NOTE_EDIT, CHAN or SET; never REC). What marks it:
+- Hold hint while EDIT is down (5.3): the undo icon + `RESET`, the bar to 0.4 s, from 0.25 s. A tap under 0.4 s is UNDO, acted on the release.
+- Knob tiles that go back: the label band inverted (white, ink text). PERF: all four of the live row; NOTE_EDIT: all four (the step's field to AUTO); CHAN: LENGTH, MIDI, FOLLOW (SOURCE has no default); SET: all four (K1 only while the clock is internal).
+- Buttons that put something back: a white outline on the tile (FX = the algorithm, SCL ENV LFO ARP SEQ = that layer if the algorithm has it, REC = the viewed page's edits; NOTE_EDIT: each button's field of the step). EDIT stays inverted while it is down (it cancels), GLO, SAVE, HOME and PLAY are unmarked.
+- White keys inside LENGTH: a white outline on the key front (clear that step); D#4 lit white with the RST glyph (the page before copied over the viewed page; page 1: its edits cleared).
+- Slot (page title): `RESET` + `TOUCH ONE`. Footer: `TOUCH WHAT TO RESET` (AF_M) / `EDIT = NO` (AF_S, MID), the page_states cue.
+- One shot: the first control that goes back closes it with `[n] RESET  EDIT=UNDO` (`CLEAR` for a step or a page, `COPIED` for D#4; LENGTH, FOLLOW and the SET values are not undoable: toast `RESET` alone). A control that has nothing to reset (GLO, SAVE, ALGO, PRESETS, an M key, a layer the algorithm lacks, a key past LENGTH) toasts `NOTHING TO RESET` and RESET stays; a value already at its default closes it with the same toast. EDIT (on the press) or a HOME tap cancels (HOME also leaves the page beneath). PLAY and SELECT work as ever.
+Renders: the host test writes `build/ui_sq/safety_reset_perf.png`.
+
+### 4.10 The HELP box (hold HOME and touch a control; P4-018; NEW on V2, for the owner to approve)
+- HOME down: the HOME tile inverted, the hold hint `HELP / MENU` (HOME icon, the bar to 0.7 s) from 0.25 s. A release under 0.7 s with nothing touched is a HOME tap (4.11).
+- A control touched (any button, knob, encoder or key; PLAY still plays): the control does NOT act. A box covers the knob tiles, status line and music row (y 27-141, x 2-237, `T_SURF` with a white frame; header, slot, buttons and keybed stay): a white `HELP` tag (AF_S, ink), the page's name right (AF_S, MID), then the two `help_text` lines of the control on the page beneath (line 1 in `T_TEXT`, line 2 in MID, AF_M wrapped once at a space, AF_S for a remainder that still does not fit; `{r1}` / `{r2}` = the knob's label in ROW 1 / ROW 2 of the selected algorithm, from its descriptor).
+- Slot: `HELP` + `LET GO = BACK`. A key pressed under HELP is masked from the page until it is physically up.
+- Releasing HOME returns to the page as it was (nothing changed, no MENU, no HOME toast). A hold that reaches 0.7 s with nothing touched opens the MENU at that mark.
+Renders: `build/ui_sq/safety_help_seq.png`, `safety_home_hold.png`.
+
+### 4.11 First run, the add-page prompt, the held moves (P4-018)
+- FIRST_RUN (once per device; bit 0x80 of `ui_prefs2`): step 1 is the setup cue of 5.6 (`CHN KEY, K2 = MIDI` / `CH1`, CHN lit: the v12 `first_run` scene); steps 2-7 put the `overlay_text.tsv` line in the keys' line of the PERF footer (AF_M, AF_S if it does not fit) with `HOME = SKIP` (AF_S, MID) on the right: `PRESS PLAY`, `TURN K1 TO MORPH IT`, `PRESS FX: NEW PATTERN`, `TAP A WHITE KEY: ON/OFF`, `HOLD A WHITE KEY: EDIT`, `PG+ TWICE: ADD PAGE 2`. Each advances on the event it names (SEQUENCER_UX 11.3); a HOME tap on PERF ends it at once. Render: `build/ui_sq/safety_first_run_2.png`.
+- HOME tap on PERF (nothing touched): cancels the add-page prompt, ends the first run, toasts `HOME  HOLD=HELP`; it never opens a page.
+- ADD_PAGE: PG+ on the last page toasts `PAGE n?  PG+=ADD` (v12 `add_page`); PG+ again adds it; HOME or any other control cancels.
+- MOVE_HELD: SOL / FIL / ROL held: the key inverted (4.6) and, while it is down, the slot names it as a touched control (5.2): `SOLO  CH1 SOLO`, `FILL  100%  LET GO`, `ROLL  2X  LET GO` (no key force yet: the maximum, 2x). The move itself is P6-003's.
+
 ## 5. The message slot (x104-239, y0-21)
 Every string is in `MESSAGES` (`v12.py`); `check_messages()` proves each fits (AF_M, else AF_S, never cut). Firmware: a
 string table with a width check in `tools/gen_ui_tables.py` (P4-029).
@@ -143,12 +166,12 @@ string table with a width check in `tools/gen_ui_tables.py` (P4-029).
 playing, two_channels, one_channel, sel_muted, dice, turning_k2, turn_select, turn_algo, turn_presets, oct_row2, row3_rig,
 hold_edit, hold_glo, hold_save, hold_home, hold_mute_remove, midi_off, midi_off_after, channel_added, added_after,
 first_run, chan_page, chan_midi_clash, removed, undo, rec_armed, rec_playing, pending_p02, ext_sync, ext_wait, ext_lost,
-follow_off, add_page, past_length, held_solo, held_fill, held_roll, arp_row2, demo_algo (a hypothetical algorithm), stage_heard, set_int, set_int_stopped, set_turn_swing, set_octave, set_ext_live, set_ext_k1_turned, set_ext_wait, set_ext_lost (SET, 4.7);
+follow_off, add_page, past_length, held_solo, held_fill, held_roll (the v12 scenes; the RESET and HELP overlays of 4.9 / 4.10 have no mock scene yet: the host renders `safety_*` are their reference), arp_row2, demo_algo (a hypothetical algorithm), stage_heard, set_int, set_int_stopped, set_turn_swing, set_octave, set_ext_live, set_ext_k1_turned, set_ext_wait, set_ext_lost (SET, 4.7);
 knob sheets for every algorithm and row.
 
 ## 8. Not covered here (other specs / tasks)
-NOTE_EDIT, SCALE/HARMONY, RESET, HELP and MENU pages keep their current specs until re-drawn on this system (P4-014,
-P5-006, P4-018 re-pointed to this spec; SET is drawn in 4.7, P4-016); the RIG page (HW_SUPPORT_LOWLEVEL 9) likewise.
+NOTE_EDIT, SCALE/HARMONY and MENU pages keep their current specs until re-drawn on this system (P4-014,
+P5-006; SET is drawn in 4.7 (P4-016), REC in 4.8 (P4-017), RESET, HELP, first run, the add-page prompt and the held moves in 4.9-4.11 (P4-018)); the RIG page (HW_SUPPORT_LOWLEVEL 9) likewise.
 
 ## 9. Known gaps accepted at lock (critique v11, owner "good enough, move on")
 Other-channel strips are 3 px (~3.7 arcmin at 35 cm); the playhead column is 2.6:1 on black; the knob fill can read as

@@ -513,6 +513,10 @@ MESSAGES = [  # (kind, name-or-word, text-or-hint): every top-bar message; check
     ("enc", "CHN", "CH2 SETUP"), ("enc", "GLO", "ALL CHANNELS"), ("enc", "K1", "HOST SETS TEMPO"),
     ("enc", "OCT+", "OCTAVE +1"), ("enc", "OCT-", "OCTAVE -2"),
     ("enc", "GLO", "REC = DONE"),
+    # P4-018: RESET, HELP and the HOME tap on PERF (SCREEN_SPEC_V2 4.9, 4.10)
+    ("toast", "RESET", "EDIT=UNDO"), ("toast", "RESET", ""), ("toast", "CLEAR", "EDIT=UNDO"), ("toast", "COPIED", "EDIT=UNDO"),
+    ("toast", "NOTHING TO RESET", ""), ("toast", "HOME", "HOLD=HELP"),
+    ("enc", "RESET", "TOUCH ONE"), ("enc", "HELP", "LET GO = BACK"),
     ("hold", "RESET", ""), ("hold", "HARMONY", ""), ("hold", "UNDO LOAD", ""), ("hold", "HELP / MENU", ""),
     ("hold", "REMOVE CH4", ""), ("hold", "PREVIEW CH4", ""),
 ]

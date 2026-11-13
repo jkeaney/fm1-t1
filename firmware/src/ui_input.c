@@ -316,7 +316,7 @@ static void ui_input(void)
         return;                                         /* (before the buttons' timers: no tap or hold after it) */
     home = btn_hold(&ui.home_t0, B_HOME, now, 1);
     if (!ui.menu && !ui.confirm) {                      /* the sequencer's controls (ui_sq_glue.c); HOME held: the MENU */
-        if (home == BT_HOLD) {
+        if (home == BT_HOLD && !ui_sq_help_used()) {       /* (a control touched while HOME is down is HELP's: no MENU) */
             ui.menu = 1;
             ui.force = 1;
             song.seq_mode = 0;

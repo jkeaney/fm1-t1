@@ -10,6 +10,7 @@ Sources (docs/design/, all hand-edited or produced by their own generator; this 
   key_map.tsv       key label per page and gesture                -> ui_key_rows
   note_edit_text.tsv the NOTE_EDIT page's own words (P4-014)     -> enum ui_ne_id_t, ui_ne_text
   set_text.tsv       the SET page's own words (P4-016)           -> enum ui_st_id_t, ui_st_text
+  overlay_text.tsv   the words of the FIRST_RUN steps and the RESET / HELP overlays (P4-018) -> enum ui_ov_id_t, ui_ov_text
   help_text.tsv     two help lines per control and page (made by tests/design/gen_help.py; checked by
                     tests/design/check_help.py)                   -> ui_help_rows
   tests/design/widths.tsv   pixel limits of UI strings (read by tests/design/width_probe.sh)
@@ -271,7 +272,9 @@ def build():
     uniq(ne, ["id"], "note_edit_text")
     st = rd("set_text")            # P4-016: the words of the SET page that are in no other table
     uniq(st, ["id"], "set_text")
-    return dict(st=st, ne=ne, ps=ps, cm=cm, bm=bm, km=km, ky=ky, ht=ht, pages=pages, ctls=ctls, knobs=knobs, ctxs=ctxs,
+    ov = rd("overlay_text")        # P4-018: the first-run step lines and the RESET / HELP overlay words
+    uniq(ov, ["id"], "overlay_text")
+    return dict(ov=ov, st=st, ne=ne, ps=ps, cm=cm, bm=bm, km=km, ky=ky, ht=ht, pages=pages, ctls=ctls, knobs=knobs, ctxs=ctxs,
                 labels=labels, msgs=msgs or [])
 
 
@@ -631,6 +634,13 @@ def emit(t):
     L += ["    UI_ST_COUNT", "} ui_st_id_t;"]
     L.append("static const char *const ui_st_text[UI_ST_COUNT] = {")
     L += ["    %s," % cstr(r["text"]) for r in t["st"]]
+    L += ["};", ""]
+    # P4-018: the first-run steps and the RESET / HELP overlay words (docs/design/overlay_text.tsv)
+    L += ["typedef enum {"]
+    L += ["    UI_OV_%s%s" % (ident(r["id"]), " = 0," if i == 0 else ",") for i, r in enumerate(t["ov"])]
+    L += ["    UI_OV_COUNT", "} ui_ov_id_t;"]
+    L.append("static const char *const ui_ov_text[UI_OV_COUNT] = {")
+    L += ["    %s," % cstr(r["text"]) for r in t["ov"]]
     L += ["};", ""]
     # hold times: the "0.4 s" of a PERF hold row of button_modes.tsv / key_map.tsv (the hint's bar fills to it); a control without one acts on release
     holds = []

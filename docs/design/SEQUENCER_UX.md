@@ -144,7 +144,7 @@ the generated value under it) or the set value (bright, with a dot).
 - **Swap the viewed page:** black **C#5 `PG-`** and **D#5 `PG+`** (the printed `MONO POLY` pair, freed by removing
   scenes). They never wrap. Changing the view by hand sets `FOLLOW` off (toast `VIEW P2 . FOLLOW OFF`).
 - **Add a page (the main extension gesture):** on the last page, `PG+` shows the ADD_PAGE prompt (a ghost page cell
-  and `ADD PAGE 2 = COPY OF 1? PG+ = yes`); `PG+` again adds it. Any other control cancels the prompt and does its
+  and the toast `PAGE 2?  PG+=ADD`, V2 4.11); `PG+` again adds it. Any other control cancels the prompt and does its
   own job. The new page is an **exact copy of the page before it**: its edit layer is copied, and its generator
   source is the source of the page before (1.4), so the music **does not change** when a page is added, whatever the
   page before reads. The view moves to the new page, the lane shows it, and the user changes the copy. Page 3 copies
@@ -375,15 +375,21 @@ are replaced by the progression strip and the chord keys; OCTAVE moved to OCT- /
 | RST AL RST NT RST AC RST SH CANCEL -   |   | | notes fall. NOTE EDIT: step ON/OFF | |
 | HOME -  RST AR RST HT PLAY RST PG      |   | +------------------------------------+ |
 | white keys = CLR step, D#4 = COPY P    |   | PLAY still plays. let go = back        |
-| RESET: TOUCH WHAT TO RESET  EDIT=no    |   | HELP: SEQ  let go = back               |
+| TOUCH WHAT TO RESET   EDIT = NO    |   | HELP: SEQ  let go = back               |
 +----------------------------------------+   +----------------------------------------+
 ```
 
-Before anything is touched, holding HOME shows only the strip `HOME: touch=HELP  let go=MENU` (from 0.25 s, so a
-plain tap does not flash it). HELP exists only while HOME is down: releasing HOME after a touch returns to the page
-it was held on, with nothing changed; releasing after 0.7 s with nothing touched opens MENU; releasing earlier with
+**As built (P4-018, SCREEN_SPEC_V2 4.9 / 4.10; the mock-up above is the history).** The screen is V2, so the pictures differ and the words stay: RESET draws the page beneath with each
+control that goes back marked (a white label band on the knob tiles, a white outline on the buttons and on the white keys, D#4 lit) and the footer `TOUCH WHAT TO RESET` / `EDIT = NO`; the slot
+reads `RESET  TOUCH ONE`. HELP is a box over the knob tiles, status line and music row (the buttons and keys stay in view) with the two lines of the control's help_text row; the slot reads
+`HELP  LET GO = BACK`. A control that goes back says `RESET  EDIT=UNDO` (`CLEAR` for a step or page, `COPIED` for D#4; LENGTH, FOLLOW and the SET values are not undoable, so their toast is `RESET`
+alone); a control with nothing to reset says `NOTHING TO RESET` and RESET stays; one that is already default closes RESET with the same words. EDIT tap (under 0.4 s) acts when it is released.
+
+Before anything is touched, holding HOME shows only the hold hint `HELP / MENU` in the message slot (from 0.25 s, so a
+plain tap does not flash it; its bar fills to the 0.7 s mark). HELP exists only while HOME is down: releasing HOME after a touch returns to the page
+it was held on, with nothing changed; a hold that reaches 0.7 s with nothing touched opens MENU (Felucca's hold fires at the 0.7 s mark, not on the release); releasing earlier with
 nothing touched is a HOME tap. MENU is Felucca's menu (set-and-forget rows only, SYSTEM_MAP section 7), unchanged;
-FIRST_RUN, ADD_PAGE and MOVE_HELD are overlays that only change the cue strip and one cell (page_states.tsv).
+FIRST_RUN, ADD_PAGE and MOVE_HELD are overlays that only change the footer, the slot and one cell (page_states.tsv).
 
 ### 2.7 Transitions (state diagram) and the single escape
 
@@ -407,7 +413,7 @@ FIRST_RUN, ADD_PAGE and MOVE_HELD are overlays that only change the cue strip an
 ```
 
 - **One escape:** HOME tap returns to PERF from every page (owner decision 61: tap = home). On PERF it cancels a
-  pending prompt (ADD PAGE, a pending preset slot) or skips the first-run strip, and toasts `HOME  hold: HELP / MENU`;
+  pending prompt (ADD PAGE, a pending preset slot) or skips the first-run strip, and toasts `HOME  HOLD=HELP`;
   it never opens a page. HELP lives only while HOME is held (decision 57), so a reflexive double HOME cannot land in a
   page where nothing works: the first draft's dead end is gone.
 - Opening a page from another latched page replaces it (one latched page at a time; NOTE_EDIT, CHAN, SET, SCALE switch
@@ -559,7 +565,7 @@ each channel whose PREVIEW is ON plays the same notes on its own preview part (a
 
 | Id | Input | Processing | Output: MIDI and timing | Output: screen |
 | --- | --- | --- | --- | --- |
-| U01 | power on | `sq_boot()`: defaults (ADR-0003 12: CH1 ACID MIDI 1, CH2-CH4 MIDI 2-4 muted), LENGTH 16 x4, edits empty, every `pg_src` 0, FOLLOW on | nothing until PLAY | PERF, header `M1`, first-run strip `D#4 K2: MIDI CHANNEL` |
+| U01 | power on | `sq_boot()`: defaults (ADR-0003 12: CH1 ACID MIDI 1, CH2-CH4 MIDI 2-4 muted), LENGTH 16 x4, edits empty, every `pg_src` 0, FOLLOW on | nothing until PLAY | PERF, header `M1`, first-run strip `CHN KEY, K2 = MIDI` |
 | U02 | SELECT turn | `sq_select(ch)` | none | channel cell inverted, lane / knobs / header show ch |
 | U03 | ALGORITHM turn | `sq_set_algo(ch,a)` keeps `st[]` and edits; rebuild | new AUTO steps from the next step; no note cut (decision 47) | header algorithm name, knob labels, dice sub-labels |
 | U04 | K1..K4 turn (ROW 1) | `sq_morph_turn(ch,knob,d)` via `knob_morph[]`, `sq_rebuild` | next step | cell value same frame; lane cells update |
@@ -625,10 +631,10 @@ each channel whose PREVIEW is ON plays the same notes on its own preview part (a
 | U59 | EDIT hold, knob (PERF) | `sq_reset_morph` | next step | `RST` then the default value |
 | U60 | EDIT hold, OCT- / OCT+ | `sq_reset_row` | next step | row values |
 | U61 | EDIT hold, FX / dice | `sq_reset_algo` / `sq_reset_layer` | next step | toast |
-| U62 | HOME held; touch or turn a control | HELP while HOME is down; table lookup of the control's help lines on the page beneath in [help_text.tsv](help_text.tsv) (control x page, two lines of at most 34 characters, 343 rows, checked by `tests/design/check_help.py`; the cue strip shows line 1, the help box both lines; P2-011, F-06); the control does not act; release -> back | none (PLAY still plays) | strip `HOME: touch=HELP  let go=MENU` from 0.25 s, then the help box |
+| U62 | HOME held; touch or turn a control | HELP while HOME is down; table lookup of the control's help lines on the page beneath in [help_text.tsv](help_text.tsv) (control x page, two lines of at most 34 characters, 343 rows, checked by `tests/design/check_help.py`; the cue strip shows line 1, the help box both lines; P2-011, F-06); the control does not act; release -> back | none (PLAY still plays) | strip `HELP / MENU` from 0.25 s, then the help box |
 | U63 | HOME hold 0.7 s, nothing touched | MENU on release | none | menu |
-| U64 | HOME tap | back to PERF (on PERF: cancel a prompt) | none | PERF; on PERF toast `HOME  hold: HELP / MENU` |
-| U65 | first power-on | strip steps 11.3 (step 1 `D#4 K2: MIDI CHANNEL` is a prompt for U40, not a new gesture); bit in `ui_prefs2` | - | strip text |
+| U64 | HOME tap | back to PERF (on PERF: cancel a prompt) | none | PERF; on PERF toast `HOME  HOLD=HELP` |
+| U65 | first power-on | strip steps 11.3 (step 1 `CHN KEY, K2 = MIDI` is a prompt for U40, not a new gesture); bit in `ui_prefs2` | - | strip text |
 | U66 | NOTE_EDIT K1 / REC keys | audition path | each detent / key sounds | value |
 | U67 | REC key with force | level = calibrated landing force snapped to SOFT 64 / MED 90 / HARD 120; with `REC_AT` ON, pressing on sends channel pressure (FS5) | written note at that level; HARD is an accent | `v MED 90` |
 
@@ -745,7 +751,7 @@ first run prompts for. (The T-1's six tracks are gone: v1 has four channels, dec
 Changing a channel's MIDI channel is 2 gestures from PERF: tap `D#4` (CHAN), turn `K2`. In the reference workflow CH1 goes to 2 and CH2 (default 2, muted) becomes OFF, with a toast that says so (4.4).
 
 **W1. First run to a playing TB-3 bassline (3 gestures to sound the first time: `D#4`, `K2`, `PLAY`; every function at most 2).**
-1. first-run strip `D#4 K2: MIDI CHANNEL`: tap `D#4` (CHAN), turn `K2` to 2 (the TB-3's factory channel; header `M2`), the strip moves on to `PRESS PLAY` as soon as K2 turns; tap `HOME` to return to PERF, where the strip shows it. (A synth already on channel 1 skips this: PLAY also advances the strip.)
+1. first-run strip `CHN KEY, K2 = MIDI`: tap `D#4` (CHAN), turn `K2` to 2 (the TB-3's factory channel; header `M2`), the strip moves on to `PRESS PLAY` as soon as K2 turns; tap `HOME` to return to PERF, where the strip shows it. (A synth already on channel 1 skips this: PLAY also advances the strip.)
 1b. press `PLAY`: the ACID line plays on the TB-3 (first-run strip moves on to `TURN K1 TO MORPH IT`).
 2. turn `K2` (SLIDE) and `K1` (DENS) to taste; press `SCL` until the notes please; `EDIT` takes a roll back.
 3. a different synth channel later: tap black `D#4` (CHAN), turn `K2` to its channel, tap `HOME`.
@@ -755,7 +761,7 @@ to rotate -> `SEQ` (dice HITS = new rotation) -> `ENV` (new accents) -> `OCT+` t
 -> `OCT-` back.
 
 **W3. Extend 16 to 64 steps and vary the copies.**
-1. with page 1 right: `PG+` (prompt `ADD PAGE 2 = COPY OF 1? PG+ = yes`), `PG+`: page 2 exists, in view, sounds
+1. with page 1 right: `PG+` (toast `PAGE 2?  PG+=ADD`), `PG+`: page 2 exists, in view, sounds
    identical.
 2. tap white keys 13 and 15 (steps 29, 31) ON; tap key 4 OFF: page 2 now differs.
 3. hold key 16 (step 32): NOTE_EDIT; `OCT+` (an octave up), `ENV` (accent), `K4` to 2x; `HOME`.
@@ -808,7 +814,7 @@ without saying that it had changed the rule. That was not honest, and this revis
 > **Restated rule.** A role reached through a hold is **L2** when (a) the hold is **named permanently on the page
 > where it starts** (R-8: the `h:` sub-label on the PERF button picture, `hold=EDIT` in the lane header, the black-key
 > legend for SOLO / FILL / ROLL) **and** (b) the hold opens a page that labels every control it changes (NOTE EDIT,
-> SCALE, RESET), or, for the one combo, the strip names it the moment the hold starts (`HOME: touch=HELP  let go=MENU`).
+> SCALE, RESET), or, for the one combo, the strip names it the moment the hold starts (`HELP / MENU`).
 > A hold that is not named on its starting page stays **L1**, as in P1-014. Everything else in 7.1 is unchanged; the
 > cue strip still never lifts L.
 
@@ -1124,12 +1130,12 @@ What the user hears, checked against ADR-0003 section 7 (192 PPQN; jitter at mos
 
 | # | Confusing state | Rescuing cue |
 | --- | --- | --- |
-| 1 | PLAY pressed, nothing heard (muted, MIDI OFF, K1 = 0, the synth on another channel) | CH1 defaults to MIDI 1 (channels match their numbers), shown `M1` in the header; first-run step 1 says `D#4 K2: MIDI CHANNEL`; channel cell `MUTE n` / `MIDI OFF`, K1 cell `KEYS` (the state is still called KEYS ONLY); strip `CH1 MUTED: F#3` or `MIDI OFF: D#4 K2`. The device cannot see the synth's channel, so the header always shows the MIDI channel it sends on |
+| 1 | PLAY pressed, nothing heard (muted, MIDI OFF, K1 = 0, the synth on another channel) | CH1 defaults to MIDI 1 (channels match their numbers), shown `M1` in the header; first-run step 1 says `CHN KEY, K2 = MIDI`; channel cell `MUTE n` / `MIDI OFF`, K1 cell `KEYS` (the state is still called KEYS ONLY); strip `CH1 MUTED: F#3` or `MIDI OFF: D#4 K2`. The device cannot see the synth's channel, so the header always shows the MIDI channel it sends on |
 | 2 | Held a step and the knobs changed meaning | NOTE_EDIT banner `STEP 21`, every cell relabelled, strip `STEP 21  HOLD KEY=MOVE  HOME=DONE` |
 | 3 | Let go of the step key and the page stayed | the banner stays, HOME is labelled `HOME` (not HELP); strip says `HOME=done` |
 | 4 | Tapped a key and a step vanished | it was ON: the cell is hollow with a slash (forced OFF); tap again restores; EDIT takes it back |
 | 5 | "My pattern changed when I diced, but some notes did not" | edited steps carry a corner tick; HELP on SCL says `edited steps stay` |
-| 6 | Pressed PG+ and a prompt appeared | ghost page cell and a strip that says what PG+ will do (`ADD PAGE 2 = COPY OF 1?`, `SHOW PAGE 3 (HIDDEN)?`, `SHOW ALL OF PAGE 2 (L32)?`); any other control cancels |
+| 6 | Pressed PG+ and a prompt appeared | a toast `PAGE 2?  PG+=ADD` (PG+ again adds the page, shows a hidden one or completes a partial one); HOME or any other control cancels |
 | 7 | Added a page and nothing changed | toast `PAGE 2 = COPY OF PAGE 1: CHANGE IT`; the view is on page 2 |
 | 8 | The view jumped to another page | FOLLOW is on: `FOLLOW` in the lane header; PG- / PG+ hold the view (FOLLOW off) |
 | 9 | The view does not move while playing | `FOLLOW OFF` in the lane header and `>P3` marker; strip `D#4 K4 = FOLLOW` |
@@ -1138,9 +1144,9 @@ What the user hears, checked against ADR-0003 section 7 (192 PPQN; jitter at mos
 | 12 | Hard taps make accents I did not want | `ACC` shows in the cell before release; lighter tap; MENU `FORCE OFF` |
 | 13 | Turned a ROW 1 knob and a ROW 2 value moved | gutter digit and filled row; OCT+ cell inverted; strip `ROW 2: OCT- = back to row 1` |
 | 14 | In some page and unsure how to leave | every page has a banner and `HOME=back` in the strip |
-| 15 | Held HOME and the strip changed | `HOME: touch=HELP  let go=MENU` from 0.25 s; letting go early is a plain HOME; after a touch, letting go returns with nothing changed |
+| 15 | Held HOME and the strip changed | `HELP / MENU` from 0.25 s; letting go early is a plain HOME; after a touch, letting go returns with nothing changed |
 | 16 | Pressed EDIT expecting "edit" | toast `UNDO: <what>`; HELP on EDIT; a second tap redoes |
-| 17 | Held EDIT and the screen filled with RST | RESET banner; strip `RESET: TOUCH WHAT TO RESET  EDIT=no`; after one reset it closes by itself |
+| 17 | Held EDIT and the screen filled with RST | RESET banner; strip `TOUCH WHAT TO RESET   EDIT = NO`; after one reset it closes by itself |
 | 18 | Turned PRESETS while playing and nothing happened | header `P04?` (settling, 1.5 s after the last detent), then `P04>` and the bar countdown; strip `P04 AT BAR  SAVE = save here`, then after the load `SAVE hold=undo` |
 | 19 | Pressed REC and keys play notes | REC banner and LED; strip `REC: PLAY KEYS TO WRITE  REC=done` |
 | 20 | In SCALE, pressing keys changes the key | banner `SCALE`, strip `SCALE: PRESS A KEY = KEY  HOME=back` |
@@ -1159,41 +1165,45 @@ Toasts (SCREEN_SPEC 2.7) are not rows of this table: a toast is drawn in the sam
 
 | Priority | State | Text |
 | --- | --- | --- |
-| 1 | HOME held | `HOME: touch=HELP  let go=MENU`, then the touched control's line (`HITS: re-roll where notes fall`) |
-| 2 | RESET | `RESET: TOUCH WHAT TO RESET  EDIT=no` |
-| 3 | ADD_PAGE prompt | `ADD PAGE n = COPY OF n-1? PG+ = yes` / `SHOW PAGE n (HIDDEN)? PG+ = yes` / `SHOW ALL OF PAGE n (Lnn)? PG+ = yes` |
-| 4 | REC | `REC: PLAY KEYS TO WRITE  REC=done` |
+| 1 | HOME held | the hold hint `HELP / MENU` (slot), then the HELP box with the touched control's two lines (`HITS: re-roll where notes fall`) and the slot `HELP  LET GO = BACK` |
+| 2 | RESET | footer `TOUCH WHAT TO RESET` / `EDIT = NO`, slot `RESET  TOUCH ONE` |
+| 3 | ADD_PAGE prompt | toast `PAGE n?  PG+=ADD` (PG+ again adds the page, completes a partial one or shows a hidden one; HOME or any other control cancels it) |
+| 4 | REC | footer `PLAY KEYS TO WRITE` / `REC = DONE` |
 | 5 | NOTE_EDIT | `STEP n  HOLD KEY=MOVE  HOME=DONE` |
-| 5a | first-run step 1 or 2 while on CHAN, SCALE or SET (P2-011, F-09: it outranks the page rows 6 to 8) | step 1 on CHAN: `K2: MIDI CHANNEL  HOME=done`; step 2: `PRESS PLAY` (on CHAN, SCALE, SET) |
+| 5a | first-run step 1 or 2 while on CHAN, SCALE or SET (P2-011, F-09: it outranks the page rows 6 to 8) | step 1 on CHAN: the CHAN footer `K2 = MIDI` (it already says it); step 2: `PRESS PLAY` (the footer of PERF only: CHAN and SET keep their own) |
 | 6 | CHAN | `CHn: K1 LENGTH  OCT=+-PAGE  D#4=back` |
 | 7 | SCALE | `SCALE: PRESS A KEY = KEY  HOME=back` |
 | 8 | SET | `SET: GLO hold=SCALE  HOME=back` |
 | 8a | SET, tempo source EXT (added, 2.8) | `EXT: K1 OFF, HOST SETS TEMPO` |
-| 9 | SOLO / FILL / ROLL held | `ROLL 3x: let go to stop` (same shape) |
+| 9 | SOLO / FILL / ROLL held | slot, while the key is down: `SOLO  CH1 SOLO` / `FILL  100%  LET GO` / `ROLL  2X  LET GO` (no force: the maximum, 2x; the move itself is P6-003's) and the key inverted |
 | 10 | a preset slot pending | `P05: SAVE = save here` (stopped, with the 1.5 s countdown) / `P05 AT BAR  SAVE = save here` (playing: from the last detent until the load lands on the first bar starting >= 1.5 s later) |
 | 10a | the clock source is EXT and PLAY was pressed, the host has not started (`clk_armed`, WAIT; added by P2-010, moved here by P2-011) | `WAIT FOR HOST START  PLAY=cancel` |
 | 10b | the host clock was lost: 3 s after TIMING_SPEC R6 / R9 | `CLOCK LOST: STOPPED` (R6, while playing) / `CLOCK LOST: PLAY TO START` (R9, while armed) |
-| 11 | just after a dice / reset / clear | `EDIT takes it back` (2 s) |
-| 12 | first-run step | the step's text (11.3) |
-| 13 | stopped (rows 10a and 10b are above this row, so a WAIT or a lost clock is never hidden by it) | `PLAY: start   K1-K4: morph` |
-| 14 | playing, ROW 1 | `TAP STEP=ON/OFF  HOLD=EDIT NOTE` (alternates every 4 s with `FX=dice  EDIT=undo  PG+=page`, and with `HARD TAP = ACCENT` when FORCE is on) |
-| 15 | playing, ROW 2 | `ROW 2: OCT- = back to row 1` |
+| 11 | just after a dice / reset / clear | the toast's hint `EDIT=UNDO` (1 s) |
+| 12 | first-run step | step 1: the setup cue (`CHN KEY, K2 = MIDI` / `CHn`, CHN lit); steps 2-7: the line of 11.3 in the keys' line, `HOME = SKIP` on the right |
+| 13 | stopped (rows 10a and 10b are above this row, so a WAIT or a lost clock is never hidden by it) | footer `KEYS = STEPS` / `HOLD = EDIT` |
+| 14 | playing, ROW 1 | footer `KEYS = STEPS` / `HOLD = EDIT` (the alternating hints of the strip are gone with it) |
+| 15 | playing, ROW 2 | the status line's ROW boxes; OCT+ / OCT- name themselves in the slot while touched |
+
+**As built (P4-018).** `uisq_cue_row()` (ui_sq.c) is the first-match function of this table (19 rows: 1-15 with 5a, 8a, 10a, 10b); `tests/ui_sq_safety_test.c` sets the state of each row and reads which wins. The V2 screen draws the winner in the slot (hold hint, HELP box, touched control, toast, page title) or in the footer (the keys' line, the setup cue, a first-run step, a page cue), not in one strip.
 
 ### 11.3 First run (once per device; dismissed by HOME; one bit in `ui_prefs2`)
 
 | Step | Strip | Advances when |
 | --- | --- | --- |
-| 1 | `D#4 K2: MIDI CHANNEL` (on the CHAN page itself, row 5a: `K2: MIDI CHANNEL  HOME=done`) | K2 turned on the CHAN page (the MIDI channel changed), or PLAY (the synth already listens on 1) |
-| 2 | `PRESS PLAY` (row 5a: shown on CHAN, SCALE and SET too) | PLAY |
+| 1 | `CHN KEY, K2 = MIDI` / `CH1` (the setup cue; on the CHAN page itself the CHAN footer `K2 = MIDI`) | K2 turned on the CHAN page (the MIDI channel changed), or PLAY (the synth already listens on 1) |
+| 2 | `PRESS PLAY` | PLAY |
 | 3 | `TURN K1 TO MORPH IT` | any knob |
-| 4 | `PRESS FX: NEW PATTERN  EDIT=undo` | any dice button |
-| 5 | `TAP A WHITE KEY: STEP ON/OFF` | a white key tap |
-| 6 | `HOLD A WHITE KEY: EDIT THAT NOTE` | NOTE_EDIT opens (then `HOME=done` when it closes) |
-| 7 | `PG+ TWICE: ADD PAGE 2 (A COPY)` | a page added, or any other control 3 times |
+| 4 | `PRESS FX: NEW PATTERN` | any dice button |
+| 5 | `TAP A WHITE KEY: ON/OFF` | a white key tap |
+| 6 | `HOLD A WHITE KEY: EDIT` | NOTE_EDIT opens (then `HOME=done` when it closes) |
+| 7 | `PG+ TWICE: ADD PAGE 2` | a page added, or any other control 3 times |
+
+As built: the bit is 0x80 of `ui_prefs2` (set once when the strip ends; 0 in every older setting, so each device runs it once); a HOME tap on PERF ends it at once (toast `HOME  HOLD=HELP`); steps 2-7 sit in the keys' line of PERF with `HOME = SKIP` on the right (steps 5 and 6 are `TAP A WHITE KEY: ON/OFF` and `HOLD A WHITE KEY: EDIT`: the longer words did not fit beside it); PLAY on step 1 or 2 goes to step 3.
 
 ### 11.4 The first minute (walkthrough, no manual)
 
-0 s power-on: PERF, strip `D#4 K2: MIDI CHANNEL`. 4 s D#4, K2 to 2 (the TB-3's channel), HOME. 6 s PLAY: an acid line plays on CH1 and the TB-3. 10 s K1 turned: denser; strip moves on.
+0 s power-on: PERF, strip `CHN KEY, K2 = MIDI`. 4 s D#4, K2 to 2 (the TB-3's channel), HOME. 6 s PLAY: an acid line plays on CH1 and the TB-3. 10 s K1 turned: denser; strip moves on.
 12 s FX: a new pattern; EDIT once: the old one is back. 20 s taps key 3: a step appears (the cell fills; while
 stopped it would sound at once). 26 s holds key 5: the screen says `NOTE EDIT STEP 5`, the knobs say PITCH GATE VELO
 RATCH; turns K1: each detent sounds; presses ARP: `SLIDE ON`, hears the glide on the next pass; HOME: back.
@@ -1286,7 +1296,7 @@ When the owner approves this document, the following are locked for the dev task
     Accept? Under the P1-014 letter 23 setup functions fall to 9 and 43 of 69 pass (8.5); under the restated rule 66
     of 69 pass with three listed exceptions.
 73. Default MIDI channels: CH1..CH4 send on MIDI 1..4 (owner ruling 2026-11-10: the 2-5 default was REJECTED), and
-    step 1 of the first run is `D#4 K2: MIDI CHANNEL`, so the TB-3 (factory channel 2) is two visible gestures away. ANSWERED.
+    step 1 of the first run is `CHN KEY, K2 = MIDI`, so the TB-3 (factory channel 2) is two visible gestures away. ANSWERED.
 
 77. (P2-011) MIDI channels are unique across the four channels; a taken one turns the other channel's MIDI OFF (4.4). ANSWERED.
 78. (P2-011) Setup functions may take two gestures, performance functions one. ANSWERED.

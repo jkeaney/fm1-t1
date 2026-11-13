@@ -1,0 +1,10 @@
+id	text	note
+FR2	PRESS PLAY	first-run step 2 (SEQUENCER_UX 11.3): the footer line of PERF until PLAY
+FR3	TURN K1 TO MORPH IT	step 3: until any knob turns
+FR4	PRESS FX: NEW PATTERN	step 4: until a dice button is pressed
+FR5	TAP A WHITE KEY: ON/OFF	step 5: until a white key is tapped
+FR6	HOLD A WHITE KEY: EDIT	step 6: until NOTE_EDIT opens
+FR7	PG+ TWICE: ADD PAGE 2	step 7: until a page is added (or three other controls)
+FR_SKIP	HOME = SKIP	the right half of the first-run footer: HOME tap dismisses the whole strip for good
+HELP	HELP	the HELP box tag (HOME held, a control touched)
+RST	RST	the RESET tag on a resettable tile

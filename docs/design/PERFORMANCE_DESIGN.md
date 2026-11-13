@@ -242,7 +242,7 @@ A 12 px line at the very bottom of the main screen (AF_S, at most 34 characters,
 | Priority | State | Cue strip text |
 | --- | --- | --- |
 | 1 | HOME held, a control touched (HELP) | `<LABEL>: <one line>` (for example `HITS: re-roll where notes fall`) |
-| 2 | HOME held, nothing touched yet | `HOME: touch=HELP  let go=MENU` |
+| 2 | HOME held, nothing touched yet | `HELP / MENU` |
 | 3 | RESET layer | `RESET: knob=one OCT=row FX=all` |
 | 4 | REC armed | `REC: PLAY KEYS TO WRITE  REC=done` |
 | 5 | A step key held | `STEP n: KEY=PITCH  K=EDIT` |
@@ -281,7 +281,7 @@ Rules: **any other control also counts as dismissing** (the strip clears and the
   1. **Tap** (released under 0.7 s): back to the main screen from anywhere.
   2. **Hold and touch or turn any control, at any time while HOME is down** (no 0.7 s window): HELP for that control. The control does nothing; the strip and a toast explain it; further touches while HOME stays down explain those too; releasing HOME then does nothing at all.
   3. **Hold 0.7 s or longer with nothing touched, then release:** open the MENU.
-  The strip shows `HOME: touch=HELP  let go=MENU` the moment HOME is pressed, so a slow user is told both options before either can happen. The old rule (MENU opens at 0.7 s while the finger is still down) is dropped; the price is that the menu opens on release (about 0.1 s later than stock). Scored: F29 3/2/3/3 = 11 (the stock photo prints `HOME hold: Menu`), F46 3/1/3/2 = 9.
+  The strip shows `HELP / MENU` the moment HOME is pressed, so a slow user is told both options before either can happen. The old rule (MENU opens at 0.7 s while the finger is still down) is dropped; the price is that the menu opens on release (about 0.1 s later than stock). Scored: F29 3/2/3/3 = 11 (the stock photo prints `HOME hold: Menu`), F46 3/1/3/2 = 9.
 - **What does this do (touch-to-learn):** hold HOME, then press or turn any control: the cue strip and a toast explain it (`K3 PITCH: how wide pitches range`). Scored F46 = 9 (setup, pass, earns its place: it is the only plain-words route for the controls whose printing differs from their role, and the HOME strip advertises it). Cost: a 49-entry one-line help table (about 1.5 KB flash) and a 1-B "help held" bit.
 - **Why not hold-any-control-to-learn:** the dice, mutes and keys act on press, so a "touch" would already have changed the music. Hold HOME is the only form that changes nothing.
 
@@ -316,7 +316,7 @@ Rules: **any other control also counts as dismissing** (the strip clears and the
 | 15 | "The device is stopped and I pressed a key" | stopped: the key sounds the step once (audition) and the lane shows the pin; strip row 13 `PLAY: start   K1-K4: morph` |
 | 16 | "I muted a channel and also soloed" | SOLO wins while it is held (only the selected channel sounds); on release the mutes return exactly; a mute tapped during SOLO toggles silently and shows its `M` cell at once |
 | 17 | "I pressed EDIT right after loading a preset and nothing came back" | toast `NO UNDO: SAVE hold = undo load` (a load clears the undo record; the load itself is undone by SAVE hold) |
-| 18 | "I held HOME and the menu opened" | the strip said `touch=HELP  let go=MENU` from the first moment; HOME tap leaves the menu |
+| 18 | "I held HOME and the menu opened" | the strip said `HELP / MENU` from the first moment; HOME tap leaves the menu |
 | 19 | "I pressed the wrong REC pitch" | EDIT tap takes the last written note back; K1 moves the cursor |
 | 20 | "Two buttons held, nothing happens" | one modifier at a time: the second control is inert and the strip says `FINISH THE STEP` / (REC) the slot `GLO REC = DONE` / `LET GO FIRST` |
 

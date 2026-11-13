@@ -199,6 +199,9 @@ run "SET page: GLO open / close, K1 BPM clamp + fast + request, K2 SWING K3 GATE
 ${CC%% *} -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/ui_sq_rec_test" tests/ui_sq_rec_test.c -lm
 run "REC page: open / close from every page, 27 keys write at the cursor (stopped) or the nearest step (playing), ACC 120 / SLIDE / OCT and the stored pitch, K1 CURSOR wrap + step audition, EDIT undo / redo + cursor, dice, GLO inert, SELECT / ALGO, note queue (ON/OFF pairs, full queue, release after leaving), bounds; PNGs in build/ui_sq/rec_*" "$OUT/ui_sq_rec_test" build/ui_sq
 
+# RESET, HELP, FIRST_RUN, the cue priority, ADD_PAGE and MOVE_HELD (P4-018, SCREEN_SPEC_V2 4.9 / 4.10, SEQUENCER_UX 2.6 / 11.2 / 11.3) and the sq_reset_* family: hold EDIT opens RESET (one shot, per page beneath), HOME held + a touch is HELP (no action, no MENU), the first-run steps, the 19 cue rows, the add-page prompt, SOL / FIL / ROL named while held, S01 end to end, every control has a help row, a random key / knob / button / HOME / EDIT run keeps the invariants; PNGs in build/ui_sq/safety_*
+${CC%% *} -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/ui_sq_safety_test" tests/ui_sq_safety_test.c -lm
+run "RESET / HELP / FIRST_RUN / cue priority / ADD_PAGE / MOVE_HELD + sq_reset_*: hold EDIT, HELP routing, first-run steps, 19 cue rows, help rows for every control, S01, random hazard run; PNGs in build/ui_sq/safety_*" "$OUT/ui_sq_safety_test" build/ui_sq
 # Algorithm UI descriptor (P4-027, ADR-0007): the real ui_sq.c draws the knob tiles of ACID (real row) and a dummy DEMO row through the descriptor alone
 ${CC%% *} -std=gnu11 -O1 -w -Ibuild/gen -Ifirmware/src -o "$OUT/sq_algodesc_test" tests/sq_algodesc_test.c -lm
 run "algorithm UI descriptor: value text / one font / dots / short name from AlgoDesc, a dummy algorithm's knob tiles through ui_sq.c unchanged" "$OUT/sq_algodesc_test"

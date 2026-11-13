@@ -13,7 +13,7 @@
  * only), ChanRT, the event queue, sq_emit. Only a preset load replaces the edits.
  *
  * Not modelled here (other tasks): ModSave's device and slots (the MOD tasks; their 13 B are reserved zero), the CRC (storage
- * layer, P7), HARMONY's use of HarmonySave (stored and validated only), the MOD slots, and the ADR reset family (sq_reset_*: P6).
+ * layer, P7), HARMONY's use of HarmonySave (stored and validated only) and the MOD slots. The ADR reset family (sq_reset_*) is below, with the page operations (P4-018).
  * The edit-layer writers and the page operations (P4-006) are below, after the algorithm section. */
 
 #ifndef SQ_IRQ_OFF
@@ -438,6 +438,60 @@ static uint8_t sq_page_recopy(uint8_t ch, uint8_t k)
     sq_page_copy_before(&sq_ch[ch], k);
     return 1; }
 
+/* The factory seed k of algorithm d on channel c (the power-on value sq_default_chan writes; seed_k 0xFF = the literal 0). */
+static uint16_t sq_factory_seed(uint8_t c, const AlgoDesc *d, uint8_t k)
+{   return (k < d->n_seed && d->seed_k[k] != 0xFFu) ? (uint16_t)((0x3A5Du * (uint32_t)(c * d->n_seed + d->seed_k[k])) & 0xFFFFu) : 0u; }
+
+/* The RESET family (ADR-0003 6, SEQUENCER_UX 1.2, U59..U61; P4-018): morphs back to MorphDesc.def, seeds back to the factory value. Each is ONE undo record
+ * (what bit0 seeds, bit2 morphs; sq_undo swaps it, again = redo) taken only when something changes: a reset of what is already default writes no record
+ * (the older one stays) and returns 0. Edits (StepEdit) are never touched. `knob` is the slot 0..7 (row * 4 + K), as sq_morph_turn. */
+static uint8_t sq_reset_apply(uint8_t ch, uint8_t first, uint8_t n, uint8_t seeds, uint8_t layer_only)   /* morph slots first..first+n-1; seeds: all (layer_only 0) or the layer's (1 + layer) */
+{   const uint8_t al = sq_ch[ch].algo;
+    const AlgoDesc *a = &ALGOS[al];
+    AlgoState *st = &sq_ch[ch].st[al];
+    UndoRec u;
+    uint8_t changed = 0;
+    memset(&u, 0, sizeof u);
+    memcpy(u.morph, st->morph, SQ_NMORPH);
+    for (uint8_t k = first; k < first + n && k < SQ_NMORPH; k++) {
+        const uint8_t id = a->knob_morph[k] & (SQ_NMORPH - 1u);
+        if (st->morph[id] != a->morph[id].def) { st->morph[id] = a->morph[id].def; changed |= 4u; } }
+    if (seeds) {
+        for (uint8_t id = 0; id <= SQ_SEED_MOD; id++) {
+            uint16_t *p, want;
+            if (layer_only) {
+                const LayerDesc *l = &a->layer[layer_only - 1u];
+                uint8_t in = 0;
+                for (uint8_t k = 0; k < l->n && k < 2u; k++) in |= (uint8_t)(l->seed[k] == id);
+                if (!in) continue; }
+            else if (id < SQ_NSEED && id >= a->n_seed) continue;                       /* a seed this algorithm does not use stays as it is */
+            p = sq_seed_ptr(ch, id);
+            want = id == SQ_SEED_MOD ? SQ_SMOD_DEFAULT(ch) : sq_factory_seed(ch, a, id);
+            if (*p == want) continue;
+            if (id == SQ_SEED_MOD) { u.smod = *p; u.seed_mask |= SQ_UNDO_SMOD; } else { u.seed[id] = *p; u.seed_mask |= (uint8_t)(1u << id); }
+            *p = want; changed |= 1u; } }
+    if (!changed) return 0;
+    u.what = changed; u.algo = al;
+    sq_undo_rec[ch] = u; sq_um_valid = 0; sq_ne_state = 0;
+    (void)sq_rebuild(ch);
+    return 1; }
+static uint8_t sq_reset_morph(uint8_t ch, uint8_t knob)               /* one morph to its default */
+{   if (ch >= SQ_NCH || knob >= SQ_NMORPH || sq_ch[ch].algo >= SQ_NALGO) return 0;
+    sq_chan_sync();
+    return sq_reset_apply(ch, knob, 1, 0, 0); }
+static uint8_t sq_reset_row(uint8_t ch, uint8_t row)                  /* the four morphs of ROW 1 / ROW 2 */
+{   if (ch >= SQ_NCH || row > 1u || sq_ch[ch].algo >= SQ_NALGO) return 0;
+    sq_chan_sync();
+    return sq_reset_apply(ch, (uint8_t)(row * 4u), 4, 0, 0); }
+static uint8_t sq_reset_algo(uint8_t ch)                              /* all 8 morphs and every seed (s_mod too) */
+{   if (ch >= SQ_NCH || sq_ch[ch].algo >= SQ_NALGO) return 0;
+    sq_chan_sync();
+    return sq_reset_apply(ch, 0, SQ_NMORPH, 1, 0); }
+static uint8_t sq_reset_layer(uint8_t ch, uint8_t layer)              /* that layer's seeds; an absent layer is inert */
+{   if (ch >= SQ_NCH || layer >= SQ_NLAYER || sq_ch[ch].algo >= SQ_NALGO || !ALGOS[sq_ch[ch].algo].layer[layer].n) return 0;
+    sq_chan_sync();
+    return sq_reset_apply(ch, 0, 0, 1, (uint8_t)(layer + 1u)); }
+
 /* 1.4 K3 SOURCE: page k reads generator block src (0..k; src = k is OWN). Shown pages only. Returns 1 when written. */
 static uint8_t sq_page_src_set(uint8_t ch, uint8_t k, uint8_t src)
 {   if (ch >= SQ_NCH || !sq_page_shown(ch, k) || src > k) return 0;
@@ -489,9 +543,7 @@ static void sq_default_chan(uint8_t c, ChanSave *cs)
     for (uint8_t a = 0; a < SQ_NALGO; a++) {                          /* every algorithm slot, so a later switch starts from its own defaults */
         const AlgoDesc *d = &ALGOS[a];
         for (uint8_t i = 0; i < SQ_NMORPH; i++) cs->st[a].morph[i] = d->morph[i].def;
-        for (uint8_t k = 0; k < SQ_NSEED; k++)
-            cs->st[a].seed[k] = (k < d->n_seed && d->seed_k[k] != 0xFFu)
-                ? (uint16_t)((0x3A5Du * (uint32_t)(c * d->n_seed + d->seed_k[k])) & 0xFFFFu) : 0u;
+        for (uint8_t k = 0; k < SQ_NSEED; k++) cs->st[a].seed[k] = sq_factory_seed(c, d, k);
     } }
 
 static void sq_default_global(SeqGlobal *g)

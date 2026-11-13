@@ -27,32 +27,68 @@ static void sq_frame(void)
         sq_bpm = (uint16_t)song.g[G_BPM]; } }
 
 static void ui_sq_poll(void)
-{   static uint8_t was_sel = 0xFFu;
+{   static uint8_t was_sel = 0xFFu, fr_init;
+    if (!fr_init) {                                     /* P4-018: the first-run strip runs until its bit in ui_prefs2 says it was done (once per device) */
+        fr_init = 1;
+        if (!(ui_prefs2 & (PREF_FIRST_RUN_DONE >> 16))) { uisq_fr_on = 1; uisq_fr_step = 1; uisq_fr_other = 0; ui_sq_new_set(0, 1); } }
+    if (uisq_fr_save) {                                 /* ... and ended (a step 7 done, or HOME skipped it): keep that, once */
+        uisq_fr_save = 0;
+        ui_prefs2 = (uint8_t)(ui_prefs2 | (PREF_FIRST_RUN_DONE >> 16));
+        settings_save(); }
     if (uisq_sel != was_sel) {                          /* the selected channel moved (a page, or the first frame): the ISR's copy follows */
         was_sel = uisq_sel;
         sq_sel = uisq_sel;
         ui.force = 1; } }
 
 static void ui_sq_controls(uint32_t pressed, uint32_t notes)
-{   static const uint8_t pb[9] = { B_FX, B_SCL, B_ENV, B_LFO, B_EDIT, B_ARP, B_SEQ, B_OCTDN, B_OCTUP };            /* the panel buttons the PERF page reads ... */
-    static const uint8_t pc[9] = { UI_C_B_FX, UI_C_B_SCL, UI_C_B_ENV, UI_C_B_LFO, UI_C_B_EDIT, UI_C_B_ARP, UI_C_B_SEQ, UI_C_B_OCTDN, UI_C_B_OCTUP };   /* ... and their control ids */
+{   static const uint8_t pb[8] = { B_FX, B_SCL, B_ENV, B_LFO, B_ARP, B_SEQ, B_OCTDN, B_OCTUP };            /* the panel buttons the PERF page reads (EDIT has its own level handler) ... */
+    static const uint8_t pc[8] = { UI_C_B_FX, UI_C_B_SCL, UI_C_B_ENV, UI_C_B_LFO, UI_C_B_ARP, UI_C_B_SEQ, UI_C_B_OCTDN, UI_C_B_OCTUP };   /* ... and their control ids */
     static const uint8_t po[4]  = { B_PLAY, B_GLO, B_REC, B_SAVE };
     static const uint8_t poc[4] = { UI_C_B_PLAY, UI_C_B_GLO, UI_C_B_REC, UI_C_B_SAVE };
     uint32_t k;
+    int32_t kn[4], sel, algo, pre;
+    const uint8_t hd = (uint8_t)((fm1_in.buttons >> panel.btn[B_HOME]) & 1u);       /* HOME is down */
+    uint32_t mask = fm1_in.notes & ((1u << UISQ_NKEY) - 1u);
+    static uint8_t edit_masked;                         /* EDIT pressed under HELP: not a press of its own once HOME is up, until it is released */
+    const uint8_t ed = (uint8_t)((fm1_in.buttons >> panel.btn[B_EDIT]) & 1u);
     (void)notes;                                        /* the key EDGES are not used: ui_sq_keys() diffs the held state itself */
     song.grid = 2;                                      /* the keys never sound by themselves: a key is a step, an M key, a page key (PERF page) */
-    if ((pressed >> panel.btn[B_PLAY]) & 1u)
-        transport_req = song.playing || seq_counting() ? 2u : 1u;
-    for (k = 0; k < 9u; k++)
+    ui_sq_home(hd);                                     /* first: a HOME press opens the HELP window before any other control of the frame is read */
+    for (k = 0; k < 4u; k++) kn[k] = panel_enc(EN_K1 + k);
+    sel = panel_enc(EN_SELECT); algo = panel_enc(EN_ALGO); pre = panel_enc(EN_PRESET);
+    uisq_help_keys &= mask;                             /* a key pressed under HELP stays out of the page until it is physically up */
+    if ((pressed >> panel.btn[B_PLAY]) & 1u) {
+        transport_req = song.playing || seq_counting() ? 2u : 1u;                   /* PLAY always plays, under HELP too */
+        if (hd) ui_sq_help_touch(UI_C_B_PLAY); else ui_sq_play_pressed(); }
+    if (hd) {                                           /* HELP: every control is explained and none acts */
+        static const uint8_t ob[4] = { UI_C_B_GLO, UI_C_B_REC, UI_C_B_SAVE, UI_C_B_EDIT };
+        static const uint8_t obp[4] = { B_GLO, B_REC, B_SAVE, B_EDIT };
+        uint32_t fresh = mask & ~uisq_keys & ~uisq_help_keys;
+        for (k = 0; k < 8u; k++) if ((pressed >> panel.btn[pb[k]]) & 1u) ui_sq_help_touch(pc[k]);
+        for (k = 0; k < 4u; k++) if ((pressed >> panel.btn[obp[k]]) & 1u) ui_sq_help_touch(ob[k]);
+        for (k = 0; k < 4u; k++) if (kn[k]) ui_sq_help_touch((uint8_t)(UI_C_EN_K1 + k));
+        if (sel) ui_sq_help_touch(UI_C_EN_SELECT);
+        if (algo) ui_sq_help_touch(UI_C_EN_ALGO);
+        if (pre) ui_sq_help_touch(UI_C_EN_PRESET);
+        for (k = 0; k < (uint32_t)UISQ_NKEY; k++) if (fresh >> k & 1u) ui_sq_help_touch(uisq_key_ctl((uint8_t)k));
+        uisq_help_keys |= fresh;
+        if (ed) edit_masked = 1;
+        if (uisq_edit_dn) uisq_edit_fired = 1;          /* an EDIT held when HOME went down is no tap on its release */
+        ui_sq_edit(0);
+        ui_sq_keys(mask & ~uisq_help_keys);
+        ui_sq_input();
+        return; }
+    if (!ed) edit_masked = 0;
+    ui_sq_edit((uint8_t)(ed && !edit_masked));
+    for (k = 0; k < 8u; k++)
         if ((pressed >> panel.btn[pb[k]]) & 1u) ui_sq_button(pc[k]);
-    for (k = 0; k < 4u; k++) ui_sq_knob((uint8_t)k, panel_enc(EN_K1 + k));
-    ui_sq_select_turn(panel_enc(EN_SELECT));
+    for (k = 0; k < 4u; k++) ui_sq_knob((uint8_t)k, kn[k]);
+    ui_sq_select_turn(sel);
     for (k = 0; k < 4u; k++)                            /* the buttons with no page behaviour yet: on CHAN they are an exit for the pending MIDI channel (P4-015) */
         if ((pressed >> panel.btn[po[k]]) & 1u) ui_sq_other_button(poc[k]);
-    ui_sq_algo_turn(panel_enc(EN_ALGO));                /* CHAN: the algorithm picker (P4-015); PERF's is P4-032's */
-    (void)panel_enc(EN_PRESET);
-    ui_sq_keys(fm1_in.notes);
-    ui_sq_home((uint8_t)((fm1_in.buttons >> panel.btn[B_HOME]) & 1u));   /* HOME tap leaves NOTE_EDIT (a hold is the MENU's: ui_input.c never gets here) */
+    ui_sq_algo_turn(algo);                              /* CHAN: the algorithm picker (P4-015); PERF's is P4-032's */
+    ui_sq_preset_turn(pre);                             /* (the preset layer is P7: under RESET PRESETS only says it has nothing to reset) */
+    ui_sq_keys(mask & ~uisq_help_keys);
     ui_sq_input(); }
 
 static void ui_sq_screen(void)

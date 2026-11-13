@@ -35,13 +35,15 @@ static void panel_setup(void);
  * ui_input.c seq_entry). 1.5: bit 3 SYSTEM > HELP ON (Discussion #156, ui_help.c). 1.5.5: bit 4 CONTROL > SELECT PAGE
  * (Discussion #188, ui_input.c: SELECT steps the pages; 0 = BPM, as before); bit 5 MIDI > SCREEN WAKE PANEL (scr_input:
  * only the panel wakes SCREEN OFF, as up to 1.5.1; 0, every older setting, = +MIDI, the default: a note-on too).
- * 1.5.6: bit 6 SELECT's second bit (#84; retired in P3-005). Bit 7 free */
+ * 1.5.6: bit 6 SELECT's second bit (#84; retired in P3-005). P4-018: bit 7 FIRST RUN DONE (the sequencer's first-run strip ended or was skipped; 0 = not yet, so every older
+ * setting runs it once: ui_sq_glue.c) */
 #define ui_prefs2 (favorites.factory[15][24])
 #define PREF_X 0xFF0000u                       /* (menu_items.c MENU_FLAGS: a bit of ui_prefs2, << 16) */
 #define PREF_SCOPE_MIX (0x01u << 16)
 #define PREF_PREVIEW (0x02u << 16)
 #define PREF_HELP (0x08u << 16)
 #define PREF_WAKE_PANEL (0x20u << 16)
+#define PREF_FIRST_RUN_DONE (0x80u << 16)      /* P4-018: not a MENU row (menu_items.c MENU_FLAGS never names it) */
 /* 1.3 (Discussions #112, #134): MENU > DISPLAY > HOME, what the HOME page shows under its four cards: 0 SCOPE (the
  * oscilloscope, as before), 1 TRACKS (the four tracks as rows: ui_graph.c draw_home_tracks), 2 LEVELS (1.5, #134: the
  * rows of TRACKS, and KNOB 1..4 the LEVEL of T1..T4 in place of the engine's four: home_param). A byte of its own no
@@ -92,6 +94,7 @@ static uint8_t sync_reload;                  /* engine / preset / project / user
 static void ui_sq_poll(void);
 static void ui_sq_controls(uint32_t pressed, uint32_t notes);
 static void ui_sq_screen(void);
+static uint8_t ui_sq_help_used(void);        /* HOME is down and a control was touched (HELP): its hold is no MENU (P4-018) */
 #define Y_LABEL 28                    /* the cards */
 #define Y_SEP_END 72
 #define CARD_W 57

@@ -2,3 +2,15 @@
 # Add the old wording whenever a build deviates from a spec, so stale docs fail the check (process review 2026-11-13).
 own tempo kept
 kept (P4-016
+RESET: TOUCH WHAT TO RESET
+TAP A WHITE KEY: STEP ON/OFF
+HOLD A WHITE KEY: EDIT THAT NOTE
+PG+ TWICE: ADD PAGE 2 (A COPY)
+HOME  hold: HELP / MENU
+touch=HELP  let go=MENU
+STEP 3 CLEARED
+ROLL 3x: let go to stop
+ADD PAGE 2 = COPY OF 1?
+D#4 K2: MIDI CHANNEL
+PRESS FX: NEW PATTERN  EDIT=undo
+strip reads HOME

@@ -27,7 +27,7 @@ dice buttons, then perform it without leaving the main screen. Notation as S01.
 | 19 | Press EDIT again | Toast `REDO`; the dice-all line returns | the dice-all line from the next step | B_EDIT/PERF |
 | 20 | Press the black key F#4 (SOL) and hold it for one bar | key cell inverted; CUE `SOLO CH1: let go`; only CH1 sounds | only channel 2 notes (the other channels are muted already) | KEY_B06_F#4/PERF |
 | 21 | Hold black key G#4 (FIL) with a firm press, then release | cell inverted with the live amount `FILL 80%` (the only locked readout string; the percentage is K1 + (max - K1) x p, p = 0.5 at a light press rising to 1.0 firm: SEQUENCER_UX 15, F-11); DENS rises toward the maximum while held; on release DENS reads `10` again | extra hits while held; none after release | KEY_B07_G#4/PERF |
-| 22 | Hold black key A#4 (ROL) with medium pressure, then release | `ROLL 3x`; CUE `ROLL 3x: let go to stop` | each step sends 3 `ch2 ON/OFF` pairs inside the step while held | KEY_B08_A#4/PERF |
+| 22 | Hold black key A#4 (ROL) with medium pressure, then release | slot `ROLL  3X  LET GO` while the key is down (V2 4.11: with no force the key reads 2X; force picks 2x / 3x / 4x) | each step sends 3 `ch2 ON/OFF` pairs inside the step while held | KEY_B08_A#4/PERF |
 | 23 | Tap black key F#5 (RST) | playhead returns to step 1 at the next step | the pattern restarts from step 1 on the next step | KEY_B11_F#5/PERF |
 | 24 | Turn K1 down to zero (eleven detents counter-clockwise from DENS 10 with fast steps counted as one each) | K1R `DENS KEYS` (the value `KEYS ONLY` was 62 px against a 51 px cell; the cell reads `KEYS`, 28 px: F-04 fixed); CUE `TAP STEP=ON/OFF  HOLD=EDIT NOTE` | no generated hits; only steps turned on by hand play | EN_K1/PERF |
 

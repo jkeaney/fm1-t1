@@ -2190,11 +2190,99 @@ static int test_sq_screen(void)
     return bad;
 }
 
+/* P4-018: RESET (hold EDIT), HELP (HOME held, a control touched), first run: through the real ui_input() and ui_sq_glue.c, so the routing of the panel is tested:
+ * under HELP a control explains and does not act (PLAY still plays), a key pressed under HELP stays out of the page, HOME held after a touch opens no MENU,
+ * the hold of EDIT opens RESET and the next knob turn resets, HOME held untouched is still the MENU, the first-run bit of ui_prefs2 is stored once. */
+static void sq_clean(void)
+{
+    ui_power_on();
+    uisq_reset = 0; uisq_help = 0; uisq_help_used = 0; uisq_home_dn = 0; uisq_home_held = 0; uisq_hold_on = 0; uisq_hold_home = 0; uisq_edit_dn = 0; uisq_edit_fired = 0;
+    uisq_fr_on = 0; uisq_fr_save = 0; uisq_pg_pend = 0; uisq_keys = 0; uisq_key_fired = 0; uisq_help_keys = 0; uisq_held_mv = 0; uisq_held_m = 0;
+    fm1_in.buttons = fm1_in.notes = 0; host_pressed = 0; transport_req = 0;
+    frames(1200);
+}
+static int test_sq_safety(void)
+{
+    int bad = 0, ok;
+    uint16_t s0;
+    sq_clean();
+    s0 = sq_ch[0].st[0].seed[1];
+    btn_down(B_HOME); frames(120);
+    ok = uisq_hold_home && !uisq_help;
+    btn_down(B_SEQ); frame();
+    ok &= uisq_help == UI_C_B_SEQ + 1u && sq_ch[0].st[0].seed[1] == s0 && !ui.menu;
+    fm1_in.buttons &= ~(1u << panel.btn[B_SEQ]);
+    frames(900);                                                   /* HOME stays down past 0.7 s: touched, so no MENU */
+    ok &= !ui.menu && uisq_help == UI_C_B_SEQ + 1u;
+    bad += check("P4-018: HOME held + SEQ: the HELP box names SEQ, nothing is diced, and HOME held past 0.7 s opens no MENU", ok);
+    btn_down(B_PLAY); frame(); fm1_in.buttons &= ~(1u << panel.btn[B_PLAY]); frame();
+    ok = transport_req == 1u && uisq_help == UI_C_B_PLAY + 1u;
+    transport_req = 0;
+    bad += check("P4-018: under HELP, PLAY still starts the transport and is explained", ok);
+    turn(EN_K1, 1);
+    ok = uisq_help == UI_C_EN_K1 + 1u && sq_ch[0].st[0].morph[0] == ALGOS[0].morph[0].def;
+    turn(EN_SELECT, 1); ok &= uisq_help == UI_C_EN_SELECT + 1u && uisq_sel == 0;
+    turn(EN_ALGO, 1); ok &= uisq_help == UI_C_EN_ALGO + 1u && sq_ch[0].algo == 0;
+    bad += check("P4-018: under HELP the knobs, SELECT and ALGO explain and change nothing", ok);
+    fm1_in.notes |= 1u << 2;                                       /* a white key (step 2) pressed under HELP */
+    frame();
+    ok = uisq_help == UI_C_KEY_W02_G3 + 1u && sq_ch[0].ed[1].fl == 0;
+    fm1_in.buttons &= ~(1u << panel.btn[B_HOME]);                  /* HOME up, the key still down */
+    frames(40);
+    ok &= uisq_help == 0 && !uisq_home_dn && uisq_page == UI_PG_PERF && sq_ch[0].ed[1].fl == 0;
+    fm1_in.notes &= ~(1u << 2);                                    /* the key up: no tap */
+    frames(40);
+    ok &= sq_ch[0].ed[1].fl == 0 && !ui.menu;
+    bad += check("P4-018: a key pressed under HELP is explained, and neither it nor its release is a step tap after HOME is up", ok);
+    sq_clean();
+    btn_down(B_HOME); frames(200); fm1_in.buttons &= ~(1u << panel.btn[B_HOME]); frame();
+    ok = !ui.menu && uisq_page == UI_PG_PERF;
+    bad += check("P4-018: HOME tap with nothing touched on PERF opens no menu and no page", ok);
+    hold(B_HOME);
+    ok = ui.menu == 1u;
+    press(B_HOME);
+    ok &= !ui.menu;
+    bad += check("P4-018: HOME held 0.7 s with nothing touched is still the MENU", ok);
+
+    /* RESET through the panel: EDIT held 0.5 s, then K2 */
+    sq_clean();
+    {   const uint8_t id = ALGOS[0].knob_morph[1], def = ALGOS[0].morph[id].def;
+        turn(EN_K2, 3);
+        ok = sq_ch[0].st[0].morph[id] == def + 3;
+        btn_down(B_EDIT); frames(500);
+        ok &= uisq_reset == 1 && !ui.menu;
+        fm1_in.buttons &= ~(1u << panel.btn[B_EDIT]); frame();
+        ok &= uisq_reset == 1 && sq_ch[0].st[0].morph[id] == def + 3;          /* the release of the hold is no tap */
+        turn(EN_K2, 1);
+        ok &= uisq_reset == 0 && sq_ch[0].st[0].morph[id] == def;
+        bad += check("P4-018: EDIT held 0.5 s opens RESET (its release is no undo), K2 puts its morph back and closes it", ok);
+        press(B_EDIT);
+        ok = sq_ch[0].st[0].morph[id] == def + 3 && uisq_reset == 0;
+        bad += check("P4-018: an EDIT tap through the panel (on release) takes the reset back", ok); }
+    btn_down(B_EDIT); frames(80); btn_down(B_HOME); frame();
+    fm1_in.buttons &= ~(1u << panel.btn[B_EDIT]); frame();
+    ok = !uisq_reset && uisq_help == UI_C_B_EDIT + 1u || uisq_help == 0;
+    fm1_in.buttons &= ~(1u << panel.btn[B_HOME]); frames(40);
+    ok &= !uisq_reset && !uisq_edit_dn;
+    bad += check("P4-018: EDIT down when HOME goes down: no undo, no RESET, nothing left held", ok);
+
+    /* first run: the bit of ui_prefs2 */
+    sq_clean();
+    ui_prefs2 = 0; uisq_fr_on = 0; uisq_fr_save = 0;
+    uisq_fr_on = 1; uisq_fr_step = 7; uisq_fr_event(UISQ_FR_PAGE);
+    ok = !uisq_fr_on && uisq_fr_save;
+    frame();
+    ok &= (ui_prefs2 & 0x80u) && !uisq_fr_save;
+    bad += check("P4-018: the first-run strip ends, the glue stores its bit (0x80 of ui_prefs2) once and the strip is off", ok);
+    return bad;
+}
+
 int main(void)
 {
     setvbuf(stdout, NULL, _IONBF, 0);
     int bad = 0;
     bad += test_sq_screen();
+    bad += test_sq_safety();
     bad += test_display_preferences();
     bad += test_menu_tabs();
     bad += test_menu_project_rows();

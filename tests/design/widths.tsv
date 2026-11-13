@@ -53,8 +53,16 @@ S	204	WRITING TO PAGE 2   CURSOR 5	band status line (6.5, 7.1): 204 px
 S	204	KEYS = NOTES (all 27)	band status line (6.5, 7.1): 204 px
 S	204	C MINPEN   OCT 0	band status line (6.5, 7.1): 204 px
 S	204	OCT- / OCT+ = OCTAVE -1 / +1	band status line (6.5, 7.1): 204 px
-S	240	HOME: touch=HELP  let go=MENU	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
-S	240	RESET: TOUCH WHAT TO RESET  EDIT=no	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	HELP / MENU	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+M	170	TOUCH WHAT TO RESET	RESET footer, left half (SCREEN_SPEC_V2 4.9): AF_M beside `EDIT = NO`
+S	60	EDIT = NO	RESET footer, right half (SCREEN_SPEC_V2 4.9)
+S	155	PRESS PLAY	first-run step in the PERF footer beside `HOME = SKIP` (AF_M when it fits, else AF_S; 232 - 71 - 6 px)
+S	155	TURN K1 TO MORPH IT	first-run step in the PERF footer beside `HOME = SKIP` (AF_M when it fits, else AF_S; 232 - 71 - 6 px)
+S	155	PRESS FX: NEW PATTERN	first-run step in the PERF footer beside `HOME = SKIP` (AF_M when it fits, else AF_S; 232 - 71 - 6 px)
+S	155	TAP A WHITE KEY: ON/OFF	first-run step in the PERF footer beside `HOME = SKIP` (AF_M when it fits, else AF_S; 232 - 71 - 6 px)
+S	155	HOLD A WHITE KEY: EDIT	first-run step in the PERF footer beside `HOME = SKIP` (AF_M when it fits, else AF_S; 232 - 71 - 6 px)
+S	155	PG+ TWICE: ADD PAGE 2	first-run step in the PERF footer beside `HOME = SKIP` (AF_M when it fits, else AF_S; 232 - 71 - 6 px)
+S	71	HOME = SKIP	first-run footer, right half
 S	240	ADD PAGE 2 = COPY OF 1? PG+ = yes	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
 S	240	SHOW PAGE 3 (HIDDEN)? PG+ = yes	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
 S	240	SHOW ALL OF PAGE 2 (L32)? PG+ = yes	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
@@ -73,12 +81,12 @@ S	240	EDIT takes it back	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
 S	240	WAIT FOR HOST START  PLAY=cancel	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
 S	240	CLOCK LOST: STOPPED	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
 S	240	CLOCK LOST: PLAY TO START	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
-S	240	D#4 K2: MIDI CHANNEL	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	CHN KEY, K2 = MIDI	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
 S	240	TURN K1 TO MORPH IT	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
-S	240	PRESS FX: NEW PATTERN  EDIT=undo	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
-S	240	TAP A WHITE KEY: STEP ON/OFF	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
-S	240	HOLD A WHITE KEY: EDIT THAT NOTE	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
-S	240	PG+ TWICE: ADD PAGE 2 (A COPY)	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	PRESS FX: NEW PATTERN	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	TAP A WHITE KEY: ON/OFF	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	HOLD A WHITE KEY: EDIT	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
+S	240	PG+ TWICE: ADD PAGE 2	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
 S	240	PLAY: start   K1-K4: morph	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
 S	240	TAP STEP=ON/OFF  HOLD=EDIT NOTE	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
 S	240	FX=dice  EDIT=undo  PG+=page	cue strip row (SEQUENCER_UX 11.2, 6.6): 240 px
@@ -142,7 +150,6 @@ S	42	SLIDES	PATTERNS dice sub-label under ARP (P2-014)
 S	42	UP/DN	PATTERNS dice sub-label under LFO (P2-014)
 S	76	1 ARP M16	H4 (2.1), ARP (P2-013): 76 px
 S	76	1 PATT M16	H4 (2.1), PATTERNS short form (P2-013 picker): 76 px
-S	76	1 PATT MOFF	H4 (2.1), worst case of the six algorithm names (P2-013 picker): 76 px
 S	56	1 ARP	Z1 cell line 1 (2.2), ARP (P2-013): 56 px of ink
 S	56	1 PATT	Z1 cell line 1 (2.2), PATTERNS short form (P2-013): 56 px of ink
 S	240	ACID EUCL SNAK STAG [ARP] PATT	ALGO_PICK cue strip, six algorithms (P2-013)
@@ -150,7 +157,6 @@ S	240	ACID EUCL SNAK STAG ARP [PATT]	ALGO_PICK cue strip, six algorithms (P2-013
 S	240	[ACID] EUCL SNAK STAG ARP PATT	ALGO_PICK cue strip, six algorithms (P2-013)
 S	51	SHAPE	ARP knob label (P2-013): 51 px
 S	51	LEGATO	ARP knob label (P2-013): 51 px
-S	51	OFFSET	ARP knob label (P2-013): 51 px
 S	51	THUMB	ARP knob value (P2-013): 51 px
 S	51	CHORD	ARP knob value (P2-013): 51 px
 S	51	4 OCT	ARP knob value (P2-013): 51 px
