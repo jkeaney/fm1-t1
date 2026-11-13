@@ -51,3 +51,5 @@ Producer-facing. Update the use cases that show the music row (docs/design/featu
 ## Log
 - 2026-11-13: created from the POC readiness review (/tmp/readiness_review.md, copy the findings you need into the Log; /tmp may be gone).
 - Gate: human-review, because SCREEN_SPEC_V2 is locked and any new mark needs the owner's approval.
+
+- 2026-11-13 owner ruling (open-items 3B): change the shortened hints to the clearer wording: PAST THE END hint `LEN` -> `PG+=ADD`, ONE PAGE hint `K1=LESS` -> `K1=LEN` (check they fit the 136 px slot; MESSAGES rows in v12.py + regenerate tables + all docs/scenarios/help text that quote them, incl. forbidden_terms for the old wording). Do this in this task.

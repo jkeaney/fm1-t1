@@ -3,7 +3,7 @@ id: P7-001
 title: Flash map: a safe region for 16 presets and the settings (ADR-0005)
 phase: P7
 type: task
-status: review
+status: done
 priority: 2
 executor: sonnet
 depends_on: [P3-012]
@@ -26,7 +26,7 @@ Choose and document flash offsets for 16 preset slots (SeqPreset v4, 1556 B, plu
 ## Acceptance criteria
 - [x] Every region boundary cites the file and line it came from
 - [x] The preset region does not overlap the image's maximum size or the loader/OTA sectors (a table proves it)
-- [ ] Design locked: owner line in the log
+- [x] Design locked: owner line in the log
 
 ## Verification
 ```sh
@@ -66,3 +66,5 @@ Awaiting owner: check the one choice in plain language. Do you accept putting th
 (addresses 0xA0000 to 0xBFFFF), keeping settings where they already are, and treating a preset saved by an older firmware version as
 "EMPTY, nothing loaded"? Reply "Design locked: ADR-0005 <date>" in this log to close the third criterion.
 - 2026-11-13: stays in review (owner). It blocks nothing until P7-002.
+
+- 2026-11-13 Approved: owner (open-items 2A) - Design locked: ADR-0005 (preset flash map: 16 slots in 0xA0000-0xBFFFF, settings and autosave unchanged, old-version preset = EMPTY).
