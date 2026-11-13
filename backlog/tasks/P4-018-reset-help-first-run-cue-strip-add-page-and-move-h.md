@@ -3,7 +3,7 @@ id: P4-018
 title: RESET, HELP, first run, cue strip, ADD_PAGE and MOVE_HELD
 phase: P4
 type: task
-status: review
+status: done
 priority: 2
 executor: sonnet
 depends_on: [P4-015, P4-016, P4-017, P4-024, P4-032]
@@ -96,3 +96,10 @@ Hazards: stale state / flags that survive: the first-run flag now round-trips th
 sh tools/check.sh -> CHECK PASS (a first run showed the known sound15 ENV SYNC cost benchmark flake, 1.59 % vs 1 %, unrelated; the rerun passed)
 RAM .data+.bss 29640 B of 73728 (headroom 44088 B); v12_compare 52 scenes/sheets, 0 failed; ui_sq_safety_test OK; settings_test passed
 ```
+
+### 2026-11-13 review round 2 (sonnet)
+Verdict: PASS. `sh tools/check.sh` re-run: CHECK PASS; `RAM .data+.bss 29640 B of 73728` (headroom 44088 B). Verified only the five fixes plus what they could break:
+- First-run byte `favorites.factory[15][31]` (`ui_first_run`): not touched by `settings_import` (it clears [15][30] bits 0/4 and [15][24] bits 2/4/6/7 only), exported and imported with the whole `favorites` memcpy (settings_persist.c:83/101), PER3 and older records memset favorites to 0 (strip runs, correct); `favorite_has/set` reach engine 15 never (NENGINES 1, favorites.c:12-13/21), no other code writes [15][31]; settings_test covers set -> export -> import -> still 1, and PER3 -> 0. Bit 7 of `ui_prefs2` is cleared by import and now documented free. No user-facing factory restore touches settings favorites (grep: only import memsets them).
+- ADR-0003 6 now `uint8_t` with the changed/no-record note; `RST` row gone (no remaining reference); any knob cancels the add-page prompt (ui_sq.c, `d && k<4`), tested; task Deliverable text updated. One comment typo (`+MIDI),;`) in settings_persist.c:12 fixed by the reviewer.
+- sound15 ENV SYNC cost flake (1.59 % vs the 1 % limit, passed on rerun): P4-018 and its fix commit change no audio/engine file (the diff touches only settings_persist.c, sq_chan.c, ui*.c, gen_ui_tables.py plus docs/tests), and `sound15_test` links the DSP sources, not the UI; the check passed twice for me. The measure is a host instruction counter ratio of two short runs (host noise moves it); CLAUDE.md lists only the T-1 phase 3/4 wall-clock benchmarks as flaky, not this one, so it is a probable host flake but not a documented one: add it to the known-flaky list if it recurs.
+Awaiting owner (new pictures, no v12 scene; host renders in build/ui_sq/): approve the RESET overlay (`safety_reset_perf.png`), the HELP box (`safety_help_seq.png`, `safety_home_hold.png`) and the first-run steps 2-7 (`safety_first_run_1.png`, `safety_first_run_2.png`); AF_S 9 px items (HELP tag, page name, `EDIT = NO`, `HOME = SKIP`) are the legibility risk at 30 mm; also HW-1 for the EDIT release tap and the 0.7 s HOME menu. Every existing device runs the strip once after this firmware; steps 5 and 6 are shortened.
