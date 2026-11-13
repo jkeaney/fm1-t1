@@ -3,7 +3,7 @@ id: P4-035
 title: HW-1 triage: owner findings into FB and BUG items
 phase: P4
 type: task
-status: todo
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P4-021]
@@ -47,3 +47,5 @@ n/a, internal work (tooling, plumbing, docs, process); no producer-visible contr
 ## Log
 - 2026-11-13: created from the POC readiness review (/tmp/readiness_review.md, copy the findings you need into the Log; /tmp may be gone).
 - Review: self (reviewer = executor re-reads the table against the P4-021 Log).
+
+- 2026-11-13 orchestrator: owner reported no defects at HW-1 ("it works"; screen "looks good"). The by-eye items (9 px text, terse hints LEN/K1=LESS, dimmed keys past LENGTH, EDIT release timing, 0.7 s HOME menu, first run once after power-cycle, REC keys sound, RESET, HELP) stay on docs/project/HARDWARE_TEST.md for the next session on the unit. Nothing to triage; closed. Any later finding becomes an FB/BUG as usual.
