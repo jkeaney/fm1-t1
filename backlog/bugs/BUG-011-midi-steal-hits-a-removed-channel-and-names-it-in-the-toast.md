@@ -3,7 +3,7 @@ id: BUG-011
 title: A MIDI-channel steal hits a removed (unused) channel and the toast names a channel that is not on screen
 phase: P4
 type: bug
-status: review
+status: done
 priority: 1
 executor: sonnet
 depends_on: [P4-015]
@@ -52,3 +52,10 @@ Chose: removal clears the channel's MIDI to OFF (ui_sq.c `uisq_do_remove`); fewe
 Tests: tests/ui_sq_chan_test.c, 7 new BUG-011 checks (removal sets OFF, steal without toast, EDIT undo restores, no stale restore after a MIDI change, re-add is OFF, three removals/three undos, last channel keeps MIDI); one old check (line 295) updated to expect OFF. Before the fix (firmware stashed) FAIL 295, 298, 300, 304, 306; after:
 `sh tools/check.sh` -> `RAM .data+.bss 29352 B of 73728` (headroom about 44 KB), `CHECK PASS`.
 Docs synced: docs/design/SCREEN_SPEC_V2.md section 6, docs/design/SEQUENCER_UX.md 4.4 (new row).
+
+### 2026-11-13 review (sonnet)
+Verdict: PASS. `sh tools/check.sh` -> CHECK PASS; `RAM .data+.bss 29352 B of 73728` (headroom 44376 B, >= 8192 B).
+- Tests fail without the fix: with ui_sq.c from HEAD~1, ui_sq_chan_test reports 5 failures (295, 298, 300, 304, 306); with the fix none.
+- Hazards checked: stack of 4 (uisq_gone_midi shifts with the others; at most 3 removals as the last channel cannot go); undo of removal restores MIDI unless an in-use channel holds it (OFF, no duplicate); sq_um_valid cleared at removal; MIDI commit, dice, add and page-add empty the stack (ui_sq.c:1306, 1361, 1383, 1424, 1529, 1578); re-add after a drop-off or an add starts at OFF with the setup cue; pending offs use the channel byte stored at note-on (sq_core.c:157-176), so OFF at removal cannot strand a note.
+- Docs: SCREEN_SPEC_V2 section 6 and SEQUENCER_UX 4.4 updated; generated scenarios/key_map/control_map only say "REMOVE CHn (undoable)", still true. No use case in docs/design/features mentions removal or steal.
+- Minor, non-blocking: EDIT undo of a removal whose MIDI number was taken meanwhile restores the channel at MIDI OFF with no toast (ui_sq.c ~1536); can only happen if the stack survived a MIDI change, which it cannot (commit empties it), so the branch is effectively unreachable defensive code.
