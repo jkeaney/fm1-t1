@@ -31,6 +31,7 @@
 static UndoRec     sq_undo_rec[SQ_NCH];  /* one record per channel (decision 46); what == 0 = empty */
 static UndoMidi    sq_um;                /* the MIDI-reassignment record (SEQUENCER_UX 4.4); latest while sq_um_valid */
 static uint8_t     sq_um_valid;
+static uint8_t     sq_load_landed;       /* P4-044: set by sq_chan_sync when a load landed (either path); ui_sq_glue.c sq_frame consumes it, so its cleanup runs once whichever path landed it */
 static uint8_t     sq_used = 0x01u;      /* P4-044: channels in use, bit n = channel n. Main-loop owned core state (the UI reads it as uisq_used). Saved as bit 0 of ChanSave.pad[1] by sq_preset_save, taken back by sq_chan_sync after a load; power-on = CH1 only */
 static uint16_t    sq_smod[SQ_NCH][SQ_NALGO];   /* s_mod, one per channel and algorithm; saved and loaded as ModSave (P4-023) */
 
@@ -548,7 +549,7 @@ static uint8_t sq_used_clean(uint8_t mask, const ChanSave *chs)
 static void sq_default_chan(uint8_t c, ChanSave *cs)
 {   static const uint8_t algo_of[SQ_NCH] = { SQ_ALGO_ACID, SQ_ALGO_EUCLID, SQ_ALGO_SNAKE, SQ_ALGO_STAGE };
     memset(cs, 0, sizeof *cs);
-    cs->midi_ch = c;                       /* CH1..CH4 = MIDI 1..4 (decisions 73, 77): the 0-based value is the channel index */
+    cs->midi_ch = c ? SQ_MIDI_OFF : 0;     /* CH1 = MIDI 1 (decisions 73, 77). A channel out of use holds no MIDI channel (BUG-011, P4-044): CH2..CH4 start OFF and get one when added */
     cs->algo = algo_of[c];
     cs->muted = c ? 1u : 0u;               /* CH1 unmuted; CH2..CH4 muted */
     cs->len = 16;
@@ -689,6 +690,8 @@ static void sq_chan_sync(void)
     memset(sq_undo_rec, 0, sizeof sq_undo_rec);
     sq_um_valid = 0; sq_ne_state = 0;
     if (sq_stage_valid) { uint8_t m = 0; for (uint8_t c = 0; c < SQ_NCH; c++) m |= (uint8_t)((sq_ch[c].pad[1] & 1u) << c); sq_used = sq_used_clean(m, sq_ch);   /* P4-044: the landed load's in-use bits */
+        for (uint8_t c = 0; c < SQ_NCH; c++) if (!(sq_used >> c & 1u)) { sq_ch[c].muted = 1u; sq_ch[c].pad[0] &= 0x7Fu; sq_ch[c].midi_ch = SQ_MIDI_OFF; }   /* F2: a channel out of use is silent and holds no MIDI channel, whatever the file said */
+        sq_load_landed = 1;
         sq_harm = sq_stage_harm; sq_bpm = sq_stage_bpm; memcpy(sq_smod, sq_stage_smod, sizeof sq_smod); sq_stage_valid = 0; }
     for (uint8_t c = 0; c < SQ_NCH; c++) (void)sq_rebuild(c);        /* a dice or undo while the load was pending changed s_mod; the staged smod replaced it above */
 }

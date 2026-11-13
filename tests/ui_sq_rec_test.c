@@ -184,7 +184,7 @@ static void chn_tap(void) { press(1u << KEY_CHN); wait_ms(100); press(0); frame(
 static void home_tap(void) { ui_sq_home(1); wait_ms(100); ui_sq_home(0); frame(); }
 static void glo(void) { ui_sq_other_button(UI_C_B_GLO); frame(); }
 static void reset_world(void)
-{   sq_boot(); uisq_page = UI_PG_PERF; uisq_sel = 0; uisq_vpage = 0; uisq_used = 0x0F; uisq_cm_val = UISQ_CM_NONE; uisq_new = 0; uisq_toast_until = 0; uisq_touch_until = 0;
+{   sq_boot(); for (uint8_t c_ = 0; c_ < SQ_NCH; c_++) sq_ch[c_].midi_ch = c_; uisq_page = UI_PG_PERF; uisq_sel = 0; uisq_vpage = 0; uisq_used = 0x0F;   /* P4-044: boots CH1-only with CH2..4 OFF; these scenarios want four on MIDI 1..4 */ uisq_cm_val = UISQ_CM_NONE; uisq_new = 0; uisq_toast_until = 0; uisq_touch_until = 0;
     uisq_gone_n = 0; uisq_undone = 0; uisq_rec = 0; sq_playing = 0; sq_follow = 1; sq_bpm = 120; uisq_bpm_req = 0; ui_sq_clock_set(UISQ_CLK_INT, 0); uisq_preset_pend = 0; wait_ms(1200); }
 static int toast_on(void) { return uisq_toast_until && (int32_t)(uisq_now - uisq_toast_until) < 0; }
 static int touch_on(void) { return uisq_touch_a[0] && uisq_touch_until && (int32_t)(uisq_now - uisq_touch_until) < 0; }

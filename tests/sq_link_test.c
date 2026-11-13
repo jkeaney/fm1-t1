@@ -161,6 +161,38 @@ int main(void)
     }
     ck("ACID (row 0) is not an empty row", ALGOS[0].build != 0 && ALGOS[0].step != 0);
 
+    /* P4-044 F2: a loaded preset never leaves a channel out of use audible or holding a MIDI channel */
+    {
+        SeqPreset pr;
+        sq_boot();
+        sq_preset_save(&pr, 0);
+        pr.ch[1].algo = 0; pr.ch[1].muted = 0; pr.ch[1].midi_ch = 5; pr.ch[1].pad[0] = 0x80; pr.ch[1].pad[1] = 0;   /* CH2: ACID, unmuted, MIDI 6, preview on, but not in use */
+        transport_req = 2; events_block(CTL); drain();
+        ck("P4-044: a preset load is accepted", sq_preset_load(&pr, 0, 0) == 0);
+        sq_frame();
+        ck("P4-044: CH2 out of use after the load: muted, preview off, MIDI OFF", sq_used == 0x01 && sq_ch[1].muted == 1 && !(sq_ch[1].pad[0] & 0x80u) && sq_ch[1].midi_ch == SQ_MIDI_OFF);
+        zero();
+        transport_req = 1; events_block(CTL);
+        bars(2);
+        ck("P4-044: 2 bars: nothing on MIDI channel 6 from the channel that is not in use", n_on[5] == 0u && n_on[0] > 0u);
+        transport_req = 2; events_block(CTL); drain();
+    }
+
+    /* P4-044 F3: the cleanup after a load runs on the immediate path too (sq_preset_load calls sq_chan_sync itself) */
+    {
+        SeqPreset pr;
+        sq_boot(); uisq_used = 0x0F; uisq_sel = 2; uisq_gone_n = 2; uisq_gone_ch[0] = 1; uisq_gone_ch[1] = 3; uisq_undone = 1;
+        sq_frame();                                        /* settle any earlier epoch */
+        uisq_used = 0x0F; uisq_sel = 2; uisq_gone_n = 2; uisq_undone = 1;
+        sq_preset_save(&pr, 0);
+        pr.ch[1].pad[1] = pr.ch[2].pad[1] = pr.ch[3].pad[1] = 0;   /* the file has CH1 only */
+        ck("P4-044: immediate load while stopped", sq_playing == 0 && sq_preset_load(&pr, 0, 0) == 0);
+        sq_frame();
+        ck("P4-044: after the immediate load: remove-undo stack cleared, selection moved onto CH1", uisq_gone_n == 0 && uisq_undone == 0 && uisq_sel == 0 && uisq_used == 0x01);
+        sq_frame();
+        ck("P4-044: the cleanup runs once (a second frame changes nothing)", uisq_sel == 0 && uisq_used == 0x01);
+    }
+
     /* sq_half_begin is the audio ISR's: grep-able in audio.c (the host does not build audio.c here) */
     printf("sq_link: %s\n", bad ? "FAILED" : "all checks ok");
     return bad;

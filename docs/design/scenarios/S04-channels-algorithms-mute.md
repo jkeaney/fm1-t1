@@ -1,12 +1,11 @@
 # S04: select channels, switch algorithms, mute, solo, perform two channels
 
-SEQUENCER_UX W2 and W5. Start: end of S02, playing, CH1 ACID on MIDI channel 2, CH2 EUCLID / CH3 SNAKE / CH4 STAGE
-muted on MIDI channels OFF, 3, 4 (CH2's default 2 was taken by CH1 in S01: MIDI channels are unique, SEQUENCER_UX 4.4). Notation as S01.
+SEQUENCER_UX W2 and W5. Start: end of S02, playing, CH1 ACID on MIDI channel 2, only CH1 in use (P4-044: CH2..CH4 are out of use, muted, MIDI OFF, until added; each is added with its default algorithm EUCLID / SNAKE / STAGE once that algorithm's row exists). Notation as S01.
 
 | Step | User action | Exact screen text | MIDI out | Row ids |
 | --- | --- | --- | --- | --- |
-| 1 | Turn SELECT one detent clockwise | CHB cell 2 inverted; HD `2 EUCL MOFF`; CHB cell 2 line 2 `MUTE -`; K1R `HITS 5` `OFFSET 0` `RATCH 4` `ACCNT 2`; K2R `LEN 16` `SPAN 12` `PUNCH 40` `CURVE AUTO`; BTN sub-labels `ROTATE` `RATCH` `MOD` (SHAPE is alive in EUCLID: it re-rolls `s_mod`, P2-022 and P2-017) | none (CH2 is muted) | EN_SELECT/PERF |
-| 2 | Look at HD: CH2's default MIDI channel 2 is the one CH1 now uses | HD `2 EUCL MOFF` and CHB cell 1 `MIDI 2`: the two lanes cannot both target the TB-3 channel; CH2 gave it up when CH1 took it (owner ruling, FINDINGS F-14 decided) | none | EN_SELECT/PERF |
+| 1 | Turn SELECT one detent clockwise (past the last channel in use: ADDS CH2, toast `[2] NEW  ALGO=PICK`, setup cue) | CHB cell 2 inverted; HD `2 EUCL MOFF`; CHB cell 2 line 2 `MUTE -`; K1R `HITS 5` `OFFSET 0` `RATCH 4` `ACCNT 2`; K2R `LEN 16` `SPAN 12` `PUNCH 40` `CURVE AUTO`; BTN sub-labels `ROTATE` `RATCH` `MOD` (SHAPE is alive in EUCLID: it re-rolls `s_mod`, P2-022 and P2-017) | none (CH2 is muted) | EN_SELECT/PERF |
+| 2 | Look at HD: a new channel starts with no MIDI channel (BUG-011 / P4-044) | HD `2 EUCL MOFF` and CHB cell 1 `MIDI 2`: CH2 holds no MIDI channel until it is given one, so CH1 took 2 in S01 without disturbing it | none | EN_SELECT/PERF |
 | 3 | Tap black key D#4 (CHN), turn K2 until the cell reads `MIDI 5`, tap HOME | K2 cell `OFF` first, then `5` (dim until 0.6 s of stillness, then committed; no other channel uses 5, so no toast), then PERF; HD `2 EUCL M5` | none | KEY_B05_D#4/PERF, EN_K2/CHAN, B_HOME/CHAN |
 | 4 | Tap black key G#3 (M2) | CHB cell 2 loses `MUTE`; LEG cell M2 lit; activity dot starts | next step: `ch5 ON/OFF` pairs of the EUCLID pattern (5 hits in 16 steps) | KEY_B02_G#3/PERF |
 | 5 | Turn K2 (OFFSET) three detents clockwise | K1R `OFFSET 3` | the 5 hits rotate by 3 steps from the next step | EN_K2/PERF |

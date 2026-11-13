@@ -565,7 +565,7 @@ each channel whose PREVIEW is ON plays the same notes on its own preview part (a
 
 | Id | Input | Processing | Output: MIDI and timing | Output: screen |
 | --- | --- | --- | --- | --- |
-| U01 | power on | `sq_boot()`: defaults (ADR-0003 12: CH1 ACID MIDI 1, CH2-CH4 MIDI 2-4 muted), LENGTH 16 x4, edits empty, every `pg_src` 0, FOLLOW on | nothing until PLAY | PERF, header `M1`, first-run strip `CHN KEY, K2 = MIDI` |
+| U01 | power on | `sq_boot()`: defaults (ADR-0003 12: CH1 ACID MIDI 1 in use, CH2-CH4 out of use: muted, MIDI OFF; P4-044), LENGTH 16 x4, edits empty, every `pg_src` 0, FOLLOW on | nothing until PLAY | PERF, header `M1`, first-run strip `CHN KEY, K2 = MIDI` |
 | U02 | SELECT turn | `sq_select(ch)` | none | channel cell inverted, lane / knobs / header show ch |
 | U03 | ALGORITHM turn | `sq_set_algo(ch,a)` keeps `st[]` and edits; rebuild | new AUTO steps from the next step; no note cut (decision 47) | header algorithm name, knob labels, dice sub-labels |
 | U04 | K1..K4 turn (ROW 1) | `sq_morph_turn(ch,knob,d)` via `knob_morph[]`, `sq_rebuild` | next step | cell value same frame; lane cells update |
@@ -744,11 +744,9 @@ Fail of G3 or G4: no force at all in v1. The owner signs the gate in the task lo
 
 ## 7. Workflows (gesture by gesture)
 
-Power-on state (ADR-0003 12): CH1 ACID **MIDI 1** unmuted; CH2 EUCLID MIDI 2, CH3 SNAKE MIDI 3, CH4 STAGE MIDI 4,
-all muted; ROW 1; LENGTH 16; FOLLOW on. The default MIDI channel of a channel is its number (owner ruling 73), so the
-channels line up with the numbers on the screen; a TB-3 at its factory channel 2 needs one visible step, which the
+Power-on state (ADR-0003 12): CH1 ACID **MIDI 1** unmuted and the only channel in use (P4-044); CH2 EUCLID, CH3 SNAKE, CH4 STAGE are out of use (muted, MIDI OFF) until SELECT adds them; ROW 1; LENGTH 16; FOLLOW on. CH1's default MIDI channel is its number (owner ruling 73); a TB-3 at its factory channel 2 needs one visible step, which the
 first run prompts for. (The T-1's six tracks are gone: v1 has four channels, decision 31.)
-Changing a channel's MIDI channel is 2 gestures from PERF: tap `D#4` (CHAN), turn `K2`. In the reference workflow CH1 goes to 2 and CH2 (default 2, muted) becomes OFF, with a toast that says so (4.4).
+Changing a channel's MIDI channel is 2 gestures from PERF: tap `D#4` (CHAN), turn `K2`. In the reference workflow CH1 goes to 2; no other channel is in use and the unused ones hold OFF, so nothing clashes and no toast appears (4.4).
 
 **W1. First run to a playing TB-3 bassline (3 gestures to sound the first time: `D#4`, `K2`, `PLAY`; every function at most 2).**
 1. first-run strip `CHN KEY, K2 = MIDI`: tap `D#4` (CHAN), turn `K2` to 2 (the TB-3's factory channel; header `M2`), the strip moves on to `PRESS PLAY` as soon as K2 turns; tap `HOME` to return to PERF, where the strip shows it. (A synth already on channel 1 skips this: PLAY also advances the strip.)

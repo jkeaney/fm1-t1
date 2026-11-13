@@ -44,8 +44,8 @@ The preview patch itself (one fixed bass-suited ANALOG patch at boot, no engine/
 What the device does at power-on in v1 (the target; the screen is specified in P2-003, the defaults come from UX_REVIEW section 2):
 
 1. `main.c` boots the platform (HAL, WDT/boot-loop guard, LCD, gfx, MASTER pot read, storage + settings restore, audio ISR start, USB enumerate).
-2. `t1_glue_init()` runs `t1_default_pattern()` equivalents: **4 channels**: CH1 ACID on MIDI 1 unmuted; CH2 EUCLID MIDI 2, CH3 SNAKE MIDI 3,
-   CH4 STAGE MIDI 4, all three muted; global KEY C, SCALE MINPEN, OCTAVE 0, GATE 50 %, DIV 1/16, SWING 50 %, BPM 120; preset P01; keyboard OCT 0.
+2. `t1_glue_init()` runs `t1_default_pattern()` equivalents: **4 channels, CH1 in use** (P4-044): CH1 ACID on MIDI 1 unmuted; CH2 EUCLID, CH3 SNAKE,
+   CH4 STAGE out of use (muted, MIDI OFF) until added; global KEY C, SCALE MINPEN, OCTAVE 0, GATE 50 %, DIV 1/16, SWING 50 %, BPM 120; preset P01; keyboard OCT 0.
    (UX_REVIEW section 2. Note the TB-3 default is MIDI 2, so step 2 of the reference workflow still sets CH1 to 2.)
 3. The device enters the sequencer main screen directly. `t1_mode` is permanently 1 (retire `PREF_T1`, `MI_T1SEQ`); HOME held 0.7 s opens the menu.
 4. **PLAY is audible with no setup**: the selected channel's notes go to MIDI out and to the preview synth (`trk[0]`, ANALOG) on the

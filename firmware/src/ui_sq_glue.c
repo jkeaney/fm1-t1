@@ -21,7 +21,7 @@
 static void sq_frame(void)
 {   const uint8_t seen = sq_seen_epoch;
     SQ_FRAME_SYNC();
-    if (seen != sq_seen_epoch) { uisq_bpm_req = 0; song.g[G_BPM] = (int16_t)clamp((int32_t)sq_bpm, GP[G_BPM].min, GP[G_BPM].max);   /* a load landed: its tempo wins (over a SET K1 turn too) */
+    if (seen != sq_seen_epoch || sq_load_landed) { sq_load_landed = 0; uisq_bpm_req = 0; song.g[G_BPM] = (int16_t)clamp((int32_t)sq_bpm, GP[G_BPM].min, GP[G_BPM].max);   /* a load landed: its tempo wins (over a SET K1 turn too) */
         uisq_gone_n = 0; uisq_undone = 0;                                  /* P4-044: the load replaced the in-use mask: a stale remove-undo stack would revive the wrong channel */
         if (!(uisq_used >> (uisq_sel % SQ_NCH) & 1u)) { uint8_t c = 0; while (c < SQ_NCH - 1u && !(uisq_used >> c & 1u)) c++; uisq_sel = c; uisq_vpage = 0; }   /* the selection must be a channel in use */
     }

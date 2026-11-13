@@ -689,7 +689,7 @@ The device boots straight into the sequencer: no mode, no `PREF_T1`, no `MODE` r
 | Item | Value |
 | --- | --- |
 | CH1 | ACID, MIDI channel **1**, unmuted (P1-017 owner ruling 73: channel numbers match MIDI channels; the first-run step 1 `D#4 K2: MIDI CHANNEL` prompts for the TB-3's channel 2) |
-| CH2 / CH3 / CH4 | EUCLID MIDI 2 / SNAKE MIDI 3 / STAGE MIDI 4, all muted (the channel number; change: D#4, K2) |
+| CH2 / CH3 / CH4 | EUCLID / SNAKE / STAGE, all muted, **MIDI OFF** (P4-044, BUG-011: a channel out of use holds no MIDI channel; ADD starts at OFF with the setup cue; change: D#4, K2) |
 | every `AlgoState` | morphs = `MorphDesc.def`; seeds per section 3.1 for each channel and algorithm |
 | pins | none (P1-017: every `StepEdit` AUTO, every `pg_src` 0, `len` 16) |
 | Global | KEY C (0), SCALE MINPEN (10), OCTAVE 0, GATE 50, DIV 1/16 (2), SWING 50, BPM 120 |

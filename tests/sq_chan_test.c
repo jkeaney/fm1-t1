@@ -128,12 +128,15 @@ static int cache_matches(uint8_t c)
            !memcmp(&k->gs, &sq_gdb[sq_gidx].s, sizeof k->gs) && k->snap0 == sq_gdb[sq_gidx].snap[1]; }   /* P4-024: and built from the live global */
 
 /* build() records the algorithm id the core asked for: the mock cannot see it, so the table sets it from the call order. */
-static void boot_mock(void)
+static void boot_raw(void)
 {   memset(sq_cache, 0, sizeof sq_cache); memset(sq_calgo, 0, sizeof sq_calgo); memset((void *)sq_cidx, 0, sizeof sq_cidx);
     memset(sq_stage_ch, 0, sizeof sq_stage_ch); sq_load_pending = 0; sq_epoch = 0; sq_playing = 0; sq_now = 0; sq_cur = 0;
     sq_entropy_ctr = 0x12345; sq_dice_n = 0; builds = 0; build_hook = NULL; mock_free = 128;
     memset(midi_cnt, 0, sizeof midi_cnt); memset(prv_cnt, 0, sizeof prv_cnt); viol = midi_on_total = midi_off_total = 0;
     sq_boot(); }
+/* the older scenarios of this file assume four channels in use on MIDI 1..4; P4-044 boots with CH1 only and CH2..CH4 on OFF (t_defaults, t_inuse use boot_raw) */
+static void boot_mock(void)
+{   boot_raw(); sq_used = 0x0F; for (uint8_t c = 0; c < SQ_NCH; c++) sq_ch[c].midi_ch = c; }
 
 static uint32_t edhash(uint8_t c) { uint32_t h = 2166136261u; const uint8_t *p = (const uint8_t *)sq_ch[c].ed; for (size_t i = 0; i < sizeof sq_ch[c].ed; i++) h = (h ^ p[i]) * 16777619u; return h; }
 static void put_edits(uint8_t c)                      /* a hand-made bassline: every kind of set field */
@@ -387,7 +390,7 @@ static void t_defaults(void)
     CHECK(p.harm.len == 0x03 && p.harm.deg[0] == 0 && p.harm.deg[1] == 0 && p.harm.deg[2] == 0 && p.harm.vm == 0x82 && p.harm.drone == 0 && p.harm.roles == 0 && p.harm.rsv == 0, "HARMONY 1---, VOICE 2, MOVE 8, no drone, AUTO");
     for (int c = 0; c < SQ_NCH; c++) {
         const ChanSave *cs = &p.ch[c];
-        CHECK(cs->midi_ch == c, "CH%d MIDI %d", c + 1, c + 1);
+        CHECK(cs->midi_ch == (c ? SQ_MIDI_OFF : 0), "CH%d MIDI %s (P4-044: out of use = OFF)", c + 1, c ? "OFF" : "1");
         CHECK(cs->algo == algo[c], "CH%d algorithm %u", c + 1, algo[c]);
         CHECK(cs->muted == (c ? 1 : 0), "CH%d mute %d", c + 1, c ? 1 : 0);
         CHECK(cs->len == 16 && cs->pg_src == 0 && cs->pg_used == 1 && cs->pad[0] == 0 && cs->pad[1] == (c ? 0 : 1), "CH%d len 16, pg_src 0, pg_used 1, PREVIEW off, in use only CH1 (P4-044)", c + 1);
@@ -406,7 +409,7 @@ static void t_defaults(void)
     CHECK(p.ch[1].st[1].seed[0] == 0 && p.ch[1].st[1].seed[1] == 0x23D1, "EUCLID ROT is literally 0, NOTES CH2 0x23D1");
     CHECK(p.ch[2].st[2].seed[0] == 0x0D45 && p.ch[3].st[3].seed[2] == 0x1A8A && p.ch[3].st[0].seed[5] == 0x78B8, "SNAKE CH3, STAGE CH4, ACID CH4 seeds");
     /* sq_boot: the live state is the same, the caches are built in buffer 0, s_mod is the default */
-    boot_mock();
+    boot_raw();
     { SeqPreset q; sq_preset_save(&q, NULL); CHECK(!memcmp(&p, &q, sizeof p), "sq_boot state == sq_defaults"); }
     for (int c = 0; c < SQ_NCH; c++) {
         CHECK(sq_cidx[c] == 0 && cache_matches(c), "boot: CH%d cache 0 built for its algorithm", c + 1);
@@ -442,7 +445,7 @@ static void t_modsave(void)
 /* ---- P4-044: channels in use are core state, saved in the preset (ChanSave.pad[1] bit 0; the struct sizes do not change) ---- */
 static void t_inuse(void)
 {   SeqPreset a, b; uint32_t rng = 0x44u;
-    boot_mock();
+    boot_raw();
     CHECK(sq_used == 0x01 && sizeof(ChanSave) == 384 && sizeof(SeqPreset) == 1556, "power-on: CH1 only in use, layout unchanged");
     sq_preset_save(&a, NULL);
     CHECK(a.ch[0].pad[1] == 1 && a.ch[1].pad[1] == 0 && a.ch[2].pad[1] == 0 && a.ch[3].pad[1] == 0, "the power-on preset carries only CH1's bit");
@@ -452,18 +455,18 @@ static void t_inuse(void)
     sq_ch[2].algo = 2; ALGOS[5].build = t_build;
     sq_used |= 0x0Au; sq_preset_save(&a, NULL);
     CHECK(a.ch[1].pad[1] == 1 && a.ch[3].pad[1] == 1 && a.ch[2].pad[1] == 0, "save writes the mask (CH1 CH2 CH4)");
-    boot_mock(); CHECK(sq_used == 0x01, "boot resets to CH1 only");
+    boot_raw(); CHECK(sq_used == 0x01, "boot resets to CH1 only");
     CHECK(sq_preset_load(&a, NULL, 0) == 0 && sq_used == 0x0B, "load round trip restores CH1 CH2 CH4");
     sq_preset_save(&b, NULL); CHECK(!memcmp(&a, &b, sizeof a), "the mask round trip is byte-identical");
     /* remove (what the UI does) then save: the bit goes */
     sq_used &= (uint8_t)~2u; sq_preset_save(&b, NULL); CHECK(b.ch[1].pad[1] == 0 && sq_used == 0x09, "remove CH2: bit cleared in the saved copy");
     /* queued load: the mask lands with the bar, not before */
-    boot_mock(); sq_on_start(); sq_now = 0; for (uint32_t t = 0; t < 10; t++) { sq_tick(sq_now); sq_now++; }
+    boot_raw(); sq_on_start(); sq_now = 0; for (uint32_t t = 0; t < 10; t++) { sq_tick(sq_now); sq_now++; }
     CHECK(sq_preset_load(&a, NULL, 1) == 0 && sq_load_pending == 1 && sq_used == 0x01, "playing: queued, the mask unchanged until the bar");
     while (sq_now <= SQ_BAR_TICKS) { sq_tick(sq_now); sq_now++; }
     sq_chan_sync(); CHECK(sq_used == 0x0B, "the landed load brings its mask"); sq_on_stop();
     /* a hostile preset: no bit, a bit on an empty row, reserved bits */
-    boot_mock(); sq_preset_save(&b, NULL);
+    boot_raw(); sq_preset_save(&b, NULL);
     for (uint8_t q = 0; q < SQ_NCH; q++) b.ch[q].pad[1] = 0;
     CHECK(sq_preset_load(&b, NULL, 0) == 0 && sq_used == 0x01, "an empty mask loads as CH1 only");
     b.ch[0].pad[1] = 0; b.ch[1].pad[1] = 0xFFu; b.ch[2].algo = 5; b.ch[2].pad[1] = 1;
@@ -471,7 +474,7 @@ static void t_inuse(void)
     CHECK(sq_preset_load(&b, NULL, 0) == 0 && sq_used == 0x02 && (sq_ch[1].pad[1] & ~1u) == 0, "a load drops a channel on an empty row, clears reserved bits");
     ALGOS[5].build = t_build;
     /* fuzz: add / remove / save / load / algorithm in any order keeps the invariants */
-    boot_mock();
+    boot_raw();
     for (int i = 0; i < 20000; i++) {
         uint8_t c, k; rng = rng * 1664525u + 1013904223u; c = (uint8_t)((rng >> 16) & 3u); k = (uint8_t)((rng >> 20) % 5u);
         if (k == 0 && sq_chan_addable(c)) sq_used |= (uint8_t)(1u << c);

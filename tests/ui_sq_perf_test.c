@@ -424,6 +424,15 @@ int main(int argc, char **argv)
       CHECK(sq_ch[0].muted == 0 && sq_ch[1].muted && sq_ch[2].muted && sq_ch[3].muted, "power-on: CH1 audible, the others muted");
       ui_sq_select_turn(-1); CHECK(uisq_sel == 0, "SELECT left of CH1 does nothing");
       ui_sq_select_turn(1); CHECK(uisq_used == 0x03 && uisq_sel == 1 && !sq_ch[1].muted, "SELECT right adds CH2 (its algorithm row exists), unmuted");
+      CHECK(sq_ch[1].midi_ch == SQ_MIDI_OFF && sq_ch[2].midi_ch == SQ_MIDI_OFF && sq_ch[3].midi_ch == SQ_MIDI_OFF && sq_ch[0].midi_ch == 0, "F1: CH1 on MIDI 1, the channels out of use hold MIDI OFF");
+      ui_sq_select_turn(-1); uisq_cm_ch = 0; uisq_cm_val = 1; uisq_toast_until = 0; uisq_toast[0] = 0;
+      uisq_chan_commit();
+      CHECK(sq_ch[0].midi_ch == 1 && !uisq_toast[0] && uisq_toast_until == 0 && sq_ch[1].midi_ch == SQ_MIDI_OFF, "F1 (S01 step 3): CH1 -> MIDI 2 takes nothing from a hidden channel and raises no toast");
+      sq_ch[0].midi_ch = 0; ui_sq_select_turn(1);
+      CHECK(sq_ch[1].midi_ch == SQ_MIDI_OFF && (uisq_new >> 1 & 1u), "F1: ADD starts CH2 at MIDI OFF with the setup cue");
+      sq_ch[1].midi_ch = 7; uisq_do_remove(1); ui_sq_select_turn(1);
+      CHECK(uisq_used == 0x03 && sq_ch[1].midi_ch == SQ_MIDI_OFF, "F1: remove then add again: MIDI OFF, not the old number");
+      uisq_gone_n = 0;
       uisq_do_remove(1); CHECK(uisq_used == 0x01 && sq_ch[1].muted && sq_ch[1].midi_ch == SQ_MIDI_OFF && uisq_sel == 0, "remove CH2: out of use, muted, MIDI OFF, selection back on CH1");
       uisq_do_remove(0); CHECK(uisq_used == 0x01, "the last channel in use is never removed");
       ui_sq_button(UI_C_B_EDIT); CHECK(uisq_used == 0x03 && uisq_sel == 1, "EDIT takes the removal back");

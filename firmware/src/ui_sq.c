@@ -1937,6 +1937,7 @@ static void ui_sq_select_turn(int32_t d)
                 uisq_used |= (uint8_t)(1u << f);
                 uisq_gone_n = 0; uisq_undone = 0;                       /* an add is a newer action than any removal or undo */
                 sq_set_mute(f, 0);
+                sq_ch[f].midi_ch = SQ_MIDI_OFF;                     /* BUG-011 / P4-044: starts with no MIDI channel (setup cue) */
                 ui_sq_new_set(f, 1);
                 uisq_sel = f;
                 uisq_vpage = 0;
