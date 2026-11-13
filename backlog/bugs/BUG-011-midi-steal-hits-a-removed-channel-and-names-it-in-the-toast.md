@@ -3,7 +3,7 @@ id: BUG-011
 title: A MIDI-channel steal hits a removed (unused) channel and the toast names a channel that is not on screen
 phase: P4
 type: bug
-status: todo
+status: review
 priority: 1
 executor: sonnet
 depends_on: [P4-015]
@@ -30,8 +30,8 @@ CH1 gets MIDI 4 with no toast about CH3.
 CH3 is set to OFF and the toast names it.
 
 ## Acceptance criteria
-- [ ] Steps above give no steal toast; re-adding CH3 later gives a sensible MIDI (not silently OFF without notice).
-- [ ] `sh tools/check.sh` ends CHECK PASS.
+- [x] Steps above give no steal toast; re-adding CH3 later gives a sensible MIDI (not silently OFF without notice).
+- [x] `sh tools/check.sh` ends CHECK PASS.
 
 ## Verification
 ```sh
@@ -46,3 +46,9 @@ n/a, bug fix; no new producer-visible element.
 
 ## Log
 - 2026-11-13 owner ruled (open-items 3A): fix before the first flash (HW-1). Same ruling: P4-031 and P4-033 stay after HW-1 (1A, 2A); HW-1 is the first timing measurement (4A).
+
+### 2026-11-13 executor (sonnet)
+Chose: removal clears the channel's MIDI to OFF (ui_sq.c `uisq_do_remove`); fewer side effects than skipping unused channels in sq_set_midi, because skipping would leave duplicate MIDI channels on re-add and on undo of the removal. Removal also clears `sq_um_valid` (a stale MIDI record must not swap after it). The removal stack gained `uisq_gone_midi[]` (shifts with the stack of 4); EDIT undo restores the MIDI unless an in-use channel holds it by then (then OFF). Any MIDI commit already empties the stack. A re-added channel starts at MIDI OFF with the existing setup cue.
+Tests: tests/ui_sq_chan_test.c, 7 new BUG-011 checks (removal sets OFF, steal without toast, EDIT undo restores, no stale restore after a MIDI change, re-add is OFF, three removals/three undos, last channel keeps MIDI); one old check (line 295) updated to expect OFF. Before the fix (firmware stashed) FAIL 295, 298, 300, 304, 306; after:
+`sh tools/check.sh` -> `RAM .data+.bss 29352 B of 73728` (headroom about 44 KB), `CHECK PASS`.
+Docs synced: docs/design/SCREEN_SPEC_V2.md section 6, docs/design/SEQUENCER_UX.md 4.4 (new row).

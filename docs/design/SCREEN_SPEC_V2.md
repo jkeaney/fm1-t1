@@ -125,6 +125,7 @@ string table with a width check in `tools/gen_ui_tables.py` (P4-029).
 - **Remove:** long press the channel's mute key (M1-M4): from 0.4 s the hint reads `PREVIEW CHn`; releasing before 1.5 s
   toggles PREVIEW (as today, but on release); holding to 1.5 s removes the channel (hint `REMOVE CHn` with its bar),
   toast `[n] GONE  EDIT=UNDO`. Table change: key_map M1-M4 hold rows (P4-030).
+  **A removed channel gives up its MIDI channel (BUG-011):** its MIDI becomes OFF at once, so giving that number to another channel never steals from it and its toast never names a channel that is not on screen. EDIT=UNDO of the removal puts the MIDI channel back (OFF if an in-use channel holds it by then); a re-added channel starts at MIDI OFF with the setup cue.
 - MIDI channel: CHN key opens CHAN; K2 sets MIDI; giving a used MIDI channel turns the other channel OFF with a toast.
 
 ## 7. State catalogue (all rendered in `proposals/v12/out/`)

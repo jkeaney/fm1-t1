@@ -292,7 +292,23 @@ int main(int argc, char **argv)
     uisq_used &= (uint8_t)~1u; frame(); frame();
     CHECK(sq_ch[0].midi_ch == 0 && uisq_cm_val == UISQ_CM_NONE && uisq_page == UI_PG_PERF, "the channel left use while pending: nothing written, pending dropped, CHAN closed");
     reset_world(); chn_tap(); uisq_sel = 1; k2(2); uisq_do_remove(1); CHECK(uisq_cm_val == UISQ_CM_NONE, "removing the channel drops its pending value");
-    wait_ms(700); CHECK(sq_ch[1].midi_ch == 1, "...and nothing is written later");
+    wait_ms(700); CHECK(sq_ch[1].midi_ch == SQ_MIDI_OFF, "...and nothing is written later (the removed channel stays MIDI OFF, BUG-011)");
+    /* ---- BUG-011: a removed channel gives its MIDI channel up (OFF), so a steal never hits it or names it; EDIT brings it back ---- */
+    reset_world(); uisq_do_remove(2);
+    CHECK(sq_ch[2].midi_ch == SQ_MIDI_OFF && uisq_gone_n == 1, "BUG-011: removing CH3 (MIDI 3) sets its MIDI OFF");
+    uisq_sel = 0; chn_tap(); k2(2); wait_ms(700);
+    CHECK(sq_ch[0].midi_ch == 2 && !(toast_on() && streq(uisq_toast, "MIDI OFF")) && sq_ch[2].midi_ch == SQ_MIDI_OFF && sq_ch[1].midi_ch == 1 && sq_ch[3].midi_ch == 3, "BUG-011: CH1 takes MIDI 3, no steal toast, CH3 not touched");
+    reset_world(); uisq_do_remove(2); ui_sq_button(UI_C_B_EDIT);
+    CHECK(uisq_used == 0x0F && sq_ch[2].midi_ch == 2, "BUG-011: EDIT undo of the removal restores CH3 and its MIDI 3");
+    reset_world(); uisq_do_remove(2); uisq_sel = 0; chn_tap(); k2(2); wait_ms(700); ui_sq_button(UI_C_B_EDIT);
+    CHECK(uisq_used == 0x0B && sq_ch[2].midi_ch == SQ_MIDI_OFF, "BUG-011: a MIDI change after a removal empties the stack: no stale restore of MIDI 3 over CH1");
+    reset_world(); uisq_do_remove(2); uisq_sel = 0; uisq_used |= 4u; uisq_gone_n = 0; sq_ch[0].midi_ch = 2;     /* re-add after a removal: OFF, not a duplicate */
+    CHECK(sq_ch[2].midi_ch == SQ_MIDI_OFF, "BUG-011: a re-added channel is MIDI OFF (setup cue), never a silent duplicate");
+    reset_world(); uisq_do_remove(1); uisq_do_remove(2); uisq_do_remove(3); uisq_do_remove(3); uisq_do_remove(2);
+    ui_sq_button(UI_C_B_EDIT); ui_sq_button(UI_C_B_EDIT); ui_sq_button(UI_C_B_EDIT);
+    CHECK(uisq_used == 0x0F && sq_ch[1].midi_ch == 1 && sq_ch[2].midi_ch == 2 && sq_ch[3].midi_ch == 3, "BUG-011: three removals, three undos restore all three MIDI channels");
+    reset_world(); uisq_do_remove(1); uisq_do_remove(2); uisq_do_remove(3); uisq_sel = 0; uisq_used = 0x01;      /* a removal of CH1 refused (last one) leaves its MIDI */
+    uisq_do_remove(0); CHECK(sq_ch[0].midi_ch == 0, "BUG-011: the last channel is not removed and keeps its MIDI");
     reset_world(); chn_tap(); k2(1); uisq_cm_val = 99; uisq_cm_ch = 9; frame(); fill(); CHECK(V.ch_midi[0] == 0 && uisq_cm_val == UISQ_CM_NONE, "a corrupt pending value / channel is ignored by the view and dropped by the commit");
 
     /* ---- K1 LENGTH: clamp 1..64, fast turns, the page count follows, hidden steps keep their edits ---- */

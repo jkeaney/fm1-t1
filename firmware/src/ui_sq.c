@@ -1115,7 +1115,7 @@ static uint32_t uisq_key_t0[UISQ_NKEY];       /* UISQ_MS() of the press */
 static uint8_t  uisq_pg_pend;                 /* PG+ on the last page was pressed once: the next PG+ adds the page */
 /* removed channels, newest last: EDIT = UNDO pops one (the channel, its mute and its preview bit come back). A dice, a page add or an EDIT
  * that undoes something else empties the stack (the removal is then no longer the latest action). */
-static uint8_t  uisq_gone_n, uisq_gone_ch[SQ_NCH], uisq_gone_muted[SQ_NCH], uisq_gone_prv[SQ_NCH];
+static uint8_t  uisq_gone_n, uisq_gone_ch[SQ_NCH], uisq_gone_muted[SQ_NCH], uisq_gone_prv[SQ_NCH], uisq_gone_midi[SQ_NCH];   /* BUG-011: a removed channel gives its MIDI channel up (OFF); the undo gives it back */
 static uint8_t  uisq_undone;                  /* the last EDIT tap was an undo: the next one says REDO */
 
 /* chromatic key 0..26 (F3 .. G5) -> 0..15 white, or 0x80 | 0..10 black (panel order, as key_map.tsv) */
@@ -1487,12 +1487,14 @@ static void uisq_do_remove(uint8_t ch)                                  /* remov
 {   uint8_t left = (uint8_t)(uisq_used & ~(1u << ch));
     if (ch >= SQ_NCH || !(uisq_used >> ch & 1u) || !left) return;     /* not in use: nothing to remove (no stack entry, no mute) */
     if (uisq_gone_n >= SQ_NCH) {                                        /* full: drop the oldest */
-        for (uint8_t i = 1; i < SQ_NCH; i++) { uisq_gone_ch[i - 1] = uisq_gone_ch[i]; uisq_gone_muted[i - 1] = uisq_gone_muted[i]; uisq_gone_prv[i - 1] = uisq_gone_prv[i]; }
+        for (uint8_t i = 1; i < SQ_NCH; i++) { uisq_gone_ch[i - 1] = uisq_gone_ch[i]; uisq_gone_muted[i - 1] = uisq_gone_muted[i]; uisq_gone_prv[i - 1] = uisq_gone_prv[i]; uisq_gone_midi[i - 1] = uisq_gone_midi[i]; }
         uisq_gone_n = (uint8_t)(SQ_NCH - 1u); }
-    uisq_gone_ch[uisq_gone_n] = ch; uisq_gone_muted[uisq_gone_n] = sq_ch[ch].muted; uisq_gone_prv[uisq_gone_n] = (uint8_t)(sq_ch[ch].pad[0] & 0x80u); uisq_gone_n++;
+    uisq_gone_ch[uisq_gone_n] = ch; uisq_gone_muted[uisq_gone_n] = sq_ch[ch].muted; uisq_gone_prv[uisq_gone_n] = (uint8_t)(sq_ch[ch].pad[0] & 0x80u); uisq_gone_midi[uisq_gone_n] = sq_ch[ch].midi_ch; uisq_gone_n++;
     uisq_used = left;
     if (uisq_cm_ch == ch) uisq_cm_val = UISQ_CM_NONE;                   /* a pending MIDI channel of the removed channel is dropped */
     sq_set_mute(ch, 1);
+    sq_ch[ch].midi_ch = SQ_MIDI_OFF;                                    /* BUG-011: not in use = holds no MIDI channel, so sq_set_midi never steals from it (and names it in a toast) */
+    sq_um_valid = 0;                                                    /* the removal is newer than any MIDI record: a later sq_undo must not swap a stale pair */
     sq_ch[ch].pad[0] &= 0x7Fu;                                          /* a removed channel must not sound on the built-in synth either */
     if (uisq_sel == ch) { uint8_t n = uisq_next_used(ch, -1); if (n == ch) n = uisq_next_used(ch, 1); uisq_sel = n; uisq_vpage = 0; }
     ui_sq_toast_id(UI_MSG_TOAST_GONE_EDIT_UNDO, ch); }
@@ -1531,6 +1533,9 @@ static void ui_sq_button(uint8_t ctl)
     case UI_C_B_EDIT:                                                   /* UNDO / REDO; a channel just removed comes back first */
         if (uisq_gone_n) {
             const uint8_t i = (uint8_t)(uisq_gone_n - 1u), c = uisq_gone_ch[i];
+            {   uint8_t m = uisq_gone_midi[i];                                   /* BUG-011: the MIDI channel comes back unless an in-use channel holds it meanwhile (then OFF, never a duplicate) */
+                for (uint8_t o = 0; o < SQ_NCH; o++) if (o != c && (uisq_used >> o & 1u) && sq_ch[o].midi_ch == m) m = SQ_MIDI_OFF;
+                sq_ch[c].midi_ch = m; }
             uisq_used |= (uint8_t)(1u << c); sq_set_mute(c, uisq_gone_muted[i]); sq_ch[c].pad[0] |= uisq_gone_prv[i]; uisq_gone_n = i; uisq_undone = 0; uisq_sel = c;
             ui_sq_toast_id(UI_MSG_TOAST_UNDO_EDIT_REDO, c); }
         else if (sq_undo(sel)) {
