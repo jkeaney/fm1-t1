@@ -1199,7 +1199,7 @@ Toasts (SCREEN_SPEC 2.7) are not rows of this table: a toast is drawn in the sam
 | 6 | `HOLD A WHITE KEY: EDIT` | NOTE_EDIT opens (then `HOME=done` when it closes) |
 | 7 | `PG+ TWICE: ADD PAGE 2` | a page added, or any other control 3 times |
 
-As built: the bit is 0x80 of `ui_prefs2` (set once when the strip ends; 0 in every older setting, so each device runs it once); a HOME tap on PERF ends it at once (toast `HOME  HOLD=HELP`); steps 2-7 sit in the keys' line of PERF with `HOME = SKIP` on the right (steps 5 and 6 are `TAP A WHITE KEY: ON/OFF` and `HOLD A WHITE KEY: EDIT`: the longer words did not fit beside it); PLAY on step 1 or 2 goes to step 3.
+As built: the flag is the byte `favorites.factory[15][31]` (`ui_first_run` = 1; not a bit of `ui_prefs2`, whose bit 7 `settings_import` clears) (set once when the strip ends; 0 in every older setting, so each device runs it once); a HOME tap on PERF ends it at once (toast `HOME  HOLD=HELP`); steps 2-7 sit in the keys' line of PERF with `HOME = SKIP` on the right (steps 5 and 6 are `TAP A WHITE KEY: ON/OFF` and `HOLD A WHITE KEY: EDIT`: the longer words did not fit beside it); PLAY on step 1 or 2 goes to step 3.
 
 ### 11.4 The first minute (walkthrough, no manual)
 

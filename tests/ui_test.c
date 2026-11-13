@@ -2268,12 +2268,16 @@ static int test_sq_safety(void)
 
     /* first run: the bit of ui_prefs2 */
     sq_clean();
-    ui_prefs2 = 0; uisq_fr_on = 0; uisq_fr_save = 0;
+    ui_first_run = 0; uisq_fr_on = 0; uisq_fr_save = 0;
     uisq_fr_on = 1; uisq_fr_step = 7; uisq_fr_event(UISQ_FR_PAGE);
     ok = !uisq_fr_on && uisq_fr_save;
     frame();
-    ok &= (ui_prefs2 & 0x80u) && !uisq_fr_save;
-    bad += check("P4-018: the first-run strip ends, the glue stores its bit (0x80 of ui_prefs2) once and the strip is off", ok);
+    ok &= ui_first_run == 1u && !uisq_fr_save;
+    {   persist_t q = {0};                                         /* the byte survives a save and a reload (settings_import clears retired bits of [24]) */
+        settings_export(&q);
+        ui_first_run = 0;
+        ok &= settings_import(&q, sizeof q) == 1 && ui_first_run == 1u; }
+    bad += check("P4-018: the first-run strip ends, the glue stores its byte (ui_first_run) once, the strip is off and the byte survives export -> import", ok);
     return bad;
 }
 

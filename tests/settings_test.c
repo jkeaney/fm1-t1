@@ -130,6 +130,15 @@ int main(void)
         assert(settings_import(&p, 8 + sizeof(panel_t)) == 2 && settings_leds == LEDS_DIM);
     }
 #ifdef FELUCCA_FAVORITES
+    {   /* P4-018 FIRST RUN DONE (ui.c ui_first_run = favorites.factory[15][31]): 0 in every older record (the strip runs); 1 survives export -> import, which
+         * clears the retired bits of [15][24] (an earlier bit 7 of [24] was wiped on every boot) */
+        persist_t q = {0};
+        p = original; p.favorites.factory[15][31] = 1u; p.favorites.factory[15][24] = 0xFFu;
+        assert(settings_import(&p, sizeof p) == 1 && favorites.factory[15][31] == 1u && !(favorites.factory[15][24] & 0x80u));
+        settings_export(&q); assert(q.favorites.factory[15][31] == 1u);
+        favorites.factory[15][31] = 0; assert(settings_import(&q, sizeof q) == 1 && favorites.factory[15][31] == 1u);
+        p = original; p.magic = 0x50455233u; assert(settings_import(&p, sizeof p - sizeof p.favorites) == 2 && favorites.factory[15][31] == 0u);   /* PER3: no favorites, the strip runs */
+    }
     {   /* 1.1 CLICK / CLICK LEVEL / COUNT-IN (ui.c ui_rec_prefs, favorites.factory[15][28]): 0 in every older record
          * (the defaults: OFF / MID / OFF); each field 0..2 kept, 3 (no value) back to 0, bits 6-7 kept; twice the same */
         persist_t q;

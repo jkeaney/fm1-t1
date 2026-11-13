@@ -554,6 +554,7 @@ int main(int argc, char **argv)
     CHECK(uisq_pg_pend == 1 && sq_ch[0].len == 16 && toast_is(UI_MSG_TOAST_PAGE_2_PG_ADD) && uisq_cue_row() == UISQ_CR_ADD_PAGE, "PG+ on the last page: the prompt `PAGE 2?  PG+=ADD`, nothing added");
     home_tap(); CHECK(uisq_pg_pend == 0 && sq_ch[0].len == 16, "HOME tap cancels the prompt");
     press(1u << BK[9]); wait_ms(60); press(0); frame(); knob(0, 1); CHECK(uisq_pg_pend == 0, "a knob cancels it");
+    uisq_row = 1; press(1u << BK[9]); wait_ms(60); press(0); frame(); CHECK(uisq_pg_pend == 1, "prompt up on ROW 2"); knob(2, 1); CHECK(uisq_pg_pend == 0, "a ROW 2 knob cancels it too (SEQUENCER_UX 11.2)"); uisq_row = 0;
     press(1u << BK[9]); wait_ms(60); press(0); frame(); btn(UI_C_B_SEQ); CHECK(uisq_pg_pend == 0, "a dice button cancels it");
     press(1u << BK[9]); wait_ms(60); press(0); frame(); tap_key(WK(1)); CHECK(uisq_pg_pend == 0, "a step key cancels it");
     press(1u << BK[9]); wait_ms(60); press(0); frame(); other(UI_C_B_GLO); CHECK(uisq_pg_pend == 0, "GLO cancels it (and opens SET)"); other(UI_C_B_GLO);

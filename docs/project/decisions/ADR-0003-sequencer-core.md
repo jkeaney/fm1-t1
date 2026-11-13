@@ -376,10 +376,10 @@ void    sq_select(uint8_t ch);
 void    sq_pin_set(uint8_t ch, uint8_t pos, uint8_t semi);        /* pos 0..15, semi 0..96 */
 void    sq_pin_clear(uint8_t ch, uint8_t pos);
 void    sq_pin_clear_all(uint8_t ch);                             /* undoable (UndoRec.what bit1) */
-void    sq_reset_morph(uint8_t ch, uint8_t knob);                 /* P1-014: one morph to MorphDesc.def; undoable (what bit2) */
-void    sq_reset_row(uint8_t ch, uint8_t row);                    /* row 0/1: its four morphs to defaults; undoable */
-void    sq_reset_algo(uint8_t ch);                                /* all 8 morphs + all seeds to factory (seed_k); undoable */
-void    sq_reset_layer(uint8_t ch, uint8_t layer);                /* that layer's seeds to factory; undoable */
+uint8_t    sq_reset_morph(uint8_t ch, uint8_t knob);                 /* P1-014: one morph to MorphDesc.def; undoable (what bit2). P4-018: the four sq_reset_* return 1 when something changed (one record), 0 when all was default (no record) */
+uint8_t    sq_reset_row(uint8_t ch, uint8_t row);                    /* row 0/1: its four morphs to defaults; undoable */
+uint8_t    sq_reset_algo(uint8_t ch);                                /* all 8 morphs + all seeds to factory (seed_k); undoable */
+uint8_t    sq_reset_layer(uint8_t ch, uint8_t layer);                /* that layer's seeds to factory; undoable */
 void    sq_rec_arm(uint8_t on);                                   /* REC (P1-014 revision): armed = keys write pins; cursor 0 */
 void    sq_rec_write(uint8_t ch, uint8_t key, uint8_t vel);       /* a REC key: pin at the cursor (stopped) or nearest the playhead (playing), ACC / SLIDE from K2 / K3 */
 void    sq_pin_pitch(uint8_t ch, uint8_t pos, uint8_t degree);    /* held step + another white key: that scale degree, auditioned */

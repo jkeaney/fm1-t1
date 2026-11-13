@@ -1988,7 +1988,7 @@ static void uisq_set_oct(uint8_t ctl)
 
 static void ui_sq_knob(uint8_t k, int32_t d)
 {   if (uisq_reset) { if (d && k < 4u) uisq_reset_knob(k); return; }     /* RESET: any detent puts that value back (one shot) */
-    if (d && k < 4u) uisq_fr_event(UISQ_FR_KNOB);
+    if (d && k < 4u) { uisq_pg_pend = 0; uisq_fr_event(UISQ_FR_KNOB); }   /* any knob cancels the ADD PAGE prompt (ROW 2, a RIG row and every page too) */
     if (uisq_page == UI_PG_NOTE_EDIT) { uisq_ne_knob(k, d); return; }
     if (uisq_page == UI_PG_SET && k < 4u) { if (d > 127) d = 127; if (d < -127) d = -127; uisq_set_knob(k, d); return; }
     if (uisq_page == UI_PG_CHAN && k < 4u) { if (d > 127) d = 127; if (d < -127) d = -127; uisq_chan_knob(k, d); return; }

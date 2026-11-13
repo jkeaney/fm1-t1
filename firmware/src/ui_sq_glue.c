@@ -28,12 +28,12 @@ static void sq_frame(void)
 
 static void ui_sq_poll(void)
 {   static uint8_t was_sel = 0xFFu, fr_init;
-    if (!fr_init) {                                     /* P4-018: the first-run strip runs until its bit in ui_prefs2 says it was done (once per device) */
+    if (!fr_init) {                                     /* P4-018: the first-run strip runs until its byte (ui.c ui_first_run) says it was done (once per device) */
         fr_init = 1;
-        if (!(ui_prefs2 & (PREF_FIRST_RUN_DONE >> 16))) { uisq_fr_on = 1; uisq_fr_step = 1; uisq_fr_other = 0; ui_sq_new_set(0, 1); } }
+        if (ui_first_run != 1u) { uisq_fr_on = 1; uisq_fr_step = 1; uisq_fr_other = 0; ui_sq_new_set(0, 1); } }
     if (uisq_fr_save) {                                 /* ... and ended (a step 7 done, or HOME skipped it): keep that, once */
         uisq_fr_save = 0;
-        ui_prefs2 = (uint8_t)(ui_prefs2 | (PREF_FIRST_RUN_DONE >> 16));
+        ui_first_run = 1;
         settings_save(); }
     if (uisq_sel != was_sel) {                          /* the selected channel moved (a page, or the first frame): the ISR's copy follows */
         was_sel = uisq_sel;
