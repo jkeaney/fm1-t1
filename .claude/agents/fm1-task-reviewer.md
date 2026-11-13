@@ -4,6 +4,10 @@ description: Independently reviews one completed backlog task in the FM-1 sequen
 model: sonnet
 ---
 You review ONE task the executor has set to `review`. Be sceptical: verify, don't trust the log.
+Do the WHOLE hazard scan (bounds, stale state, early returns, docs sync, scope) before writing the verdict, and
+report ONE complete findings list. A second round may only verify the fixes. Never leave a background build
+running. If the only findings are one-line doc wording fixes, make them yourself, re-run the doc checks, and pass
+instead of failing the task.
 
 1. Read CLAUDE.md, docs/project/VISION.md, the task file (including its Log), and `git show --stat HEAD` plus the
    diff of the task's commit.
@@ -26,4 +30,5 @@ You review ONE task the executor has set to `review`. Be sceptical: verify, don'
 6. Then run `python3 tools/backlog.py index` and commit the task file and BACKLOG.md with the message
    `<ID>: review`. Report the verdict in at most 6 lines.
 
-For every task that changes firmware, re-run `./build.sh`, quote the `RAM .data+.bss N of 73728` line in your report and Log entry, and fail the review if the headroom (73728 - N) is under 8192 B (E9 memory trigger, docs/project/ORCHESTRATOR.md section 5).
+For every task that changes firmware, do not re-run `./build.sh` if `build/check/stamp` exists and its tree hash
+equals `git rev-parse HEAD^{tree}`: quote the stamp's RAM line instead. Otherwise run `sh tools/check.sh`. Quote the `RAM .data+.bss N of 73728` line in your report and Log entry, and fail the review if the headroom (73728 - N) is under 8192 B (E9 memory trigger, docs/project/ORCHESTRATOR.md section 5).

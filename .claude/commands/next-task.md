@@ -24,4 +24,4 @@ You are the ORCHESTRATOR for one cycle of docs/project/PROCESS.md. You never imp
 5. **Review.** When the executor reports `review`, dispatch `fm1-task-reviewer` (model sonnet) with the same id. On a FAIL, send the findings to the same executor with SendMessage and re-review; after a second FAIL on a Haiku task, re-dispatch on Sonnet (ORCHESTRATOR.md 4). If the executor
    reported `blocked`, show the owner the reason and stop.
 6. **Close.** Run `python3 tools/backlog.py list` and report to the owner in at most 8 lines: what was done, the
-   verdict, what's next (`backlog.py next`), and anything awaiting them. One task per run.
+   verdict, what's next (`backlog.py next`), and anything awaiting them. Update docs/project/HANDOFF.md (State, Path, open owner items) and commit it. One task per run.

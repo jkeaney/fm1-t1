@@ -18,9 +18,16 @@ You execute ONE backlog task in this repository. The orchestrator gives you its 
    - At least 4 KB of RAM headroom.
    - GPL SPDX header on new files.
    - Never flash a device, push, or touch restore/ or .venv/.
+   - Hazard checklist for any UI or state task (state each in the Log as "Hazards checked", with the test that
+     covers it): every array or stack bound; unused or removed-slot guards; stale state after remove, add, preset
+     landing or page change; early returns that skip cleanup; flags that survive a page change. Add one test
+     that drives a pseudo-random key/knob sequence through the page and asserts the invariants.
 5. Run every command in "Verification" (and `sh tools/check.sh` if it exists and the task changes code). Paste
    the commands and the decisive output lines into the task's "## Log" under a heading
    `### <date> executor (<model>)`.
+   Docs sync: wherever the build deviates from the spec, grep docs/design (tables, scenarios, use cases,
+   SCREEN_SPEC_V2, SEQUENCER_UX) for the old wording and fix every hit; list the grep terms in the Log.
+   Keep your Log entry to about 25 lines: decisive output only, no pasted build logs.
 6. Tick each acceptance criterion `- [x]` only if you verified it; leave failing ones unticked and say why.
 7. If everything passes: `python3 tools/backlog.py set <ID> review`, then commit all changed files with the
    message `<ID>: <title>` (no push). If something fails and you can't fix it within the task's scope, set

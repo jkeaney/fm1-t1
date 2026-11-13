@@ -76,6 +76,21 @@ Combine hardware sessions where the plan allows: HW-1 with HW-T, and HW-3 with H
 - No watchdog cron unless the owner asks. Agents notify when they finish.
 - Keep HANDOFF.md current at the end of each session (where we are, what's at review, what's next) in under 30 lines of change.
 
+## 8b. Efficiency rules (process review, 2026-11-13)
+
+- Review depth by task type: UI, ISR and algorithm tasks get a full Sonnet reviewer. Docs-only and one-line tasks
+  (BUG-008, P4-020, P8-003) get `review: self`: the orchestrator runs `sh tools/check.sh` and reads the diff. The reviewer
+  fixes one-line doc wording itself instead of failing the task.
+- One reviewer pass = one complete findings list (hazards + docs sync). A second round only verifies fixes.
+- The reviewer reads `build/check/stamp` (tree hash + RAM line, written by check.sh) instead of rebuilding.
+- Batch same-recipe tasks into one executor dispatch and one review: P5-002+003+004 (EUCLID, SNAKE, STAGE) and
+  P5-007+008 (ARP, PATTERNS). Separate commits and Log entries per task, one review.
+- Screen/UI tasks run on Sonnet whatever the task file's old `haiku` said; Haiku stays for exact-copy tasks.
+- Only one agent builds or runs check.sh at a time. Read-only agents (research, doc drafts, process review) may run
+  alongside; do not edit tools/check.sh or build files while an agent is building.
+- Executor Logs stay under about 25 lines; cite spec rows (section or line ranges), not whole files.
+- Update HANDOFF.md at the Close step of every cycle.
+
 ## 9. Definition of finished
 
 P8-004 has the owner's `Approved:` line. Then update HANDOFF/ROADMAP to "v1 released" and ask the owner about E9.

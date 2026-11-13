@@ -75,16 +75,11 @@ GOLDEN_UPDATE=1 sh tests/run_tests.sh        # accept an intended sound change (
 BUDGET_UPDATE=1 sh tests/run_tests.sh        # accept an intended CPU-cost change
 ```
 
-To run a single T-1 suite (N = 1..5) directly, add the next `torso_t1_*.c` file for each later phase, in the order
-algo, pipeline, state, ui (see `tests/run_tests.sh`):
-
-```sh
-S=firmware/src; cc -O2 -Ibuild/gen -I$S -o /tmp/p2 tests/torso_phase2_test.c $S/torso_t1.c $S/torso_t1_algo.c -lm && /tmp/p2
-```
+To run one host suite, look up its compile line in `tests/run_tests.sh`.
 
 Known failures that don't come from code changes:
 - The "web pages" step fails because this folder's path contains spaces: the test opens a `%20`-encoded path.
-- The T-1 phase 3/4 wall-clock benchmarks fail intermittently on a busy host.
+- Wall-clock benchmarks fail intermittently on a busy host.
 
 Flashing, restoring and testing on hardware:
 
@@ -110,9 +105,9 @@ Flashing, restoring and testing on hardware:
 is the dependency order**. Everything is `static`. A file can only use what was included before it, unless it adds a
 forward declaration. The order is (as `felucca.c` includes them; nested includes in brackets):
 HAL headers → libc/lcd/gfx → sound core (`engines.c` [dsp.c, eng_analog.c], params, mod, voice, fx [click.c]) → usb
-[uac_fir.h], midi_uart, seq [midi_control.c, midi_clock.c] → the T-1 sources (torso_t1_port, torso_t1, torso_t1_algo,
-torso_t1_pipeline, torso_t1_state, torso_t1_ui) → t1_glue → audio → panel, ui [favorites.c, midi_learn.c], menu_items,
-icons, ui_draw, ui_menu, ui_input, ui_t1 → fm1_flash, storage_hw, storage, project [settings_persist.c] → ota, ota_hw →
+[uac_fir.h], midi_uart, seq [midi_control.c, midi_clock.c] → torso_t1_port, torso_t1_algo → the sequencer core (sq_types.h, sq_prims,
+sq_algo_acid, sq_algos, sq_core, sq_chan; clk_ext sits before seq) → audio → panel, ui [favorites.c, midi_learn.c], menu_items,
+icons, ui_draw, ui_menu, ui_input, ui_sq, ui_sq_glue → fm1_flash, storage_hw, storage, project [settings_persist.c] → ota, ota_hw →
 console → master → main.c. The web editor (P3-004) and the groovebox pages and layers (P3-006) are gone from the build.
 
 **The target is freestanding.** There is no hosted libc: `libc.c` provides only memset/memcpy/memcmp, and only
@@ -123,55 +118,41 @@ code (`.ram_text`) makes no calls.
 
 **Two threads of execution:**
 - **Audio ISR.** `audio.c` calls `events_block(n)` in `seq.c` once per control block. It handles transport, MIDI in,
-  the keyboard (`keyboard_block`), and the T-1 clock (`t1_block`), which runs in place of the pattern tracks'
-  `seq_tick` because the T-1 is always on (`t1_mode`, seq.c).
+  the keyboard (`keyboard_block`), and the sequencer core (`sq_block`, once `sq_ready`), which runs in place of
+  the pattern tracks' `seq_tick`.
 - **Main loop** (main.c, ~60 fps): `ui_input()` → settings and autosave → `ui_leds()` → `ui_draw()`.
 - The UI talks to the ISR through one-shot `volatile uint8_t` request flags that the ISR consumes and clears
   (`transport_req`, `panic_req` in seq.c). Single-byte state like `song.grid` is read at the start of a block.
-- A multi-byte state swap must be wrapped in `fm1_irq_off()/fm1_irq_on()` (see `t1u_temp` in ui_t1.c).
+- A multi-byte state swap must be wrapped in `fm1_irq_off()/fm1_irq_on()` (see the `sq_chan.c` state swaps).
 - **Timing comes from samples**, not a hardware timer: `beat_samples()` (fx.c) is samples per quarter note and
   follows the internal BPM or an external MIDI clock. Sequencer time is `events_block`'s `seq_n`.
 
 **MIDI out:** `midi_out_event(pkt)` in usb.c queues a 32-bit USB-MIDI packet `CIN | status<<8 | d1<<16 | d2<<24` into
-a 64-entry ring, and drops it if no host is configured. The pattern tracks do not run while the T-1 is on (always,
-now), so MIDI out comes from the T-1 (`t1_glue.c` flushes its rings) and from live key presses.
+a 64-entry ring, and drops it if no host is configured. The pattern tracks do not run, so MIDI out comes from the
+sequencer core (`sq_emit`) and from live key presses.
 
 **UI structure:**
-- `ui_input()` in ui_input.c runs the button tap/hold timers (`btn_hold`), the menu, then the page. The T-1 screen
-  (ui_t1.c) is the only page and takes over with an early return; it is the pattern to copy for any new full-screen mode.
-- `ui_draw_page()` in ui_draw.c picks the screen in priority order: uboot → menu → count-in → confirm → T-1 (the only
-  page).
+- `ui_input()` in ui_input.c runs the button tap/hold timers (`btn_hold`), the menu, then the page. The sequencer
+  screen (`ui_sq_glue.c`) is the only page and takes over with an early return.
+- `ui_draw_page()` in ui_draw.c picks the screen in priority order: uboot → menu → count-in → confirm → sequencer.
 - Drawing uses a 240×124-max canvas: `cv_begin/cv_rect/cv_rrect/cv_text*/cv_blit`, fonts `AF_S`/`AF_M`/`AF_L`, and
   theme colours `T_*`. Redraw only when a state signature changes or `ui.force` is set.
-- `song.grid` decides what the keys do: 0 notes, 2 silent (owned by a mode: the T-1 screen sets it). Values 1 (drum grid)
+- `song.grid` decides what the keys do: 0 notes, 2 silent (owned by a mode: the sequencer screen sets it). Values 1 (drum grid)
   and 3 (song slots) belong to removed modes; their branches are still in seq.c (v2 clean-up, see
   docs/design/CLEAN_HOUSE_REPORT.md).
 - Two-valued menu settings are bits in `ui_prefs`/`ui_rec_prefs`/`ui_prefs2` (ui.c), declared in `MENU_FLAGS`
   (menu_items.c). Adding a menu row changes the tab row counts asserted in `tests/ui_test.c`.
 
-**The T-1 sequencer** (to be grown into the channel/algorithm sequencer described above):
-- `torso_t1.h`/`.c`: data model (6 tracks × 6 cycles per Pattern, 128-byte `CycleParams`), the time-sorted micro
-  event queue, MIDI rings.
-- `torso_t1_algo.c`: Björklund Euclidean, pace/ratchet, scale quantise, chords/voicing, phrase contours, Galois
-  LFSR, p-locks.
-- `torso_t1_pipeline.c`: the 192-PPQN step evaluator `t1_pipeline_tick` plus the dispatcher. Track 0 goes to
-  `synth_note_on`, tracks 1–5 to the MIDI rings.
-- `torso_t1_state.c`: TEMP snapshot, GLOBAL offsets, flash layout. Saving is not wired up, and its offsets are not
-  yet mapped to a safe flash region.
-- `torso_t1_ui.c`: page/shift knob-to-parameter mapping and card text.
-- `t1_glue.c` (ISR side):
-  - `t1_block()` accumulates `n * 192` against `beat_samples()` and ticks the pipeline.
-  - It flushes MIDI to `midi_out_event` and plays track 0 on Felucca track 1.
-  - It handles start/stop (`t1_on_start/t1_on_stop`, with note-offs and CC123) and sets the default pattern
-    (track 2 = TB-3 bassline on channel 2).
-  - The T-1 buffers live in `.pool`.
-- `ui_t1.c` (main-loop side): screen and controls. It is always on (the MENU row is gone, P3-005; `t1_poll` sets the
-  mode every frame). While it's on, `events_block` runs `t1_block()` **in place of** the pattern tracks' `seq_tick`.
-- **Host tests link the real sources.** The host tests build the real `seq.c`, `ui*.c` and `torso_t1*.c` (P3-001), with
-  no `t1_mode` stub. `tests/host_t1_hooks.h` supplies what the T-1 needs from the device (the host side of
-  `midi_out_event`, `beat_samples`, and the hosted libc), and `t1_glue.c` is linked as on the device. The `T1_DEVICE`
-  guards in `torso_t1*.c` select the hosted includes. A new hook needs a host counterpart in `tests/host_t1_hooks.h`,
-  or the host tests fail to link.
+**The sequencer** (the T-1 pipeline, state, UI and glue files were removed in the cut-over, P4-012):
+- `sq_types.h` data model; `sq_prims.c` shared primitives; `sq_algo_acid.c` + `sq_algos.c` (the `ALGOS[]` table; only
+  ACID is filled, other rows are inert until P5); `sq_core.c` scheduler and event queue (`sq_block`, run from
+  `events_block` in the audio ISR once `sq_ready`); `sq_chan.c` channel state API, undo, presets; `clk_ext.c` clock
+  source model. `torso_t1_algo.c` keeps only what the new core uses (Bjorklund, rotate, pace, scale masks, contour).
+- `ui_sq.c` draws the screen (SCREEN_SPEC_V2: bands, tiles, music row, buttons, keybed, message slot; PERF, NOTE_EDIT,
+  CHAN, SET pages); `ui_sq_glue.c` wires controls and the per-frame sync (`sq_frame`). Screen code names no algorithm:
+  algorithms describe their own UI through `AlgoDesc`/`MorphDesc` (ADR-0007).
+- Host tests link the real `seq.c`, `ui*.c`, `sq_*.c` (see `tests/run_tests.sh`); a new device hook needs a host
+  counterpart in `tests/host_sq_hooks.h` or the tests fail to link.
 
 ## Docs and the algorithm catalogue
 
@@ -195,4 +176,4 @@ now), so MIDI out comes from the T-1 (`t1_glue.c` flushes its rings) and from li
 - When music theory and a test disagree, the theory wins: fix the fixture, as was done for the scale masks.
 - Keep generation deterministic: random lines come from per-track seeded LFSRs and repeat by `random_rate`.
 - `t1_lfsr_next` shifts only one bit per call, so take independent decisions from fresh bits (`t1_lfsr_byte`).
-- Every change must be checked on a real FM-1 before it counts as done. Host tests don't render the T-1 screen.
+- Every change must be checked on a real FM-1 before it counts as done. Host tests render the screen to PNG (build/ui_sq/) but hardware is the judge.
